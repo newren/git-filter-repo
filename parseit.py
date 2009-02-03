@@ -49,6 +49,16 @@ class ExactData(Token):
 
     return self.strRepr
 
+newmark = 0
+mark_dict = {}
+def translate_mark(old_mark = None):
+  if not old_mark or old_mark not in mark_dict:
+    global newmark
+    newmark += 1
+    mark_dict[old_mark] = newmark
+
+  return mark_dict[old_mark]
+
 class GitElement(object):
   def __init__(self):
     self.type = None
@@ -57,11 +67,11 @@ class GitElement(object):
     raise SystemExit("Unimplemented function: %s.dump()", type(self))
 
 class Blob(GitElement):
-  def __init__(self, mark, data):
+  def __init__(self, data, mark = None):
     GitElement.__init__(self)
     self.type = 'blob'
-    self.mark = mark
     self.data = data
+    self.mark = translate_mark(mark)
 
   def dump(self):
     sys.stdout.write('blob\n')
@@ -90,7 +100,7 @@ class FastExportParser(object):
     data = t[4]
     if datalen != len(data):
       raise SystemExit('%d != len(%s)' % datalen, data)
-    blob = Blob(mark, data)
+    blob = Blob(data, mark)
 
     # Call any user callback to allow them to modify the blob
     if self.blob_callback:
