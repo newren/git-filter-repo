@@ -5,7 +5,7 @@ import re
 import sha  # bleh...when can I assume python >= 2.5?
 import sys
 from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
-                      ZeroOrMore, ParseException
+                      Regex, ZeroOrMore, ParseException
 
 from pyparsing import Token, ParseResults
 class ExactData(Token):
@@ -78,6 +78,18 @@ class Blob(GitElement):
     sys.stdout.write('mark :%d\n' % self.mark)
     sys.stdout.write('data %d\n%s' % (len(self.data), self.data))
 
+class Reset(GitElement):
+  def __init__(self, ref, from_ref = None):
+    GitElement.__init__(self)
+    self.type = 'reset'
+    self.ref = ref
+    self.from_ref = from_ref
+
+  def dump(self):
+    sys.stdout.write('reset %s\n' % self.ref)
+    if self.from_ref:
+      sys.stdout.write('from %s\n' % self.from_ref)
+
 class FastExportParser(object):
   def __init__(self,
                tag_callback = None,   commit_callback = None,
@@ -114,6 +126,21 @@ class FastExportParser(object):
     sha1sum = sha.new(blob.data).hexdigest()
     return ['blob', blob.mark, len(blob.data), sha1sum]
 
+  def _make_reset(self, t):
+    # Create the Reset object from the parser tokens
+    ref = t[1]
+    from_ref = None
+    if len(t) > 2:
+      from_ref = t[4]
+    reset = Reset(ref, from_ref)
+
+    # Call any user callback to allow them to modify the reset
+    if self.reset_callback:
+      self.reset_callback(reset)
+
+    # Now print the resulting reset to stdout
+    reset.dump()
+
   def _setup_parser(self):
     # Basic setup
     ParserElement.setDefaultWhitespaceChars('')
@@ -121,18 +148,26 @@ class FastExportParser(object):
     lf = Literal('\n').suppress()
     sp = Literal(' ').suppress()
 
+    # Common constructs -- data, ref startpoints
+    exact_data = ExactData() + Optional(lf)
+    from_ref = Literal('from') + sp + Regex('.*') + lf
+
     # Parsing marks
     mark_name = Combine(Literal(':') + number)
     mark = Literal('mark').suppress() - sp + mark_name + lf
 
     # Parsing blobs
-    exact_data = ExactData() + Optional(lf)
     file_content = exact_data
     blob = Literal('blob') + lf + mark + file_content
     blob.setParseAction(lambda t: self._make_blob(t))
 
+    # Parsing branch resets
+    reset = Literal('reset') + sp + Regex('.*') + lf + \
+            Optional(from_ref) + Optional(lf)
+    reset.setParseAction(lambda t: self._make_reset(t))
+
     # Tying it all together
-    cmd = blob
+    cmd = blob | reset
     self.stream = ZeroOrMore(cmd)
 
   def parse(self, string):
