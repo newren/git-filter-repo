@@ -4,7 +4,8 @@ import commands
 import re
 import sha  # bleh...when can I assume python >= 2.5?
 import sys
-from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums
+from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
+                      ZeroOrMore, ParseException
 
 from pyparsing import Token, ParseResults
 class ExactData(Token):
@@ -104,20 +105,34 @@ class FastExportParser(object):
     return ['blob', blob.mark, len(blob.data), sha1sum]
 
   def _setup_parser(self):
+    # Basic setup
     ParserElement.setDefaultWhitespaceChars('')
     number = Word(nums)
     lf = Literal('\n').suppress()
     sp = Literal(' ').suppress()
+
+    # Parsing marks
     mark_name = Combine(Literal(':') + number)
     mark = Literal('mark').suppress() - sp + mark_name + lf
-    #exact_data = Literal('data') + sp + number + lf
-    exact_data = ExactData()
+
+    # Parsing blobs
+    exact_data = ExactData() + Optional(lf)
     file_content = exact_data
-    self.blob = Literal('blob') + lf + mark + file_content
-    self.blob.setParseAction(lambda t: self._make_blob(t))
+    blob = Literal('blob') + lf + mark + file_content
+    blob.setParseAction(lambda t: self._make_blob(t))
+
+    # Tying it all together
+    cmd = blob
+    self.stream = ZeroOrMore(cmd)
 
   def parse(self, string):
-    results = self.blob.parseString(string, parseAll = False)
+    try:
+      results = self.stream.parseString(string, parseAll = True)
+    except ParseException, err:
+      print err.line
+      print " "*(err.column-1) + "^"
+      print err
+      raise SystemExit
     return results
 
 
