@@ -169,6 +169,7 @@ class FastExportParser(object):
     # Tying it all together
     cmd = blob | reset
     self.stream = ZeroOrMore(cmd)
+    self.stream.parseWithTabs()
 
   def parse(self, string):
     try:
