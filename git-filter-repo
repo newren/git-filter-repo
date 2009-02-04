@@ -65,7 +65,7 @@ class GitElement(object):
   def __init__(self):
     self.type = None
 
-  def dump(self):
+  def dump(self, file):
     raise SystemExit("Unimplemented function: %s.dump()", type(self))
 
 class Blob(GitElement):
@@ -75,11 +75,11 @@ class Blob(GitElement):
     self.data = data
     self.mark = translate_mark(mark)
 
-  def dump(self):
-    sys.stdout.write('blob\n')
-    sys.stdout.write('mark :%d\n' % self.mark)
-    sys.stdout.write('data %d\n%s' % (len(self.data), self.data))
-    sys.stdout.write('\n')
+  def dump(self, file):
+    file.write('blob\n')
+    file.write('mark :%d\n' % self.mark)
+    file.write('data %d\n%s' % (len(self.data), self.data))
+    file.write('\n')
 
 class Reset(GitElement):
   def __init__(self, ref, from_ref = None):
@@ -88,10 +88,10 @@ class Reset(GitElement):
     self.ref = ref
     self.from_ref = from_ref
 
-  def dump(self):
-    sys.stdout.write('reset %s\n' % self.ref)
+  def dump(self, file):
+    file.write('reset %s\n' % self.ref)
     if self.from_ref:
-      sys.stdout.write('from %s\n' % self.from_ref)
+      file.write('from %s\n' % self.from_ref)
 
 class FileChanges(object):
   def __init__(self, filename, mode, mark = None):
@@ -99,8 +99,8 @@ class FileChanges(object):
     self.mode = mode
     self.mark = translate_mark(mark)
 
-  def dump(self):
-    sys.stdout.write('M %s :%d %s\n' % (self.mode, self.mark, self.filename))
+  def dump(self, file):
+    file.write('M %s :%d %s\n' % (self.mode, self.mark, self.filename))
 
 class Commit(GitElement):
   def __init__(self, branch,
@@ -129,22 +129,22 @@ class Commit(GitElement):
       self.from_commit = None
     self.merge_commits = [translate_mark(mark) for mark in merge_commits]
 
-  def dump(self):
-    sys.stdout.write('commit %s\n' % self.branch)
-    sys.stdout.write('mark :%d\n' % self.mark)
-    sys.stdout.write('author %s <%s> %s\n' % \
+  def dump(self, file):
+    file.write('commit %s\n' % self.branch)
+    file.write('mark :%d\n' % self.mark)
+    file.write('author %s <%s> %s\n' % \
                      (self.author_name, self.author_email, self.author_date))
-    sys.stdout.write('committer %s <%s> %s\n' % \
+    file.write('committer %s <%s> %s\n' % \
                      (self.committer_name, self.committer_email,
                       self.committer_date))
-    sys.stdout.write('data %d\n%s' % (len(self.message), self.message))
+    file.write('data %d\n%s' % (len(self.message), self.message))
     if self.from_commit:
-      sys.stdout.write('from :%s\n' % self.from_commit)
+      file.write('from :%s\n' % self.from_commit)
     for ref in self.merge_commits:
-      sys.stdout.write('merge :%s\n' % ref)
+      file.write('merge :%s\n' % ref)
     for change in self.file_changes:
-      change.dump()
-    sys.stdout.write('\n')
+      change.dump(file)
+    file.write('\n')
 
 class FastExportParser(object):
   def __init__(self,
@@ -161,6 +161,8 @@ class FastExportParser(object):
     self.checkpoint_callback = checkpoint_callback
     self.everything_callback = everything_callback
 
+    self.output = sys.stdout
+
   def _make_blob(self, t):
     # Create the Blob object from the parser tokens
     mark = int(t[1][1:])
@@ -175,7 +177,7 @@ class FastExportParser(object):
       self.blob_callback(blob)
 
     # Now print the resulting blob to stdout
-    blob.dump()
+    blob.dump(self.output)
 
     # Replace data with its sha1sum to cut down on memory usage
     # (python parser stores whole resulting parse tree in memory)
@@ -195,7 +197,7 @@ class FastExportParser(object):
       self.reset_callback(reset)
 
     # Now print the resulting reset to stdout
-    reset.dump()
+    reset.dump(self.output)
 
   def _make_commit(self, t):
     #
@@ -269,7 +271,7 @@ class FastExportParser(object):
       self.commit_callback(reset)
 
     # Now print the resulting commit to stdout
-    commit.dump()
+    commit.dump(self.output)
 
   def _setup_parser(self):
     # Basic setup
