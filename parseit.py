@@ -150,14 +150,15 @@ class FastExportParser(object):
 
     # Common constructs -- data, ref startpoints
     exact_data = ExactData() + Optional(lf)
+    data = exact_data  # FIXME: Should allow delimited_data too
     from_ref = Literal('from') + sp + Regex('.*') + lf
 
     # Parsing marks
-    mark_name = Combine(Literal(':') + number)
-    mark = Literal('mark').suppress() - sp + mark_name + lf
+    idnum = Combine(Literal(':') + number)
+    mark = Literal('mark').suppress() - sp + idnum + lf
 
     # Parsing blobs
-    file_content = exact_data
+    file_content = data
     blob = Literal('blob') + lf + mark + file_content
     blob.setParseAction(lambda t: self._make_blob(t))
 
