@@ -5,7 +5,9 @@ import re
 import sha  # bleh...when can I assume python >= 2.5?
 import sys
 from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
-                      Regex, ZeroOrMore, ParseException
+                      Regex, ZeroOrMore, OneOrMore, CharsNotIn, \
+                      dblQuotedString, \
+                      ParseException, ParseSyntaxException
 
 from pyparsing import Token, ParseResults
 class ExactData(Token):
@@ -77,6 +79,7 @@ class Blob(GitElement):
     sys.stdout.write('blob\n')
     sys.stdout.write('mark :%d\n' % self.mark)
     sys.stdout.write('data %d\n%s' % (len(self.data), self.data))
+    sys.stdout.write('\n')
 
 class Reset(GitElement):
   def __init__(self, ref, from_ref = None):
@@ -89,6 +92,50 @@ class Reset(GitElement):
     sys.stdout.write('reset %s\n' % self.ref)
     if self.from_ref:
       sys.stdout.write('from %s\n' % self.from_ref)
+
+class Commit(GitElement):
+  def __init__(self, branch,
+               author_name,    author_email,    author_date,
+               committer_name, committer_email, committer_date,
+               message,
+               file_changes,
+               mark = None,
+               from_commit = None,
+               merge_commits = []):
+    GitElement.__init__(self)
+    self.type = 'commit'
+    self.branch = branch
+    self.author_name  = author_name
+    self.author_email = author_email
+    self.author_date  = author_date
+    self.committer_name  = committer_name
+    self.committer_email = committer_email
+    self.committer_date  = committer_date
+    self.message = message
+    self.file_changes = file_changes
+    self.mark = translate_mark(mark)
+    if from_commit:
+      self.from_commit = translate_mark(from_commit)
+    else:
+      self.from_commit = None
+    self.merge_commits = [translate_mark(mark) for mark in merge_commits]
+
+  def dump(self):
+    sys.stdout.write('commit %s\n' % self.branch)
+    sys.stdout.write('mark :%d\n' % self.mark)
+    sys.stdout.write('author %s <%s> %s\n' % \
+                     (self.author_name, self.author_email, self.author_date))
+    sys.stdout.write('committer %s <%s> %s\n' % \
+                     (self.committer_name, self.committer_email,
+                      self.committer_date))
+    sys.stdout.write('data %d\n%s' % (len(self.message), self.message))
+    if self.from_commit:
+      sys.stdout.write('from :%s\n' % self.from_commit)
+    for ref in self.merge_commits:
+      sys.stdout.write('merge :%s\n' % ref)
+    for change in self.file_changes:
+      sys.stdout.write(' '.join(change) + '\n')
+    sys.stdout.write('\n')
 
 class FastExportParser(object):
   def __init__(self, 
@@ -141,6 +188,80 @@ class FastExportParser(object):
     # Now print the resulting reset to stdout
     reset.dump()
 
+  def _make_commit(self, t):
+    #
+    # Create the Commit object from the parser tokens...
+    #
+
+    # Get the branch
+    branch = t[1]
+    loc = 2
+
+    # Get the optional mark
+    mark = None
+    if t[loc].startswith(':'):
+      mark = int(t[loc][1:])
+      loc += 1
+
+    # Get the committer; we'll get back to the author in a minute
+    offset = (t[loc] == 'author') and loc+4 or loc
+    committer_name  = t[offset+1]
+    committer_email = t[offset+2]
+    committer_date  = t[offset+3]
+
+    # Get the optional author
+    if t[loc] == 'author':
+      author_name  = t[loc+1]
+      author_email = t[loc+2]
+      author_date  = t[loc+3]
+      loc += 8
+    else:
+      author_name  = committer_name
+      author_email = committer_email
+      author_date  = committer_date
+      loc += 4
+
+    # Get the commit message
+    messagelen = int(t[loc+1])
+    message = t[loc+2] # Skip 'data' and len(message)
+    if messagelen != len(message):
+      raise SystemExit("Commit message's length mismatch; %d != len(%s)" % \
+                       messagelen, message)
+    loc += 3
+
+    # Get the commit we're supposed to be based on, if other than HEAD
+    from_commit = None
+    if t[loc] == 'from':
+      from_commit = int(t[loc+1][1:])
+      loc += 2
+
+    # Find out if this is a merge commit, and if so what commits other than
+    # HEAD are involved
+    merge_commits = []
+    while t[loc] == 'merge':
+      merge_commits.append( int(t[loc+1][1:]) )
+      loc += 2
+
+    # Get file changes
+    file_changes = t[loc:]
+
+    # Okay, now we can finally create the Commit object
+    commit = Commit(branch,
+                    author_name,    author_email,    author_date,
+                    committer_name, committer_email, committer_date,
+                    message,
+                    file_changes,
+                    mark,
+                    from_commit,
+                    merge_commits)
+
+    # Call any user callback to allow them to modify the commit
+    if self.commit_callback:
+      self.commit_callback(reset)
+
+    # Now print the resulting commit to stdout
+    commit.dump()
+
   def _setup_parser(self):
     # Basic setup
     ParserElement.setDefaultWhitespaceChars('')
@@ -151,7 +272,12 @@ class FastExportParser(object):
     # Common constructs -- data, ref startpoints
     exact_data = ExactData() + Optional(lf)
     data = exact_data  # FIXME: Should allow delimited_data too
-    from_ref = Literal('from') + sp + Regex('.*') + lf
+    from_ref  = Literal('from')  + sp + Regex('.*') + lf
+    merge_ref = Literal('merge') + sp + Regex('.*') + lf
+    person_info = sp + Regex('[^<\n]*(?=[ ])') + sp + \
+                  Literal('<').suppress() + Regex('[^<>\n]*') + \
+                  Literal('>').suppress() + sp + \
+                  Regex('.*') + lf
 
     # Parsing marks
     idnum = Combine(Literal(':') + number)
@@ -167,8 +293,32 @@ class FastExportParser(object):
             Optional(from_ref) + Optional(lf)
     reset.setParseAction(lambda t: self._make_reset(t))
 
+    # Parsing file changes
+    mode = Literal('100644') | Literal('644') | Literal('100755') | \
+           Literal('755') | Literal('120000')
+    path_str = CharsNotIn(' \n') | dblQuotedString
+    file_obm = Literal('M') - sp + mode + sp + idnum + sp + path_str + lf
+    file_change = file_obm
+    #file_change = file_clr|file_del|file_rnm|file_cpy|file_obm|file_inm
+    file_change.setParseAction(lambda t: [t])
+
+    # Parsing commits
+    author_info = Literal('author') + person_info
+    committer_info = Literal('committer') + person_info
+    commit_msg = data
+    commit = Literal('commit') + sp + Regex('.*') + lf + \
+             Optional(mark) +                            \
+             Optional(author_info) +                     \
+             committer_info +                            \
+             commit_msg +                                \
+             Optional(from_ref) +                        \
+             ZeroOrMore(merge_ref) +                     \
+             ZeroOrMore(file_change) +                   \
+             Optional(lf)
+    commit.setParseAction(lambda t: self._make_commit(t))
+
     # Tying it all together
-    cmd = blob | reset
+    cmd = blob | reset | commit
     self.stream = ZeroOrMore(cmd)
     self.stream.parseWithTabs()
 
@@ -176,6 +326,11 @@ class FastExportParser(object):
     try:
       results = self.stream.parseString(string, parseAll = True)
     except ParseException, err:
+      print err.line
+      print " "*(err.column-1) + "^"
+      print err
+      raise SystemExit
+    except ParseSyntaxException, err:
       print err.line
       print " "*(err.column-1) + "^"
       print err
