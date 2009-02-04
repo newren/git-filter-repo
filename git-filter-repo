@@ -93,6 +93,15 @@ class Reset(GitElement):
     if self.from_ref:
       sys.stdout.write('from %s\n' % self.from_ref)
 
+class FileChanges(object):
+  def __init__(self, filename, mode, mark = None):
+    self.filename = filename
+    self.mode = mode
+    self.mark = translate_mark(mark)
+
+  def dump(self):
+    sys.stdout.write('M %s :%d %s\n' % (self.mode, self.mark, self.filename))
+
 class Commit(GitElement):
   def __init__(self, branch,
                author_name,    author_email,    author_date,
@@ -134,7 +143,7 @@ class Commit(GitElement):
     for ref in self.merge_commits:
       sys.stdout.write('merge :%s\n' % ref)
     for change in self.file_changes:
-      sys.stdout.write(' '.join(change) + '\n')
+      change.dump()
     sys.stdout.write('\n')
 
 class FastExportParser(object):
@@ -300,7 +309,7 @@ class FastExportParser(object):
     file_obm = Literal('M') - sp + mode + sp + idnum + sp + path_str + lf
     file_change = file_obm
     #file_change = file_clr|file_del|file_rnm|file_cpy|file_obm|file_inm
-    file_change.setParseAction(lambda t: [t])
+    file_change.setParseAction(lambda t: FileChanges(t[3], t[1], int(t[2][1:])))
 
     # Parsing commits
     author_info = Literal('author') + person_info
