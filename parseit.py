@@ -1,9 +1,7 @@
-#!/usr/bin/env python
-
 import os
 import re
-import sha  # bleh...when can I assume python >= 2.5?
 import sys
+from subprocess import Popen, PIPE
 from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
                       Regex, ZeroOrMore, OneOrMore, CharsNotIn, \
                       dblQuotedString, \
@@ -12,7 +10,7 @@ from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
 from pyparsing import Token, ParseResults
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit",
-           "FastExportFilter", "FilterGitRepo"]
+           "get_total_commits", "FastExportFilter", "FilterGitRepo"]
 
 class ExactData(Token):
   """Specialized pyparsing subclass for handling data dumps in git-fast-import
@@ -404,8 +402,6 @@ class FastExportFilter(object):
 
 class FilterGitRepo(object):
   def __init__(self, source_repo, filter, target_repo):
-    from subprocess import Popen, PIPE
-
     input = Popen(["git", "fast-export", "--all"], 
                   stdout = PIPE,
                   cwd = source_repo).stdout
@@ -415,9 +411,12 @@ class FilterGitRepo(object):
       os.waitpid(Popen(["git", "init"], cwd = target_repo).pid, 0)
     output = Popen(["git", "fast-import"],
                    stdin = PIPE,
+                   stderr = PIPE,  # We don't want no stinkin' statistics
                    cwd = target_repo).stdin
 
     filter.run(input, output)
 
-filter = FastExportFilter()
-FilterGitRepo("basic-import", filter, "testing")
+def get_total_commits(repo):
+  p1 = Popen(["git", "rev-list", "--all"], stdout = PIPE, cwd = repo)
+  p2 = Popen(["wc", "-l"], stdin = p1.stdout, stdout = PIPE)
+  return int(p2.communicate()[0])
