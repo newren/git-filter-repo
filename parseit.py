@@ -185,6 +185,8 @@ class FastExportFilter(object):
     # Call any user callback to allow them to modify the blob
     if self.blob_callback:
       self.blob_callback(blob)
+    if self.everything_callback:
+      self.everything_callback('blob', blob)
 
     # Now print the resulting blob to stdout
     blob.dump(self.output)
@@ -203,6 +205,8 @@ class FastExportFilter(object):
     # Call any user callback to allow them to modify the reset
     if self.reset_callback:
       self.reset_callback(reset)
+    if self.everything_callback:
+      self.everything_callback('reset', reset)
 
     # Now print the resulting reset to stdout
     reset.dump(self.output)
@@ -290,7 +294,9 @@ class FastExportFilter(object):
 
     # Call any user callback to allow them to modify the commit
     if self.commit_callback:
-      self.commit_callback(reset)
+      self.commit_callback(commit)
+    if self.everything_callback:
+      self.everything_callback('commit', commit)
 
     # Now print the resulting commit to stdout
     commit.dump(self.output)
