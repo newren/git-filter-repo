@@ -94,13 +94,18 @@ class Reset(GitElement):
       file.write('from %s\n' % self.from_ref)
 
 class FileChanges(object):
-  def __init__(self, filename, mode, mark = None):
+  def __init__(self, type, filename, mode = None, mark = None):
+    self.type = type
     self.filename = filename
     self.mode = mode
-    self.mark = translate_mark(mark)
+    if type == 'M':
+      self.mark = translate_mark(mark)
 
   def dump(self, file):
-    file.write('M %s :%d %s\n' % (self.mode, self.mark, self.filename))
+    if self.type == 'M':
+      file.write('M %s :%d %s\n' % (self.mode, self.mark, self.filename))
+    elif self.type == 'D':
+      file.write('D %s\n' % self.filename)
 
 class Commit(GitElement):
   def __init__(self, branch,
@@ -198,6 +203,16 @@ class FastExportParser(object):
 
     # Now print the resulting reset to stdout
     reset.dump(self.output)
+
+  def _make_file_changes(self, t):
+    if t[0] == 'M':
+      mode = t[1]
+      mark = int(t[2][1:])
+      filename = t[3]
+      return FileChanges(t[0], filename, mode, mark)
+    elif t[0] == 'D':
+      filename = t[1]
+      return FileChanges(t[0], filename)
 
   def _make_commit(self, t):
     #
@@ -310,9 +325,10 @@ class FastExportParser(object):
            Literal('755') | Literal('120000')
     path_str = CharsNotIn(' \n') | dblQuotedString
     file_obm = Literal('M') - sp + mode + sp + idnum + sp + path_str + lf
-    file_change = file_obm
+    file_del = Literal('D') - sp + path_str + lf
+    file_change = file_obm | file_del
     #file_change = file_clr|file_del|file_rnm|file_cpy|file_obm|file_inm
-    file_change.setParseAction(lambda t: FileChanges(t[3], t[1], int(t[2][1:])))
+    file_change.setParseAction(lambda t: self._make_file_changes(t))
 
     # Parsing commits
     author_info = Literal('author') + person_info
