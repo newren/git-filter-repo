@@ -11,7 +11,8 @@ from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
 
 from pyparsing import Token, ParseResults
 
-__all__ = ["Blob", "Reset", "FileChanges", "Commit", "FilterGitRepo"]
+__all__ = ["Blob", "Reset", "FileChanges", "Commit",
+           "FastExportFilter", "FilterGitRepo"]
 
 class ExactData(Token):
   """Specialized pyparsing subclass for handling data dumps in git-fast-import
@@ -155,7 +156,7 @@ class Commit(GitElement):
       change.dump(file)
     file.write('\n')
 
-class FastExportParser(object):
+class FastExportFilter(object):
   def __init__(self,
                tag_callback = None,   commit_callback = None,
                blob_callback = None,  progress_callback = None,
@@ -358,7 +359,7 @@ class FastExportParser(object):
     self.stream = ZeroOrMore(cmd)
     self.stream.parseWithTabs()
 
-  def parseFile(self, input_file, output_file):
+  def run(self, input_file, output_file):
     if output_file:
       self.output = output_file
     try:
@@ -377,7 +378,7 @@ class FastExportParser(object):
     output_file.close()
 
 class FilterGitRepo(object):
-  def __init__(self, source_repo, target_repo):
+  def __init__(self, source_repo, filter, target_repo):
     from subprocess import Popen, PIPE
 
     input = Popen(["git", "fast-export", "--all"],
@@ -391,7 +392,7 @@ class FilterGitRepo(object):
                    stdin = PIPE,
                    cwd = target_repo).stdin
 
-    parser = FastExportParser()
-    parser.parseFile(input, output)
+    filter.run(input, output)
 
-FilterGitRepo("basic-import", "testing")
+filter = FastExportFilter()
+FilterGitRepo("basic-import", filter, "testing")
