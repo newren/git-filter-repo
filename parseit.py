@@ -207,6 +207,7 @@ class FastExportParser(object):
     # Get the branch
     branch = t[1]
     loc = 2
+    tlen = len(t)
 
     # Get the optional mark
     mark = None
@@ -242,14 +243,14 @@ class FastExportParser(object):
 
     # Get the commit we're supposed to be based on, if other than HEAD
     from_commit = None
-    if t[loc] == 'from':
+    if loc < tlen and t[loc] == 'from':
       from_commit = int(t[loc+1][1:])
       loc += 2
 
     # Find out if this is a merge commit, and if so what commits other than
     # HEAD are involved
     merge_commits = []
-    while t[loc] == 'merge':
+    while loc < tlen and t[loc] == 'merge':
       merge_commits.append( int(t[loc+1][1:]) )
       loc += 2
 
