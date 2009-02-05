@@ -92,6 +92,7 @@ class Reset(GitElement):
     file.write('reset %s\n' % self.ref)
     if self.from_ref:
       file.write('from %s\n' % self.from_ref)
+      file.write('\n')
 
 class FileChanges(object):
   def __init__(self, type, filename, mode = None, mark = None):
