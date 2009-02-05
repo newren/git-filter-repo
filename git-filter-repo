@@ -189,7 +189,7 @@ class FastExportParser(object):
     ref = t[1]
     from_ref = None
     if len(t) > 2:
-      from_ref = t[4]
+      from_ref = t[3]
     reset = Reset(ref, from_ref)
 
     # Call any user callback to allow them to modify the reset
