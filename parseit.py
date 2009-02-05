@@ -55,15 +55,30 @@ class ExactData(Token):
 
     return self.strRepr
 
-newmark = 0
-mark_dict = {}
-def translate_mark(old_mark = None):
-  if not old_mark or old_mark not in mark_dict:
-    global newmark
-    newmark += 1
-    mark_dict[old_mark] = newmark
+class IDs(object):
+  def __init__(self):
+    self.count = 0
+    self.translation = {}
 
-  return mark_dict[old_mark]
+  def new(self):
+    self.count += 1
+    return self.count
+
+  def record_rename(self, old_id, new_id):
+    for id in [old_id, new_id]:
+      if id > self.count:
+        raise SystemExit("Specified ID, %d, has not been created yet." % id)
+    if old_id != new_id:
+      self.translation[old_id] = new_id
+
+  def translate(self, old_id):
+    if old_id > self.count:
+      raise SystemExit("Specified ID, %d, has not been created yet." % old_id)
+    if old_id in self.translation:
+      return self.translation[old_id]
+    else:
+      return old_id
+ids = IDs()
 
 class GitElement(object):
   def __init__(self):
@@ -73,15 +88,15 @@ class GitElement(object):
     raise SystemExit("Unimplemented function: %s.dump()", type(self))
 
 class Blob(GitElement):
-  def __init__(self, data, mark = None):
+  def __init__(self, data):
     GitElement.__init__(self)
     self.type = 'blob'
     self.data = data
-    self.mark = translate_mark(mark)
+    self.id = ids.new()
 
   def dump(self, file):
     file.write('blob\n')
-    file.write('mark :%d\n' % self.mark)
+    file.write('mark :%d\n' % self.id)
     file.write('data %d\n%s' % (len(self.data), self.data))
     file.write('\n')
 
@@ -95,20 +110,22 @@ class Reset(GitElement):
   def dump(self, file):
     file.write('reset %s\n' % self.ref)
     if self.from_ref:
-      file.write('from %s\n' % self.from_ref)
+      file.write('from :%d\n' % self.from_ref)
       file.write('\n')
 
 class FileChanges(object):
-  def __init__(self, type, filename, mode = None, mark = None):
+  def __init__(self, type, filename, mode = None, id = None):
     self.type = type
     self.filename = filename
-    self.mode = mode
     if type == 'M':
-      self.mark = translate_mark(mark)
+      if not mode or not id:
+        raise SystemExit("file mode and idnum needed for %s" % filename)
+      self.mode = mode
+      self.id = id
 
   def dump(self, file):
     if self.type == 'M':
-      file.write('M %s :%d %s\n' % (self.mode, self.mark, self.filename))
+      file.write('M %s :%d %s\n' % (self.mode, self.id, self.filename))
     elif self.type == 'D':
       file.write('D %s\n' % self.filename)
 
@@ -118,7 +135,6 @@ class Commit(GitElement):
                committer_name, committer_email, committer_date,
                message,
                file_changes,
-               mark = None,
                from_commit = None,
                merge_commits = []):
     GitElement.__init__(self)
@@ -132,16 +148,13 @@ class Commit(GitElement):
     self.committer_date  = committer_date
     self.message = message
     self.file_changes = file_changes
-    self.mark = translate_mark(mark)
-    if from_commit:
-      self.from_commit = translate_mark(from_commit)
-    else:
-      self.from_commit = None
-    self.merge_commits = [translate_mark(mark) for mark in merge_commits]
+    self.id = ids.new()
+    self.from_commit = from_commit
+    self.merge_commits = merge_commits
 
   def dump(self, file):
     file.write('commit %s\n' % self.branch)
-    file.write('mark :%d\n' % self.mark)
+    file.write('mark :%d\n' % self.id)
     file.write('author %s <%s> %s\n' % \
                      (self.author_name, self.author_email, self.author_date))
     file.write('committer %s <%s> %s\n' % \
@@ -175,12 +188,13 @@ class FastExportFilter(object):
 
   def _make_blob(self, t):
     # Create the Blob object from the parser tokens
-    mark = int(t[1][1:])
+    id = int(t[1][1:])
     datalen = int(t[3])
     data = t[4]
     if datalen != len(data):
       raise SystemExit('%d != len(%s)' % datalen, data)
-    blob = Blob(data, mark)
+    blob = Blob(data)
+    ids.record_rename(id, blob.id)
 
     # Call any user callback to allow them to modify the blob
     if self.blob_callback:
@@ -199,7 +213,8 @@ class FastExportFilter(object):
     ref = t[1]
     from_ref = None
     if len(t) > 2:
-      from_ref = t[3]
+      old_id = int(t[3][1:])
+      from_ref = ids.translate(old_id)
     reset = Reset(ref, from_ref)
 
     # Call any user callback to allow them to modify the reset
@@ -217,9 +232,11 @@ class FastExportFilter(object):
   def _make_file_changes(self, t):
     if t[0] == 'M':
       mode = t[1]
-      mark = int(t[2][1:])
+      old_id = int(t[2][1:])
+      id = ids.translate(old_id)
+
       filename = t[3]
-      return FileChanges(t[0], filename, mode, mark)
+      return FileChanges(t[0], filename, mode, id)
     elif t[0] == 'D':
       filename = t[1]
       return FileChanges(t[0], filename)
@@ -235,9 +252,9 @@ class FastExportFilter(object):
     tlen = len(t)
 
     # Get the optional mark
-    mark = None
+    id = None
     if t[loc].startswith(':'):
-      mark = int(t[loc][1:])
+      id = int(t[loc][1:])
       loc += 1
 
     # Get the committer; we'll get back to the author in a minute
@@ -269,14 +286,15 @@ class FastExportFilter(object):
     # Get the commit we're supposed to be based on, if other than HEAD
     from_commit = None
     if loc < tlen and t[loc] == 'from':
-      from_commit = int(t[loc+1][1:])
+      old_id = int(t[loc+1][1:])
+      from_commit = ids.translate(old_id)
       loc += 2
 
     # Find out if this is a merge commit, and if so what commits other than
     # HEAD are involved
     merge_commits = []
     while loc < tlen and t[loc] == 'merge':
-      merge_commits.append( int(t[loc+1][1:]) )
+      merge_commits.append(ids.translate( int(t[loc+1][1:]) ))
       loc += 2
 
     # Get file changes
@@ -288,9 +306,10 @@ class FastExportFilter(object):
                     committer_name, committer_email, committer_date,
                     message,
                     file_changes,
-                    mark,
                     from_commit,
                     merge_commits)
+    if id:
+      ids.record_rename(id, commit.id)
 
     # Call any user callback to allow them to modify the commit
     if self.commit_callback:
