@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import commands
+import os
 import re
 import sha  # bleh...when can I assume python >= 2.5?
 import sys
@@ -10,6 +10,9 @@ from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
                       ParseException, ParseSyntaxException
 
 from pyparsing import Token, ParseResults
+
+__all__ = ["Blob", "Reset", "FileChanges", "Commit", "FilterGitRepo"]
+
 class ExactData(Token):
   """Specialized pyparsing subclass for handling data dumps in git-fast-import
      exact data format"""
@@ -185,10 +188,8 @@ class FastExportParser(object):
     # Now print the resulting blob to stdout
     blob.dump(self.output)
 
-    # Replace data with its sha1sum to cut down on memory usage
-    # (python parser stores whole resulting parse tree in memory)
-    sha1sum = sha.new(blob.data).hexdigest()
-    return ['blob', blob.mark, len(blob.data), sha1sum]
+    # We don't need the parser tokens anymore
+    return []
 
   def _make_reset(self, t):
     # Create the Reset object from the parser tokens
@@ -204,6 +205,9 @@ class FastExportParser(object):
 
     # Now print the resulting reset to stdout
     reset.dump(self.output)
+
+    # We don't need the parser tokens anymore
+    return []
 
   def _make_file_changes(self, t):
     if t[0] == 'M':
@@ -290,6 +294,9 @@ class FastExportParser(object):
     # Now print the resulting commit to stdout
     commit.dump(self.output)
 
+    # We don't need the parser tokens anymore
+    return []
+
   def _setup_parser(self):
     # Basic setup
     ParserElement.setDefaultWhitespaceChars('')
@@ -351,9 +358,11 @@ class FastExportParser(object):
     self.stream = ZeroOrMore(cmd)
     self.stream.parseWithTabs()
 
-  def parse(self, string):
+  def parseFile(self, input_file, output_file):
+    if output_file:
+      self.output = output_file
     try:
-      results = self.stream.parseString(string, parseAll = True)
+      results = self.stream.parseFile(input_file)
     except ParseException, err:
       print err.line
       print " "*(err.column-1) + "^"
@@ -364,10 +373,25 @@ class FastExportParser(object):
       print " "*(err.column-1) + "^"
       print err
       raise SystemExit
-    return results
+    input_file.close()
+    output_file.close()
 
+class FilterGitRepo(object):
+  def __init__(self, source_repo, target_repo):
+    from subprocess import Popen, PIPE
 
-parser = FastExportParser()
-string = commands.getoutput("GIT_DIR=foo/.git git fast-export --all")
-results = parser.parse(string)
-print results
+    input = Popen(["git", "fast-export", "--all"],
+                  stdout = PIPE,
+                  cwd = source_repo).stdout
+
+    if not os.path.isdir(target_repo):
+      os.makedirs(target_repo)
+      os.waitpid(Popen(["git", "init"], cwd = target_repo).pid, 0)
+    output = Popen(["git", "fast-import"],
+                   stdin = PIPE,
+                   cwd = target_repo).stdin
+
+    parser = FastExportParser()
+    parser.parseFile(input, output)
+
+FilterGitRepo("basic-import", "testing")
