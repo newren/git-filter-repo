@@ -9,8 +9,8 @@ from pyparsing import ParserElement, Literal, Optional, Combine, Word, nums, \
 
 from pyparsing import Token, ParseResults
 
-__all__ = ["Blob", "Reset", "FileChanges", "Commit",
-           "get_total_commits", "FastExportFilter", "FilterGitRepo"]
+__all__ = ["Blob", "Reset", "FileChanges", "Commit", "get_total_commits",
+           "FastExportFilter", "FastExportOuput", "FastImportInput"]
 
 class ExactData(Token):
   """Specialized pyparsing subclass for handling data dumps in git-fast-import
@@ -81,6 +81,7 @@ ids = IDs()
 class GitElement(object):
   def __init__(self):
     self.type = None
+    self.dumped = 0
 
   def dump(self, file):
     raise SystemExit("Unimplemented function: %s.dump()", type(self))
@@ -93,6 +94,9 @@ class Blob(GitElement):
     self.id = ids.new()
 
   def dump(self, file):
+    if self.dumped: return
+    self.dumped = 1
+
     file.write('blob\n')
     file.write('mark :%d\n' % self.id)
     file.write('data %d\n%s' % (len(self.data), self.data))
@@ -106,13 +110,17 @@ class Reset(GitElement):
     self.from_ref = from_ref
 
   def dump(self, file):
+    if self.dumped: return
+    self.dumped = 1
+
     file.write('reset %s\n' % self.ref)
     if self.from_ref:
       file.write('from :%d\n' % self.from_ref)
       file.write('\n')
 
-class FileChanges(object):
+class FileChanges(GitElement):
   def __init__(self, type, filename, mode = None, id = None):
+    GitElement.__init__(self)
     self.type = type
     self.filename = filename
     if type == 'M':
@@ -122,6 +130,9 @@ class FileChanges(object):
       self.id = id
 
   def dump(self, file):
+    if self.dumped: return
+    self.dumped = 1
+
     if self.type == 'M':
       file.write('M %s :%d %s\n' % (self.mode, self.id, self.filename))
     elif self.type == 'D':
@@ -151,6 +162,9 @@ class Commit(GitElement):
     self.merge_commits = merge_commits
 
   def dump(self, file):
+    if self.dumped: return
+    self.dumped = 1
+
     file.write('commit %s\n' % self.branch)
     file.write('mark :%d\n' % self.id)
     file.write('author %s <%s> %s\n' % \
@@ -400,21 +414,19 @@ class FastExportFilter(object):
     input_file.close()
     output_file.close()
 
-class FilterGitRepo(object):
-  def __init__(self, source_repo, filter, target_repo):
-    input = Popen(["git", "fast-export", "--all"],
-                  stdout = PIPE,
-                  cwd = source_repo).stdout
+def FastExportOutput(source_repo, extra_args = []):
+  return Popen(["git", "fast-export", "--all"] + extra_args,
+               stdout = PIPE,
+               cwd = source_repo).stdout
 
-    if not os.path.isdir(target_repo):
-      os.makedirs(target_repo)
-      os.waitpid(Popen(["git", "init"], cwd = target_repo).pid, 0)
-    output = Popen(["git", "fast-import"],
-                   stdin = PIPE,
-                   stderr = PIPE,  # We don't want no stinkin' statistics
-                   cwd = target_repo).stdin
-
-    filter.run(input, output)
+def FastImportInput(target_repo, extra_args = []):
+  if not os.path.isdir(target_repo):
+    os.makedirs(target_repo)
+    os.waitpid(Popen(["git", "init"], cwd = target_repo).pid, 0)
+  return Popen(["git", "fast-import"] + extra_args,
+               stdin = PIPE,
+               stderr = PIPE,  # We don't want no stinkin' statistics
+               cwd = target_repo).stdin
 
 def get_total_commits(repo):
   p1 = Popen(["git", "rev-list", "--all"], stdout = PIPE, cwd = repo)
