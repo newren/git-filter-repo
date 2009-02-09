@@ -2,7 +2,7 @@ import os
 import re
 import sys
 from subprocess import Popen, PIPE, call
-from email.utils import unquote
+from email.Utils import unquote
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "get_total_commits",
            "FastExportFilter", "FastExportOuput", "FastImportInput"]
