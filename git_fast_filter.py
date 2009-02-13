@@ -363,3 +363,9 @@ def get_total_commits(repo):
   p1 = Popen(["git", "rev-list", "--all"], stdout = PIPE, cwd = repo)
   p2 = Popen(["wc", "-l"], stdin = p1.stdout, stdout = PIPE)
   return int(p2.communicate()[0])
+
+def get_total_objects(repo):
+  p1 = Popen(["git", "count-objects", "-v"], stdout = PIPE, cwd = repo)
+  lines = p1.stdout.read().splitlines()
+  # Return unpacked objects + packed-objects
+  return int(lines[0].split()[1]) + int(lines[2].split()[1])
