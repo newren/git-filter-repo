@@ -36,9 +36,13 @@ class GitElement(object):
   def __init__(self):
     self.type = None
     self.dumped = 0
+    self.old_id = None
 
   def dump(self, file):
     raise SystemExit("Unimplemented function: %s.dump()", type(self))
+
+  def set_old_id(self, value):
+    self.old_id = value
 
 class Blob(GitElement):
   def __init__(self, data):
@@ -56,6 +60,10 @@ class Blob(GitElement):
     file.write('data %d\n%s' % (len(self.data), self.data))
     file.write('\n')
 
+  def skip(self):
+    self.dumped = 2
+    ids.record_rename(self.old_id or self.id, None)
+
 class Reset(GitElement):
   def __init__(self, ref, from_ref = None):
     GitElement.__init__(self)
@@ -72,19 +80,25 @@ class Reset(GitElement):
       file.write('from :%d\n' % self.from_ref)
       file.write('\n')
 
+  def skip(self):
+    self.dumped = 2
+
 class FileChanges(GitElement):
-  def __init__(self, type, filename, mode = None, id = None):
+  def __init__(self, type, filename, id = None, mode = None):
     GitElement.__init__(self)
     self.type = type
     self.filename = filename
+    self.mode = None
+    self.id = None
     if type == 'M':
-      if not mode or not id:
+      if mode is None:
         raise SystemExit("file mode and idnum needed for %s" % filename)
       self.mode = mode
       self.id = id
 
   def dump(self, file):
-    if self.dumped: return
+    skipped = (self.type == 'M' and self.id is None)
+    if self.dumped or skipped: return
     self.dumped = 1
 
     if self.type == 'M':
@@ -93,6 +107,9 @@ class FileChanges(GitElement):
       file.write('D %s\n' % self.filename)
     else:
       raise SystemExit("Unhandled filechange type: %s" % self.type)
+
+  def skip(self):
+    self.dumped = 2
 
 class Commit(GitElement):
   def __init__(self, branch,
@@ -137,6 +154,10 @@ class Commit(GitElement):
       change.dump(file)
     file.write('\n')
 
+  def skip(self, new_id):
+    self.dumped = 2
+    ids.record_rename(self.old_id or self.id, new_id)
+
 class FastExportFilter(object):
   def __init__(self, 
                tag_callback = None,   commit_callback = None,
@@ -179,10 +200,10 @@ class FastExportFilter(object):
     if self.nextline.startswith('M '):
       (mode, idnum, path) = \
         re.match('M (\d+) :(\d+) (.*)\n$', self.nextline).groups()
-      idnum = int(idnum)
+      idnum = ids.translate( int(idnum) )
       if path.startswith('"'):
         path = unquote(path)
-      filechange = FileChanges('M', path, mode, idnum)
+      filechange = FileChanges('M', path, idnum, mode)
       self._advance_nextline()
     elif self.nextline.startswith('D '):
       path = self.nextline[2:-1]
@@ -223,6 +244,7 @@ class FastExportFilter(object):
     # Create the blob
     blob = Blob(data)
     if id:
+      blob.set_old_id(id)
       ids.record_rename(id, blob.id)
 
     # Call any user callback to allow them to modify the blob
@@ -295,6 +317,7 @@ class FastExportFilter(object):
                     from_commit,
                     merge_commits)
     if id:
+      commit.set_old_id(id)
       ids.record_rename(id, commit.id)
 
     # Call any user callback to allow them to modify the commit
