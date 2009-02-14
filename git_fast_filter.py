@@ -347,7 +347,7 @@ class FastExportFilter(object):
 def FastExportOutput(source_repo, extra_args = []):
   return Popen(["git", "fast-export", "--all", "--topo-order"] + extra_args,
                stdout = PIPE,
-               cwd = source_repo).stdout
+               cwd = source_repo)
 
 def FastImportInput(target_repo, extra_args = []):
   if not os.path.isdir(target_repo):
@@ -356,7 +356,7 @@ def FastImportInput(target_repo, extra_args = []):
       raise SystemExit("git init in %s failed!" % target_repo)
   return Popen(["git", "fast-import", "--quiet"] + extra_args,
                stdin = PIPE,
-               cwd = target_repo).stdin
+               cwd = target_repo)
 
 def get_total_commits(repo):
   p1 = Popen(["git", "rev-list", "--all"], stdout = PIPE, cwd = repo)
