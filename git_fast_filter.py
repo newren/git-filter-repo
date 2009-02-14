@@ -52,7 +52,6 @@ class Blob(GitElement):
     self.id = ids.new()
 
   def dump(self, file):
-    if self.dumped: return
     self.dumped = 1
 
     file.write('blob\n')
@@ -72,7 +71,6 @@ class Reset(GitElement):
     self.from_ref = from_ref
 
   def dump(self, file):
-    if self.dumped: return
     self.dumped = 1
 
     file.write('reset %s\n' % self.ref)
@@ -97,8 +95,8 @@ class FileChanges(GitElement):
       self.id = id
 
   def dump(self, file):
-    skipped = (self.type == 'M' and self.id is None)
-    if self.dumped or skipped: return
+    skipped_blob = (self.type == 'M' and self.id is None)
+    if skipped_blob: return
     self.dumped = 1
 
     if self.type == 'M':
@@ -135,7 +133,6 @@ class Commit(GitElement):
     self.merge_commits = merge_commits
 
   def dump(self, file):
-    if self.dumped: return
     self.dumped = 1
 
     file.write('commit %s\n' % self.branch)
@@ -254,7 +251,8 @@ class FastExportFilter(object):
       self.everything_callback('blob', blob)
 
     # Now print the resulting blob
-    blob.dump(self.output)
+    if not blob.dumped:
+      blob.dump(self.output)
 
   def _parse_reset(self):
     # Parse the Reset
@@ -273,7 +271,8 @@ class FastExportFilter(object):
       self.everything_callback('reset', reset)
 
     # Now print the resulting reset
-    reset.dump(self.output)
+    if not reset.dumped:
+      reset.dump(self.output)
 
   def _parse_commit(self):
     # Parse the Commit
@@ -327,7 +326,8 @@ class FastExportFilter(object):
       self.everything_callback('commit', commit)
 
     # Now print the resulting commit to stdout
-    commit.dump(self.output)
+    if not commit.dumped:
+      commit.dump(self.output)
 
   def run(self, input_file, output_file):
     self.input = input_file
@@ -356,7 +356,6 @@ def FastImportInput(target_repo, extra_args = []):
       raise SystemExit("git init in %s failed!" % target_repo)
   return Popen(["git", "fast-import"] + extra_args,
                stdin = PIPE,
-               stderr = PIPE,  # We don't want no stinkin' statistics
                cwd = target_repo).stdin
 
 def get_total_commits(repo):
