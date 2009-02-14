@@ -354,7 +354,7 @@ def FastImportInput(target_repo, extra_args = []):
     os.makedirs(target_repo)
     if call(["git", "init"], cwd = target_repo) != 0:
       raise SystemExit("git init in %s failed!" % target_repo)
-  return Popen(["git", "fast-import"] + extra_args,
+  return Popen(["git", "fast-import", "--quiet"] + extra_args,
                stdin = PIPE,
                cwd = target_repo).stdin
 
