@@ -44,6 +44,8 @@ class IDs(object):
     else:
       return old_id
 ids = IDs()
+extra_changes = {}  # idnum -> list of list of FileChanges
+current_stream_number = 0
 
 def record_id_rename(old_id, new_id):
   ids.record_rename(old_id, new_id)
@@ -132,7 +134,8 @@ class Commit(GitElement):
                message,
                file_changes,
                from_commit = None,
-               merge_commits = []):
+               merge_commits = [],
+               **kwargs):
     GitElement.__init__(self)
     self.type = 'commit'
     self.branch = branch
@@ -147,9 +150,30 @@ class Commit(GitElement):
     self.id = ids.new()
     self.from_commit = from_commit
     self.merge_commits = merge_commits
+    self.stream_number = 0
+    if "stream_number" in kwargs:
+      self.stream_number = kwargs["stream_number"]
 
   def dump(self, file):
     self.dumped = 1
+
+    # Workaround fast-import/fast-export weird handling of merges
+    global extra_changes
+    if self.stream_number != current_stream_number:
+      extra_changes[self.id] = [[change for change in self.file_changes]]
+    merge_extra_changes = []
+    for parent in self.merge_commits:
+      if parent in extra_changes:
+        merge_extra_changes += extra_changes[parent]
+    for additional_changes in merge_extra_changes:
+      self.file_changes += additional_changes
+    if self.stream_number == current_stream_number:
+      parent_extra_changes = []
+      if self.from_commit and self.from_commit in extra_changes:
+        parent_extra_changes = extra_changes[self.from_commit]
+      parent_extra_changes += merge_extra_changes
+      extra_changes[self.id] = parent_extra_changes
+    # End workaround
 
     file.write('commit %s\n' % self.branch)
     file.write('mark :%d\n' % self.id)
@@ -332,7 +356,8 @@ class FastExportFilter(object):
                     commit_msg,
                     file_changes,
                     from_commit,
-                    merge_commits)
+                    merge_commits,
+                    stream_number = current_stream_number)
     if id:
       commit.set_old_id(id)
       ids.record_rename(id, commit.id)
@@ -348,7 +373,10 @@ class FastExportFilter(object):
       commit.dump(self.output)
 
   def run(self, input_file, output_file):
+    global current_stream_number
+
     self.id_offset = ids.count
+    current_stream_number += 1
 
     self.input = input_file
     if output_file:
