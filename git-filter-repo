@@ -393,7 +393,9 @@ class FastExportFilter(object):
         raise SystemExit("Could not parse line: '%s'" % self.nextline)
 
 def FastExportOutput(source_repo, extra_args = []):
-  return Popen(["git", "fast-export", "--all", "--topo-order"] + extra_args,
+  if not extra_args:
+    extra_args = ["--all"]
+  return Popen(["git", "fast-export", "--topo-order"] + extra_args,
                stdout = PIPE,
                cwd = source_repo)
 
