@@ -4,13 +4,15 @@ import sys
 from subprocess import Popen, PIPE, call
 from email.Utils import unquote
 
-__all__ = ["Blob", "Reset", "FileChanges", "Commit", "get_total_commits",
+__all__ = ["Blob", "Reset", "FileChanges", "Commit",
+           "get_total_commits", "record_id_rename",
            "FastExportFilter", "FastExportOuput", "FastImportInput"]
 
 class IDs(object):
   def __init__(self):
     self.count = 0
     self.translation = {}
+    self.reverse_translation = {}
 
   def new(self):
     self.count += 1
@@ -21,7 +23,18 @@ class IDs(object):
       if id > self.count:
         raise SystemExit("Specified ID, %d, has not been created yet." % id)
     if old_id != new_id:
+      # old_id -> new_id
       self.translation[old_id] = new_id
+
+      # Anything that points to old_id should point to new_id
+      if old_id in self.reverse_translation:
+        for id in self.reverse_translation[old_id]:
+          self.translation[id] = new_id
+
+      # Record that new_id is pointed to by old_id
+      if new_id not in self.reverse_translation:
+        self.reverse_translation[new_id] = []
+      self.reverse_translation[new_id].append(old_id)
 
   def translate(self, old_id):
     if old_id > self.count:
@@ -31,6 +44,9 @@ class IDs(object):
     else:
       return old_id
 ids = IDs()
+
+def record_id_rename(old_id, new_id):
+  ids.record_rename(old_id, new_id)
 
 class GitElement(object):
   def __init__(self):
@@ -173,6 +189,8 @@ class FastExportFilter(object):
     self.output = sys.stdout
     self.nextline = ''
 
+    self.id_offset = 0
+
   def _advance_nextline(self):
     self.nextline = self.input.readline()
 
@@ -180,7 +198,7 @@ class FastExportFilter(object):
     mark = None
     matches = re.match('mark :(\d+)\n$', self.nextline)
     if matches:
-      mark = int(matches.group(1))
+      mark = int(matches.group(1))+self.id_offset
       self._advance_nextline()
     return mark
 
@@ -188,7 +206,7 @@ class FastExportFilter(object):
     baseref = None
     matches = re.match('%s :(\d+)\n' % refname, self.nextline)
     if matches:
-      baseref = ids.translate( int(matches.group(1)) )
+      baseref = ids.translate( int(matches.group(1))+self.id_offset )
       self._advance_nextline()
     return baseref
 
@@ -197,7 +215,7 @@ class FastExportFilter(object):
     if self.nextline.startswith('M '):
       (mode, idnum, path) = \
         re.match('M (\d+) :(\d+) (.*)\n$', self.nextline).groups()
-      idnum = ids.translate( int(idnum) )
+      idnum = ids.translate( int(idnum)+self.id_offset )
       if path.startswith('"'):
         path = unquote(path)
       filechange = FileChanges('M', path, idnum, mode)
@@ -330,6 +348,8 @@ class FastExportFilter(object):
       commit.dump(self.output)
 
   def run(self, input_file, output_file):
+    self.id_offset = ids.count
+
     self.input = input_file
     if output_file:
       self.output = output_file
