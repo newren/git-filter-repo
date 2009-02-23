@@ -18,7 +18,7 @@ class IDs(object):
     self.count += 1
     return self.count
 
-  def record_rename(self, old_id, new_id):
+  def record_rename(self, old_id, new_id, handle_transitivity = False):
     for id in [old_id, new_id]:
       if id > self.count:
         raise SystemExit("Specified ID, %d, has not been created yet." % id)
@@ -26,10 +26,11 @@ class IDs(object):
       # old_id -> new_id
       self.translation[old_id] = new_id
 
-      # Anything that points to old_id should point to new_id
-      if old_id in self.reverse_translation:
-        for id in self.reverse_translation[old_id]:
-          self.translation[id] = new_id
+      if handle_transitivity:
+        # Anything that points to old_id should point to new_id
+        if old_id in self.reverse_translation:
+          for id in self.reverse_translation[old_id]:
+            self.translation[id] = new_id
 
       # Record that new_id is pointed to by old_id
       if new_id not in self.reverse_translation:
@@ -47,8 +48,8 @@ ids = IDs()
 extra_changes = {}  # idnum -> list of list of FileChanges
 current_stream_number = 0
 
-def record_id_rename(old_id, new_id):
-  ids.record_rename(old_id, new_id)
+def record_id_rename(old_id, new_id, handle_transitivity = False):
+  ids.record_rename(old_id, new_id, handle_transitivity)
 
 class GitElement(object):
   def __init__(self):
