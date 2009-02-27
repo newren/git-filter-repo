@@ -19,9 +19,6 @@ class IDs(object):
     return self.count
 
   def record_rename(self, old_id, new_id, handle_transitivity = False):
-    for id in [old_id, new_id]:
-      if id > self.count:
-        raise SystemExit("Specified ID, %d, has not been created yet." % id)
     if old_id != new_id:
       # old_id -> new_id
       self.translation[old_id] = new_id
@@ -38,8 +35,6 @@ class IDs(object):
       self.reverse_translation[new_id].append(old_id)
 
   def translate(self, old_id):
-    if old_id > self.count:
-      raise SystemExit("Specified ID, %d, has not been created yet." % old_id)
     if old_id in self.translation:
       return self.translation[old_id]
     else:
@@ -271,6 +266,8 @@ class FastExportFilter(object):
     size = int(re.match('data (\d+)\n$', self.nextline).group(1))
     data = self.input.read(size)
     self._advance_nextline()
+    if self.nextline == '\n':
+      self._advance_nextline()
     return data
 
   def _parse_blob(self):
@@ -403,7 +400,7 @@ def FastExportOutput(source_repo, extra_args = []):
 def FastImportInput(target_repo, extra_args = []):
   if not os.path.isdir(target_repo):
     os.makedirs(target_repo)
-    if call(["git", "init"], cwd = target_repo) != 0:
+    if call(["git", "init", "--bare", "--shared"], cwd = target_repo) != 0:
       raise SystemExit("git init in %s failed!" % target_repo)
   return Popen(["git", "fast-import", "--quiet"] + extra_args,
                stdin = PIPE,
