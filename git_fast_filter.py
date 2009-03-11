@@ -236,9 +236,10 @@ class FastExportFilter(object):
       (mode, idnum, path) = \
         re.match('M (\d+) :(\d+) (.*)\n$', self.nextline).groups()
       idnum = ids.translate( int(idnum)+self.id_offset )
-      if path.startswith('"'):
-        path = unquote(path)
-      filechange = FileChanges('M', path, idnum, mode)
+      if idnum is not None:
+        if path.startswith('"'):
+          path = unquote(path)
+        filechange = FileChanges('M', path, idnum, mode)
       self._advance_nextline()
     elif self.nextline.startswith('D '):
       path = self.nextline[2:-1]
