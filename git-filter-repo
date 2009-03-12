@@ -371,16 +371,42 @@ class FastExportFilter(object):
     if not commit.dumped:
       commit.dump(self.output)
 
-  def run(self, input_file, output_file):
+  def run(self, *args):
+    # Sanity check arguments
+    if len(args) != 0 and len(args) != 2:
+      raise SystemExit("run() must be called with 0 or 2 arguments")
+    for arg in args:
+      if type(arg) != str and type(arg) != file:
+        raise SystemExit("argumetns to run() must be filenames or files")
+
+    # Set input
+    self.input = sys.stdin
+    if len(args) > 0:
+      if type(args[0]) == str:
+        self.input = FastExportOutput(args[0]).stdout
+      else:
+        self.input = args[0]
+
+    # Set output
+    self.output = sys.stdout
+    output_pipe = None
+    need_wait = False
+    if len(args) > 1:
+      if type(args[1]) == str:
+        output_pipe = FastImportInput(args[1])
+        self.output = output_pipe.stdin
+        need_wait = True
+      else:
+        self.output = args[1]
+
+    # Setup some vars
     global current_stream_number
 
     self.id_offset = ids.count
     current_stream_number += 1
 
-    self.input = input_file
-    if output_file:
-      self.output = output_file
-    self.nextline = input_file.readline()
+    # Run over the input and do the filtering
+    self.nextline = self.input.readline()
     while self.nextline:
       if   self.nextline.startswith('blob'):
         self._parse_blob()
@@ -390,6 +416,10 @@ class FastExportFilter(object):
         self._parse_commit()
       else:
         raise SystemExit("Could not parse line: '%s'" % self.nextline)
+
+    if need_wait:
+      self.output.close()
+      output_pipe.wait()
 
 def FastExportOutput(source_repo, extra_args = []):
   if not extra_args:
