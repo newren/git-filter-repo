@@ -3,10 +3,37 @@ import re
 import sys
 from subprocess import Popen, PIPE, call
 from email.Utils import unquote
+from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit",
            "get_total_commits", "record_id_rename",
            "FastExportFilter", "FastExportOuput", "FastImportInput"]
+
+class TimeZone(tzinfo):
+  """Fixed offset in minutes east from UTC."""
+  def __init__(self, offset_string):
+    (minus, hh, mm) = re.match(r'^(-?)(\d\d)(\d\d)$', offset_string).groups()
+    sign = minus and -1 or 1
+    self._offset = timedelta(minutes = sign*(60*int(hh) + int(mm)))
+    self._offset_string = offset_string
+
+  def utcoffset(self, dt):
+    return self._offset
+
+  def tzname(self, dt):
+    return self._offset_string
+
+  def dst(self, dt):
+    return timedelta(0)
+
+def timedelta_to_seconds(delta):
+  offset = delta.days*86400 + delta.seconds + (delta.microseconds+0.0)/1000000
+  return round(offset)
+
+def write_date(file, date):
+  epoch = datetime.fromtimestamp(0, date.tzinfo)
+  file.write('%d %s' % (timedelta_to_seconds(date-epoch),
+                        date.tzinfo.tzname(0)))
 
 class IDs(object):
   def __init__(self):
@@ -173,11 +200,13 @@ class Commit(GitElement):
 
     file.write('commit %s\n' % self.branch)
     file.write('mark :%d\n' % self.id)
-    file.write('author %s <%s> %s\n' % \
-                     (self.author_name, self.author_email, self.author_date))
-    file.write('committer %s <%s> %s\n' % \
-                     (self.committer_name, self.committer_email,
-                      self.committer_date))
+    file.write('author %s <%s> ' % (self.author_name, self.author_email))
+    write_date(file, self.author_date)
+    file.write('\n')
+    file.write('committer %s <%s> ' % \
+                     (self.committer_name, self.committer_email))
+    write_date(file, self.committer_date)
+    file.write('\n')
     file.write('data %d\n%s' % (len(self.message), self.message))
     if self.from_commit:
       file.write('from :%s\n' % self.from_commit)
@@ -260,8 +289,13 @@ class FastExportFilter(object):
   def _parse_user(self, usertype):
     (name, email, when) = \
       re.match('%s (.*?) <(.*?)> (.*)\n$' % usertype, self.nextline).groups()
+
+    # Translate when into a datetime object, with corresponding timezone info
+    (unix_timestamp, tz_offset) = when.split()
+    datestamp = datetime.fromtimestamp(int(unix_timestamp), TimeZone(tz_offset))
+
     self._advance_nextline()
-    return (name, email, when)
+    return (name, email, datestamp)
 
   def _parse_data(self):
     size = int(re.match('data (\d+)\n$', self.nextline).group(1))
