@@ -12,7 +12,7 @@ __all__ = ["Blob", "Reset", "FileChanges", "Commit",
 class TimeZone(tzinfo):
   """Fixed offset in minutes east from UTC."""
   def __init__(self, offset_string):
-    (minus, hh, mm) = re.match(r'^(-?)(\d\d)(\d\d)$', offset_string).groups()
+    (minus,hh,mm) = re.match(r'^([-+]?)(\d\d)(\d\d)$', offset_string).groups()
     sign = minus and -1 or 1
     self._offset = timedelta(minutes = sign*(60*int(hh) + int(mm)))
     self._offset_string = offset_string
