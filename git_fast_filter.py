@@ -220,6 +220,19 @@ class Commit(GitElement):
     self.dumped = 2
     ids.record_rename(self.old_id or self.id, new_id)
 
+  def parents(self):
+    my_parents = []
+    if self.from_commit:
+      my_parents.append(self.from_commit)
+    my_parents += self.merge_commits
+    return my_parents
+
+  def first_parent(self):
+    my_parents = self.parents()
+    if my_parents:
+      return my_parents[0]
+    return None
+
 class FastExportFilter(object):
   def __init__(self, 
                tag_callback = None,   commit_callback = None,
@@ -394,6 +407,7 @@ class FastExportFilter(object):
     if id:
       commit.set_old_id(id)
       ids.record_rename(id, commit.id)
+    had_file_changes = len(commit.file_changes)
 
     # Call any user callback to allow them to modify the commit
     if self.commit_callback:
@@ -401,9 +415,13 @@ class FastExportFilter(object):
     if self.everything_callback:
       self.everything_callback('commit', commit)
 
-    # Now print the resulting commit to stdout
+    # Now print the resulting commit, unless all its changes were dropped
+    merge_commit = len(commit.parents()) > 1
     if not commit.dumped:
-      commit.dump(self.output)
+      if merge_commit or not had_file_changes or commit.file_changes:
+        commit.dump(self.output)
+      else:
+        commit.skip(commit.first_parent())
 
   def run(self, *args):
     # Sanity check arguments
