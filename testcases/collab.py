@@ -5,6 +5,8 @@ import os
 import sys
 import tempfile
 from optparse import OptionParser
+from subprocess import Popen, PIPE
+
 from git_fast_filter import Blob, Reset, FileChanges, Commit
 from git_fast_filter import FastExportFilter, FastExportOutput, FastImportInput
 from git_fast_filter import get_commit_count, get_total_objects
@@ -78,17 +80,17 @@ class GraftFilter(object):
     self.print_progress()
 
   def run(self):
-    (file, exportmarks) = tempfile.mkstemp()
+    (file, remotemarks) = tempfile.mkstemp()
     os.close(file)
-    (file, importmarks) = tempfile.mkstemp()
+    (file, localmarks) = tempfile.mkstemp()
     os.close(file)
 
     source = \
       FastExportOutput(self.source_repo,
-                       ["--export-marks=%s" % exportmarks]
+                       ["--export-marks=%s" % remotemarks]
                        + self.fast_export_args)
     target = \
-      FastImportInput( self.target_repo, ["--export-marks=%s" % importmarks])
+      FastImportInput( self.target_repo, ["--export-marks=%s" % localmarks])
 
     filter = FastExportFilter(blob_callback   = lambda b: self.do_blob(b),
                               commit_callback = lambda c: self.do_commit(c))
@@ -102,6 +104,18 @@ class GraftFilter(object):
     if self.show_progress:
       sys.stdout.write("done.\n")
 
+    target_git_dir = Popen(["git", "rev-parse", "--git-dir"],
+                 stdout=PIPE, cwd=self.target_repo).communicate()[0].strip()
+    for filename in [localmarks, remotemarks]:
+      hash = Popen(["git", "--git-dir=.", "hash-object", "-w", filename],
+                 stdout = PIPE, cwd = target_git_dir).communicate()[0]
+      collabdir = os.path.join(target_git_dir, 'refs', 'collab')
+      if not os.path.isdir(collabdir):
+        os.mkdir(collabdir)
+      subname = filename == localmarks and 'localmap' or 'remotemap'
+      file = open(os.path.join(collabdir, subname), 'w')
+      file.write(hash)
+      file.close()
 
 def do_info():
   pass
