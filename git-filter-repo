@@ -489,10 +489,15 @@ def FastImportInput(target_repo, extra_args = []):
                stdin = PIPE,
                cwd = target_repo)
 
-def get_total_commits(repo):
-  p1 = Popen(["git", "rev-list", "--all"], stdout = PIPE, cwd = repo)
+def get_commit_count(repo, args):
+  if not args:
+    args = ['--all']
+  p1 = Popen(["git", "rev-list"] + args, stdout=PIPE, stderr=PIPE, cwd=repo)
   p2 = Popen(["wc", "-l"], stdin = p1.stdout, stdout = PIPE)
-  return int(p2.communicate()[0])
+  count = int(p2.communicate()[0])
+  if p1.poll() != 0:
+    raise SystemExit("%s does not appear to be a valid git repository" % repo)
+  return count
 
 def get_total_objects(repo):
   p1 = Popen(["git", "count-objects", "-v"], stdout = PIPE, cwd = repo)
