@@ -44,13 +44,15 @@ elif subcommand not in ['info', 'pull-grafts', 'push-grafts', 'clone']:
 
 
 class GraftFilter(object):
-  def __init__(self, source_repo, target_repo,
-                     excludes = [], includes = [], fast_export_args = []):
+  def __init__(self, source_repo, target_repo, fast_export_args = []):
     self.source_repo = source_repo
     self.target_repo = target_repo
-    self.excludes = excludes
-    self.includes = includes
     self.fast_export_args = fast_export_args
+    self.sourcemarks = None
+    self.targetmarks = None
+    self.excludes = None
+    self.includes = None
+    self.collab_git_dir = None
 
     self.show_progress = True
     self.object_count = 0
@@ -60,40 +62,87 @@ class GraftFilter(object):
       sys.stderr.write("There are no commits to clone.\n")
       sys.exit(0)
 
-  def print_progress(self):
+  def set_paths(self, excludes = [], includes = []):
+    self.excludes = excludes
+    self.includes = includes
+
+  def _print_progress(self):
     if self.show_progress:
       print "\rRewriting commits... %d/%d  (%d objects)" \
             % (self.commit_count, self.total_commits, self.object_count),
 
-  def do_blob(self, blob):
+  def _do_blob(self, blob):
     self.object_count += 1
     if self.object_count % 100 == 0:
-      self.print_progress()
+      self._print_progress()
 
-  def do_commit(self, commit):
+  def _do_commit(self, commit):
     if self.excludes:
       new_file_changes = [change for change in commit.file_changes
                           if change.filename not in self.excludes]
       commit.file_changes = new_file_changes
     commit.branch = commit.branch.replace('refs/heads/','refs/remotes/collab/')
     self.commit_count += 1
-    self.print_progress()
+    self._print_progress()
+
+  def _get_map_name(self, filename):
+    collabdir = os.path.join(self.collab_git_dir, 'refs', 'collab')
+    if (filename == self.sourcemarks and self.source_repo == '.') or \
+       (filename == self.targetmarks and self.target_repo == '.'):
+      subname = 'localmap'
+    else:
+      subname = 'remotemap'
+    return os.path.join(collabdir, subname)
+
+  def _setup_files_and_excludes(self):
+    if self.source_repo != '.' and self.target_repo != '.':
+      raise SystemExit("Must be run from collab-created repo location.")
+    (status, self.collab_git_dir) = \
+      commands.getstatusoutput("git rev-parse --git-dir")
+    if status != 0:
+      raise SystemExit("collab.py must be run from a valid git repository")
+
+    self.first_time = True
+    if os.path.isdir(os.path.join(self.collab_git_dir, 'refs', 'collab')):
+      self.first_time = False
+
+    if self.first_time:
+      if self.excludes is None or self.includes is None:
+        raise SystemExit("Assertion failed: called set_paths() == True")
+
+      # Make sure the current repository is sane
+      if self.target_repo != '.':
+        raise SystemExit("Assertion failed: Program written correctly == True")
+      (status, output) = \
+        commands.getstatusoutput(
+          "find %s/objects -type f | head -n 1 | wc -l" % self.collab_git_dir)
+      if output != "0":
+        raise SystemExit("collab clone must be called from an empty git repo.")
+
+      # Create the sourcemarks and targetmarks empty files, get their names
+      (file, self.sourcemarks) = tempfile.mkstemp()
+      os.close(file)
+      (file, self.targetmarks) = tempfile.mkstemp()
+      os.close(file)
+    else:
+      # FIXME: Need to get excludes, includes, sourcemarks, and targetmarks
+      pass
 
   def run(self):
-    (file, remotemarks) = tempfile.mkstemp()
-    os.close(file)
-    (file, localmarks) = tempfile.mkstemp()
-    os.close(file)
+    self._setup_files_and_excludes()
 
     source = \
       FastExportOutput(self.source_repo,
-                       ["--export-marks=%s" % remotemarks]
+                       ["--export-marks=%s" % self.sourcemarks,
+                        "--import-marks=%s" % self.sourcemarks]
                        + self.fast_export_args)
     target = \
-      FastImportInput( self.target_repo, ["--export-marks=%s" % localmarks])
+      FastImportInput( self.target_repo,
+                       ["--export-marks=%s" % self.targetmarks,
+                        "--import-marks=%s" % self.targetmarks])
 
-    filter = FastExportFilter(blob_callback   = lambda b: self.do_blob(b),
-                              commit_callback = lambda c: self.do_commit(c))
+    filter = FastExportFilter(blob_callback   = lambda b: self._do_blob(b),
+                              commit_callback = lambda c: self._do_commit(c))
     filter.run(source.stdout, target.stdin)
 
     if self.show_progress:
@@ -104,16 +153,14 @@ class GraftFilter(object):
     if self.show_progress:
       sys.stdout.write("done.\n")
 
-    target_git_dir = Popen(["git", "rev-parse", "--git-dir"],
-                 stdout=PIPE, cwd=self.target_repo).communicate()[0].strip()
-    for filename in [localmarks, remotemarks]:
+    # Record the sourcemarks and targetmarks
+    for filename in [self.sourcemarks, self.targetmarks]:
       hash = Popen(["git", "--git-dir=.", "hash-object", "-w", filename],
-                 stdout = PIPE, cwd = target_git_dir).communicate()[0]
-      collabdir = os.path.join(target_git_dir, 'refs', 'collab')
-      if not os.path.isdir(collabdir):
-        os.mkdir(collabdir)
-      subname = filename == localmarks and 'localmap' or 'remotemap'
-      file = open(os.path.join(collabdir, subname), 'w')
+                   stdout = PIPE, cwd = self.collab_git_dir).communicate()[0]
+      mapname = self._get_map_name(filename)
+      if not os.path.isdir(os.path.dirname(mapname)):
+        os.mkdir(os.path.dirname(mapname))
+      file = open(mapname, 'w')
       file.write(hash)
       file.close()
 
@@ -140,21 +187,9 @@ def do_clone():
   if not args:
     args = ['--branches']
 
-  # Make sure the current repository is sane
-  (status, gitdir) = commands.getstatusoutput("git rev-parse --git-dir")
-  if status != 0:
-    raise SystemExit("collab.py must be run from a valid git repository")
-  (status, output) = commands.getstatusoutput(
-                       "find %s/objects -type f | head -n 1 | wc -l" % gitdir)
-  if output != "0":
-    raise SystemExit("'collab.py clone' must be called from an empty git repo.")
-
   # Run the filtering
-  filter = GraftFilter(repository,
-                       '.',
-                       excludes = options.excludes,
-                       includes = [],
-                       fast_export_args = args)
+  filter = GraftFilter(repository, '.', fast_export_args = args)
+  filter.set_paths(excludes = options.excludes, includes = [])
   filter.run()
   pass
 
