@@ -164,6 +164,16 @@ class GraftFilter(object):
       file.write(hash)
       file.close()
 
+    # Record the excludes and includes so they can be reused next time
+    for set in [(self.excludes, 'excludes'), (self.includes, 'includes')]:
+      p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
+                stdin = PIPE, stdout = PIPE, cwd = self.collab_git_dir)
+      hash = p.communicate('\n'.join(set[0])+'\n')[0]
+      filename = os.path.join(self.collab_git_dir, 'refs', 'collab', set[1])
+      file = open(filename, 'w')
+      file.write(hash)
+      file.close()
+
 def do_info():
   pass
 
