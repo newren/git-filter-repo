@@ -48,6 +48,8 @@ class GraftFilter(object):
     self.source_repo = source_repo
     self.target_repo = target_repo
     self.fast_export_args = fast_export_args
+    if not self.fast_export_args:
+      self.fast_export_args = ['--branches']
     self.sourcemarks = None
     self.targetmarks = None
     self.excludes = None
@@ -57,7 +59,7 @@ class GraftFilter(object):
     self.show_progress = True
     self.object_count = 0
     self.commit_count = 0
-    self.total_commits = get_commit_count(source_repo, fast_export_args)
+    self.total_commits = get_commit_count(source_repo, self.fast_export_args)
     if self.total_commits == 0:
       sys.stderr.write("There are no commits to clone.\n")
       sys.exit(0)
@@ -243,8 +245,6 @@ def do_clone():
   parser.add_option("--exclude", action="append", default=[], type="string",
                     dest="excludes")
   (options, args) = parser.parse_args(args=sys.argv[3:])
-  if not args:
-    args = ['--branches']
 
   # Run the filtering
   filter = GraftFilter(repository, '.', fast_export_args = args)
