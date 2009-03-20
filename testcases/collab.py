@@ -153,6 +153,18 @@ class GraftFilter(object):
                   stdout=PIPE, cwd = self.collab_git_dir)
         self.includes = p.communicate()[0].split()
 
+      # Get the remote repository if not specified
+      if self.source_repo is None and self.target_repo is None:
+        raise SystemExit("You are using code written by a moron.")
+      p = Popen(["git", "--git-dir=.", "cat-file", "-p",
+                "refs/collab/orig_repo"],
+                stdout=PIPE, cwd = self.collab_git_dir)
+      orig_repo = p.communicate()[0].strip()
+      if self.source_repo is None:
+        self.source_repo = orig_repo
+      if self.target_repo is None:
+        self.target_repo = orig_repo
+
   def run(self):
     self._setup_files_and_excludes()
 
@@ -189,12 +201,22 @@ class GraftFilter(object):
       file.write(hash)
       file.close()
 
-    # Record the excludes and includes so they can be reused next time
-    for set in [(self.excludes, 'excludes'), (self.includes, 'includes')]:
+    if self.target_repo == '.':
+      # Record the excludes and includes so they can be reused next time
+      for set in [(self.excludes, 'excludes'), (self.includes, 'includes')]:
+        p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
+                  stdin = PIPE, stdout = PIPE, cwd = self.collab_git_dir)
+        hash = p.communicate('\n'.join(set[0])+'\n')[0]
+        filename = os.path.join(self.collab_git_dir, 'refs', 'collab', set[1])
+        file = open(filename, 'w')
+        file.write(hash)
+        file.close()
+
+      # Record source_repo as the original repository
       p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
-                stdin = PIPE, stdout = PIPE, cwd = self.collab_git_dir)
-      hash = p.communicate('\n'.join(set[0])+'\n')[0]
-      filename = os.path.join(self.collab_git_dir, 'refs', 'collab', set[1])
+                stdin=PIPE, stdout=PIPE, cwd=self.collab_git_dir)
+      hash = p.communicate(self.source_repo+'\n')[0].strip()
+      filename = os.path.join(self.collab_git_dir, 'refs', 'collab', 'orig_repo')
       file = open(filename, 'w')
       file.write(hash)
       file.close()
@@ -203,10 +225,12 @@ def do_info():
   pass
 
 def do_pull_grafts():
-  pass
+  filter = GraftFilter(None, '.')
+  filter.run()
 
 def do_push_grafts():
-  pass
+  filter = GraftFilter('.', None)
+  filter.run()
 
 def do_clone():
   # Get the arguments
@@ -226,11 +250,10 @@ def do_clone():
   filter = GraftFilter(repository, '.', fast_export_args = args)
   filter.set_paths(excludes = options.excludes, includes = [])
   filter.run()
-  pass
 
 if   subcommand == 'info':        do_info()
-elif subcommand == 'pull_grafts': do_pull_grafts()
-elif subcommand == 'push_grafts': do_push_grafts()
+elif subcommand == 'pull-grafts': do_pull_grafts()
+elif subcommand == 'push-grafts': do_push_grafts()
 elif subcommand == 'clone':       do_clone()
 else:
   raise SystemExit("Assertion failed; unknown command: '%s'" % subcommand)
