@@ -85,8 +85,11 @@ class GraftFilter(object):
     self.commit_count += 1
     self._print_progress()
 
-  def _get_map_name(self, filename):
-    collabdir = os.path.join(self.collab_git_dir, 'refs', 'collab')
+  def _get_map_name(self, filename, include_git_dir = True):
+    if include_git_dir:
+      collabdir = os.path.join(self.collab_git_dir, 'refs', 'collab')
+    else:
+      collabdir = os.path.join('refs', 'collab')
     if (filename == self.sourcemarks and self.source_repo == '.') or \
        (filename == self.targetmarks and self.target_repo == '.'):
       subname = 'localmap'
@@ -125,8 +128,30 @@ class GraftFilter(object):
       (file, self.targetmarks) = tempfile.mkstemp()
       os.close(file)
     else:
-      # FIXME: Need to get excludes, includes, sourcemarks, and targetmarks
-      pass
+      # Get the souremarks and targetmarks
+      (file, self.sourcemarks) = tempfile.mkstemp()
+      Popen(["git", "--git-dir=.", "cat-file", "-p",
+             self._get_map_name(self.sourcemarks, include_git_dir=False)],
+            stdout=file, cwd = self.collab_git_dir).wait()
+      os.close(file)
+
+      (file, self.targetmarks) = tempfile.mkstemp()
+      Popen(["git", "--git-dir=.", "cat-file", "-p",
+             self._get_map_name(self.targetmarks, include_git_dir=False)],
+            stdout=file, cwd = self.collab_git_dir).wait()
+      os.close(file)
+
+      # Get the excludes and includes, unless overridden
+      if self.excludes is None:
+        p = Popen(["git", "--git-dir=.", "cat-file", "-p",
+                   "refs/collab/excludes"],
+                  stdout=PIPE, cwd = self.collab_git_dir)
+        self.excludes = p.communicate()[0].split()
+      if self.includes is None:
+        p = Popen(["git", "--git-dir=.", "cat-file", "-p",
+                   "refs/collab/includes"],
+                  stdout=PIPE, cwd = self.collab_git_dir)
+        self.includes = p.communicate()[0].split()
 
   def run(self):
     self._setup_files_and_excludes()
