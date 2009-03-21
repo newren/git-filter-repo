@@ -73,6 +73,10 @@ current_stream_number = 0
 def record_id_rename(old_id, new_id, handle_transitivity = False):
   ids.record_rename(old_id, new_id, handle_transitivity)
 
+def avoid_ids_below(skip_value):
+  '''Make sure that git_fast_filter doesn't use ids <= skip_value '''
+  ids.count = max(ids.count, skip_value)
+
 class GitElement(object):
   def __init__(self):
     self.type = None
@@ -476,6 +480,13 @@ class FastExportFilter(object):
 def FastExportOutput(source_repo, extra_args = []):
   if not extra_args:
     extra_args = ["--all"]
+  for arg in extra_args:
+    if arg.startswith("--import-marks"):
+      filename = arg[len("--import-marks="):]
+      lines = open(filename,'r').read().strip().splitlines()
+      if lines:
+        biggest_mark = max([int(line.split()[0][1:]) for line in lines])
+        avoid_ids_below(biggest_mark)
   return Popen(["git", "fast-export", "--topo-order"] + extra_args,
                stdout = PIPE,
                cwd = source_repo)
