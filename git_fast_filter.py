@@ -237,6 +237,32 @@ class Commit(GitElement):
       return my_parents[0]
     return None
 
+class Tag(GitElement):
+  def __init__(self, ref, from_ref,
+               tagger_name, tagger_email, tagger_date, tag_msg):
+    GitElement.__init__(self)
+    self.type = 'tag'
+    self.ref = ref
+    self.from_ref = from_ref
+    self.tagger_name  = tagger_name
+    self.tagger_email = tagger_email
+    self.tagger_date  = tagger_date
+    self.tag_message = tag_msg
+
+  def dump(self, file):
+    self.dumped = 1
+
+    file.write('tag %s\n' % self.ref)
+    file.write('from :%d\n' % self.from_ref)
+    file.write('tagger %s <%s> ' % (self.tagger_name, self.tagger_email))
+    write_date(file, self.tagger_date)
+    file.write('\n')
+    file.write('data %d\n%s' % (len(self.tag_message), self.tag_message))
+    file.write('\n')
+
+  def skip(self):
+    self.dumped = 2
+
 class FastExportFilter(object):
   def __init__(self, 
                tag_callback = None,   commit_callback = None,
@@ -425,6 +451,30 @@ class FastExportFilter(object):
       else:
         commit.skip(commit.first_parent())
 
+  def _parse_tag(self):
+    # Parse the Tag
+    tag = self._parse_ref_line('tag')
+    from_ref = self._parse_optional_baseref('from')
+    if from_ref is None:
+      raise SystemExit("Expected 'from' line while parsing tag %s" % tag)
+    (tagger_name, tagger_email, tagger_date) = self._parse_user('tagger')
+    tag_msg = self._parse_data()
+    if self.nextline == '\n':
+      self._advance_nextline()
+
+    # Create the tag
+    tag = Tag(tag, from_ref, tagger_name, tagger_email, tagger_date, tag_msg)
+
+    # Call any user callback to allow them to modify the tag
+    if self.tag_callback:
+      self.tag_callback(tag)
+    if self.everything_callback:
+      self.everything_callback('tag', tag)
+
+    # Now print the resulting reset
+    if not tag.dumped:
+      tag.dump(self.output)
+
   def run(self, *args):
     # Sanity check arguments
     if len(args) != 0 and len(args) != 2:
@@ -467,6 +517,8 @@ class FastExportFilter(object):
         self._parse_reset()
       elif self.nextline.startswith('commit'):
         self._parse_commit()
+      elif self.nextline.startswith('tag'):
+        self._parse_tag()
       else:
         raise SystemExit("Could not parse line: '%s'" % self.nextline)
 
