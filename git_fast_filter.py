@@ -462,7 +462,7 @@ class FastExportFilter(object):
     current_stream_number += 1
 
     # Run over the input and do the filtering
-    self.nextline = self.input.readline()
+    self._advance_nextline()
     while self.nextline:
       if   self.nextline.startswith('blob'):
         self._parse_blob()
