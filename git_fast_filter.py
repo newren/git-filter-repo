@@ -263,6 +263,35 @@ class Tag(GitElement):
   def skip(self):
     self.dumped = 2
 
+class Progress(GitElement):
+  def __init__(self, message):
+    GitElement.__init__(self)
+    self.type = 'progress'
+    self.message = message
+
+  def dump(self, file):
+    self.dumped = 1
+
+    file.write('progress %s\n' % self.message)
+    #file.write('\n')
+
+  def skip(self):
+    self.dumped = 2
+
+class Checkpoint(GitElement):
+  def __init__(self, message):
+    GitElement.__init__(self)
+    self.type = 'checkpoint'
+
+  def dump(self, file):
+    self.dumped = 1
+
+    file.write('checkpoint\n')
+    file.write('\n')
+
+  def skip(self):
+    self.dumped = 2
+
 class FastExportFilter(object):
   def __init__(self, 
                tag_callback = None,   commit_callback = None,
@@ -475,6 +504,44 @@ class FastExportFilter(object):
     if not tag.dumped:
       tag.dump(self.output)
 
+  def _parse_progress(self):
+    # Parse the Progress
+    message = self._parse_ref_line('progress')
+    if self.nextline == '\n':
+      self._advance_nextline()
+
+    # Create the progress message
+    progress = Progress(message)
+
+    # Call any user callback to allow them to modify the progress messsage
+    if self.progress_callback:
+      self.progress_callback(tag)
+    if self.everything_callback:
+      self.everything_callback('progress', progress)
+
+    # Now print the resulting progress message
+    if not progress.dumped:
+      progress.dump(self.output)
+
+  def _parse_checkpoint(self):
+    # Parse the Checkpoint
+    self._advance_nextline()
+    if self.nextline == '\n':
+      self._advance_nextline()
+
+    # Create the progress message
+    checkpoint = Checkpoint()
+
+    # Call any user callback to allow them to drop the checkpoint
+    if self.checkpoint_callback:
+      self.checkpoint_callback(tag)
+    if self.everything_callback:
+      self.everything_callback('checkpoint', checkpoint)
+
+    # Now print the resulting checkpoint
+    if not checkpoint.dumped:
+      checkpoint.dump(self.output)
+
   def run(self, *args):
     # Sanity check arguments
     if len(args) != 0 and len(args) != 2:
@@ -519,6 +586,10 @@ class FastExportFilter(object):
         self._parse_commit()
       elif self.nextline.startswith('tag'):
         self._parse_tag()
+      elif self.nextline.startswith('progress'):
+        self._parse_progress()
+      elif self.nextline.startswith('checkpoint'):
+        self._parse_checkpoint()
       else:
         raise SystemExit("Could not parse line: '%s'" % self.nextline)
 
