@@ -2,7 +2,7 @@
 
 import sys
 from git_fast_filter import Blob, Reset, FileChanges, Commit, FastExportFilter
-from git_fast_filter import get_total_commits, get_total_objects
+from git_fast_filter import get_commit_count, get_total_objects
 
 if len(sys.argv) != 3:
   raise SystemExit("Syntax:\n  %s SOURCE_REPO TARGET_REPO")
@@ -10,7 +10,7 @@ source_repo = sys.argv[1]
 target_repo = sys.argv[2]
 
 total_objects = get_total_objects(source_repo)  # blobs + trees
-total_commits = get_total_commits(source_repo)
+total_commits = get_commit_count(source_repo)
 object_count = 0
 commit_count = 0
 
