@@ -255,8 +255,6 @@ class FastExportFilter(object):
     self.output = sys.stdout
     self.nextline = ''
 
-    self.id_offset = 0
-
   def _advance_nextline(self):
     self.nextline = self.input.readline()
 
@@ -264,7 +262,7 @@ class FastExportFilter(object):
     mark = None
     matches = re.match('mark :(\d+)\n$', self.nextline)
     if matches:
-      mark = int(matches.group(1))+self.id_offset
+      mark = int(matches.group(1))
       self._advance_nextline()
     return mark
 
@@ -272,7 +270,7 @@ class FastExportFilter(object):
     baseref = None
     matches = re.match('%s :(\d+)\n' % refname, self.nextline)
     if matches:
-      baseref = ids.translate( int(matches.group(1))+self.id_offset )
+      baseref = ids.translate( int(matches.group(1)) )
       self._advance_nextline()
     return baseref
 
@@ -281,7 +279,7 @@ class FastExportFilter(object):
     if self.nextline.startswith('M '):
       (mode, idnum, path) = \
         re.match('M (\d+) :(\d+) (.*)\n$', self.nextline).groups()
-      idnum = ids.translate( int(idnum)+self.id_offset )
+      idnum = ids.translate( int(idnum) )
       if idnum is not None:
         if path.startswith('"'):
           path = unquote(path)
@@ -458,7 +456,6 @@ class FastExportFilter(object):
     # Setup some vars
     global current_stream_number
 
-    self.id_offset = ids.count
     current_stream_number += 1
 
     # Run over the input and do the filtering
