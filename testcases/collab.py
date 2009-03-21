@@ -99,6 +99,11 @@ class GraftFilter(object):
       subname = 'remotemap'
     return os.path.join(collabdir, subname)
 
+  def _get_maps(self, filename):
+    lines = open(filename,'r').read().strip().splitlines()
+    mark_and_sha = lambda t: (int(t[0][1:]), t[1])
+    return dict([mark_and_sha(line.split()) for line in lines])
+
   def _setup_files_and_excludes(self):
     if self.source_repo != '.' and self.target_repo != '.':
       raise SystemExit("Must be run from collab-created repo location.")
@@ -192,11 +197,27 @@ class GraftFilter(object):
     if self.show_progress:
       sys.stdout.write("done.\n")
 
-    # Record the sourcemarks and targetmarks
-    for filename in [self.sourcemarks, self.targetmarks]:
-      hash = Popen(["git", "--git-dir=.", "hash-object", "-w", filename],
-                   stdout = PIPE, cwd = self.collab_git_dir).communicate()[0]
-      mapname = self._get_map_name(filename)
+    # Record the sourcemarks and targetmarks -- 2 steps
+
+    # Step 1: Make sure the source and target marks have the same mark numbers.
+    # Not doing this would allow one end of the grafting to reuse a number
+    # that would then be misconnected on the other side.
+    sourcemaps = self._get_maps(self.sourcemarks)
+    targetmaps = self._get_maps(self.targetmarks)
+    for key in sourcemaps.keys():
+      if key not in targetmaps:
+        del sourcemaps[key]
+    for key in targetmaps.keys():
+      if key not in sourcemaps:
+        del targetmaps[key]
+    # Step 2: Record the data
+    for set in [(sourcemaps, self.sourcemarks), (targetmaps, self.targetmarks)]:
+      p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
+                stdin = PIPE, stdout = PIPE, cwd = self.collab_git_dir)
+      for key, value in set[0].iteritems():
+        p.stdin.write(":%d %s\n" % (key, value))
+      hash = p.communicate()[0]
+      mapname = self._get_map_name(set[1])
       if not os.path.isdir(os.path.dirname(mapname)):
         os.mkdir(os.path.dirname(mapname))
       file = open(mapname, 'w')
