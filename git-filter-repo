@@ -497,10 +497,13 @@ def FastImportInput(target_repo, extra_args = []):
                stdin = PIPE,
                cwd = target_repo)
 
-def get_commit_count(repo, args):
+def get_commit_count(repo, *args):
   if not args:
     args = ['--all']
-  p1 = Popen(["git", "rev-list"] + args, stdout=PIPE, stderr=PIPE, cwd=repo)
+  if len(args) == 1 and isinstance(args[0],list):
+    args = args[0]
+  p1 = Popen(["git", "rev-list"] + args,
+             stdout=PIPE, stderr=PIPE, cwd=repo)
   p2 = Popen(["wc", "-l"], stdin = p1.stdout, stdout = PIPE)
   count = int(p2.communicate()[0])
   if p1.poll() != 0:
