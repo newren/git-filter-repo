@@ -42,6 +42,18 @@ elif subcommand not in ['info', 'pull-grafts', 'push-grafts', 'clone']:
   sys.stderr.write("Unrecognized command: %s\n" % subcommand)
   raise SystemExit(get_syntax_string())
 
+def record_content(git_dir, filename, content):
+  p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
+            stdin = PIPE, stdout = PIPE, cwd = git_dir)
+  hash = p.communicate(content)[0]
+  file = open(filename, 'w')
+  file.write(hash)
+  file.close()
+
+def read_content(git_dir, refname):
+  p = Popen(["git", "--git-dir=.", "cat-file", "-p", refname],
+            stdout=PIPE, cwd = git_dir)
+  return p.communicate()[0]
 
 class GraftFilter(object):
   def __init__(self, source_repo, target_repo, fast_export_args = []):
@@ -137,36 +149,28 @@ class GraftFilter(object):
     else:
       # Get the souremarks and targetmarks
       (file, self.sourcemarks) = tempfile.mkstemp()
-      Popen(["git", "--git-dir=.", "cat-file", "-p",
-             self._get_map_name(self.sourcemarks, include_git_dir=False)],
-            stdout=file, cwd = self.collab_git_dir).wait()
+      mapname = self._get_map_name(self.sourcemarks, include_git_dir=False)
+      os.write(file, read_content(self.collab_git_dir, mapname))
       os.close(file)
 
       (file, self.targetmarks) = tempfile.mkstemp()
-      Popen(["git", "--git-dir=.", "cat-file", "-p",
-             self._get_map_name(self.targetmarks, include_git_dir=False)],
-            stdout=file, cwd = self.collab_git_dir).wait()
+      mapname = self._get_map_name(self.targetmarks, include_git_dir=False)
+      os.write(file, read_content(self.collab_git_dir, mapname))
       os.close(file)
 
       # Get the excludes and includes, unless overridden
       if self.excludes is None:
-        p = Popen(["git", "--git-dir=.", "cat-file", "-p",
-                   "refs/collab/excludes"],
-                  stdout=PIPE, cwd = self.collab_git_dir)
-        self.excludes = p.communicate()[0].split()
+        self.excludes = \
+          read_content(self.collab_git_dir, "refs/collab/excludes").split()
       if self.includes is None:
-        p = Popen(["git", "--git-dir=.", "cat-file", "-p",
-                   "refs/collab/includes"],
-                  stdout=PIPE, cwd = self.collab_git_dir)
-        self.includes = p.communicate()[0].split()
+        self.includes = \
+          read_content(self.collab_git_dir, "refs/collab/includes").split()
 
       # Get the remote repository if not specified
       if self.source_repo is None and self.target_repo is None:
         raise SystemExit("You are using code written by a moron.")
-      p = Popen(["git", "--git-dir=.", "cat-file", "-p",
-                "refs/collab/orig_repo"],
-                stdout=PIPE, cwd = self.collab_git_dir)
-      orig_repo = p.communicate()[0].strip()
+      orig_repo = \
+        read_content(self.collab_git_dir, "refs/collab/orig_repo").strip()
       if self.source_repo is None:
         self.source_repo = orig_repo
       if self.target_repo is None:
@@ -212,37 +216,21 @@ class GraftFilter(object):
         del targetmaps[key]
     # Step 2: Record the data
     for set in [(sourcemaps, self.sourcemarks), (targetmaps, self.targetmarks)]:
-      p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
-                stdin = PIPE, stdout = PIPE, cwd = self.collab_git_dir)
-      for key, value in set[0].iteritems():
-        p.stdin.write(":%d %s\n" % (key, value))
-      hash = p.communicate()[0]
       mapname = self._get_map_name(set[1])
       if not os.path.isdir(os.path.dirname(mapname)):
         os.mkdir(os.path.dirname(mapname))
-      file = open(mapname, 'w')
-      file.write(hash)
-      file.close()
+      content = ''.join([":%d %s\n" % (k, v) for k,v in set[0].iteritems()])
+      record_content(self.collab_git_dir, mapname, content)
 
     if self.target_repo == '.':
       # Record the excludes and includes so they can be reused next time
       for set in [(self.excludes, 'excludes'), (self.includes, 'includes')]:
-        p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
-                  stdin = PIPE, stdout = PIPE, cwd = self.collab_git_dir)
-        hash = p.communicate('\n'.join(set[0])+'\n')[0]
         filename = os.path.join(self.collab_git_dir, 'refs', 'collab', set[1])
-        file = open(filename, 'w')
-        file.write(hash)
-        file.close()
+        record_content(self.collab_git_dir, filename, '\n'.join(set[0])+'\n')
 
       # Record source_repo as the original repository
-      p = Popen(["git", "--git-dir=.", "hash-object", "-w", "--stdin"],
-                stdin=PIPE, stdout=PIPE, cwd=self.collab_git_dir)
-      hash = p.communicate(self.source_repo+'\n')[0].strip()
       filename = os.path.join(self.collab_git_dir, 'refs', 'collab', 'orig_repo')
-      file = open(filename, 'w')
-      file.write(hash)
-      file.close()
+      record_content(self.collab_git_dir, filename, self.source_repo+'\n')
 
 def do_info():
   pass
