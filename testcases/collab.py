@@ -76,7 +76,7 @@ class GraftFilter(object):
       sys.stderr.write("There are no commits to clone.\n")
       sys.exit(0)
 
-  def set_paths(self, excludes = [], includes = []):
+  def set_paths(self, excludes = [], includes = ['']):
     self.excludes = excludes
     self.includes = includes
 
@@ -91,10 +91,23 @@ class GraftFilter(object):
       self._print_progress()
 
   def _do_commit(self, commit):
-    if self.excludes:
-      new_file_changes = [change for change in commit.file_changes
-                          if change.filename not in self.excludes]
-      commit.file_changes = new_file_changes
+    new_file_changes = []
+    for change in commit.file_changes:
+      include_it = None
+      for include in self.includes:
+        if change.filename.startswith(include):
+          include_it = True
+          break
+      for exclude in self.excludes:
+        if change.filename.startswith(exclude):
+          include_it = False
+          break
+      if include_it is None:
+        raise SystemExit("File '%s' is not in the include or exclude list." %
+                         change.filename)
+      if include_it:
+        new_file_changes.append(change)
+    commit.file_changes = new_file_changes
     commit.branch = commit.branch.replace('refs/heads/','refs/remotes/collab/')
     self.commit_count += 1
     self._print_progress()
@@ -165,6 +178,8 @@ class GraftFilter(object):
       if self.includes is None:
         self.includes = \
           read_content(self.collab_git_dir, "refs/collab/includes").split()
+        if not self.includes:
+          self.includes = ['']
 
       # Get the remote repository if not specified
       if self.source_repo is None and self.target_repo is None:
@@ -253,11 +268,15 @@ def do_clone():
   parser = OptionParser(usage=get_syntax_string())
   parser.add_option("--exclude", action="append", default=[], type="string",
                     dest="excludes")
+  parser.add_option("--include", action="append", default=[], type="string",
+                    dest="includes")
   (options, args) = parser.parse_args(args=sys.argv[3:])
+  if not options.includes:
+    options.includes=['']
 
   # Run the filtering
   filter = GraftFilter(repository, '.', fast_export_args = args)
-  filter.set_paths(excludes = options.excludes, includes = [])
+  filter.set_paths(excludes = options.excludes, includes = options.includes)
   filter.run()
 
 if   subcommand == 'info':        do_info()
