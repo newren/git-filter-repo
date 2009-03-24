@@ -6,8 +6,8 @@ from email.Utils import unquote
 from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit",
-           "get_total_commits", "record_id_rename",
-           "FastExportFilter", "FastExportOuput", "FastImportInput"]
+           "get_commit_count", "record_id_rename",
+           "FastExportFilter", "FastExportOutput", "FastImportInput"]
 
 class TimeZone(tzinfo):
   """Fixed offset in minutes east from UTC."""
