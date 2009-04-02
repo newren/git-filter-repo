@@ -1,0 +1,209 @@
+#!/bin/sh
+#
+# Copyright (c) 2007 Johannes E. Schindelin
+# Copyright (c) 2009 Elijah Newren
+# (Copied heavily from git.git's t/t9301-fast-export.sh)
+
+test_description='git_fast_filter.py'
+. ./test-lib.sh
+
+test_expect_success 'setup' '
+
+	echo break it > file0 &&
+	git add file0 &&
+	test_tick &&
+	echo Wohlauf > file &&
+	git add file &&
+	test_tick &&
+	git commit -m initial &&
+	echo die Luft > file &&
+	echo geht frisch > file2 &&
+	git add file file2 &&
+	test_tick &&
+	git commit -m second &&
+	echo und > file2 &&
+	test_tick &&
+	git commit -m third file2 &&
+	test_tick &&
+	git tag rein &&
+	git checkout -b wer HEAD^ &&
+	echo lange > file2
+	test_tick &&
+	git commit -m sitzt file2 &&
+	test_tick &&
+	git tag -a -m valentin muss &&
+	git merge -s ours master
+
+'
+
+test_expect_success 'fast-export | fast-import' '
+
+	MASTER=$(git rev-parse --verify master) &&
+	REIN=$(git rev-parse --verify rein) &&
+	WER=$(git rev-parse --verify wer) &&
+	MUSS=$(git rev-parse --verify muss) &&
+	mkdir new &&
+	git --git-dir=new/.git init &&
+	git fast-export --all |
+	(cd new &&
+	 git fast-import &&
+	 test $MASTER = $(git rev-parse --verify refs/heads/master) &&
+	 test $REIN = $(git rev-parse --verify refs/tags/rein) &&
+	 test $WER = $(git rev-parse --verify refs/heads/wer) &&
+	 test $MUSS = $(git rev-parse --verify refs/tags/muss))
+
+'
+
+test_expect_success 'fast-export master~2..master' '
+
+	git fast-export master~2..master |
+		sed "s/master/partial/" |
+		(cd new &&
+		 git fast-import &&
+		 test $MASTER != $(git rev-parse --verify refs/heads/partial) &&
+		 echo hi &&
+		 git diff master partial &&
+		 git diff master^ partial^ &&
+		 test_must_fail git rev-parse partial~2)
+
+'
+
+test_expect_success 'import/export-marks' '
+
+	git checkout -b marks master &&
+	git fast-export --export-marks=tmp-marks HEAD &&
+	test -s tmp-marks &&
+	test $(wc -l < tmp-marks) -eq 3 &&
+	test $(
+		git fast-export --import-marks=tmp-marks\
+		--export-marks=tmp-marks HEAD |
+		grep ^commit |
+		wc -l) \
+	-eq 0 &&
+	echo change > file &&
+	git commit -m "last commit" file &&
+	test $(
+		git fast-export --import-marks=tmp-marks \
+		--export-marks=tmp-marks HEAD |
+		grep ^commit\  |
+		wc -l) \
+	-eq 1 &&
+	test $(wc -l < tmp-marks) -eq 4
+
+'
+
+cat > signed-tag-import << EOF
+tag sign-your-name
+from $(git rev-parse HEAD)
+tagger C O Mitter <committer@example.com> 1112911993 -0700
+data 210
+A message for a sign
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+fakedsignaturefakedsignaturefakedsignaturefakedsignaturfakedsign
+aturefakedsignaturefake=
+=/59v
+-----END PGP SIGNATURE-----
+EOF
+
+test_expect_success 'set up faked signed tag' '
+
+	cat signed-tag-import | git fast-import
+
+'
+
+test_expect_success 'signed-tags=abort' '
+
+	test_must_fail git fast-export --signed-tags=abort sign-your-name
+
+'
+
+test_expect_success 'signed-tags=verbatim' '
+
+	git fast-export --signed-tags=verbatim sign-your-name > output &&
+	grep PGP output
+
+'
+
+test_expect_success 'signed-tags=strip' '
+
+	git fast-export --signed-tags=strip sign-your-name > output &&
+	! grep PGP output
+
+'
+
+test_expect_success 'setup submodule' '
+
+	git checkout -f master &&
+	mkdir sub &&
+	cd sub &&
+	git init  &&
+	echo test file > file &&
+	git add file &&
+	git commit -m sub_initial &&
+	cd .. &&
+	git submodule add "`pwd`/sub" sub &&
+	git commit -m initial &&
+	test_tick &&
+	cd sub &&
+	echo more data >> file &&
+	git add file &&
+	git commit -m sub_second &&
+	cd .. &&
+	git add sub &&
+	git commit -m second
+
+'
+
+test_expect_success 'submodule fast-export | fast-import' '
+
+	SUBENT1=$(git ls-tree master^ sub) &&
+	SUBENT2=$(git ls-tree master sub) &&
+	rm -rf new &&
+	mkdir new &&
+	git --git-dir=new/.git init &&
+	git fast-export --signed-tags=strip --all |
+	(cd new &&
+	 git fast-import &&
+	 test "$SUBENT1" = "$(git ls-tree refs/heads/master^ sub)" &&
+	 test "$SUBENT2" = "$(git ls-tree refs/heads/master sub)" &&
+	 git checkout master &&
+	 git submodule init &&
+	 git submodule update &&
+	 cmp sub/file ../sub/file)
+
+'
+
+GIT_AUTHOR_NAME='A U Thor'; export GIT_AUTHOR_NAME
+GIT_COMMITTER_NAME='C O Mitter'; export GIT_COMMITTER_NAME
+
+test_expect_success 'fast-export | fast-import when master is tagged' '
+
+	git tag -m msg last &&
+	git fast-export -C -C --signed-tags=strip --all > output &&
+	test $(grep -c "^tag " output) = 3
+
+'
+
+cat > tag-content << EOF
+object $(git rev-parse HEAD)
+type commit
+tag rosten
+EOF
+
+test_expect_success 'cope with tagger-less tags' '
+
+	TAG=$(git hash-object -t tag -w tag-content) &&
+	git update-ref refs/tags/sonnenschein $TAG &&
+	git fast-export -C -C --signed-tags=strip --all > output &&
+	test $(grep -c "^tag " output) = 4 &&
+	! grep "Unspecified Tagger" output &&
+	git fast-export -C -C --signed-tags=strip --all \
+		--fake-missing-tagger > output &&
+	test $(grep -c "^tag " output) = 4 &&
+	grep "Unspecified Tagger" output
+
+'
+
+test_done
