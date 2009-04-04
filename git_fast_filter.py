@@ -339,6 +339,8 @@ class FastExportFilter(object):
         if path.startswith('"'):
           path = unquote(path)
         filechange = FileChanges('M', path, idnum, mode)
+      else:
+        filechange = 'skipped'
       self._advance_nextline()
     elif self.nextline.startswith('D '):
       path = self.nextline[2:-1]
@@ -446,8 +448,10 @@ class FastExportFilter(object):
     
     file_changes = []
     file_change = self._parse_optional_filechange()
+    had_file_changes = file_change is not None
     while file_change:
-      file_changes.append(file_change)
+      if not (type(file_change) == str and file_change == 'skipped'):
+        file_changes.append(file_change)
       file_change = self._parse_optional_filechange()
     if self.nextline == '\n':
       self._advance_nextline()
@@ -464,7 +468,6 @@ class FastExportFilter(object):
     if id:
       commit.set_old_id(id)
       ids.record_rename(id, commit.id)
-    had_file_changes = len(commit.file_changes)
 
     # Call any user callback to allow them to modify the commit
     if self.commit_callback:
