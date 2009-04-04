@@ -1,8 +1,8 @@
 """
-We provide a class (FastExportFilter) for parsing and handling the
-output from fast-export. This class allows the user to register callbacks
-when various types of data are encountered in the export data. The basic
-idea is that, FastExportFilter takes fast-export data, creates the various
+We provide a class (FastExportFilter) for parsing and handling the output
+from fast-export. This class allows the user to register callbacks when
+various types of data are encountered in the export output. The basic idea
+is that FastExportFilter takes fast-export output, creates the various
 objects as it encounters them, the user gets to use/modify these objects
 via callbacks, and finally FastExportFilter writes these objects in
 fast-export form (presumably so they can be used to create a new repo).
@@ -247,7 +247,8 @@ class Blob(_GitElementWithId):
 ###############################################################################
 ###############################################################################
   """
-  This class defines our representation of git blob elements.
+  This class defines our representation of git blob elements (i.e. our
+  way of representing file contents).
   """
 
   #############################################################################
@@ -281,9 +282,9 @@ class Reset(_GitElement):
 ###############################################################################
 ###############################################################################
   """
-  This class defines our representation of git reset elements. A reset event is
-  the creation (or recreation) of a named branch, optionally starting from a
-  specific revision).
+  This class defines our representation of git reset elements.  A reset
+  event is the creation (or recreation) of a named branch, optionally
+  starting from a specific revision).
   """
 
   #############################################################################
@@ -506,9 +507,7 @@ class Tag(_GitElement):
 ###############################################################################
 ###############################################################################
   """
-  This class defines our representation of tag elements. Tag elements are
-  related to tag events in Git (making a name and annotation associated with
-  a certain commit)
+  This class defines our representation of annotated tag elements.
   """
 
   #############################################################################
@@ -562,7 +561,8 @@ class Progress(_GitElement):
 ###############################################################################
   """
   This class defines our representation of progress elements. The progress
-  element only contains a progress message.
+  element only contains a progress message, which is printed by fast-import
+  when it processes the progress output.
   """
 
   #############################################################################
@@ -593,10 +593,10 @@ class Checkpoint(_GitElement):
 ###############################################################################
 ###############################################################################
   """
-  This class defines our representation of checkpoint elements. These
-  elements represent checkpoint events: forces fast-import to close the current
-  packfile, start a new one, and to save out all current branch refs, tags and
-  marks.
+  This class defines our representation of checkpoint elements.  These
+  elements represent events which force fast-import to close the current
+  packfile, start a new one, and to save out all current branch refs, tags
+  and marks.
   """
 
   #############################################################################
@@ -735,10 +735,10 @@ class FastExportFilter(object):
   def _parse_ref_line(self, refname):
   #############################################################################
     """
-    Parses string data (usually branch name, not always (depends on element
-    type)) from current-line. The name of the string data must match the
-    refname arg. The program will crash if current-line does not match, so
-    current-line will always be advanced if this method returns.
+    Parses string data (often a branch name) from current-line. The name of
+    the string data must match the refname arg. The program will crash if
+    current-line does not match, so current-line will always be advanced if
+    this method returns.
     """
     matches = re.match('%s (.*)\n$' % refname, self._currentline)
     if not matches:
