@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+import re
+
 from git_fast_filter import Blob, Reset, FileChanges, Commit, FastExportFilter
-from datetime import datetime, timdelta
+from datetime import datetime, timedelta
 
 def change_up_them_commits(commit):
   # Change the commit author
-  if commit.author == "Copy N. Paste":
-    commit.author = "Ima L. Oser"
+  if commit.author_name == "Copy N. Paste":
+    commit.author_name = "Ima L. Oser"
     commit.author_email = "aloser@my.corp"
 
   # Fix the author email
