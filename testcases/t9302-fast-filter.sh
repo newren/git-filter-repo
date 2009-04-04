@@ -87,4 +87,14 @@ test_expect_success 'strip-cvs-keywords.py' '
 	 test 2306fc7c = $(git rev-parse --short=8 --verify refs/heads/master))
 '
 
+test_expect_success 'git-fast-export new enough' '
+	rm -rf new &&
+	mkdir new &&
+	git --git-dir=new/.git init &&
+	git fast-export master~3..master |
+	(cd new &&
+	 git fast-import --quiet &&
+	 test 5 = $(git ls-tree master | wc -l))
+'
+
 test_done
