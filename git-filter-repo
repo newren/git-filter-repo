@@ -661,6 +661,10 @@ class FastExportFilter(object):
     # Stores the contents of the current line of input being parsed
     self._currentline = ''
 
+    # Stores a translation of ids, useful when reading the output of a second
+    # or third (or etc.) git fast-export output stream
+    self._id_offset = 0
+
   #############################################################################
   def _advance_currentline(self):
   #############################################################################
@@ -679,7 +683,7 @@ class FastExportFilter(object):
     mark = None
     matches = re.match('mark :(\d+)\n$', self._currentline)
     if matches:
-      mark = int(matches.group(1))
+      mark = int(matches.group(1))+self._id_offset
       self._advance_currentline()
     return mark
 
@@ -697,7 +701,7 @@ class FastExportFilter(object):
     if matches:
       # We translate the parent commit mark to what it needs to be in
       # our mark namespace
-      baseref = _IDS.translate( int(matches.group(1)) )
+      baseref = _IDS.translate( int(matches.group(1))+self._id_offset )
       self._advance_currentline()
     return baseref
 
@@ -715,7 +719,7 @@ class FastExportFilter(object):
       (mode, idnum, path) = \
         re.match('M (\d+) :(\d+) (.*)\n$', self._currentline).groups()
       # We translate the idnum to our id system
-      idnum = _IDS.translate( int(idnum) )
+      idnum = _IDS.translate( int(idnum)+self._id_offset )
       if idnum is not None:
         if path.startswith('"'):
           path = unquote(path)
@@ -1058,6 +1062,8 @@ class FastExportFilter(object):
     global _CURRENT_STREAM_NUMBER
 
     _CURRENT_STREAM_NUMBER += 1
+    if _CURRENT_STREAM_NUMBER > 1:
+      self._id_offset = _IDS._next_id-1
 
     # Run over the input and do the filtering
     self._advance_currentline()
