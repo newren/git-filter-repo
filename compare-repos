@@ -5,8 +5,8 @@ if [[ $# < 2 || $# > 3 ]]; then
   echo "  $0 REPO1 REPO2 [--summary]"
   exit 1
 fi
-repo1=$1
-repo2=$2
+repo1="$1"
+repo2="$2"
 detail=1
 if [ $# == 3 ]; then
   if [ $3 != "--summary" ]; then
@@ -16,11 +16,11 @@ if [ $# == 3 ]; then
   detail=
 fi
 
-if ( ! (cd $repo1 && git rev-parse --git-dir > /dev/null) ); then
+if ( ! (cd "$repo1" && git rev-parse --git-dir > /dev/null) ); then
   echo "$repo1 is not a directory or does not have a git repository!"
   exit 1
 fi
-if ( ! (cd $repo2 && git rev-parse --git-dir > /dev/null) ); then
+if ( ! (cd "$repo2" && git rev-parse --git-dir > /dev/null) ); then
   echo "$repo2 is not a directory or does not have a git repository!"
   exit 1
 fi
@@ -30,7 +30,7 @@ tempfile=$(mktemp)
 #
 # Compare branches for identicalness
 #
-diff -u <(cd $repo1 && git show-ref -h --heads --tags) <(cd $repo2 && git show-ref -h --heads --tags) > $tempfile
+diff -u <(cd "$repo1" && git show-ref -h --heads --tags) <(cd "$repo2" && git show-ref -h --heads --tags) > $tempfile
 if [ $? != 0 ]; then
   echo -n "Branches & tags do not match"
   if test $detail; then
@@ -47,7 +47,7 @@ fi
 #
 # Compare branch names
 #
-diff -u <(cd $repo1 && git for-each-ref --format="%(refname)" | grep refs/heads/) <(cd $repo2 && git for-each-ref --format="%(refname)" | grep refs/heads/) > $tempfile
+diff -u <(cd "$repo1" && git for-each-ref --format="%(refname)" | grep refs/heads/) <(cd "$repo2" && git for-each-ref --format="%(refname)" | grep refs/heads/) > $tempfile
 if [ $? != 0 ]; then
   echo -n "Branch names do not match"
   if test $detail; then
@@ -63,7 +63,7 @@ fi
 #
 # Compare trees of branches
 #
-diff -u <(cd $repo1 && git rev-parse $(git for-each-ref --format="%(refname)" | grep refs/heads/ | sed -e s/$/^{tree}/)) <(cd $repo2 && git rev-parse $(git for-each-ref --format="%(refname)" | grep refs/heads/ | sed -e s/$/^{tree}/)) > $tempfile
+diff -u <(cd "$repo1" && git rev-parse $(git for-each-ref --format="%(refname)" | grep refs/heads/ | sed -e s/$/^{tree}/)) <(cd "$repo2" && git rev-parse $(git for-each-ref --format="%(refname)" | grep refs/heads/ | sed -e s/$/^{tree}/)) > $tempfile
 if [ $? != 0 ]; then
   echo -n "Trees of branches do not match"
   if test $detail; then
@@ -79,7 +79,7 @@ fi
 #
 # Compare number of commits on each branch
 #
-diff -u <(cd $repo1 && for i in $(git for-each-ref --format="%(refname)" | grep refs/heads/); do count=$(git rev-list $i | wc -l); printf "%5d %s\n" $count $i; done) <(cd $repo2 && for i in $(git for-each-ref --format="%(refname)" | grep refs/heads/); do count=$(git rev-list $i | wc -l); printf "%5d %s\n" $count $i; done) > $tempfile
+diff -u <(cd "$repo1" && for i in $(git for-each-ref --format="%(refname)" | grep refs/heads/); do count=$(git rev-list $i | wc -l); printf "%5d %s\n" $count $i; done) <(cd "$repo2" && for i in $(git for-each-ref --format="%(refname)" | grep refs/heads/); do count=$(git rev-list $i | wc -l); printf "%5d %s\n" $count $i; done) > $tempfile
 if [ $? != 0 ]; then
   echo -n "Branch commit counts do not match"
   if test $detail; then
