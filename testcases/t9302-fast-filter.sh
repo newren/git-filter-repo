@@ -131,4 +131,16 @@ test_expect_success 'splice_repos.py' '
          test 4 = $(git rev-list master | wc -l))
 '
 
+test_expect_success 'create_fast_export_output.py' '
+	rm -rf new &&
+	mkdir new &&
+	git --git-dir=new/.git init &&
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/create_fast_export_output.py |
+	(cd new &&
+	 git fast-import --quiet &&
+	 test e5e0569b = $(git rev-parse --short=8 --verify refs/heads/master) &&
+	 test abc74172 = $(git rev-parse --short=8 --verify refs/heads/devel) &&
+	 test a12e90d3 = $(git rev-parse --short=8 --verify refs/tags/v1.0))
+'
+
 test_done
