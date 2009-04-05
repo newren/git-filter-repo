@@ -97,4 +97,38 @@ test_expect_success 'git-fast-export new enough' '
 	 test 5 = $(git ls-tree master | wc -l))
 '
 
+test_expect_success 'setup two extra repositories' '
+	mkdir repo1 &&
+	cd repo1 &&
+	git init &&
+	echo hello > world &&
+	git add world &&
+	test_tick &&
+	git commit -m "Commit A" &&
+	echo goodbye > world &&
+	git add world &&
+	test_tick &&
+	git commit -m "Commit C" &&
+	cd .. &&
+	mkdir repo2 &&
+	cd repo2 &&
+	git init &&
+	echo foo > bar &&
+	git add bar &&
+	test_tick &&
+	git commit -m "Commit B" &&
+	echo fooey > bar &&
+	git add bar &&
+	test_tick &&
+	git commit -m "Commit D" &&
+	cd ..
+'
+
+test_expect_success 'splice_repos.py' '
+	rm -rf new &&
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/splice_repos.py repo1 repo2 new &&
+	(cd new &&
+         test 4 = $(git rev-list master | wc -l))
+'
+
 test_done

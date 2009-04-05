@@ -163,7 +163,7 @@ class _IDs(object):
     return rv
 
   #############################################################################
-  def _avoid_ids_below(skip_value, self):
+  def _avoid_ids_below(self, skip_value):
   #############################################################################
     """
     Make sure that git_fast_filter doesn't use ids <= skip_value
