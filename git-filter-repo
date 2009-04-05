@@ -15,7 +15,7 @@ from email.Utils import unquote
 from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
-           "Checkpoint", "FastExportFilter",
+           "Checkpoint", "FastExportFilter", "FixedTimeZone",
            "fast_export_output", "fast_import_input", "get_commit_count",
            "get_total_objects", "record_id_rename"]
 
@@ -41,7 +41,7 @@ def _write_date(file_, date):
 
 ###############################################################################
 ###############################################################################
-class _TimeZone(tzinfo):
+class FixedTimeZone(tzinfo):
 ###############################################################################
 ###############################################################################
   """
@@ -549,7 +549,7 @@ class Tag(_GitElement):
     file_.write('tag %s\n' % self.ref)
     file_.write('from :%d\n' % self.from_ref)
     file_.write('tagger %s <%s> ' % (self.tagger_name, self.tagger_email))
-    _write_date(file, self.tagger_date)
+    _write_date(file_, self.tagger_date)
     file_.write('\n')
     file_.write('data %d\n%s' % (len(self.tag_message), self.tag_message))
     file_.write('\n')
@@ -600,7 +600,7 @@ class Checkpoint(_GitElement):
   """
 
   #############################################################################
-  def __init__(self, message):
+  def __init__(self):
   #############################################################################
     _GitElement.__init__(self)
 
@@ -766,7 +766,7 @@ class FastExportFilter(object):
     # Translate when into a datetime object, with corresponding timezone info
     (unix_timestamp, tz_offset) = when.split()
     datestamp = datetime.fromtimestamp(int(unix_timestamp),
-                                       _TimeZone(tz_offset))
+                                       FixedTimeZone(tz_offset))
 
     self._advance_currentline()
     return (name, email, datestamp)
