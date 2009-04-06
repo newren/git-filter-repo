@@ -1129,7 +1129,7 @@ def fast_import_input(target_repo, extra_args = None):
   # If target-repo directory does not exist, create it and initialize it
   if not os.path.isdir(target_repo):
     os.makedirs(target_repo)
-    if call(["git", "init", "--bare", "--shared"], cwd = target_repo) != 0:
+    if call(["git", "init", "--shared"], cwd = target_repo) != 0:
       raise SystemExit("git init in %s failed!" % target_repo)
 
   # Create and return the git process
