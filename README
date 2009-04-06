@@ -33,9 +33,69 @@ information in git-note format); modify branch names; drop and insert blobs
 (interleaving commits), and perhaps other small changes I'm forgetting at
 the moment.
 
+There is also a filtered_sparse_shallow_clone.py library that can be used
+to create scripts for creating a filtered sparse or shallow "clone" of a
+repository, and for bidirectional collaboration between the filtered and
+unfiltered repositories.
+
 ===== Caveats =====
 
+I think git_fast_filter.py works pretty well, but there are some potential
+gotchas if you're not using recent enough versions of git or try to do
+something unusual...
 
+You need to be using git>=1.6.3 (technically, git >= v1.6.2.1-353-gebeec7d)
+in order for filtering on a subset of history not including a root commit
+to work correctly.  (In other words, if you're passing something like
+master~5..master to git-fast-export, you need a recent version of git.  If
+you just pass master or --all, then old versions of git will suffice.)
+
+You either need to use git>=1.6.2 or pass the --topo-order flag to
+git-fast-export in order to avoid merge commits being squashed.
+git_fast_filter passes this flag to git-fast-export, if you have it call
+git-fast-export for you.
+
+Since git-fast-export and git_fast_filter.py both work by assigning an
+integer identifiers to every blob & commit (and typically in the range
+1..n), it presents a uniqueness challenge when interleaving commits from
+separate repositories or inserting commits or using the --import-marks
+flag.  In particular, you should not do these things manually outside of
+git_fast_filter, or it may not work correctly.  When interleaving commits,
+make use of the fast_export_output() function each time to get output from
+git-fast-export.  When using the --import-marks flag to git-fast-export,
+again do so via the fast_export_output() function so git_filter_branch.py
+can be aware of the range of ids to avoid.  Also, while git_fast_filter has
+some logic to keep the identifiers unique by remapping as necessary, and
+has been tested on each of these three stress tests individually, it has
+not been tested on all combinations of these stress tests.  In particular,
+I do not know if it will handle the combination of --import-marks being
+passed to multiple fast_export_output() streams and trying to combine all
+these streams into a single repository.  (Incidentally, I can't think of a
+use case for doing that either.)
+
+Inserting manually created commits (or interleaving commits between
+repositories) provides an interesting challenge for git_fast_filter.
+First, if you are inserting changes to files and expecting them to
+propagate, you will be disappointed; each commit specifies the exact
+version of each file (which is different from its first parent) that it
+will use.  Thus, if you want to insert changes to files you either have to
+rewrite all subsequent files or use a different tool like git rebase.
+Second, if the commits you insert end up on a merged branch (that is, the
+inserted commit is reachable through the second or later parent of some
+commit) then any new files you inserted would normally be dropped by
+git-fast-import.  The reason for this is that git-fast-import expects each
+commit to provide the list of files which are different than its first
+parent.  Files which exist only on the branches corresponding to parents
+after the first must be repeated in the merge commit even if they are not
+being changed in the merge commit.  git_fast_filter.py has some ugly hacks
+to make this happen behind the scenes for you, but it only works when the
+inserted commits contain new, unique files that are not also created or
+modified on other branches.  If you do something clever or more complicated
+than this that defeats my simple hack, we may need to modify
+git-fast-import (and perhaps git-fast-export) to have them allow the
+following behavior via some flag: diff relative to all parents and only
+require merge commits to list files that conflict among the different
+parents (or that were otherwise changed in the merge commit).
 
 ===== Comparing/contrasting to git-filter-branch =====
 
@@ -47,10 +107,11 @@ the moment.
   similar in purpose.
 
 * Speed of Execution: By virtue of using fast-export and fast-import,
-  git_fast_filter avoids lots of forks and bypasses the need to rewrite
-  the same file 50,000 times.  (Also, git_fast_filter does not use a
-  temporary directory of any sort, and moving repositories to tmpfs to
-  accelerate I/O would not significantly speed up the operation.)
+  git_fast_filter avoids lots of forks (typically thousands or millions of
+  them) and bypasses the need to rewrite the same file 50,000 times.
+  (Also, git_fast_filter does not use a temporary directory of any sort,
+  and moving repositories to tmpfs to accelerate I/O would not
+  significantly speed up the operation.)
 
 * Speed of Development: Since usage of git_fast_filter involves writing a
   separate python script and typically invoking two extra programs, it
