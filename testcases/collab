@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+from filtered_sparse_shallow_clone import USAGE_STRING, GraftFilter
+from filtered_sparse_shallow_clone import parse_args_and_run
+
+class CollabGraftFilter(GraftFilter):
+  def __init__(self):
+    GraftFilter.__init__(self)
+
+  def blob_callback(self, blob):
+    """
+    The callback to be invoked when fast-export encounters a blob. We don't
+    do anything important here, just maintain and print progress.
+    """
+    self._object_count += 1
+    if self._object_count % 100 == 0:
+      self._print_progress()
+
+  def commit_callback(self, commit):
+    """
+    The callback to be invoked when fast-export encounters a commit object.
+    We have to analyze the commit to find changes in the files we included.
+    Note that, if all file changes are excluded, then FastExportFilter is
+    smart enough to skip it all together.
+    """
+    # list to hold all changes we care about
+    new_file_changes = []
+
+    # Iterate over file_changes associated with this commit
+    for change in commit.file_changes:
+      include_it = None
+
+      # See if change involved an included file
+      for include in self._includes:
+        if change.filename.startswith(include):
+          include_it = True
+          break
+
+      # See if change involved an excluded file (overrides included status!).
+      for exclude in self._excludes:
+        if change.filename.startswith(exclude):
+          include_it = False
+          break
+
+      # If file was in neither included or excluded, we have an error
+      if include_it is None:
+        raise SystemExit("File '%s' is not in the include or exclude list." %
+                         change.filename)
+
+      # Add change if it affected included file
+      if include_it:
+        new_file_changes.append(change)
+
+    # Overwrite commit's file changes so that it only has changes associated
+    # with included files.
+    commit.file_changes = new_file_changes
+
+    # Rename the affected branch
+    commit.branch = commit.branch.replace('refs/heads/','refs/remotes/collab/')
+
+    # Maintain and print progress info
+    self._commit_count += 1
+    self._print_progress()
+
+parse_args_and_run(CollabGraftFilter(), USAGE_STRING)

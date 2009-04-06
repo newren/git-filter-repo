@@ -13,7 +13,9 @@ from subprocess import Popen, PIPE
 from git_fast_filter import FastExportFilter, fast_export_output, \
                             fast_import_input, get_commit_count
 
-USAGE = \
+__all__ = ["USAGE_STRING", "GraftFilter", "parse_args_and_run"]
+
+USAGE_STRING = \
 """
 Syntax:
   collab --help
@@ -46,7 +48,7 @@ Notes:
     master 4.10 4.8 ^4.6
 
   If OPTIONS is not specified, everything is included.  If REVISION LIMITING
-  is not specified, --branches is the default.
+  is not specified, "--branches --tags" is the default.
 
   Once the clone has completed, you'll need to run 'git merge collab/<branch>'
   in order to populate your working tree.
@@ -111,21 +113,19 @@ class GraftFilter(object):
   """
 
   #############################################################################
-  def __init__(self, source_repo, target_repo, fast_export_args = None):
+  def __init__(self):
   #############################################################################
     """
     Initialization
     """
     # The location of the original repo
-    self._source_repo = source_repo
+    self._source_repo = None
 
     # The location of the filtered-clone repo
-    self._target_repo = target_repo
+    self._target_repo = None
 
     # Extra args that need to be passed along to git
-    self._fast_export_args = fast_export_args
-    if not self._fast_export_args:
-      self._fast_export_args = ['--branches']
+    self._fast_export_args = None
 
     # Temporary file used to store source commit-maps in ascii. We use this
     # to grab the marks created by fast-exporting the source.
@@ -155,8 +155,27 @@ class GraftFilter(object):
     self._commit_count = 0
 
     # Total number of commits in source repo; used only for showing progress
-    self._total_commits = get_commit_count(source_repo,
-                                           self._fast_export_args)
+    self._total_commits = 0
+
+  #############################################################################
+  def set_repos(self, source_repo, target_repo, fast_export_args = None):
+  #############################################################################
+    """
+    Initialization
+    """
+    # The location of the original repo
+    self._source_repo = source_repo
+
+    # The location of the filtered-clone repo
+    self._target_repo = target_repo
+
+    # Extra args that need to be passed along to git
+    self._fast_export_args = fast_export_args
+    if not self._fast_export_args:
+      self._fast_export_args = ['--branches', '--tags']
+
+    # Total number of commits in source repo; used only for showing progress
+    self._total_commits = get_commit_count(source_repo, self._fast_export_args)
 
     # If no commits to clone, we're done
     if self._total_commits == 0:
@@ -188,18 +207,16 @@ class GraftFilter(object):
             % (self._commit_count, self._total_commits, self._object_count),
 
   #############################################################################
-  def _do_blob(self, blob):
+  def blob_callback(self, blob):
   #############################################################################
     """
     The callback to be invoked when fast-export encounters a blob. We don't
     do anything important here, just maintain and print progress.
     """
-    self._object_count += 1
-    if self._object_count % 100 == 0:
-      self._print_progress()
+    raise SystemExit("blob_callback should be overridden by a derived class.")
 
   #############################################################################
-  def _do_commit(self, commit):
+  def commit_callback(self, commit):
   #############################################################################
     """
     The callback to be invoked when fast-export encounters a commit object.
@@ -207,44 +224,7 @@ class GraftFilter(object):
     Note that, if all file changes are excluded, then FastExportFilter is
     smart enough to skip it all together.
     """
-    # list to hold all changes we care about
-    new_file_changes = []
-
-    # Iterate over file_changes associated with this commit
-    for change in commit.file_changes:
-      include_it = None
-
-      # See if change involved an included file
-      for include in self._includes:
-        if change.filename.startswith(include):
-          include_it = True
-          break
-
-      # See if change involved an excluded file (overrides included status!).
-      for exclude in self._excludes:
-        if change.filename.startswith(exclude):
-          include_it = False
-          break
-
-      # If file was in neither included or excluded, we have an error
-      if include_it is None:
-        raise SystemExit("File '%s' is not in the include or exclude list." %
-                         change.filename)
-
-      # Add change if it affected included file
-      if include_it:
-        new_file_changes.append(change)
-
-    # Overwrite commit's file changes so that it only has changes associated
-    # with included files.
-    commit.file_changes = new_file_changes
-
-    # Rename the affected branch
-    commit.branch = commit.branch.replace('refs/heads/','refs/remotes/collab/')
-
-    # Maintain and print progress info
-    self._commit_count += 1
-    self._print_progress()
+    raise SystemExit("commit_callback should be overridden by a derived class.")
 
   #############################################################################
   def _get_map_name(self, filename, include_git_dir = True):
@@ -379,8 +359,8 @@ class GraftFilter(object):
                        ["--export-marks=%s" % self._targetmarks,
                         "--import-marks=%s" % self._targetmarks])
 
-    filt = FastExportFilter(blob_callback   = lambda b: self._do_blob(b),
-                            commit_callback = lambda c: self._do_commit(c))
+    filt = FastExportFilter(blob_callback   = lambda b: self.blob_callback(b),
+                            commit_callback = lambda c: self.commit_callback(c))
     filt.run(source.stdout, target.stdin)
 
     # Show progress
@@ -438,7 +418,7 @@ class GraftFilter(object):
       record_content(self._collab_git_dir, filename, self._source_repo+'\n')
 
 ###############################################################################
-def _main_func():
+def parse_args_and_run(graft_filter, USAGE):
 ###############################################################################
   parser = OptionParser(usage=USAGE)
 
@@ -461,10 +441,10 @@ def _main_func():
     #JGF TODO
     pass
   elif (subcommand == "pull-grafts"):
-    graft_filter = GraftFilter(None, '.')
+    graft_filter.set_repos(None, '.')
     graft_filter.run()
   elif (subcommand == "push-grafts"):
-    graft_filter = GraftFilter('.', None)
+    graft_filter.set_repos('.', None)
     graft_filter.run()
   elif (subcommand == "clone"):
     # Get the arguments
@@ -477,7 +457,7 @@ def _main_func():
                        % repository)
 
     # Run the filtering
-    graft_filter = GraftFilter(repository, '.', fast_export_args = args[2:])
+    graft_filter.set_repos(repository, '.', fast_export_args = args[2:])
     graft_filter.set_paths(excludes = options.excludes,
                            includes = options.includes)
     graft_filter.run()
@@ -489,4 +469,4 @@ def _main_func():
 ###############################################################################
 if (__name__ == "__main__"):
 ###############################################################################
-  _main_func()
+  parse_args_and_run(GraftFilter(), USAGE_STRING)
