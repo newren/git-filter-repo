@@ -41,7 +41,7 @@ class InterleaveRepositories:
     # on commit.id
     if prev_letter in self.commit_map:
       self.last_commit = commit.id
-      record_id_rename(new_commit.id, commit.id, handle_transitivity = True)
+      record_id_rename(new_commit.id, commit.id)
 
   def run(self):
     self.target = fast_import_input(self.output_dir)

@@ -1167,11 +1167,12 @@ def get_total_objects(repo):
   return int(lines[0].split()[1]) + int(lines[2].split()[1])
 
 ###############################################################################
-def record_id_rename(old_id, new_id, handle_transitivity = False):
+def record_id_rename(old_id, new_id):
 ###############################################################################
   """
   Register a new translation
   """
+  handle_transitivity = True
   _IDS.record_rename(old_id, new_id, handle_transitivity)
 
 # Internal globals
