@@ -95,8 +95,8 @@ class GraftFilter(object):
   excludes  : The original excludes given to collab in the cloning
   includes  : The original includes given to collab in the cloning
   orig_repo : The handle to the repository collab cloned from
-  localmap  : The commit-map from the POV of the local repository
-  remotemap : The commit-map from the POV of the remote repository
+  filteredmap   : The commit-map for commits in the filtered repository
+  unfilteredmap : The commit-map for commits from the original repository
 
   Important concept: commit-map. These maps map a mark* to a commit id
   (hash). The raw commit-ids will not necessarily be meaningful to
@@ -241,9 +241,9 @@ class GraftFilter(object):
 
     if ( (filename == self._sourcemarks and self._source_repo == '.') or
          (filename == self._targetmarks and self._target_repo == '.') ):
-      subname = 'localmap'
+      subname = 'filteredmap'
     else:
-      subname = 'remotemap'
+      subname = 'unfilteredmap'
 
     return os.path.join(collabdir, subname)
 
