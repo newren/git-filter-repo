@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (c) 2007 Johannes E. Schindelin
 # Copyright (c) 2009 Elijah Newren
@@ -8,12 +8,11 @@ test_description='git_fast_filter.py'
 . ./test-lib.sh
 
 test_expect_success 'setup' '
-
 	echo hello > world &&
 	git add world &&
 	test_tick &&
 	git commit -m initial &&
-	echo -n "The launch code is 1-2-3-4." > secret &&
+	printf "The launch code is 1-2-3-4." > secret &&
 	git add secret &&
 	test_tick &&
 	git commit -m "Sssh.  Dont tell no one" &&
@@ -21,7 +20,7 @@ test_expect_success 'setup' '
 	echo there >> world &&
 	git add file.doc world &&
 	test_tick &&
-	echo -e "Random useless changes\n\nLet us be like the marketing group.  Marketing is staffed with pansies" | git commit -F - &&
+	printf "Random useless changes\n\nLet us be like the marketing group.  Marketing is staffed with pansies" | git commit -F - &&
 	echo Do not use a preposition to end a setence with > advice &&
 	git add advice &&
 	test_tick &&
