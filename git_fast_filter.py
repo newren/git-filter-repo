@@ -359,8 +359,10 @@ class FileChanges(_GitElement):
     if skipped_blob: return
     self.dumped = 1
 
-    if self.type == 'M':
+    if self.type == 'M' and isinstance(self.blob_id, int):
       file_.write('M %s :%d %s\n' % (self.mode, self.blob_id, self.filename))
+    elif self.type == 'M':
+      file_.write('M %s %s %s\n' % (self.mode, self.blob_id, self.filename))
     elif self.type == 'D':
       file_.write('D %s\n' % self.filename)
     else:
@@ -717,9 +719,11 @@ class FastExportFilter(object):
     filechange = None
     if self._currentline.startswith('M '):
       (mode, idnum, path) = \
-        re.match('M (\d+) :(\d+) (.*)\n$', self._currentline).groups()
+        re.match('M (\d+) (?::?([0-9a-f]{40}|\d+)) (.*)\n$',
+                 self._currentline).groups()
       # We translate the idnum to our id system
-      idnum = _IDS.translate( int(idnum)+self._id_offset )
+      if len(idnum) != 40:
+        idnum = _IDS.translate( int(idnum)+self._id_offset )
       if idnum is not None:
         if path.startswith('"'):
           path = unquote(path)
