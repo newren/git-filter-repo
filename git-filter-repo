@@ -1,14 +1,21 @@
+#!/usr/bin/env python
+
 """
-We provide a class (FastExportFilter) for parsing and handling the output
-from fast-export. This class allows the user to register callbacks when
-various types of data are encountered in the export output. The basic idea
-is that FastExportFilter takes fast-export output, creates the various
-objects as it encounters them, the user gets to use/modify these objects
-via callbacks, and finally FastExportFilter writes these objects in
-fast-export form (presumably so they can be used to create a new repo).
+Simple program for filtering git repositories, similar to git filter-branch,
+BFG repo cleaner, and others.  The basic idea is that it works by running
+   git fast-export <options> | filter | git fast-import <options>
+where this program not only launches the whole pipeline but also serves as
+the 'filter' in the middle.  It does a few additional things on top as well
+in order to make it into a well-rounded filtering tool.
 """
 
-import os, re, sys
+from __future__ import print_function
+
+import argparse
+import os
+import re
+import subprocess
+import sys
 
 from email.Utils import unquote
 from datetime import tzinfo, timedelta, datetime
@@ -17,6 +24,7 @@ __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
            "Checkpoint", "FastExportFilter", "FixedTimeZone",
            "fast_export_output", "fast_import_input", "get_commit_count",
            "get_total_objects", "record_id_rename"]
+
 
 def _timedelta_to_seconds(delta):
   """
@@ -542,6 +550,9 @@ class FastExportFilter(object):
     self._checkpoint_callback = checkpoint_callback
     self._everything_callback = everything_callback
 
+    # A list of all the refs we've seen
+    self._seen_refs = set()
+
     # A handle to the input source for the fast-export data
     self._input = None
 
@@ -708,6 +719,7 @@ class FastExportFilter(object):
     """
     # Parse the Reset
     ref = self._parse_ref_line('reset')
+    self._seen_refs.add(ref)
     from_ref = self._parse_optional_parent_ref('from')
     if self._currentline == '\n':
       self._advance_currentline()
@@ -736,6 +748,7 @@ class FastExportFilter(object):
     # Parse the Commit. This may look involved, but it's pretty simple; it only
     # looks bad because a commit object contains many pieces of data.
     branch = self._parse_ref_line('commit')
+    self._seen_refs.add(branch)
     id_ = self._parse_optional_mark()
 
     author_name = None
@@ -881,6 +894,9 @@ class FastExportFilter(object):
     # Now print the resulting checkpoint
     if not checkpoint.dumped:
       checkpoint.dump(self._output)
+
+  def get_seen_refs(self):
+    return self._seen_refs
 
   def run(self, *args):
     """
@@ -1036,3 +1052,134 @@ def record_id_rename(old_id, new_id):
 _IDS = _IDs()
 _EXTRA_CHANGES = {}  # idnum -> list of list of FileChanges
 _CURRENT_STREAM_NUMBER = 0
+
+######################################################################
+
+def get_args():
+  parser = argparse.ArgumentParser(description='Rewrite repository history')
+  # FIXME: Need to special case all --* args that rev-list takes, or call
+  # git rev-parse ...
+  parser.add_argument('--force', '-f', action='store_true',
+                      help='''Rewrite history even if the current repo does not
+                              look like a fresh clone.''')
+  parser.add_argument('revisions', nargs='*',
+                      help='''Branches/tags/refs to rewrite.  Special rev-list
+                              options, such as --branches, --tags, --all,
+                              --glob, or --exclude are allowed.  [default:
+                              --all]''')
+  if len(sys.argv) == 1:
+    parser.print_usage()
+    raise SystemExit("No arguments specified.")
+  args = parser.parse_args()
+  if not args.revisions:
+    args.revisions = ['--all']
+  return args
+
+def is_repository_bare():
+  output = subprocess.check_output('git rev-parse --is-bare-repository'.split())
+  return (output.strip() == 'true')
+
+def sanity_check(refs, is_bare):
+  def abort(reason):
+    raise SystemExit(
+      "Aborting: Refusing to overwrite repo history since this does not\n"
+      "look like a fresh clone.\n"
+      "  ("+reason+")\n"
+      "To override, use --force.")
+
+  # Make sure repo is fully packed, just like a fresh clone would be
+  output = subprocess.check_output('git count-objects -v'.split())
+  stats = dict(x.split(': ') for x in output.splitlines())
+  if stats['count'] != '0' or stats['packs'] != '1':
+    abort("expected freshly packed repo")
+
+  # Make sure there is precisely one remote, named "origin"
+  output = subprocess.check_output('git remote'.split()).strip()
+  if output != "origin":
+    abort("expected one remote, origin")
+
+  # Avoid letting people running with weird setups and overwriting GIT_DIR
+  # elsewhere
+  git_dir = subprocess.check_output('git rev-parse --git-dir'.split()).strip()
+  if is_bare and git_dir != '.':
+    abort("GIT_DIR must be .")
+  elif not is_bare and git_dir != '.git':
+    abort("GIT_DIR must be .git")
+
+  # Make sure that all reflogs have precisely one entry
+  reflog_dir=os.path.join(git_dir, 'logs')
+  for root, dirs, files in os.walk(reflog_dir):
+    for filename in files:
+      pathname = os.path.join(root, filename)
+      with open(pathname) as f:
+        if len(f.read().splitlines()) > 1:
+          shortpath = pathname[len(reflog_dir)+1:]
+          abort("expected at most one entry in the reflog for " + shortpath)
+
+  # Make sure there are no stashed changes
+  if 'refs/stash' in refs:
+    abort("has stashed changes")
+
+  # Do extra checks in non-bare repos
+  if not is_bare:
+    # Avoid uncommitted, unstaged, or untracked changes
+    if subprocess.call('git diff --staged'.split()):
+      abort("you have uncommitted changes")
+    if subprocess.call('git diff --quiet'.split()):
+      abort("you have unstaged changes")
+    if len(subprocess.check_output('git ls-files -o'.split())) > 0:
+      abort("you have untracked changes")
+
+    # Avoid unpushed changes
+    for refname, rev in refs.iteritems():
+      if not refname.startswith('refs/heads/'):
+        continue
+      origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
+      if origin_ref not in refs:
+        abort('{} exists, but {} not found'.format(refname, origin_ref))
+      if rev != refs[origin_ref]:
+        abort('{} does not match {}'.format(refname, origin_ref))
+
+def get_refs():
+  output = subprocess.check_output('git show-ref'.split())
+  return dict(reversed(x.split()) for x in output.splitlines())
+
+def run_fast_filter():
+  args = get_args()
+  orig_refs = get_refs()
+  is_bare = is_repository_bare()
+  if not args.force:
+    sanity_check(orig_refs, is_bare)
+
+  # Do actual filtering
+  fep = subprocess.Popen(['git', 'fast-export', '--no-data'] + args.revisions,
+                         stdout=subprocess.PIPE)
+  fip = subprocess.Popen('git fast-import --force --quiet'.split(),
+                         stdin=subprocess.PIPE)
+  filter = FastExportFilter()
+  filter.run(fep.stdout, fip.stdin)
+  fip.stdin.close()
+  if fep.wait():
+    raise SystemExit("Error: fast-export failed; see above.")
+  if fip.wait():
+    raise SystemExit("Error: fast-import failed; see above.")
+
+  # Remove unused refs
+  refs_to_nuke = set(orig_refs) - filter.get_seen_refs()
+  p = subprocess.Popen('git update-ref --stdin'.split(), stdin=subprocess.PIPE)
+  p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
+                         for x in refs_to_nuke]))
+  p.stdin.close()
+  if p.wait():
+    raise SystemExit("git update-ref failed; see above")
+
+  # Nuke the reflogs and repack
+  subprocess.call('git reflog expire --expire=now --all'.split())
+  subprocess.call('git gc --prune=now'.split())
+
+  if not is_bare:
+    # Reset to the new HEAD
+    subprocess.call('git reset --hard'.split())
+
+if __name__ == '__main__':
+  run_fast_filter()
