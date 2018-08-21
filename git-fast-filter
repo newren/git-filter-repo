@@ -19,18 +19,14 @@ __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
            "fast_export_output", "fast_import_input", "get_commit_count",
            "get_total_objects", "record_id_rename"]
 
-###############################################################################
 def _timedelta_to_seconds(delta):
-###############################################################################
   """
   Converts timedelta to seconds
   """
   offset = delta.days*86400 + delta.seconds + (delta.microseconds+0.0)/1000000
   return round(offset)
 
-###############################################################################
 def _write_date(file_, date):
-###############################################################################
   """
   Writes a date to a file. The file should already be open. The date is
   written as seconds-since-epoch followed by the name of the timezone.
@@ -39,18 +35,12 @@ def _write_date(file_, date):
   file_.write('%d %s' % (_timedelta_to_seconds(date - epoch),
                          date.tzinfo.tzname(0)))
 
-###############################################################################
-###############################################################################
 class FixedTimeZone(tzinfo):
-###############################################################################
-###############################################################################
   """
   Fixed offset in minutes east from UTC.
   """
 
-  #############################################################################
   def __init__(self, offset_string):
-  #############################################################################
     tzinfo.__init__(self)
     minus, hh, mm = re.match(r'^([-+]?)(\d\d)(\d\d)$', offset_string).groups()
     sign = minus and -1 or 1
@@ -66,11 +56,7 @@ class FixedTimeZone(tzinfo):
   def dst(self, dt):
     return timedelta(0)
 
-###############################################################################
-###############################################################################
 class _IDs(object):
-###############################################################################
-###############################################################################
   """
   A class that maintains the 'name domain' of all the 'marks' (short int
   id for a blob/commit git object). The reason this mechanism is necessary
@@ -86,9 +72,7 @@ class _IDs(object):
   1...n, and having two 1's, two 2's, two 3's, causes issues).
   """
 
-  #############################################################################
   def __init__(self):
-  #############################################################################
     """
     Init
     """
@@ -101,9 +85,7 @@ class _IDs(object):
     # A map of new-ids to every old-id that points to the new-id (1:N map)
     self._reverse_translation = {}
 
-  #############################################################################
   def new(self):
-  #############################################################################
     """
     Should be called whenever a new blob or commit object is created. The
     returned value should be used as the id/mark for that object.
@@ -112,9 +94,7 @@ class _IDs(object):
     self._next_id += 1
     return rv
 
-  #############################################################################
   def record_rename(self, old_id, new_id, handle_transitivity = False):
-  #############################################################################
     """
     Record that old_id is being renamed to new_id.
     """
@@ -135,9 +115,7 @@ class _IDs(object):
         self._reverse_translation[new_id] = []
       self._reverse_translation[new_id].append(old_id)
 
-  #############################################################################
   def translate(self, old_id):
-  #############################################################################
     """
     If old_id has been mapped to an alternate id, return the alternate id.
     """
@@ -146,9 +124,7 @@ class _IDs(object):
     else:
       return old_id
 
-  #############################################################################
   def __str__(self):
-  #############################################################################
     """
     Convert IDs to string; used for debugging
     """
@@ -162,26 +138,18 @@ class _IDs(object):
 
     return rv
 
-  #############################################################################
   def _avoid_ids_below(self, skip_value):
-  #############################################################################
     """
     Make sure that git_fast_filter doesn't use ids <= skip_value
     """
     self._next_id = max(self._next_id, skip_value + 1)
 
-###############################################################################
-###############################################################################
 class _GitElement(object):
-###############################################################################
-###############################################################################
   """
   The base class for all git elements that we create.
   """
 
-  #############################################################################
   def __init__(self):
-  #############################################################################
     # A string that describes what type of Git element this is
     self.type = None
 
@@ -190,9 +158,7 @@ class _GitElement(object):
     # dumped or skipped will not be dumped again.
     self.dumped = 0
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     This version should never be called. Derived classes need to
     override! We should note that subclasses should implement this
@@ -201,26 +167,18 @@ class _GitElement(object):
     """
     raise SystemExit("Unimplemented function: %s.dump()" % type(self).__name__)
 
-  #############################################################################
   def skip(self, new_id=None):
-  #############################################################################
     """
     Ensures this element will not be written to output
     """
     self.dumped = 2
 
-###############################################################################
-###############################################################################
 class _GitElementWithId(_GitElement):
-###############################################################################
-###############################################################################
   """
   The base class for Git elements that have IDs (commits and blobs)
   """
 
-  #############################################################################
   def __init__(self):
-  #############################################################################
     _GitElement.__init__(self)
 
     # The mark (short, portable id) for this element
@@ -229,9 +187,7 @@ class _GitElementWithId(_GitElement):
     # The previous mark for this element
     self.old_id = None
 
-  #############################################################################
   def skip(self, new_id=None):
-  #############################################################################
     """
     This element will no longer be automatically written to output. When a
     commit gets skipped, it's ID will need to be translated to that of its
@@ -241,19 +197,13 @@ class _GitElementWithId(_GitElement):
 
     _IDS.record_rename(self.old_id or self.id, new_id)
 
-###############################################################################
-###############################################################################
 class Blob(_GitElementWithId):
-###############################################################################
-###############################################################################
   """
   This class defines our representation of git blob elements (i.e. our
   way of representing file contents).
   """
 
-  #############################################################################
   def __init__(self, data):
-  #############################################################################
     _GitElementWithId.__init__(self)
 
     # Denote that this is a blob
@@ -262,9 +212,7 @@ class Blob(_GitElementWithId):
     # Stores the blob's data
     self.data = data
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     Write this blob element to a file.
     """
@@ -276,20 +224,14 @@ class Blob(_GitElementWithId):
     file_.write('\n')
 
 
-###############################################################################
-###############################################################################
 class Reset(_GitElement):
-###############################################################################
-###############################################################################
   """
   This class defines our representation of git reset elements.  A reset
   event is the creation (or recreation) of a named branch, optionally
   starting from a specific revision).
   """
 
-  #############################################################################
   def __init__(self, ref, from_ref = None):
-  #############################################################################
     _GitElement.__init__(self)
 
     # Denote that this is a reset
@@ -301,9 +243,7 @@ class Reset(_GitElement):
     # Some reference to the branch/commit we are resetting from
     self.from_ref = from_ref
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     Write this reset element to a file
     """
@@ -314,19 +254,13 @@ class Reset(_GitElement):
       file_.write('from :%d\n' % self.from_ref)
       file_.write('\n')
 
-###############################################################################
-###############################################################################
 class FileChanges(_GitElement):
-###############################################################################
-###############################################################################
   """
   This class defines our representation of file change elements. File change
   elements are components within a Commit element.
   """
 
-  #############################################################################
   def __init__(self, type_, filename, id_ = None, mode = None):
-  #############################################################################
     _GitElement.__init__(self)
 
     # Denote the type of file-change (M for modify, D for delete, etc)
@@ -349,9 +283,7 @@ class FileChanges(_GitElement):
       self.mode = mode
       self.blob_id = id_
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     Write this file-change element to a file
     """
@@ -368,17 +300,12 @@ class FileChanges(_GitElement):
     else:
       raise SystemExit("Unhandled filechange type: %s" % self.type)
 
-###############################################################################
-###############################################################################
 class Commit(_GitElementWithId):
-###############################################################################
-###############################################################################
   """
   This class defines our representation of commit elements. Commit elements
   contain all the information associated with a commit.
   """
 
-  #############################################################################
   def __init__(self, branch,
                author_name,    author_email,    author_date,
                committer_name, committer_email, committer_date,
@@ -387,7 +314,6 @@ class Commit(_GitElementWithId):
                from_commit = None,
                merge_commits = [],
                **kwargs):
-  #############################################################################
     _GitElementWithId.__init__(self)
 
     # Denote that this is a commit element
@@ -434,9 +360,7 @@ class Commit(_GitElementWithId):
     if "stream_number" in kwargs:
       self.stream_number = kwargs["stream_number"]
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     Write this commit element to a file.
     """
@@ -480,9 +404,7 @@ class Commit(_GitElementWithId):
       change.dump(file_)
     file_.write('\n')
 
-  #############################################################################
   def get_parents(self):
-  #############################################################################
     """
     Return all parent commits
     """
@@ -492,9 +414,7 @@ class Commit(_GitElementWithId):
     my_parents += self.merge_commits
     return my_parents
 
-  #############################################################################
   def first_parent(self):
-  #############################################################################
     """
     Return first parent commit
     """
@@ -503,19 +423,13 @@ class Commit(_GitElementWithId):
       return my_parents[0]
     return None
 
-###############################################################################
-###############################################################################
 class Tag(_GitElement):
-###############################################################################
-###############################################################################
   """
   This class defines our representation of annotated tag elements.
   """
 
-  #############################################################################
   def __init__(self, ref, from_ref,
                tagger_name, tagger_email, tagger_date, tag_msg):
-  #############################################################################
     _GitElement.__init__(self)
 
     # Denote that this is a tag element
@@ -539,9 +453,7 @@ class Tag(_GitElement):
     # Store the tag message
     self.tag_message = tag_msg
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     Write this tag element to a file
     """
@@ -556,20 +468,14 @@ class Tag(_GitElement):
     file_.write('data %d\n%s' % (len(self.tag_message), self.tag_message))
     file_.write('\n')
 
-###############################################################################
-###############################################################################
 class Progress(_GitElement):
-###############################################################################
-###############################################################################
   """
   This class defines our representation of progress elements. The progress
   element only contains a progress message, which is printed by fast-import
   when it processes the progress output.
   """
 
-  #############################################################################
   def __init__(self, message):
-  #############################################################################
     _GitElement.__init__(self)
 
     # Denote that this is a progress element
@@ -578,9 +484,7 @@ class Progress(_GitElement):
     # Store the progress message
     self.message = message
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     Write this progress element to a file
     """
@@ -589,11 +493,7 @@ class Progress(_GitElement):
     file_.write('progress %s\n' % self.message)
     #file_.write('\n')
 
-###############################################################################
-###############################################################################
 class Checkpoint(_GitElement):
-###############################################################################
-###############################################################################
   """
   This class defines our representation of checkpoint elements.  These
   elements represent events which force fast-import to close the current
@@ -601,17 +501,13 @@ class Checkpoint(_GitElement):
   and marks.
   """
 
-  #############################################################################
   def __init__(self):
-  #############################################################################
     _GitElement.__init__(self)
 
     # Denote that this is a checkpoint element
     self.type = 'checkpoint'
 
-  #############################################################################
   def dump(self, file_):
-  #############################################################################
     """
     Write this checkpoint element to a file
     """
@@ -620,11 +516,7 @@ class Checkpoint(_GitElement):
     file_.write('checkpoint\n')
     file_.write('\n')
 
-###############################################################################
-###############################################################################
 class FastExportFilter(object):
-###############################################################################
-###############################################################################
   """
   A class for parsing and handling the output from fast-export. This
   class allows the user to register callbacks when various types of
@@ -636,13 +528,11 @@ class FastExportFilter(object):
   repo).
   """
 
-  #############################################################################
   def __init__(self, 
                tag_callback = None,   commit_callback = None,
                blob_callback = None,  progress_callback = None,
                reset_callback = None, checkpoint_callback = None,
                everything_callback = None):
-  #############################################################################
     # Members below simply store callback functions for the various git
     # elements
     self._tag_callback        = tag_callback
@@ -667,17 +557,13 @@ class FastExportFilter(object):
     # or third (or etc.) git fast-export output stream
     self._id_offset = 0
 
-  #############################################################################
   def _advance_currentline(self):
-  #############################################################################
     """
     Grab the next line of input
     """
     self._currentline = self._input.readline()
 
-  #############################################################################
   def _parse_optional_mark(self):
-  #############################################################################
     """
     If the current line contains a mark, parse it and advance to the
     next line; return None otherwise
@@ -689,9 +575,7 @@ class FastExportFilter(object):
       self._advance_currentline()
     return mark
 
-  #############################################################################
   def _parse_optional_parent_ref(self, refname):
-  #############################################################################
     """
     If the current line contains a reference to a parent commit, then
     parse it and advance the current line; otherwise return None. Note
@@ -707,9 +591,7 @@ class FastExportFilter(object):
       self._advance_currentline()
     return baseref
 
-  #############################################################################
   def _parse_optional_filechange(self):
-  #############################################################################
     """
     If the current line contains a file-change object, then parse it
     and advance the current line; otherwise return None. We only care
@@ -739,9 +621,7 @@ class FastExportFilter(object):
       self._advance_currentline()
     return filechange
 
-  #############################################################################
   def _parse_ref_line(self, refname):
-  #############################################################################
     """
     Parses string data (often a branch name) from current-line. The name of
     the string data must match the refname arg. The program will crash if
@@ -756,9 +636,7 @@ class FastExportFilter(object):
     self._advance_currentline()
     return ref
 
-  #############################################################################
   def _parse_user(self, usertype):
-  #############################################################################
     """
     Get user name, email, datestamp from current-line. Current-line will
     be advanced.
@@ -775,9 +653,7 @@ class FastExportFilter(object):
     self._advance_currentline()
     return (name, email, datestamp)
 
-  #############################################################################
   def _parse_data(self):
-  #############################################################################
     """
     Reads data from _input. Current-line will be advanced until it is beyond
     the data.
@@ -789,9 +665,7 @@ class FastExportFilter(object):
       self._advance_currentline()
     return data
 
-  #############################################################################
   def _parse_blob(self):
-  #############################################################################
     """
     Parse input data into a Blob object. Once the Blob has been created, it
     will be handed off to the appropriate callbacks. Current-line will be
@@ -825,9 +699,7 @@ class FastExportFilter(object):
     if not blob.dumped:
       blob.dump(self._output)
 
-  #############################################################################
   def _parse_reset(self):
-  #############################################################################
     """
     Parse input data into a Reset object. Once the Reset has been created,
     it will be handed off to the appropriate callbacks. Current-line will
@@ -854,9 +726,7 @@ class FastExportFilter(object):
     if not reset.dumped:
       reset.dump(self._output)
 
-  #############################################################################
   def _parse_commit(self):
-  #############################################################################
     """
     Parse input data into a Commit object. Once the Commit has been created,
     it will be handed off to the appropriate callbacks. Current-line will
@@ -930,9 +800,7 @@ class FastExportFilter(object):
       else:
         commit.skip(commit.first_parent())
 
-  #############################################################################
   def _parse_tag(self):
-  #############################################################################
     """
     Parse input data into a Tag object. Once the Tag has been created,
     it will be handed off to the appropriate callbacks. Current-line will
@@ -963,9 +831,7 @@ class FastExportFilter(object):
     if not tag.dumped:
       tag.dump(self._output)
 
-  #############################################################################
   def _parse_progress(self):
-  #############################################################################
     """
     Parse input data into a Progress object. Once the Progress has
     been created, it will be handed off to the appropriate
@@ -991,9 +857,7 @@ class FastExportFilter(object):
     if not progress.dumped:
       progress.dump(self._output)
 
-  #############################################################################
   def _parse_checkpoint(self):
-  #############################################################################
     """
     Parse input data into a Checkpoint object. Once the Checkpoint has
     been created, it will be handed off to the appropriate
@@ -1019,9 +883,7 @@ class FastExportFilter(object):
     if not checkpoint.dumped:
       checkpoint.dump(self._output)
 
-  #############################################################################
   def run(self, *args):
-  #############################################################################
     """
     This method performs the filter. The method optionally takes two arguments.
     The first represents the source repository (either a file object
@@ -1092,9 +954,7 @@ class FastExportFilter(object):
       self._output.close()
       output_pipe.wait()
 
-###############################################################################
 def fast_export_output(source_repo, extra_args = None):
-###############################################################################
   """
   Given a source-repo location, setup a Popen process that runs fast-export
   on that repo. The Popen object is returned (we do NOT wait for it to
@@ -1119,9 +979,7 @@ def fast_export_output(source_repo, extra_args = None):
                stdout = PIPE,
                cwd = source_repo)
 
-###############################################################################
 def fast_import_input(target_repo, extra_args = None):
-###############################################################################
   """
   Given a target-repo location, setup a Popen process that runs fast-import
   on that repo. The Popen object is returned (we do NOT wait for it to
@@ -1141,9 +999,7 @@ def fast_import_input(target_repo, extra_args = None):
                stdin = PIPE,
                cwd = target_repo)
 
-###############################################################################
 def get_commit_count(repo, *args):
-###############################################################################
   """
   Return the number of commits that have been made on repo.
   """
@@ -1159,9 +1015,7 @@ def get_commit_count(repo, *args):
     raise SystemExit("%s does not appear to be a valid git repository" % repo)
   return count
 
-###############################################################################
 def get_total_objects(repo):
-###############################################################################
   """
   Return the number of objects (both packed and unpacked)
   """
@@ -1170,9 +1024,7 @@ def get_total_objects(repo):
   # Return unpacked objects + packed-objects
   return int(lines[0].split()[1]) + int(lines[2].split()[1])
 
-###############################################################################
 def record_id_rename(old_id, new_id):
-###############################################################################
   """
   Register a new translation
   """
