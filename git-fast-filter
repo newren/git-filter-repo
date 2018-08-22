@@ -10,7 +10,6 @@ fast-export form (presumably so they can be used to create a new repo).
 
 import os, re, sys
 
-from subprocess import Popen, PIPE, call
 from email.Utils import unquote
 from datetime import tzinfo, timedelta, datetime
 
@@ -975,9 +974,9 @@ def fast_export_output(source_repo, extra_args = None):
         _IDS._avoid_ids_below(biggest_mark)
 
   # Create and return the git process
-  return Popen(["git", "fast-export", "--topo-order"] + extra_args,
-               stdout = PIPE,
-               cwd = source_repo)
+  return subprocess.Popen(["git", "fast-export", "--topo-order"] + extra_args,
+                          stdout=subprocess.PIPE,
+                          cwd=source_repo)
 
 def fast_import_input(target_repo, extra_args = None):
   """
@@ -991,13 +990,13 @@ def fast_import_input(target_repo, extra_args = None):
   # If target-repo directory does not exist, create it and initialize it
   if not os.path.isdir(target_repo):
     os.makedirs(target_repo)
-    if call(["git", "init", "--shared"], cwd = target_repo) != 0:
+    if subprocess.call(["git", "init", "--shared"], cwd=target_repo) != 0:
       raise SystemExit("git init in %s failed!" % target_repo)
 
   # Create and return the git process
-  return Popen(["git", "fast-import", "--quiet"] + extra_args,
-               stdin = PIPE,
-               cwd = target_repo)
+  return subprocess.Popen(["git", "fast-import", "--quiet"] + extra_args,
+                          stdin=subprocess.PIPE,
+                          cwd=target_repo)
 
 def get_commit_count(repo, *args):
   """
@@ -1007,9 +1006,10 @@ def get_commit_count(repo, *args):
     args = ['--all']
   if len(args) == 1 and isinstance(args[0], list):
     args = args[0]
-  p1 = Popen(["git", "rev-list"] + args,
-             stdout=PIPE, stderr=PIPE, cwd=repo)
-  p2 = Popen(["wc", "-l"], stdin = p1.stdout, stdout = PIPE)
+  p1 = subprocess.Popen(["git", "rev-list"] + args,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        cwd=repo)
+  p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
   count = int(p2.communicate()[0])
   if p1.poll() != 0:
     raise SystemExit("%s does not appear to be a valid git repository" % repo)
@@ -1019,7 +1019,8 @@ def get_total_objects(repo):
   """
   Return the number of objects (both packed and unpacked)
   """
-  p1 = Popen(["git", "count-objects", "-v"], stdout = PIPE, cwd = repo)
+  p1 = subprocess.Popen(["git", "count-objects", "-v"],
+                        stdout=subprocess.PIPE, cwd=repo)
   lines = p1.stdout.read().splitlines()
   # Return unpacked objects + packed-objects
   return int(lines[0].split()[1]) + int(lines[2].split()[1])
