@@ -1099,6 +1099,12 @@ def get_args():
                                   history.  Multiple --path-regex options can
                                   be specified to get a union of paths''')
 
+  parser.add_argument('--dry-run', action='store_true',
+                      help='''Do not change the repository.  Run `git
+                              fast-export` and filter its output, and save
+                              both the original and the filtered version for
+                              comparison.''')
+
   parser.add_argument('revisions', nargs='*',
                       help='''Branches/tags/refs to rewrite.  Special rev-list
                               options, such as --branches, --tags, --all,
@@ -1210,16 +1216,38 @@ def tweak_commit(args, commit):
       new_file_changes.append(change)
   commit.file_changes = new_file_changes
 
+class InputFileBackup:
+  def __init__(self, input_file, output_file):
+    self.input_file  = input_file
+    self.output_file = output_file
+
+  def read(self, size):
+    output = self.input_file.read(size)
+    self.output_file.write(output)
+    return output
+
+  def readline(self):
+    line = self.input_file.readline()
+    self.output_file.write(line)
+    return line
+
 def run_fast_filter():
   args = get_args()
 
   # Determine basic repository information
   orig_refs = get_refs()
   is_bare = is_repository_bare()
+  git_dir = determine_git_dir()
 
   # Do sanity checks
   if not args.force:
     sanity_check(orig_refs, is_bare)
+
+  # Create a temporary directory for storing some results
+  if args.dry_run:
+    results_tmp_dir = os.path.join(git_dir, 'filter-repo')
+    if not os.path.isdir(results_tmp_dir):
+      os.mkdir(results_tmp_dir)
 
   # Do actual filtering
   fep = subprocess.Popen(['git', 'fast-export', '--no-data'] + args.revisions,
@@ -1229,12 +1257,35 @@ def run_fast_filter():
   filter = FastExportFilter(
              commit_callback = lambda c : tweak_commit(args, c),
              )
-  filter.run(fep.stdout, fip.stdin)
-  fip.stdin.close()
+
+  # Determine whether to make a copy of input
+  input = fep.stdout
+  if args.dry_run:
+    output = open(os.path.join(results_tmp_dir, 'fast-export.original'), 'w')
+    input = InputFileBackup(input, output)
+
+  # Determine where to send output
+  output = fip.stdin
+  if args.dry_run:
+    output = open(os.path.join(results_tmp_dir, 'fast-export.filtered'), 'w')
+
+  # Run the filter
+  filter.run(input, output)
+
+  # Close the output, ensure fast-export and fast-import have completed
+  output.close()
   if fep.wait():
     raise SystemExit("Error: fast-export failed; see above.")
-  if fip.wait():
+  if not args.dry_run and fip.wait():
     raise SystemExit("Error: fast-import failed; see above.")
+
+  # Exit early
+  if args.dry_run:
+    print("NOTE: Not running fast-import or cleaning up; --dry-run passed.")
+    print("      Requested filtering can be seen by comparing:")
+    print("        {}/fast-export.original".format(results_tmp_dir))
+    print("        {}/fast-export.filtered".format(results_tmp_dir))
+    sys.exit(0)
 
   # Remove unused refs
   refs_to_nuke = set(orig_refs) - filter.get_seen_refs()
