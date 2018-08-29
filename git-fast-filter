@@ -912,9 +912,12 @@ class FastExportFilter(object):
     # Sanity check arguments
     if len(args) != 0 and len(args) != 2:
       raise SystemExit("run() must be called with 0 or 2 arguments")
-    for arg in args:
-      if type(arg) != str and type(arg) != file:
-        raise SystemExit("arguments to run() must be filenames or files")
+    if type(args[0]) != str and not (
+       hasattr(args[0], 'read') and hasattr(args[0], 'readline')):
+      raise SystemExit("arguments to run() must be filenames or files")
+    if type(args[1]) != str and not (
+       hasattr(args[1], 'write') and hasattr(args[1], 'close')):
+      raise SystemExit("arguments to run() must be filenames or files")
 
     # Set input. If no args provided, use stdin.
     self._input = sys.stdin
