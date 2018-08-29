@@ -1036,7 +1036,7 @@ class FastExportFilter(object):
       raise SystemExit("run() must be called with 0 or 2 arguments")
     for arg in args:
       if type(arg) != str and type(arg) != file:
-        raise SystemExit("argumetns to run() must be filenames or files")
+        raise SystemExit("arguments to run() must be filenames or files")
 
     # Set input. If no args provided, use stdin.
     self._input = sys.stdin
