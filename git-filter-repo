@@ -1104,6 +1104,11 @@ def get_args():
                               fast-export` and filter its output, and save
                               both the original and the filtered version for
                               comparison.''')
+  parser.add_argument('--debug', action='store_true',
+                      help='''Print additional information about operations
+                              being performed and commands being run.  When
+                              used together with --dry-run, also show extra
+                              information about what would be run.''')
 
   parser.add_argument('revisions', nargs='*',
                       help='''Branches/tags/refs to rewrite.  Special rev-list
@@ -1231,8 +1236,23 @@ class InputFileBackup:
     self.output_file.write(line)
     return line
 
+class DualFileWriter:
+  def __init__(self, file1, file2):
+    self.file1 = file1
+    self.file2 = file2
+
+  def write(self, *args):
+    self.file1.write(*args)
+    self.file2.write(*args)
+
+  def close(self):
+    self.file1.close()
+    self.file2.close()
+
 def run_fast_filter():
   args = get_args()
+  if args.debug:
+    print("[DEBUG] Parsed arguments:\n{}".format(args))
 
   # Determine basic repository information
   orig_refs = get_refs()
@@ -1244,30 +1264,39 @@ def run_fast_filter():
     sanity_check(orig_refs, is_bare)
 
   # Create a temporary directory for storing some results
-  if args.dry_run:
+  if args.dry_run or args.debug:
     results_tmp_dir = os.path.join(git_dir, 'filter-repo')
     if not os.path.isdir(results_tmp_dir):
       os.mkdir(results_tmp_dir)
 
   # Do actual filtering
-  fep = subprocess.Popen(['git', 'fast-export', '--no-data'] + args.revisions,
-                         stdout=subprocess.PIPE)
-  fip = subprocess.Popen('git fast-import --force --quiet'.split(),
-                         stdin=subprocess.PIPE)
+  fep_cmd = ['git', 'fast-export', '--no-data'] + args.revisions
+  fip_cmd = 'git fast-import --force --quiet'.split()
+  fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
+  fip = subprocess.Popen(fip_cmd, stdin=subprocess.PIPE)
   filter = FastExportFilter(
              commit_callback = lambda c : tweak_commit(args, c),
              )
 
   # Determine whether to make a copy of input
   input = fep.stdout
-  if args.dry_run:
-    output = open(os.path.join(results_tmp_dir, 'fast-export.original'), 'w')
+  if args.dry_run or args.debug:
+    fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
+    output = open(fe_orig, 'w')
     input = InputFileBackup(input, output)
+    if args.debug:
+      print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
+      print("  (saving a copy of the output at {})".format(fe_orig))
 
   # Determine where to send output
   output = fip.stdin
-  if args.dry_run:
-    output = open(os.path.join(results_tmp_dir, 'fast-export.filtered'), 'w')
+  if args.dry_run or args.debug:
+    fe_filt = os.path.join(results_tmp_dir, 'fast-export.filtered')
+    output = open(fe_filt, 'w')
+  if args.debug:
+    output = DualFileWriter(fip.stdin, output)
+    print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
+    print("  (using the following file as input: {})".format(fe_filt))
 
   # Run the filter
   filter.run(input, output)
@@ -1283,26 +1312,34 @@ def run_fast_filter():
   if args.dry_run:
     print("NOTE: Not running fast-import or cleaning up; --dry-run passed.")
     print("      Requested filtering can be seen by comparing:")
-    print("        {}/fast-export.original".format(results_tmp_dir))
-    print("        {}/fast-export.filtered".format(results_tmp_dir))
+    print("        {}\n        {}".format(fe_orig, fe_filt))
     sys.exit(0)
 
   # Remove unused refs
   refs_to_nuke = set(orig_refs) - filter.get_seen_refs()
-  p = subprocess.Popen('git update-ref --stdin'.split(), stdin=subprocess.PIPE)
-  p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
-                         for x in refs_to_nuke]))
-  p.stdin.close()
-  if p.wait():
-    raise SystemExit("git update-ref failed; see above")
+  if refs_to_nuke:
+    if args.debug:
+      print("[DEBUG] Deleting the following refs:\n  "+
+            "\n  ".join(refs_to_nuke))
+    p = subprocess.Popen('git update-ref --stdin'.split(),
+                         stdin=subprocess.PIPE)
+    p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
+                           for x in refs_to_nuke]))
+    p.stdin.close()
+    if p.wait():
+      raise SystemExit("git update-ref failed; see above")
 
   # Nuke the reflogs and repack
-  subprocess.call('git reflog expire --expire=now --all'.split())
-  subprocess.call('git gc --prune=now'.split())
-
+  if not args.debug:
+    print("Repacking your repo and cleaning out old unneeded objects")
+  cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
+                  'git gc --prune=now'.split()]
   if not is_bare:
-    # Reset to the new HEAD
-    subprocess.call('git reset --hard'.split())
+    cleanup_cmds.append('git reset --hard'.split())
+  for cmd in cleanup_cmds:
+    if args.debug:
+      print("[DEBUG] Running: {}".format(' '.join(cmd)))
+    subprocess.call(cmd)
 
 if __name__ == '__main__':
   run_fast_filter()
