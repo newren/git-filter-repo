@@ -1119,7 +1119,11 @@ def is_repository_bare():
   output = subprocess.check_output('git rev-parse --is-bare-repository'.split())
   return (output.strip() == 'true')
 
-def sanity_check(refs, is_bare):
+def determine_git_dir():
+  output = subprocess.check_output('git rev-parse --git-dir'.split())
+  return output.strip()
+
+def sanity_check(refs, is_bare, git_dir):
   def abort(reason):
     raise SystemExit(
       "Aborting: Refusing to overwrite repo history since this does not\n"
@@ -1140,7 +1144,7 @@ def sanity_check(refs, is_bare):
 
   # Avoid letting people running with weird setups and overwriting GIT_DIR
   # elsewhere
-  git_dir = subprocess.check_output('git rev-parse --git-dir'.split()).strip()
+  git_dir = determine_git_dir()
   if is_bare and git_dir != '.':
     abort("GIT_DIR must be .")
   elif not is_bare and git_dir != '.git':
@@ -1208,10 +1212,15 @@ def tweak_commit(args, commit):
 
 def run_fast_filter():
   args = get_args()
+
+  # Determine basic repository information
   orig_refs = get_refs()
   is_bare = is_repository_bare()
+  git_dir = determine_git_dir()
+
+  # Do sanity checks
   if not args.force:
-    sanity_check(orig_refs, is_bare)
+    sanity_check(orig_refs, is_bare, git_dir)
 
   # Do actual filtering
   fep = subprocess.Popen(['git', 'fast-export', '--no-data'] + args.revisions,
