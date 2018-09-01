@@ -1115,6 +1115,10 @@ def get_args():
                               being performed and commands being run.  When
                               used together with --dry-run, also show extra
                               information about what would be run.''')
+  parser.add_argument('--stdin', action='store_true',
+                      help='''Instead of running `git fast-export` and filtering
+                              its output, filter the fast-export stream from
+                              stdin.''')
 
   parser.add_argument('revisions', nargs='*',
                       help='''Branches/tags/refs to rewrite.  Special rev-list
@@ -1275,17 +1279,21 @@ def run_fast_filter():
     if not os.path.isdir(results_tmp_dir):
       os.mkdir(results_tmp_dir)
 
-  # Determine whether to make a copy of input
-  fep_cmd = ['git', 'fast-export', '--no-data'] + args.revisions
-  fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
-  input = fep.stdout
-  if args.dry_run or args.debug:
-    fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
-    output = open(fe_orig, 'w')
-    input = InputFileBackup(input, output)
-    if args.debug:
-      print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
-      print("  (saving a copy of the output at {})".format(fe_orig))
+  # Determine where to get input (and whether to make a copy)
+  if args.stdin:
+    input = sys.stdin
+    fe_orig = None
+  else:
+    fep_cmd = ['git', 'fast-export', '--no-data'] + args.revisions
+    fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
+    input = fep.stdout
+    if args.dry_run or args.debug:
+      fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
+      output = open(fe_orig, 'w')
+      input = InputFileBackup(input, output)
+      if args.debug:
+        print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
+        print("  (saving a copy of the output at {})".format(fe_orig))
 
   # Determine where to send output
   if not args.dry_run:
@@ -1309,16 +1317,17 @@ def run_fast_filter():
 
   # Close the output, ensure fast-export and fast-import have completed
   output.close()
-  if fep.wait():
+  if not args.stdin and fep.wait():
     raise SystemExit("Error: fast-export failed; see above.")
   if not args.dry_run and fip.wait():
     raise SystemExit("Error: fast-import failed; see above.")
 
   # Exit early
   if args.dry_run:
+    orig_str = "by comparing:\n        "+fe_orig if fe_orig else "at:"
     print("NOTE: Not running fast-import or cleaning up; --dry-run passed.")
-    print("      Requested filtering can be seen by comparing:")
-    print("        {}\n        {}".format(fe_orig, fe_filt))
+    print("      Requested filtering can be seen {}".format(orig_str))
+    print("        " + fe_filt)
     sys.exit(0)
 
   # Remove unused refs
