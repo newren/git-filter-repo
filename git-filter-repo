@@ -1275,16 +1275,9 @@ def run_fast_filter():
     if not os.path.isdir(results_tmp_dir):
       os.mkdir(results_tmp_dir)
 
-  # Do actual filtering
-  fep_cmd = ['git', 'fast-export', '--no-data'] + args.revisions
-  fip_cmd = 'git fast-import --force --quiet'.split()
-  fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
-  fip = subprocess.Popen(fip_cmd, stdin=subprocess.PIPE)
-  filter = FastExportFilter(
-             commit_callback = lambda c : tweak_commit(args, c),
-             )
-
   # Determine whether to make a copy of input
+  fep_cmd = ['git', 'fast-export', '--no-data'] + args.revisions
+  fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
   input = fep.stdout
   if args.dry_run or args.debug:
     fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
@@ -1295,16 +1288,23 @@ def run_fast_filter():
       print("  (saving a copy of the output at {})".format(fe_orig))
 
   # Determine where to send output
-  output = fip.stdin
+  if not args.dry_run:
+    fip_cmd = 'git fast-import --force --quiet'.split()
+    fip = subprocess.Popen(fip_cmd, stdin=subprocess.PIPE)
   if args.dry_run or args.debug:
     fe_filt = os.path.join(results_tmp_dir, 'fast-export.filtered')
     output = open(fe_filt, 'w')
+  else:
+    output = fip.stdin
   if args.debug:
     output = DualFileWriter(fip.stdin, output)
     print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
     print("  (using the following file as input: {})".format(fe_filt))
 
-  # Run the filter
+  # Create and run the filter
+  filter = FastExportFilter(
+             commit_callback = lambda c : tweak_commit(args, c),
+             )
   filter.run(input, output)
 
   # Close the output, ensure fast-export and fast-import have completed
