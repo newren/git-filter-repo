@@ -12,6 +12,7 @@ in order to make it into a well-rounded filtering tool.
 from __future__ import print_function
 
 import argparse
+import collections
 import fnmatch
 import os
 import re
@@ -765,16 +766,21 @@ class FastExportFilter(object):
 
     commit_msg = self._parse_data()
 
-    from_commit = self._parse_optional_parent_ref('from')
-    merge_commits = []
+    parents = []
+    parents.append(self._parse_optional_parent_ref('from'))
     merge_ref = self._parse_optional_parent_ref('merge')
     while merge_ref:
-      merge_commits.append(merge_ref)
+      parents.append(merge_ref)
       merge_ref = self._parse_optional_parent_ref('merge')
+
+    was_merge = len(parents) > 1
+    parents = collections.OrderedDict.fromkeys(parents).keys()
+    from_commit = parents[0]
+    merge_commits = parents[1:]
     
     file_changes = []
     file_change = self._parse_optional_filechange()
-    had_file_changes = file_change is not None
+    had_file_changes = file_change is not None or was_merge
     while file_change:
       if not (type(file_change) == str and file_change == 'skipped'):
         file_changes.append(file_change)
