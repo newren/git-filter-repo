@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ORIG_DIR=$(cd $(dirname $0) && pwd)
+
+setup_filtering()
+{
+    cd $ORIG_DIR
+    rm -rf filter-dir
+    git init --quiet filter-dir
+}
+
+run() {
+    INPUT=$1
+    OUTPUT=$2
+    shift 2
+    setup_filtering
+    cd filter-dir
+    cat ../$INPUT | $ORIG_DIR/../git-fast-filter --stdin --force $@
+    git fast-export --all >compare
+    if git --no-pager diff --no-index ../$OUTPUT compare; then
+        echo PASSED: $OUTPUT from $INPUT + $@
+    else
+        echo FAILED: did not match $OUTPUT with $INPUT + $@
+    fi
+}
+
+run inputs/case1 expected/case1-filename --path filename
