@@ -525,6 +525,29 @@ class Checkpoint(_GitElement):
     file_.write('checkpoint\n')
     file_.write('\n')
 
+class LiteralCommand(_GitElement):
+  """
+  This class defines our representation of commands. The literal command
+  includes only a single line, and is not processed in any special way.
+  """
+
+  def __init__(self, line):
+    _GitElement.__init__(self)
+
+    # Denote that this is a literal element
+    self.type = 'literal'
+
+    # Store the command
+    self.line = line
+
+  def dump(self, file_):
+    """
+    Write this progress element to a file
+    """
+    self.dumped = 1
+
+    file_.write(self.line)
+
 class FastExportFilter(object):
   """
   A class for parsing and handling the output from fast-export. This
@@ -902,6 +925,18 @@ class FastExportFilter(object):
     if not checkpoint.dumped:
       checkpoint.dump(self._output)
 
+  def _parse_literal_command(self):
+    """
+    Parse literal command.  Just dump the line as is.
+    """
+    # Create the literal command object
+    command = LiteralCommand(self._currentline)
+    self._advance_currentline()
+
+    # Now print the resulting checkpoint
+    if not command.dumped:
+      command.dump(self._output)
+
   def get_seen_refs(self):
     return self._seen_refs
 
@@ -971,6 +1006,18 @@ class FastExportFilter(object):
         self._parse_progress()
       elif self._currentline.startswith('checkpoint'):
         self._parse_checkpoint()
+      elif self._currentline.startswith('feature'):
+        self._parse_literal_command()
+      elif self._currentline.startswith('option'):
+        self._parse_literal_command()
+      elif self._currentline.startswith('done'):
+        self._parse_literal_command()
+      elif self._currentline.startswith('#'):
+        self._parse_literal_command()
+      elif self._currentline.startswith('get-mark') or \
+           self._currentline.startswith('cat-blob') or \
+           self._currentline.startswith('ls'):
+        raise SystemExit("Unsupported command: '%s'" % self._currentline)
       else:
         raise SystemExit("Could not parse line: '%s'" % self._currentline)
 
