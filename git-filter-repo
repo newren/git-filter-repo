@@ -1255,7 +1255,14 @@ def sanity_check(refs, is_bare):
         abort('{} does not match {}'.format(refname, origin_ref))
 
 def get_refs():
-  output = subprocess.check_output('git show-ref'.split())
+  try:
+    output = subprocess.check_output('git show-ref'.split())
+  except subprocess.CalledProcessError as e:
+    # If error code is 1, there just isn't any refs; i.e. bare repo.
+    # If error code is other than 1, some other error (e.g. not a git repo)
+    if e.returncode != 1:
+      raise SystemExit('fatal: {}'.format(e))
+    output = ''
   return dict(reversed(x.split()) for x in output.splitlines())
 
 def tweak_commit(args, commit):
