@@ -38,7 +38,7 @@ test_expect_success 'commit_info.py' '
 	mkdir new &&
 	git --git-dir=new/.git init &&
 	git fast-export --all |
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/commit_info.py |
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/commit_info.py |
 	(cd new &&
 	 git fast-import --quiet &&
 	 test 0e5a1029 = $(git rev-parse --short=8 --verify refs/heads/master))
@@ -49,7 +49,7 @@ test_expect_success 'file_filter.py' '
 	mkdir new &&
 	git --git-dir=new/.git init &&
 	git fast-export --all |
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/file_filter.py |
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/file_filter.py |
 	(cd new &&
 	 git fast-import --quiet &&
 	 test ee59e2b4 = $(git rev-parse --short=8 --verify refs/heads/master))
@@ -58,7 +58,7 @@ test_expect_success 'file_filter.py' '
 test_expect_success 'print_progress.py' '
 	MASTER=$(git rev-parse --verify master) &&
 	rm -rf new &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/print_progress.py . new &&
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/print_progress.py . new &&
 	(cd new &&
 	 test $MASTER = $(git rev-parse --verify refs/heads/master))
 '
@@ -69,7 +69,7 @@ test_expect_success 'rename-master-to-slave.py' '
 	mkdir new &&
 	git --git-dir=new/.git init &&
 	git fast-export --all |
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/rename-master-to-slave.py |
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/rename-master-to-slave.py |
 	(cd new &&
 	 git fast-import --quiet &&
 	 test $MASTER = $(git rev-parse --verify refs/heads/slave))
@@ -80,7 +80,7 @@ test_expect_success 'strip-cvs-keywords.py' '
 	mkdir new &&
 	git --git-dir=new/.git init &&
 	git fast-export --all |
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/strip-cvs-keywords.py |
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/strip-cvs-keywords.py |
 	(cd new &&
 	 git fast-import --quiet &&
 	 test 2306fc7c = $(git rev-parse --short=8 --verify refs/heads/master))
@@ -125,7 +125,7 @@ test_expect_success 'setup two extra repositories' '
 
 test_expect_success 'splice_repos.py' '
 	rm -rf new &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/splice_repos.py repo1 repo2 new &&
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/splice_repos.py repo1 repo2 new &&
 	(cd new &&
          test 4 = $(git rev-list master | wc -l))
 '
@@ -134,7 +134,7 @@ test_expect_success 'create_fast_export_output.py' '
 	rm -rf new &&
 	mkdir new &&
 	git --git-dir=new/.git init &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/create_fast_export_output.py |
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/create_fast_export_output.py |
 	(cd new &&
 	 git fast-import --quiet &&
 	 test e5e0569b = $(git rev-parse --short=8 --verify refs/heads/master) &&
@@ -147,7 +147,7 @@ test_expect_success 'collab' '
 	mkdir new &&
 	cd new &&
 	git init &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/collab clone .. --exclude=secret &&
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/collab clone .. --exclude=secret &&
 	test 18dd5834 = $(git rev-parse --short=8 refs/remotes/collab/master) &&
 	git merge collab/master &&
 	cd .. &&
@@ -155,12 +155,12 @@ test_expect_success 'collab' '
 	git add another-file &&
 	git commit -m "Yet another commit" &&
 	cd new &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/collab pull-grafts &&
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/collab pull-grafts &&
 	test d042f798 = $(git rev-parse --short=8 refs/remotes/collab/master) &&
 	git merge collab/master &&
 	echo more content >> another-file &&
 	git commit -m "And yet another commit" another-file &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/collab push-grafts &&
+	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/collab push-grafts &&
 	cd .. &&
 	test d50d11fc = $(git rev-parse --short=8 refs/remotes/collab/master)
 '
