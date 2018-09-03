@@ -296,7 +296,7 @@ class GraftFilter(object):
         commands.getstatusoutput(
           "find %s/objects -type f | head -n 1 | wc -l"
           % self._collab_git_dir)
-      if output != "0":
+      if output.strip() != "0":
         raise SystemExit("collab clone must be called from an empty git repo.")
 
       # Create the sourcemarks and targetmarks empty files, get their names
