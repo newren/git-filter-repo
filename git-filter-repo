@@ -1169,6 +1169,10 @@ def get_args():
                               its output, filter the fast-export stream from
                               stdin.''')
 
+
+  parser.add_argument('--quiet', action='store_true',
+                      help='''Pass --quiet to other git commands called''')
+
   parser.add_argument('revisions', nargs='*',
                       help='''Branches/tags/refs to rewrite.  Special rev-list
                               options, such as --branches, --tags, --all,
@@ -1401,12 +1405,13 @@ def run_fast_filter():
       raise SystemExit("git update-ref failed; see above")
 
   # Nuke the reflogs and repack
-  if not args.debug:
+  if not args.quiet and not args.debug:
     print("Repacking your repo and cleaning out old unneeded objects")
+  quiet_flags = '--quiet' if args.quiet else ''
   cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
-                  'git gc --prune=now'.split()]
+                  'git gc {} --prune=now'.format(quiet_flags).split()]
   if not is_bare:
-    cleanup_cmds.append('git reset --hard'.split())
+    cleanup_cmds.append('git reset {} --hard'.format(quiet_flags).split())
   for cmd in cleanup_cmds:
     if args.debug:
       print("[DEBUG] Running: {}".format(' '.join(cmd)))
