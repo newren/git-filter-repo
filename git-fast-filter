@@ -575,8 +575,9 @@ class FastExportFilter(object):
     self._checkpoint_callback = checkpoint_callback
     self._everything_callback = everything_callback
 
-    # A list of all the refs we've seen
-    self._seen_refs = set()
+    # A list of all the refs we've seen, plus any mark we need to set them
+    # to if the last (or even only) commit on that branch was pruned
+    self._seen_refs = {}
 
     # A handle to the input source for the fast-export data
     self._input = None
@@ -591,6 +592,9 @@ class FastExportFilter(object):
     # Stores a translation of ids, useful when reading the output of a second
     # or third (or etc.) git fast-export output stream
     self._id_offset = 0
+
+    # Whether we've run our post-processing extra commands
+    self._finalize_handled = False
 
   def _advance_currentline(self):
     """
@@ -744,7 +748,7 @@ class FastExportFilter(object):
     """
     # Parse the Reset
     ref = self._parse_ref_line('reset')
-    self._seen_refs.add(ref)
+    self._seen_refs[ref] = None
     from_ref = self._parse_optional_parent_ref('from')
     if self._currentline == '\n':
       self._advance_currentline()
@@ -773,7 +777,7 @@ class FastExportFilter(object):
     # Parse the Commit. This may look involved, but it's pretty simple; it only
     # looks bad because a commit object contains many pieces of data.
     branch = self._parse_ref_line('commit')
-    self._seen_refs.add(branch)
+    self._seen_refs[branch] = None
     id_ = self._parse_optional_mark()
 
     author_name = None
@@ -840,6 +844,9 @@ class FastExportFilter(object):
       if merge_commit or not had_file_changes or commit.file_changes:
         commit.dump(self._output)
       else:
+        # We skip empty commits, but want to keep track to make sure we don't
+        # lose any refs this way.
+        self._seen_refs[branch] = commit.first_parent()
         commit.skip(commit.first_parent())
 
   def _parse_tag(self):
@@ -937,8 +944,24 @@ class FastExportFilter(object):
     if not command.dumped:
       command.dump(self._output)
 
+  def _handle_final_commands(self):
+    self._finalize_handled = True
+    for ref, value in self._seen_refs.iteritems():
+      if value is not None:
+        # Create a reset
+        reset = Reset(ref, value)
+
+        # Call any user callback to allow them to modify the reset
+        if self._reset_callback:
+          self._reset_callback(reset)
+        if self._everything_callback:
+          self._everything_callback('reset', reset)
+
+        # Now print the resulting reset
+        reset.dump(self._output)
+
   def get_seen_refs(self):
-    return self._seen_refs
+    return self._seen_refs.keys()
 
   def run(self, *args):
     """
@@ -1011,6 +1034,7 @@ class FastExportFilter(object):
       elif self._currentline.startswith('option'):
         self._parse_literal_command()
       elif self._currentline.startswith('done'):
+        self._handle_final_commands()
         self._parse_literal_command()
       elif self._currentline.startswith('#'):
         self._parse_literal_command()
@@ -1020,6 +1044,9 @@ class FastExportFilter(object):
         raise SystemExit("Unsupported command: '%s'" % self._currentline)
       else:
         raise SystemExit("Could not parse line: '%s'" % self._currentline)
+
+    if not self._finalize_handled:
+      self._handle_final_commands()
 
     # If we created fast_import process, close pipe and wait for it to finish
     if need_wait:
@@ -1391,7 +1418,7 @@ def run_fast_filter():
     sys.exit(0)
 
   # Remove unused refs
-  refs_to_nuke = set(orig_refs) - filter.get_seen_refs()
+  refs_to_nuke = set(orig_refs) - set(filter.get_seen_refs())
   if refs_to_nuke:
     if args.debug:
       print("[DEBUG] Deleting the following refs:\n  "+
