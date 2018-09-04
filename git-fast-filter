@@ -1074,6 +1074,7 @@ def fast_export_output(source_repo, extra_args = None):
         _IDS._avoid_ids_below(biggest_mark)
 
   # Create and return the git process
+  extra_args.append('--use-done-feature')
   return subprocess.Popen(["git", "fast-export", "--topo-order"] + extra_args,
                           stdout=subprocess.PIPE,
                           cwd=source_repo)
@@ -1371,7 +1372,8 @@ def run_fast_filter():
     input = sys.stdin
     fe_orig = None
   else:
-    fep_cmd = ['git', 'fast-export', '--no-data'] + args.revisions
+    fep_cmd = ['git', 'fast-export',
+               '--no-data', '--use-done-feature'] + args.revisions
     fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
     input = fep.stdout
     if args.dry_run or args.debug:
