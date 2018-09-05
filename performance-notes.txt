@@ -1,0 +1,65 @@
+rails (git clone https://github.com/rails/rails)
+  Timings of:  time git repo-filter --invert-paths --path pushgems.rb
+
+  64.098   Starting point
+  35.914   After using bufsize=-1 on output only subprocess stuff
+  27.777   After removing fi_input/fi_output write/read for sha1sum mapping
+  20.980   After removing fi_input/fi_output write/read for check_merge_if_empty
+
+Other important factors:
+
+  Am I calling is_ancestor too much?  (Only call with pruned parents)
+  Unnecessary re-computation of 'epoch' (calling fromtimestamp)
+  Excessive calls to re.compile
+  Why is posix.waitpid so long?
+  Can parse_user be sped up by if..endswith rather than try..except?
+  Memoize filename remapping in order to spead up tweak_commit?
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    83488    1.830    0.000   19.022    0.000 git-repo-filter:989(_parse_commit)
+    33314    1.192    0.000    1.650    0.000 git-repo-filter:123(is_ancestor)
+   997617    1.108    0.000    1.108    0.000 {method 'match' of '_sre.SRE_Pattern' objects}
+  1020663    1.083    0.000    1.083    0.000 {method 'readline' of 'file' objects}
+   334486    0.995    0.000    1.535    0.000 {built-in method fromtimestamp}
+  1081102    0.985    0.000    0.991    0.000 re.py:230(_compile)
+    83476    0.902    0.000    3.564    0.000 git-repo-filter:490(dump)
+       11    0.855    0.078    0.855    0.078 {posix.waitpid}
+   417904    0.803    0.000    2.685    0.000 git-repo-filter:807(_parse_optional_filechange)
+   167255    0.640    0.000    1.066    0.000 git-repo-filter:56(__init__)
+   167255    0.586    0.000    3.186    0.000 git-repo-filter:871(_parse_user)
+   997598    0.560    0.000    2.589    0.000 re.py:138(match)
+  1284279    0.529    0.000    0.529    0.000 {method 'write' of 'file' objects}
+   167231    0.492    0.000    1.629    0.000 git-repo-filter:42(_write_date)
+   668972    0.485    0.000    0.485    0.000 git-repo-filter:83(dst)
+    83488    0.463    0.000    1.006    0.000 git-repo-filter:2255(tweak_commit)
+   334394    0.428    0.000    0.654    0.000 git-repo-filter:410(dump)
+    83488    0.417    0.000    0.674    0.000 collections.py:50(__init__)
+  1020663    0.408    0.000    1.492    0.000 git-repo-filter:766(_advance_currentline)
+    83488    0.353    0.000    0.377    0.000 {method 'sub' of '_sre.SRE_Pattern' objects}
+   334416    0.331    0.000    0.439    0.000 git-repo-filter:381(__init__)
+  1796776    0.304    0.000    0.304    0.000 {method 'startswith' of 'str' objects}
+        1    0.271    0.271   19.961   19.961 git-repo-filter:1367(run)
+   100432    0.260    0.000    0.618    0.000 git-repo-filter:784(_parse_optional_parent_ref)
+   334416    0.254    0.000    0.497    0.000 git-repo-filter:2267(newname)
+
+
+Python commands:
+
+  $ python -m cProfile -o repo-filter.profile \
+        ~/floss/git-repo-filter/git-repo-filter \
+        --invert-paths --path pushgems.rb
+
+  Just showing basic stats ('cumtime' and 'tottime' seem to be what matter):
+    import pstats
+    p = pstats.Stats('repo-filter.profile')
+    p.strip_dirs().sort_stats('cumtime').print_stats()
+
+  Writing to some other string instead of stdout:
+    a = cStringIO.StringIO()
+    p = pstats.Stats('repo-filter.profile', stream=a)
+    p.strip_dirs().sort_stats('tottime').print_stats()
+
+  Get various data out of the written output
+    lines = a.getvalue().splitlines()[7:-2]
+    sum(float(line.split(None, 5)[1]) for line in lines)
+    print('\n'.join(' '.join(line.split(None, 5)[1:6:4]) for line in lines))

@@ -1,0 +1,48 @@
+git-filter-branch
+  Ease of use differences in usability:
+    Easier path selection and renaming
+    Rewrite sha1sums (and abbreviations) in commit messages
+    Defaults to pruning empty commits (but only BECOME empty commits)
+      - (Technical notes, on kinds of empty:
+         - Empty due to blob filtering resulting in later patch becoming empty
+         - Empty due to path filtering
+         - Empty branch causing merge to lose parent(s) -- 3 styles
+           - One or more parents had no changes themselves or in their history
+           - Most recent non-empty commit on all branches was either the
+             merge-base or an ancestor (i.e. keeping the merge commit would
+             mean merging a commit with itself)
+           - Most recent non-empty commit on one parent's side of history is
+             an ancestor of another parent (i.e. that side no longer has any
+             interesting changes, and the parent corresponding to the empty
+             side should be removed)
+         - Empty ref due to entire history before it being empty
+    Deletes stuff not requested in the rewrite (unless overridden), so that
+      it doesn't confuse user or accidentally get re-pushed
+    Typically far faster to execute
+    Bails if not in a clean clone by default
+      - Users have a far easier time restoring if they can just nuke the clone
+      - Avoids the default need for users to mess with backups of original refs
+        (either for restoration, or for pruning to make sure repo is clean)
+    Repacks and shrinks repo for you (unless overridden)
+      - Makes it easier to ensure you've cleaned out unwanted stuff
+
+  Advantages over git-repo-filter:
+    - Filters every file once per revision even if unmodified between commits;
+      allows filtering differently for different commits.
+    
+    
+  
+bfg repo-cleaner
+  Ease of use differences in usability:
+    Automatic repack and shrink repo (instead of documenting extra steps)
+    No stupid 'fix your current branch first manually, then run'
+    Pathname inclusion, not just exclusion
+    Full pathname matching, instead of just *basename* (globs for basename)
+
+  Capability differences:
+    Prunes commits which become empty due to filtering
+    Lots of general filtering options outside of removing a few big files
+
+  Advantages of BFG repo cleaner:
+    - Very focused on just removing crazy big files, and sensitive data
+    -
