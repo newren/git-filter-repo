@@ -831,7 +831,7 @@ class FastExportFilter(object):
     if not reset.dumped:
       reset.dump(self._output)
 
-  def _parse_commit(self):
+  def _parse_commit(self, fast_import_pipes):
     """
     Parse input data into a Commit object. Once the Commit has been created,
     it will be handed off to the appropriate callbacks. Current-line will
@@ -875,6 +875,7 @@ class FastExportFilter(object):
     # merge a commit with its ancestor.  Remove parents that are an
     # ancestor of another parent.)
     num_original_parents = len(parents)
+    check_merge_now_empty = False
     if num_original_parents > 1:
       to_remove = []
       for cur in xrange(num_original_parents):
@@ -884,6 +885,8 @@ class FastExportFilter(object):
             to_remove.append(cur)
       for x in reversed(to_remove):
         parents.pop(x)
+      if len(parents) == 1:
+        check_merge_now_empty = True
 
     # Record our new parents after above pruning of parents representing
     # pruned empty histories
@@ -899,6 +902,48 @@ class FastExportFilter(object):
       file_change = self._parse_optional_filechange()
     if self._currentline == '\n':
       self._advance_currentline()
+
+    # If we had a merge commit and the first parent history back to the
+    # merge base was entirely composed of commits made empty by our
+    # filtering, it is likely that this merge commit is empty and can be
+    # pruned too.  Check by comparing the contents of this merge to its
+    # remaining parent.
+    #
+    # NOTES on why/how this works:
+    #   1. fast-export always gives file changes in a merge commit relative
+    #      to the first parent.
+    #   2. The only way this 'if' is active is when the first parent was
+    #      an ancestor of what is now the only remaining parent
+    #   3. The two above imply that the file changes we're looking at are
+    #      just for the line of history for the remaining parent, and show
+    #      all changes needed to make the original first parent (whose tree
+    #      matched an ancestor of the remaining parent) match the merge's tree.
+    #   4. If the versions of all specified files in the remaining parent
+    #      match the file change versions, then this "merge" commit is
+    #      actually going to be an empty non-merge commit and we should prune
+    #      it.
+    if check_merge_now_empty and fast_import_pipes:
+      unnecessary_filechanges = set()
+      fi_input, fi_output = fast_import_pipes
+      # Optimization note: we could have two loops over file_changes, the
+      # first doing all the fi_input.write() calls, and the second doing the
+      # rest.  But I'm worried about fast-import blocking on fi_output
+      # buffers filling up so I instead read from it as I go.
+      for change in file_changes:
+        fi_input.write("ls :{} {}\n".format(from_commit, change.filename))
+        parent_version = fi_output.readline().split()
+        if change.type == 'D':
+          if parent_version == ['missing', change.filename]:
+            unnecessary_filechanges.add(change)
+        else:
+          blob_sha = change.blob_id
+          if isinstance(change.blob_id, int):
+            fi_input.write("get-mark :{}\n".format(change.blob_id))
+            blob_sha = fi_output.readline().rstrip()
+          if parent_version == [change.mode, 'blob', blob_sha, change.filename]:
+            unnecessary_filechanges.add(change)
+      file_changes = [change for change in file_changes
+                      if change not in unnecessary_filechanges]
 
     # Okay, now we can finally create the Commit object
     commit = Commit(branch,
@@ -1051,7 +1096,7 @@ class FastExportFilter(object):
   def get_seen_refs(self):
     return self._seen_refs.keys()
 
-  def run(self, *args):
+  def run(self, *args, **kwargs):
     """
     This method performs the filter. The method optionally takes two arguments.
     The first represents the source repository (either a file object
@@ -1110,7 +1155,7 @@ class FastExportFilter(object):
       elif self._currentline.startswith('reset'):
         self._parse_reset()
       elif self._currentline.startswith('commit'):
-        self._parse_commit()
+        self._parse_commit(kwargs.get('fast_import_pipes', None))
       elif self._currentline.startswith('tag'):
         self._parse_tag()
       elif self._currentline.startswith('progress'):
@@ -1473,9 +1518,12 @@ def run_fast_filter():
         print("  (saving a copy of the output at {})".format(fe_orig))
 
   # Determine where to send output
+  pipes = None
   if not args.dry_run:
     fip_cmd = 'git fast-import --force --quiet'.split()
-    fip = subprocess.Popen(fip_cmd, stdin=subprocess.PIPE)
+    fip = subprocess.Popen(fip_cmd, stdin=subprocess.PIPE,
+                           stdout=subprocess.PIPE)
+    pipes = (fip.stdin, fip.stdout)
   if args.dry_run or args.debug:
     fe_filt = os.path.join(results_tmp_dir, 'fast-export.filtered')
     output = open(fe_filt, 'w')
@@ -1490,7 +1538,7 @@ def run_fast_filter():
   filter = FastExportFilter(
              commit_callback = lambda c : tweak_commit(args, c),
              )
-  filter.run(input, output)
+  filter.run(input, output, fast_import_pipes = pipes)
 
   # Close the output, ensure fast-export and fast-import have completed
   output.close()
