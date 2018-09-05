@@ -1,0 +1,102 @@
+Background:
+  Desire to combine, split-apart, or clean up repositories
+  Examples: pgdev, nucleus, willamette
+Example, want:
+  Only certain paths (a specific directory)
+  move into a subdirectory
+  rename tags to not conflict
+Filter-branch command (takes 65.950 seconds, or 15.594 seconds):
+
+
+  time git filter-branch --tree-filter 'mkdir -p modules && git ls-files | grep -v ^src/main/java/com/palantir/annotation | xargs git rm -f -q && ls -d * | grep -v modules | xargs -I files mv files modules/' --tag-name-filter 'echo "table-helper-$(cat)"' --prune-empty -- --all
+
+
+Faster version (takes 37.802 seconds, or 6.287 seconds):
+
+
+  time git filter-branch --index-filter 'git ls-files | grep -v ^src/main/java/com/palantir/annotation | xargs git rm -q --cached; git ls-files -s | sed "s-$(printf \\t)-&modules/-" | git update-index --index-info; git ls-files | grep -v ^modules/ | xargs -r git rm -q --cached' --tag-name-filter 'echo "table-helper-$(cat)"' --prune-empty -- --all
+
+
+Caveats:
+  Really complicated to come up with
+  Googled solutions may be subtly os- or case- specific (sed, xargs, '*' above)
+  (I know git & bash & gnu vs. bsd, fixed filter-branch, etc.)
+Error Prone:
+  mixing old and new history
+  safety -- how to restore (refs/original hard; annotated tags may be missing)
+  pruning of empty commits overeager
+Painful, but possible:
+  selecting stuff to keep (as opposed to removing)
+  renaming files
+  figuring out what to remove (--analyze)
+  shrinking (man-page is misleading...)
+Limiting:
+  speed
+  commit message rewriting
+Compare:
+
+  git repo-filter --analyze
+  
+  time git repo-filter --path src/main/java/com/palantir/annotation --subdirectory-filter modules
+
+
+
+**********************************************************************
+
+Before demo tomorrow:
+  Submit git patch
+  Come up with basic demo and what to discuss
+
+    issues:
+      common:
+	no up-front report to help find what to remove
+        painful to select things to keep
+	shrinking is extra painful step
+
+      git-filter-branch issues:
+        doesn't rewrite commit messages
+	slow
+        mixes old and new history (& needs help to remove big objects)
+	pruning of empty commits is possible but overbearing hammer
+	painful to rename
+	safety: if using '--tag-name-filter cat', annotated tags NOT backed up
+
+      bfg:
+        cannot rename
+	does not prune empty commits
+
+    git-filter-branch:
+
+      65.950   time git filter-branch --tree-filter 'mkdir -p modules && git ls-files | grep -v ^src/main/java/com/palantir/annotation | xargs git rm -f -q && ls -d * | grep -v modules | xargs -I files mv files modules/' --tag-name-filter 'echo "table-helper-$(cat)"' --prune-empty -- --all
+
+      37.802   time git filter-branch --index-filter 'git ls-files | grep -v ^src/main/java/com/palantir/annotation | xargs git rm -q --cached; git ls-files -s | sed "s-$(printf \\t)-&modules/-" | git update-index --index-info; git ls-files | grep -v ^modules/ | xargs git rm -q --cached' --tag-name-filter 'echo "table-helper-$(cat)"' --prune-empty -- --all
+
+
+         time git clone ../whatever newcopy
+	 du -ks .git
+         git for-each-ref --format="delete %(refname)" refs/tags/ | grep -v refs/tags/foo- | git update-ref --stdin
+	 time git gc --prune=now
+	 du -ks .git
+
+       0.660  time git repo-filter --path src/main/java/com/palantir/annotation --path-rename :modules/
+
+      git for-each-ref --format="delete %(refname)" refs/tags/ | grep -v refs/tags/foo- | git update-ref --stdin
+
+      git for-each-ref --format="delete %(refname)" refs/original/ | git update-ref --stdin
+      git reflog expire --expire=now --all
+      git gc --prune=now
+
+    BFG:
+      bfg --delete-from <(git rev-list --objects --all | awk {print\$2} | grep -v ^$ | sort | uniq | grep -v $DIR_OF_INTEREST)
+      git fetch . refs/tags/*:refs/tags/foo-*
+      git show-ref --tags | awk {print\$2} | grep -v refs/tags/foo- | sed -e 's/^/delete /' | git update-ref --stdin
+      git reflog expire --expire-unreachable=now
+      git gc --prune=now
+
+***************************************************************************
+
+rails:
+  5252.036    time git filter-branch --tree-filter 'rm -f pushgems.rb' --tag-name-filter cat -- --all
+  1962.735    time git filter-branch --index-filter 'git rm --cached --ignore-unmatch pushgems.rb' --tag-name-filter cat -- --all
+    39.715    time git repo-filter --invert-paths --path pushgems.rb
+    33.169    <same, but with early exit>
