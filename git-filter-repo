@@ -465,9 +465,11 @@ class Commit(_GitElementWithId):
     file_.write('\n')
     file_.write('data %d\n%s' % (len(self.message), self.message))
     if self.from_commit:
-      file_.write('from :%s\n' % self.from_commit)
+      mark = ':' if isinstance(self.from_commit, int) else ''
+      file_.write('from {}{}\n'.format(mark, self.from_commit))
     for ref in self.merge_commits:
-      file_.write('merge :%s\n' % ref)
+      mark = ':' if isinstance(ref, int) else ''
+      file_.write('merge {}{}\n'.format(mark, ref))
     for change in self.file_changes:
       change.dump(file_)
     file_.write('\n')
@@ -529,7 +531,8 @@ class Tag(_GitElement):
     self.dumped = 1
 
     file_.write('tag %s\n' % self.ref)
-    file_.write('from :%d\n' % self.from_ref)
+    mark = ':' if isinstance(self.from_ref, int) else ''
+    file_.write('from {}{}\n'.format(mark, self.from_ref))
     file_.write('tagger %s <%s> ' % (self.tagger_name, self.tagger_email))
     _write_date(file_, self.tagger_date)
     file_.write('\n')
@@ -693,6 +696,11 @@ class FastExportFilter(object):
       # our mark namespace
       baseref = _IDS.translate( int(matches.group(1))+self._id_offset )
       self._advance_currentline()
+    else:
+      matches = re.match('%s ([0-9a-f]{40})\n' % refname, self._currentline)
+      if matches:
+        baseref = matches.group(1)
+        self._advance_currentline()
     return baseref
 
   def _parse_optional_filechange(self):
