@@ -663,6 +663,26 @@ class FastExportFilter(object):
     # next into master").
     self._commits_no_longer_merges = []
 
+    # A dict of original_ids to new_ids; filtering commits means getting
+    # new commit hash (sha1sums), and we record the mapping both for
+    # diagnostic purposes and so we can rewrite commit messages.  Note that
+    # the new_id can be None rather than a commit hash if the original
+    # commit became empty and was pruned or was otherwise dropped.
+    self._commit_renames = {}
+
+    # A dict of commit_hash[1:7] -> set(commit_hashes with that prefix).
+    #
+    # It's common for commit messages to refer to commits by abbreviated
+    # commit hashes, as short as 7 characters.  To facilitate translating
+    # such short hashes, we have a mapping of prefixes to full old hashes.
+    self._commit_short_old_hashes = collections.defaultdict(set)
+
+    # A set of commit hash references appearing in commit messages which
+    # mapped to a valid commit that was removed entirely in the filtering
+    # process.  The commit message will continue to reference the
+    # now-missing commit hash, since there was nothing to map it to.
+    self._commits_referenced_but_removed = set()
+
     # A handle to the input source for the fast-export data
     self._input = None
 
@@ -865,6 +885,26 @@ class FastExportFilter(object):
     if not reset.dumped:
       reset.dump(self._output)
 
+  def _translate_commit_hash(self, matchobj):
+    old_hash = matchobj.group(1)
+    orig_len = len(old_hash)
+    if old_hash not in self._commit_renames:
+      if old_hash[0:7] not in self._commit_short_old_hashes:
+        return old_hash
+      possibilities = self._commit_short_old_hashes[old_hash[0:7]]
+      matches = [x for x in possibilities
+                 if x[0:orig_len] == old_hash]
+      if len(matches) != 1:
+        return old_hash
+      old_hash = matches[0]
+
+    new_hash = self._commit_renames[old_hash]
+    if new_hash is None:
+      self._commits_referenced_but_removed.add(old_hash)
+      return old_hash
+    else:
+      return new_hash[0:orig_len]
+
   def _parse_commit(self, fast_import_pipes):
     """
     Parse input data into a Commit object. Once the Commit has been created,
@@ -895,6 +935,9 @@ class FastExportFilter(object):
         (committer_name, committer_email, committer_date)
 
     commit_msg = self._parse_data()
+    commit_msg = re.sub(r'(\b[0-9a-f]{7,40}\b)',
+                        self._translate_commit_hash,
+                        commit_msg)
 
     parents = []
     parents.append(self._parse_optional_parent_ref('from'))
@@ -1016,12 +1059,14 @@ class FastExportFilter(object):
           (not had_file_changes and len(parents) >= 1)):
         commit.dump(self._output)
         new_id = None
-        # Determine the mapping of old commit hash to new one
+        # Record the mapping of old commit hash to new one
         if commit.original_id and fast_import_pipes:
           fi_input, fi_output = fast_import_pipes
           fi_input.write("get-mark :{}\n".format(commit.id))
           orig_id = commit.original_id
           new_id = fi_output.readline().rstrip()
+          self._commit_renames[orig_id] = new_id
+          self._commit_short_old_hashes[orig_id[0:7]].add(orig_id)
         # Now, record if this was a merge commit that turned into a non-merge
         # commit.
         if num_original_parents > 1 and not merge_commit:
@@ -1031,6 +1076,7 @@ class FastExportFilter(object):
         # lose any refs this way.
         self._seen_refs[branch] = commit.first_parent()
         commit.skip(commit.first_parent())
+        self._commit_renames[commit.original_id] = None
 
   def _parse_tag(self):
     """
@@ -1195,6 +1241,17 @@ class FastExportFilter(object):
           '''[1:]))
         for oldhash, newhash in self._commits_no_longer_merges:
           f.write('  {} {}\n'.format(oldhash, newhash))
+        f.write('\n')
+
+      if self._commits_referenced_but_removed:
+        issues_found = True
+        f.write(textwrap.dedent('''
+          The following commits were filtered out, but referenced in another
+          commit message.  The reference to the now-nonexistent commit hash
+          (or a substring thereof) was left as-is in any commit messages:
+          '''[1:]))
+        for bad_commit_reference in self._commits_referenced_but_removed:
+          f.write('  {}\n'.format(bad_commit_reference))
         f.write('\n')
 
       if not issues_found:
