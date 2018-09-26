@@ -1670,7 +1670,10 @@ def run_fast_filter():
   else:
     fep_cmd = ['git', 'fast-export',
                '--show-original-ids',
-               '--no-data', '--use-done-feature'] + args.revisions
+               '--signed-tags=strip',
+               '--tag-of-filtered-object=rewrite',
+               '--no-data',
+               '--use-done-feature'] + args.revisions
     fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
     input = fep.stdout
     if args.dry_run or args.debug:
