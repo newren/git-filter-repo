@@ -1101,6 +1101,39 @@ class FastExportFilter(object):
         # Now print the resulting reset
         reset.dump(self._output)
 
+  def record_metadata(self, metadata_dir, orig_refs, refs_nuked):
+    deleted_hash = '0'*40
+    with open(os.path.join(metadata_dir, 'commit-map'), 'w') as f:
+      f.write("old                                      new\n")
+      for (old,new) in self._commit_renames.iteritems():
+        f.write('{} {}\n'.format(old, new if new != None else deleted_hash))
+
+    batch_check_process = None
+    with open(os.path.join(metadata_dir, 'ref-map'), 'w') as f:
+      for refname, old_hash in orig_refs.iteritems():
+        if refname in refs_nuked:
+          new_hash = deleted_hash
+        elif old_hash in self._commit_renames:
+          new_hash = self._commit_renames[old_hash]
+          new_hash = new_hash if new_hash != None else deleted_hash
+        else: # Must be an annotated tag
+          if not batch_check_process:
+            cmd = 'git cat-file --batch-check'.split()
+            batch_check_process = subprocess.Popen(cmd,
+                                                   stdin=subprocess.PIPE,
+                                                   stdout=subprocess.PIPE)
+          batch_check_process.stdin.write(refname+"\n")
+          line = batch_check_process.stdout.readline()
+          m = re.match('^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$', line)
+          if not m or m.group(2) != 'tag':
+            raise SystemExit("Failed to find new id for {} (old id was {})"
+                             .format(refname, old_hash))
+          new_hash = m.group(1)
+        f.write('{} {} {}\n'.format(old_hash, new_hash, refname))
+    if batch_check_process:
+      batch_check_process.stdin.close()
+      batch_check_process.wait()
+
   def get_seen_refs(self):
     return self._seen_refs.keys()
 
@@ -1503,10 +1536,9 @@ def run_fast_filter():
     sanity_check(orig_refs, is_bare, git_dir)
 
   # Create a temporary directory for storing some results
-  if args.dry_run or args.debug:
-    results_tmp_dir = os.path.join(git_dir, 'repo-filter')
-    if not os.path.isdir(results_tmp_dir):
-      os.mkdir(results_tmp_dir)
+  results_tmp_dir = os.path.join(git_dir, 'repo-filter')
+  if not os.path.isdir(results_tmp_dir):
+    os.mkdir(results_tmp_dir)
 
   # Determine where to get input (and whether to make a copy)
   if args.stdin:
@@ -1576,6 +1608,9 @@ def run_fast_filter():
     p.stdin.close()
     if p.wait():
       raise SystemExit("git update-ref failed; see above")
+
+  # Write out data about run
+  filter.record_metadata(results_tmp_dir, orig_refs, refs_to_nuke)
 
   # Nuke the reflogs and repack
   if not args.quiet and not args.debug:
