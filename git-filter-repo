@@ -18,6 +18,7 @@ import os
 import re
 import subprocess
 import sys
+import textwrap
 
 from email.Utils import unquote
 from datetime import tzinfo, timedelta, datetime
@@ -647,6 +648,12 @@ class FastExportFilter(object):
     # of its ancestors.
     self._graph = AncestryGraph()
 
+    # A set of commit hash pairs (oldhash, newhash) which used to be merge
+    # commits but due to filtering were turned into non-merge commits.
+    # The commits probably have suboptimal commit messages (e.g. "Merge branch
+    # next into master").
+    self._commits_no_longer_merges = []
+
     # A handle to the input source for the fast-export data
     self._input = None
 
@@ -984,6 +991,17 @@ class FastExportFilter(object):
     if not commit.dumped:
       if merge_commit or not had_file_changes or commit.file_changes:
         commit.dump(self._output)
+        new_id = None
+        # Determine the mapping of old commit hash to new one
+        if commit.original_id and fast_import_pipes:
+          fi_input, fi_output = fast_import_pipes
+          fi_input.write("get-mark :{}\n".format(commit.id))
+          orig_id = commit.original_id
+          new_id = fi_output.readline().rstrip()
+        # Now, record if this was a merge commit that turned into a non-merge
+        # commit.
+        if num_original_parents > 1 and not merge_commit:
+          self._commits_no_longer_merges.append((orig_id, new_id))
       else:
         # We skip empty commits, but want to keep track to make sure we don't
         # lose any refs this way.
@@ -1133,6 +1151,24 @@ class FastExportFilter(object):
     if batch_check_process:
       batch_check_process.stdin.close()
       batch_check_process.wait()
+
+    with open(os.path.join(metadata_dir, 'suboptimal-issues'), 'w') as f:
+      issues_found = False
+      if self._commits_no_longer_merges:
+        issues_found = True
+
+        f.write(textwrap.dedent('''
+          The following commits used to be merge commits but due to filtering
+          are now regular commits; they likely have suboptimal commit messages
+          (e.g. "Merge branch next into master").  Original commit hash on the
+          left, commit hash after filtering/rewriting on the right:
+          '''[1:]))
+        for oldhash, newhash in self._commits_no_longer_merges:
+          f.write('  {} {}\n'.format(oldhash, newhash))
+        f.write('\n')
+
+      if not issues_found:
+        f.write("No filtering problems encountered.")
 
   def get_seen_refs(self):
     return self._seen_refs.keys()
