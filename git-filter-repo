@@ -1443,7 +1443,16 @@ _CURRENT_STREAM_NUMBER = 0
 
 class AppendFilter(argparse.Action):
   def __call__(self, parser, namespace, values, option_string=None):
-    filter_type = option_string[len('--path-'):] or 'match'
+    suffix = option_string[len('--path-'):] or 'match'
+    if suffix == 'rename':
+      mod_type = 'rename'
+      match_type = 'prefix'
+    elif suffix.startswith('rename-'):
+      mod_type = 'rename'
+      match_type = suffix[len('rename-'):]
+    else:
+      mod_type = 'filter'
+      match_type = suffix
     items = getattr(namespace, self.dest, []) or []
     items.append((mod_type, match_type, values))
     setattr(namespace, self.dest, items)
@@ -1465,21 +1474,30 @@ def get_args():
                                   of those options.''')
 
   path_group.add_argument('--path-match', '--path', metavar='DIR_OR_FILE',
-                          action=AppendFilter, dest='path_filter',
+                          action=AppendFilter, dest='path_changes',
                           help='''Exact paths (files or directories) to include
                                   in filtered history.  Multiple --path
                                   options can be specified to get a union of
                                   paths.''')
   path_group.add_argument('--path-glob', metavar='GLOB',
-                          action=AppendFilter, dest='path_filter',
+                          action=AppendFilter, dest='path_changes',
                           help='''Glob of paths to include in filtered
                                   history.  Multiple --path-glob options can
                                   be specified to get a union of paths.''')
   path_group.add_argument('--path-regex', metavar='REGEX',
-                          action=AppendFilter, dest='path_filter',
+                          action=AppendFilter, dest='path_changes',
                           help='''Regex of paths to include in filtered
                                   history.  Multiple --path-regex options can
                                   be specified to get a union of paths''')
+
+  rename_group = parser.add_argument_group(title='Renaming based on paths')
+  rename_group.add_argument('--path-rename', '--path-rename-prefix',
+                            metavar='OLD_NAME:NEW_NAME',
+                            action=AppendFilter, dest='path_changes',
+                            help='''Prefix to rename; if filename starts with
+                                    OLD_NAME, replace that with NEW_NAME.
+                                    Multiple --path-rename options can be
+                                    specified.''')
 
   parser.add_argument('--dry-run', action='store_true',
                       help='''Do not change the repository.  Run `git
@@ -1513,9 +1531,19 @@ def get_args():
   args = parser.parse_args()
   if not args.revisions:
     args.revisions = ['--all']
-  if args.path_filter == None:
-    args.path_filter = []
+  # If no path_changes are found, initialize with empty list but mark as
+  # not inclusive so that all files match
+  if args.path_changes == None:
+    args.path_changes = []
     args.inclusive = False
+  # Similarly, if we only have renames, all paths should match
+  else:
+    has_filter = False
+    for (mod_type, match_type, path_expression) in args.path_changes:
+      if mod_type == 'filter':
+        has_filter = True
+    if not has_filter:
+      args.inclusive = False
   return args
 
 def is_repository_bare():
@@ -1599,26 +1627,56 @@ def get_refs():
   return dict(reversed(x.split()) for x in output.splitlines())
 
 def tweak_commit(args, commit):
-  def include_file(path_filter, pathname):
-    for (filter_type, path_expression) in path_filter:
-      if filter_type == 'match':
-        n = len(path_expression)
-        if (pathname.startswith(path_expression) and
-            (path_expression[n-1] == '/' or
-             len(pathname) == n or
-             pathname[n] == '/')):
-          return True
-      if filter_type == 'glob' and fnmatch.fnmatch(pathname, path_expression):
-        return True
-      if filter_type == 'regex' and re.search(path_expression, pathname):
-        return True
+  def filename_matches(path_expression, pathname):
+    if path_expression == '':
+      return True
+    n = len(path_expression)
+    if (pathname.startswith(path_expression) and
+        (path_expression[n-1] == '/' or
+         len(pathname) == n or
+         pathname[n] == '/')):
+      return True
     return False
 
-  new_file_changes = []
+  def newname(path_changes, pathname, filtering_is_inclusive):
+    wanted = False
+    for (mod_type, match_type, path_expression) in path_changes:
+      if mod_type == 'filter' and not wanted:
+        if match_type == 'match' and filename_matches(path_expression, pathname):
+          wanted = True
+        if match_type == 'glob' and fnmatch.fnmatch(pathname, path_expression):
+          wanted = True
+        if match_type == 'regex' and re.search(path_expression, pathname):
+          wanted = True
+      elif mod_type == 'rename':
+        old_exp, new_exp = path_expression.split(':')
+        if match_type == 'prefix' and pathname.startswith(old_exp):
+          pathname = pathname.replace(old_exp, new_exp, 1)
+    return pathname if (wanted == filtering_is_inclusive) else None
+
+  new_file_changes = {}
   for change in commit.file_changes:
-    if include_file(args.path_filter, change.filename) == args.inclusive:
-      new_file_changes.append(change)
-  commit.file_changes = new_file_changes
+    change.filename = newname(args.path_changes, change.filename, args.inclusive)
+    if not change.filename:
+      continue # Filtering criteria excluded this file; move on to next one
+    if change.filename in new_file_changes:
+      # Getting here means that path renaming is in effect, and caused one
+      # path to collide with another.  That's usually bad, but sometimes
+      # people have a file named OLDFILE in old revisions of history, and they
+      # rename to NEWFILE, and would like to rewrite history so that all
+      # revisions refer to it as NEWFILE.  As such, we can allow a collision
+      # when (at least) one of the two paths is a deletion.  Note that if
+      # OLDFILE and NEWFILE are unrelated this also allows the rewrite to
+      # continue, which makes sense since OLDFILE is no longer in the way.
+      if change.type == 'D':
+        # We can just throw this one away and keep the other
+        continue
+      elif new_file_changes[change.filename].type != 'D':
+        raise SystemExit("File renaming caused colliding pathnames!\n" +
+                         "  Commit: {}\n".format(commit.original_id) +
+                         "  Filename: {}".format(change.filename))
+    new_file_changes[change.filename] = change
+  commit.file_changes = new_file_changes.values()
 
 class InputFileBackup:
   def __init__(self, input_file, output_file):
