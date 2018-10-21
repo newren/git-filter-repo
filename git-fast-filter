@@ -356,6 +356,12 @@ class FileChanges(_GitElement):
       self.mode = mode
       self.blob_id = id_
 
+    # For 'R' file changes (rename), expect to have newname as third arg
+    elif type_ == 'R':
+      if id_ is None:
+        raise SystemExit("new name needed for rename of %s" % filename)
+      self.filename = (self.filename, id_)
+
   def dump(self, file_):
     """
     Write this file-change element to a file
@@ -773,6 +779,20 @@ class FastExportFilter(object):
         path = unquote(path)
       filechange = FileChanges('D', path)
       self._advance_currentline()
+    elif self._currentline.startswith('R '):
+      rest = self._currentline[2:-1]
+      if rest.startswith('"'):
+        m = re.match(r'"(?:[^"\\]|\\.)*"', rest)
+        if not m:
+          raise SystemExit("Couldn't parse rename source")
+        orig = unquote(m.group(0))
+        new = rest[m.end()+1:]
+      else:
+        orig, new = rest.split(' ', 1)
+      if new.startswith('"'):
+        new = unquote(new)
+      filechange = FileChanges('R', orig, new)
+      self._advance_currentline()
     return filechange
 
   def _parse_original_id(self):
@@ -910,6 +930,9 @@ class FastExportFilter(object):
       return old_hash
     else:
       return new_hash[0:orig_len]
+
+  def num_commits_parsed(self):
+    return self._num_commits
 
   def _show_progress(self, force=False):
     if not self._quiet:
@@ -1478,6 +1501,10 @@ def get_args():
   parser = argparse.ArgumentParser(description='Rewrite repository history')
   # FIXME: Need to special case all --* args that rev-list takes, or call
   # git rev-parse ...
+  parser.add_argument('--analyze', action='store_true',
+                     help='''Analyze repository history and create a report
+                             that may be useful in determining what to
+                             filter in a subsequent run.''')
   parser.add_argument('--force', '-f', action='store_true',
                       help='''Rewrite history even if the current repo does not
                               look like a fresh clone.''')
@@ -1548,6 +1575,11 @@ def get_args():
   args = parser.parse_args()
   if not args.revisions:
     args.revisions = ['--all']
+  if args.analyze and args.path_changes:
+    raise SystemExit("Error: --analyze is incompatible with --path* flags; "
+                     "it's a read-only operation.")
+  if args.analyze and args.stdin:
+    raise SystemExit("Error: --analyze is incompatible with --stdin.")
   # If no path_changes are found, initialize with empty list but mark as
   # not inclusive so that all files match
   if args.path_changes == None:
@@ -1643,6 +1675,334 @@ def get_refs():
     output = ''
   return dict(reversed(x.split()) for x in output.splitlines())
 
+def analyze_commit(args, commit):
+  def equiv_class(filename):
+    return args.stats['equivalence'].get(filename, (filename,))
+
+  for change in commit.file_changes:
+    if change.mode == '160000':
+      continue
+    if change.type == 'D':
+      # Track when files are deleted; see 'R' below about equiv_class
+      for f in equiv_class(change.filename):
+        args.stats['deletions'][f] = commit.committer_date
+    elif change.type == 'R':
+      # Since we want to know when files are deleted, renames make it slightly
+      # harder to track.  When we have a rename, track that the files are
+      # equivalent; i.e. that they refer to different versions of same file.
+      oldname, newname = change.filename
+      old_tuple = args.stats['equivalence'].get(oldname, ())
+      if newname in old_tuple:
+        continue
+      if old_tuple:
+        new_tuple = tuple(list(old_tuple)+[newname])
+      else:
+        new_tuple = (oldname, newname)
+      for f in new_tuple:
+        args.stats['equivalence'][f] = new_tuple
+      # Note, we require that we get an 'M' for every 'R' since the rename
+      # comes without information about sha1sum.  So we can handle setting
+      # a few things for newname in the 'M' section below.
+    elif change.type == 'M':
+      args.stats['names'][change.blob_id].add(change.filename)
+      args.stats['allnames'].add(change.filename)
+      # If we get an 'M', clearly the file isn't deleted anymore
+      equiv = equiv_class(change.filename)
+      for f in equiv:
+        args.stats['deletions'].pop(f, None)
+      # If we get an 'M' for a file that wasn't the latest in a rename chain,
+      # then that equivalence class isn't valid anymore.
+      if equiv[-1] != change.filename:
+        for f in equiv:
+          if f in args.stats['equivalence']:
+            del args.stats['equivalence'][f]
+    else:
+      raise SystemExit("Unhandled change type: {}".format(change.type))
+
+  # We're just gathering data; don't spend time dumping the commit
+  commit.dumped = 2
+
+def gather_data(args):
+  # Get sizes of blobs by sha1
+  cf = subprocess.Popen('git cat-file --batch-check --batch-all-objects'.split(),
+                        stdout = subprocess.PIPE)
+  size = {}
+  for line in cf.stdout:
+    sha, objtype, shasize = line.split()
+    shasize = int(shasize)
+    if objtype == 'blob':
+      size[sha] = shasize
+  stats = {'names': collections.defaultdict(set),
+           'allnames' : set(),
+           'deletions': {},
+           'equivalence': {},
+           'size': size}
+
+  # Setup the fast-export process
+  fep_cmd = ['git', 'fast-export',
+             '-M',
+             '--no-data',
+             '--show-original-ids',
+             '--always-show-modify-after-rename',
+             '--signed-tags=strip',
+             '--tag-of-filtered-object=rewrite',
+             '--use-done-feature'] + args.revisions
+  fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
+  input = fep.stdout
+  output = open(os.devnull, 'w')
+
+  # Create and run the filter
+  setattr(args, 'size', size)
+  setattr(args, 'stats', stats)
+  analyze_filter = FastExportFilter(
+                     commit_callback = lambda c : analyze_commit(args, c),
+                     )
+  analyze_filter.run(input, output, quiet = args.quiet)
+  setattr(args, 'num_commits', analyze_filter.num_commits_parsed())
+
+  # Close the output, ensure fast-export have completed
+  output.close()
+  if fep.wait():
+    raise SystemExit("Error: fast-export failed; see above.")
+  cf.wait()
+
+def do_analysis(args, git_dir):
+  # Create the report file as necessary
+  results_tmp_dir = os.path.join(git_dir, 'repo-filter')
+  if not os.path.isdir(results_tmp_dir):
+    os.mkdir(results_tmp_dir)
+  reportfile = os.path.join(results_tmp_dir,
+                            "repo-analysis-{}.txt".format(time.strftime("%F")))
+  if not args.force and os.path.isfile(reportfile):
+    raise SystemExit("Error: {} already exists; refusing to overwrite!".
+                     format(reportfile))
+
+  # Now gather the data we need
+  gather_data(args)
+
+  def datestr(datetimeobj):
+    return datetimeobj.strftime('%F') if datetimeobj else '<present>'
+
+  def dirnames(path):
+    while True:
+      path = os.path.dirname(path)
+      yield path
+      if path == '':
+        break
+
+  # Compute aggregate unpacked size information for paths, extensions, and dirs
+  total_size = 0
+  path_size = collections.defaultdict(int)
+  ext_size = collections.defaultdict(int)
+  dir_size  = collections.defaultdict(int)
+  for sha in args.stats['names']:
+    size = args.size[sha]
+    for name in args.stats['names'][sha]:
+      total_size += size
+      path_size[name] += size
+      basename, ext = os.path.splitext(name)
+      ext_size[ext] += size
+      for dirname in dirnames(name):
+        dir_size[dirname] += size
+
+  # Determine if and when extensions and directories were deleted
+  ext_deleted_data = {}
+  dir_deleted_data = {}
+  for name in args.stats['allnames']:
+    when = args.stats['deletions'].get(name, None)
+
+    # Update the extension
+    basename, ext = os.path.splitext(name)
+    if when is None:
+      ext_deleted_data[ext] = None
+    elif ext in ext_deleted_data:
+      if ext_deleted_data[ext] is not None:
+        ext_deleted_data[ext] = max(ext_deleted_data[ext], when)
+    else:
+      ext_deleted_data[ext] = when
+
+    # Update the dirs
+    for dirname in dirnames(name):
+      if when is None:
+        dir_deleted_data[dirname] = None
+      elif dirname in dir_deleted_data:
+        if dir_deleted_data[dirname] is not None:
+          dir_deleted_data[dirname] = max(dir_deleted_data[dirname], when)
+      else:
+        dir_deleted_data[dirname] = when
+
+  with open(reportfile, 'w') as f:
+    # Give a basic overview of this file
+    f.write("== Table of Contents ==\n")
+    f.write("  * Overal Statistics\n")
+    f.write("  * Caveats\n")
+    f.write("  * File renames\n")
+    f.write("  * Directory sizes\n")
+    f.write("    * Deleted directories\n")
+    f.write("    * All directories\n")
+    f.write("  * Filename extension sizes\n")
+    f.write("    * Deleted extensions\n")
+    f.write("    * All extensions\n")
+    f.write("  * Path sizes (accumulated across commits)\n")
+    f.write("    * Deleted paths\n")
+    f.write("    * All paths\n")
+    f.write("  * Files by sha and associated pathnames\n")
+    f.write("\n")
+
+    # Provide total unpacked size
+    f.write("== Overal Statistics ==\n")
+    f.write("  Number of commits:         {}\n".format(args.num_commits))
+    f.write("  Number of filenames:       {}\n".format(len(path_size)))
+    f.write("  Number of directories:     {}\n".format(len(dir_size)))
+    f.write("  Number of file extensions: {}\n".format(len(ext_size)))
+    f.write("\n")
+    f.write("  Total unpacked size: {}\n".format(total_size))
+    f.write("\n")
+    f.write("  (Unpacked size represents what size your repository would be\n")
+    f.write("   if no trees, commits, tags, or other metadata were included\n")
+    f.write("   AND if no files were packed; i.e., without delta-ing and\n")
+    f.write("   without compression.)\n")
+    f.write("\n")
+
+    # Mention issues with the report
+    f.write("== Caveats ==\n")
+    f.write("=== Deletions ===\n")
+    f.write(textwrap.dedent("""
+      Whether a file is deleted is not a binary quality, since it can be
+      deleted on some branches but still exist in others.  Also, it might
+      exist in an old tag, but have been deleted in versions newer than
+      that.  More thorough tracking could be done, including looking at
+      merge commits where one side of history deleted and the other modified,
+      in order to give a more holistic picture of deletions.  However, that
+      algorithm would not only be more complex to implement, it'd also be
+      quite difficult to present and interpret by users.  Since --analyze
+      is just about getting a high-level rough picture of history, it instead
+      implements the simplistic rule that is good enough for 98% of cases:
+        A file is marked as deleted if the last commit in the fast-export
+        stream that mentions the file lists it as deleted.
+      This makes it dependent on topological ordering, but generally gives
+      the "right" answer.
+      """[1:]))
+    f.write("=== Renames ===\n")
+    f.write(textwrap.dedent("""
+      Renames share the same non-binary nature that deletions do, plus
+      additional challenges:
+        * If the renamed file is renamed again, instead of just two names for
+          a path you can have three or more.
+        * Rename pairs of the form (oldname, newname) that we consider to be
+          different names of the "same file" might only be valid over certain
+          commit ranges.  For example, if a new commit reintroduces a file
+          named oldname, then new versions of oldname aren't the "same file"
+          anymore.  We could try to portray this to the user, but it's easier
+          for the user to just break the pairing and only report unbroken
+          rename pairings to the user.
+        * Since modifying a renamed file on the side of history that doesn't
+          rename it should be expected to be common (unlike modifying a deleted
+          file on the side of history that doesn't delete it), tracking history
+          becomes more important to avoid incorrectly breaking rename chains.
+          This has not yet been implemented.  This seriously raises the risk
+          of erroneously breaking rename pairings; a future release may address
+          this shortcoming.
+        * We only use rename detection, not copy detection.  However, that
+          means that if some commit in history renamed two files into the same
+          location, we won't pick up one of the two renames and will instead
+          report that branch as having been deleted.
+        * The ability for users to rename files differently in different
+          branches means that our chains of renames will not necessarily be
+          linear but may branch out.
+      """[1:]))
+    f.write("\n")
+
+    # Equivalence classes for names, so if folks only want to keep a
+    # certain set of paths, they know the old names they want to include
+    # too.
+    f.write("== File renames ==\n")
+    seen = set()
+    for pathname,equiv_group in sorted(args.stats['equivalence'].iteritems(),
+                                       key=lambda x:x[1]):
+      if equiv_group in seen:
+        continue
+      seen.add(equiv_group)
+      f.write("  {} ->\n    ".format(equiv_group[0]) +
+                     "\n    ".join(equiv_group[1:]) +
+              "\n")
+    f.write("\n")
+
+    # List directories in reverse sorted order of unpacked size
+    f.write("== Directory sizes ==\n")
+    f.write("=== Deleted directories by reverse size ===\n")
+    f.write("Format: size (bytes), date deleted, directory name\n")
+    for dirname, size in sorted(dir_size.iteritems(),
+                                key=lambda x:x[1], reverse=True):
+      if (dir_deleted_data[dirname]):
+        f.write("  {:10d} {:10s} {}\n".format(size,
+                                              datestr(dir_deleted_data[dirname]),
+                                              dirname or '<toplevel>'))
+    f.write("\n")
+    f.write("=== All directories by reverse size ===\n")
+    f.write("Format: size (bytes), date deleted, directory name\n")
+    for dirname, size in sorted(dir_size.iteritems(),
+                                key=lambda x:x[1], reverse=True):
+      f.write("  {:10d} {:10s} {}\n".format(size, datestr(dir_deleted_data[dirname]),
+                                        dirname or '<toplevel>'))
+    f.write("\n")
+
+    # List extensions in reverse sorted order of unpacked size
+    f.write("== Filename extension sizes ==\n")
+    f.write("=== Deleted extensions by reverse size ===\n")
+    f.write("Format: size (bytes), date deleted, extension name\n")
+    for extname, size in sorted(ext_size.iteritems(),
+                                key=lambda x:x[1], reverse=True):
+      if (ext_deleted_data[extname]):
+        f.write("  {:10d} {:10s} {}\n".format(size,
+                                              datestr(ext_deleted_data[extname]),
+                                              extname or '<no extension>'))
+    f.write("\n")
+    f.write("=== All extensions by reverse size ===\n")
+    f.write("Format: size (bytes), date deleted, extension name\n")
+    for extname, size in sorted(ext_size.iteritems(),
+                                key=lambda x:x[1], reverse=True):
+      f.write("  {:10d} {:10s} {}\n".format(size,
+                                            datestr(ext_deleted_data[extname]),
+                                            extname or '<no extension>'))
+    f.write("\n")
+
+    # List files in reverse sorted order of unpacked size
+    f.write("== Path sizes (accumulated across commits) ==\n")
+    f.write("=== Deleted paths by reverse size ===\n")
+    f.write("Format: size (bytes), date deleted, path name(s)\n")
+    for pathname, size in sorted(path_size.iteritems(),
+                                 key=lambda x:x[1], reverse=True):
+      when = args.stats['deletions'].get(pathname, None)
+      if when:
+        f.write("  {:10d} {:10s} {}\n".format(size, datestr(when), pathname))
+    f.write("\n")
+    f.write("=== All paths by reverse size ===\n")
+    f.write("Format: size (bytes), date deleted, pathectory name\n")
+    for pathname, size in sorted(path_size.iteritems(),
+                                key=lambda x:x[1], reverse=True):
+      when = args.stats['deletions'].get(pathname, None)
+      f.write("  {:10d} {:10s} {}\n".format(size, datestr(when), pathname))
+    f.write("\n")
+
+    # List of filenames and sizes in descending order
+    f.write("== Files by sha and associated pathnames in reverse size ==\n")
+    f.write("Format: sha, size (bytes), filename(s) object stored as\n")
+    for sha, size in sorted(args.size.iteritems(), key=lambda x:x[1],
+                            reverse=True):
+      if sha not in args.stats['names']:
+        # Some objects in the repository might not be referenced, or not
+        # referenced by the branches/tags the user cares about; skip them.
+        continue
+      names_with_sha = args.stats['names'][sha]
+      if len(names_with_sha) == 1:
+        names_with_sha = names_with_sha.pop()
+      else:
+        names_with_sha = sorted(list(names_with_sha))
+      f.write("  {} {:9d} {}\n".format(sha, size, names_with_sha))
+    f.write("\n")
+  print("Report written to {}".format(reportfile))
+
 def tweak_commit(args, commit):
   def filename_matches(path_expression, pathname):
     if path_expression == '':
@@ -1732,6 +2092,11 @@ def run_fast_filter():
   orig_refs = get_refs()
   is_bare = is_repository_bare()
   git_dir = determine_git_dir()
+
+  # Do analysis, if requested
+  if args.analyze:
+    do_analysis(args, git_dir)
+    return
 
   # Do sanity checks
   if not args.force:
