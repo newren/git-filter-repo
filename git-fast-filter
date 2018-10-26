@@ -18,6 +18,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import textwrap
 
 from email.Utils import unquote
@@ -697,6 +698,11 @@ class FastExportFilter(object):
     # or third (or etc.) git fast-export output stream
     self._id_offset = 0
 
+    # Progress handling (number of commits parsed, etc.)
+    self._num_commits = 0
+    self._quiet = False
+    self._last_progress_update = 0   # seconds since Epoch; arbitrary old date
+
     # Whether we've run our post-processing extra commands
     self._finalize_handled = False
 
@@ -905,6 +911,15 @@ class FastExportFilter(object):
     else:
       return new_hash[0:orig_len]
 
+  def _show_progress(self, force=False):
+    if not self._quiet:
+      now = time.time()
+      if force or now - self._last_progress_update > .1:
+        self._last_progress_update = now
+        print("\rParsed {} commits".format(self._num_commits), end='')
+      if force:
+        print("\n")
+
   def _parse_commit(self, fast_import_pipes):
     """
     Parse input data into a Commit object. Once the Commit has been created,
@@ -1077,6 +1092,8 @@ class FastExportFilter(object):
         self._seen_refs[branch] = commit.first_parent()
         commit.skip(commit.first_parent())
         self._commit_renames[commit.original_id] = None
+    self._num_commits += 1
+    self._show_progress()
 
   def _parse_tag(self):
     """
@@ -1304,6 +1321,9 @@ class FastExportFilter(object):
         # If file-obj provided, just use that
         self._output = args[1]
 
+    # Show progress by default
+    self._quiet = kwargs.get('quiet', False)
+
     # Setup some vars
     global _CURRENT_STREAM_NUMBER
 
@@ -1342,6 +1362,7 @@ class FastExportFilter(object):
       else:
         raise SystemExit("Could not parse line: '%s'" % self._currentline)
 
+    self._show_progress(force = True)
     if not self._finalize_handled:
       self._handle_final_commands()
 
@@ -1763,7 +1784,7 @@ def run_fast_filter():
   filter = FastExportFilter(
              commit_callback = lambda c : tweak_commit(args, c),
              )
-  filter.run(input, output, fast_import_pipes = pipes)
+  filter.run(input, output, fast_import_pipes = pipes, quiet = args.quiet)
 
   # Close the output, ensure fast-export and fast-import have completed
   output.close()
