@@ -272,11 +272,14 @@ class Blob(_GitElementWithId):
   way of representing file contents).
   """
 
-  def __init__(self, data):
+  def __init__(self, original_id, data):
     _GitElementWithId.__init__(self)
 
     # Denote that this is a blob
     self.type = 'blob'
+
+    # Record original id
+    self.original_id = original_id
 
     # Stores the blob's data
     self.data = data
@@ -375,7 +378,7 @@ class Commit(_GitElementWithId):
   contain all the information associated with a commit.
   """
 
-  def __init__(self, branch,
+  def __init__(self, branch, original_id,
                author_name,    author_email,    author_date,
                committer_name, committer_email, committer_date,
                message,
@@ -390,6 +393,9 @@ class Commit(_GitElementWithId):
 
     # Record the affected branch
     self.branch = branch
+
+    # Record original id
+    self.original_id = original_id
 
     # Record author's name
     self.author_name  = author_name
@@ -499,7 +505,7 @@ class Tag(_GitElement):
   This class defines our representation of annotated tag elements.
   """
 
-  def __init__(self, ref, from_ref,
+  def __init__(self, ref, from_ref, original_id,
                tagger_name, tagger_email, tagger_date, tag_msg):
     _GitElement.__init__(self)
 
@@ -511,6 +517,9 @@ class Tag(_GitElement):
 
     # Store the entity being tagged (this should be a commit)
     self.from_ref = from_ref
+
+    # Record original id
+    self.original_id = original_id
 
     # Store the name of the tagger
     self.tagger_name  = tagger_name
@@ -740,6 +749,11 @@ class FastExportFilter(object):
       self._advance_currentline()
     return filechange
 
+  def _parse_original_id(self):
+    original_id = self._currentline[len('original-oid '):].rstrip()
+    self._advance_currentline()
+    return original_id
+
   def _parse_ref_line(self, refname):
     """
     Parses string data (often a branch name) from current-line. The name of
@@ -795,12 +809,17 @@ class FastExportFilter(object):
     # Parse the Blob
     self._advance_currentline()
     id_ = self._parse_optional_mark()
+
+    original_id = None
+    if self._currentline.startswith('original-oid'):
+      original_id = self._parse_original_id();
+
     data = self._parse_data()
     if self._currentline == '\n':
       self._advance_currentline()
 
     # Create the blob
-    blob = Blob(data)
+    blob = Blob(original_id, data)
 
     # If fast-export text had a mark for this blob, need to make sure this
     # mark translates to the blob's true id.
@@ -859,6 +878,10 @@ class FastExportFilter(object):
     branch = self._parse_ref_line('commit')
     self._seen_refs[branch] = None
     id_ = self._parse_optional_mark()
+
+    original_id = None
+    if self._currentline.startswith('original-oid'):
+      original_id = self._parse_original_id();
 
     author_name = None
     if self._currentline.startswith('author'):
@@ -961,7 +984,7 @@ class FastExportFilter(object):
                       if change not in unnecessary_filechanges]
 
     # Okay, now we can finally create the Commit object
-    commit = Commit(branch,
+    commit = Commit(branch, original_id,
                     author_name,    author_email,    author_date,
                     committer_name, committer_email, committer_date,
                     commit_msg,
@@ -1022,13 +1045,19 @@ class FastExportFilter(object):
     from_ref = self._parse_optional_parent_ref('from')
     if from_ref is None:
       raise SystemExit("Expected 'from' line while parsing tag %s" % tag)
+
+    original_id = None
+    if self._currentline.startswith('original-oid'):
+      original_id = self._parse_original_id();
+
     (tagger_name, tagger_email, tagger_date) = self._parse_user('tagger')
     tag_msg = self._parse_data()
     if self._currentline == '\n':
       self._advance_currentline()
 
     # Create the tag
-    tag = Tag(tag, from_ref, tagger_name, tagger_email, tagger_date, tag_msg)
+    tag = Tag(tag, from_ref, original_id,
+              tagger_name, tagger_email, tagger_date, tag_msg)
 
     # Call any user callback to allow them to modify the tag
     if self._tag_callback:
@@ -1583,6 +1612,7 @@ def run_fast_filter():
     fe_orig = None
   else:
     fep_cmd = ['git', 'fast-export',
+               '--show-original-ids',
                '--no-data', '--use-done-feature'] + args.revisions
     fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
     input = fep.stdout
