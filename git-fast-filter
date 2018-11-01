@@ -16,6 +16,7 @@ import collections
 import fnmatch
 import os
 import re
+import StringIO
 import subprocess
 import sys
 import time
@@ -236,6 +237,18 @@ class _GitElement(object):
     fast-export.
     """
     raise SystemExit("Unimplemented function: %s.dump()" % type(self).__name__)
+
+  def __str__(self):
+    """
+    Convert GitElement to string; used for debugging
+    """
+    old_dumped = self.dumped
+    writeme = StringIO.StringIO()
+    self.dump(writeme)
+    output_lines = writeme.getvalue().splitlines()
+    writeme.close()
+    self.dumped = old_dumped
+    return "{}:\n  {}".format(type(self).__name__, "\n  ".join(output_lines))
 
   def skip(self, new_id=None):
     """
