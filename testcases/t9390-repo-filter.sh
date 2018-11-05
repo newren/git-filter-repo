@@ -22,7 +22,7 @@ filter_testcase() {
 		rm .git/packed-refs &&
 
 		# Run the example
-		cat $DATA/$INPUT | ../../git-fast-filter --stdin --quiet --force ${REST[@]} &&
+		cat $DATA/$INPUT | ../../git-repo-filter --stdin --quiet --force ${REST[@]} &&
 
 		# Compare the resulting repo to expected value
 		git fast-export --use-done-feature --all >compare &&
