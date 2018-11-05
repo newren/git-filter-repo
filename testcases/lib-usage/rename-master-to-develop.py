@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import re
 import imp
 import sys
 sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-repo-filterc' files
@@ -12,13 +11,11 @@ sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-repo-filterc' file
 with open("../../../git-repo-filter") as f:
   repo_filter = imp.load_module('repo_filter', f, "git-repo-filter", ('.py', 'U', 1))
 
-def strip_cvs_keywords(blob):
-  # FIXME: Should first check if blob is a text file to avoid ruining
-  # binaries.  Could use python.magic here, or just output blob.data to
-  # the unix 'file' command
-  pattern = r'\$(Id|Date|Source|Header|CVSHeader|Author|Revision):.*\$'
-  replacement = r'$\1$'
-  blob.data = re.sub(pattern, replacement, blob.data)
+def my_commit_callback(commit):
+  if commit.branch == "refs/heads/master":
+    commit.branch = "refs/heads/develop"
 
-args = repo_filter.FilteringOptions.parse_args(['--force'])
-repo_filter.RepoFilter.run(args, blob_callback = strip_cvs_keywords)
+args = repo_filter.FilteringOptions.default_options()
+args.force = True
+repo_filter.RepoFilter.run(args,
+                           commit_callback = my_commit_callback)

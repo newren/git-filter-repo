@@ -1,8 +1,25 @@
 #!/usr/bin/env python
 
+import imp
+import os
 import re
+import sys
+sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-repo-filterc' files
 
-from git_fast_filter import Blob, Reset, FileChanges, Commit, FastExportFilter
+# python makes importing files with dashes hard, sorry.  Renaming would
+# allow us to simplify this to "import git_repo_filter"; however,
+# since git style commands are dashed and git-repo-filter is used more
+# as a tool than a library, renaming is not an option.
+with open("../../../git-repo-filter") as f:
+  repo_filter = imp.load_module('repo_filter', f, "git-repo-filter", ('.py', 'U', 1))
+
+#for x in os.environ.get("PYTHONPATH", '.').split(':'):
+#  modpath = os.path.join(x, "git-fast-filter")
+#  if os.path.exists(modpath):
+#    with open(modpath) as f:
+#      repo_filter = imp.load_module('repo_filter', f, modpath, ('.py', 'U', 1))
+#    break
+
 from datetime import datetime, timedelta
 
 def change_up_them_commits(commit):
@@ -21,5 +38,5 @@ def change_up_them_commits(commit):
   commit.message = re.sub("Marketing is staffed with pansies", "",
                           commit.message)
 
-filter = FastExportFilter(commit_callback = change_up_them_commits)
-filter.run()
+args = repo_filter.FilteringOptions.parse_args(['--force'])
+repo_filter.RepoFilter.run(args, commit_callback = change_up_them_commits)
