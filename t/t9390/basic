@@ -1,0 +1,95 @@
+feature done
+# Simple repo with three files, a merge where each side touches exactly one
+# file, and a commit at the end touching all three.  Note that the original-oid
+# directives are very fake, but make it easy to recognize what original shas
+# are.
+blob
+mark :1
+original-oid 0000000000000000000000000000000000000001
+data 8
+initial
+
+blob
+mark :2
+original-oid 0000000000000000000000000000000000000002
+data 8
+ten-mod
+
+blob
+mark :3
+original-oid 0000000000000000000000000000000000000003
+data 11
+twenty-mod
+
+blob
+mark :4
+original-oid 0000000000000000000000000000000000000004
+data 6
+final
+
+reset refs/heads/master
+commit refs/heads/master
+mark :5
+original-oid 0000000000000000000000000000000000000009
+author Little O. Me <me@little.net> 1535228562 -0700
+committer Little O. Me <me@little.net> 1535228562 -0700
+data 8
+Initial
+M 100644 :1 filename
+M 100644 :1 ten
+M 100644 :1 twenty
+
+commit refs/heads/B
+mark :6
+original-oid 000000000000000000000000000000000000000B
+author Little 'ol Me <me@laptop.(none)> 1535229544 -0700
+committer Little 'ol Me <me@laptop.(none)> 1535229544 -0700
+data 11
+add twenty
+from :5
+M 100644 :3 twenty
+
+commit refs/heads/A
+mark :7
+original-oid 000000000000000000000000000000000000000A
+author Little O. Me <me@machine52.little.net> 1535229523 -0700
+committer Little O. Me <me@machine52.little.net> 1535229523 -0700
+data 8
+add ten
+from :5
+M 100644 :2 ten
+
+commit refs/heads/master
+mark :8
+original-oid 000000000000000000000000000000000000000C
+author Lit.e Me <me@fire.com> 1535229559 -0700
+committer Lit.e Me <me@fire.com> 1535229580 -0700
+data 24
+Merge branch 'A' into B
+from :6
+merge :7
+M 100644 :2 ten
+
+commit refs/heads/master
+mark :9
+original-oid 000000000000000000000000000000000000000D
+author Little Me <me@bigcompany.com> 1535229601 -0700
+committer Little Me <me@bigcompany.com> 1535229601 -0700
+data 9
+whatever
+from :8
+M 100644 :4 filename
+M 100644 :4 ten
+M 100644 :4 twenty
+
+tag v1.0
+from :9
+original-oid 000000000000000000000000000000000000000E
+tagger Little John <second@merry.men> 1535229618 -0700
+data 5
+v1.0
+
+reset refs/heads/master
+from :9
+
+done
