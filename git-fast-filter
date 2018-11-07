@@ -987,9 +987,10 @@ class FastExportFilter(object):
 
     # Now print the resulting commit, unless all its changes were dropped and
     # it was a non-merge commit
-    merge_commit = len(commit.get_parents()) > 1
+    merge_commit = len(parents) > 1
     if not commit.dumped:
-      if merge_commit or not had_file_changes or commit.file_changes:
+      if (commit.file_changes or merge_commit or
+          (not had_file_changes and len(parents) >= 1)):
         commit.dump(self._output)
         new_id = None
         # Determine the mapping of old commit hash to new one
