@@ -908,7 +908,6 @@ class FastExportFilter(object):
     """
     # Parse the Reset
     ref = self._parse_ref_line('reset')
-    self._seen_refs[ref] = None
     from_ref = self._parse_optional_parent_ref('from')
     if self._currentline == '\n':
       self._advance_currentline()
@@ -923,6 +922,7 @@ class FastExportFilter(object):
       self._everything_callback('reset', reset)
 
     # Now print the resulting reset
+    self._seen_refs[reset.ref] = None
     if not reset.dumped:
       reset.dump(self._output)
 
@@ -969,7 +969,6 @@ class FastExportFilter(object):
     # Parse the Commit. This may look involved, but it's pretty simple; it only
     # looks bad because a commit object contains many pieces of data.
     branch = self._parse_ref_line('commit')
-    self._seen_refs[branch] = None
     id_ = self._parse_optional_mark()
 
     original_id = None
@@ -1107,6 +1106,7 @@ class FastExportFilter(object):
 
     # Now print the resulting commit, unless all its changes were dropped and
     # it was a non-merge commit
+    self._seen_refs[commit.branch] = None
     merge_commit = len(parents) > 1
     if not commit.dumped:
       if (commit.file_changes or merge_commit or
@@ -1128,7 +1128,7 @@ class FastExportFilter(object):
       else:
         # We skip empty commits, but want to keep track to make sure we don't
         # lose any refs this way.
-        self._seen_refs[branch] = commit.first_parent()
+        self._seen_refs[commit.branch] = commit.first_parent()
         commit.skip(commit.first_parent())
         self._commit_renames[commit.original_id] = None
     self._num_commits += 1
@@ -1590,6 +1590,13 @@ def get_args():
                       help='''Prefix to rename; if filename starts with
                               OLD_NAME, replace that with NEW_NAME.  Multiple
                               --path-rename options can be specified.''')
+
+  refrename = parser.add_argument_group(title='Renaming of refs')
+  refrename.add_argument('--tag-rename', metavar='OLD:NEW',
+                         help='''Rename tags starting with OLD to start with
+                                 NEW.  e.g.  --tag-rename foo:bar will rename
+                                 tag foo-1.2.3 to bar-1.2.3; either OLD or NEW
+                                 can be empty.''')
 
   misc = parser.add_argument_group(title='Miscellaneous options')
   misc.add_argument('--help', '-h', action='store_true',
@@ -2082,6 +2089,11 @@ def tweak_commit(args, commit):
           pathname = pathname.replace(old_exp, new_exp, 1)
     return pathname if (wanted == filtering_is_inclusive) else None
 
+  # Sometimes the 'branch' given is a tag; if so, rename it as requested so
+  # we don't get any old tagnames
+  commit.branch = new_tagname(args, commit.branch)
+
+  # Filter the list of file changes
   new_file_changes = {}
   for change in commit.file_changes:
     change.filename = newname(args.path_changes, change.filename, args.inclusive)
@@ -2105,6 +2117,20 @@ def tweak_commit(args, commit):
                          "  Filename: {}".format(change.filename))
     new_file_changes[change.filename] = change
   commit.file_changes = new_file_changes.values()
+
+def new_tagname(args, tagname, shortname = False):
+  replace = args.tag_rename
+  if not replace:
+    return tagname
+  old, new = replace.split(':', 1)
+  if not shortname:
+    old, new = 'refs/tags/'+old, 'refs/tags/'+new
+  if tagname.startswith(old):
+    return tagname.replace(old, new, 1)
+  return tagname
+
+def handle_tag(args, reset_or_tag, shortname = False):
+  reset_or_tag.ref = new_tagname(args, reset_or_tag.ref, shortname)
 
 class InputFileBackup:
   def __init__(self, input_file, output_file):
@@ -2199,6 +2225,8 @@ def run_fast_filter():
   # Create and run the filter
   filter = FastExportFilter(
              commit_callback = lambda c : tweak_commit(args, c),
+             tag_callback =    lambda t : handle_tag(args, t, shortname = True),
+             reset_callback =  lambda r : handle_tag(args, r),
              )
   filter.run(input, output, fast_import_pipes = pipes, quiet = args.quiet)
 
