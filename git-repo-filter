@@ -1510,6 +1510,19 @@ class AppendFilter(argparse.Action):
     items.append((mod_type, match_type, values))
     setattr(namespace, self.dest, items)
 
+class HelperFilter(argparse.Action):
+  def __call__(self, parser, namespace, values, option_string=None):
+    af = AppendFilter(dest='path_changes', option_strings=None)
+    dirname = values if values[-1] == '/' else values+'/'
+    if option_string == '--subdirectory-filter':
+      af(parser, namespace, dirname,     '--path-match')
+      af(parser, namespace, dirname+':', '--path-rename')
+    elif option_string == '--to-subdirectory-filter':
+      af(parser, namespace, ':'+dirname, '--path-rename')
+    else:
+      raise SystemExit("Error: HelperFilter given invalid option_string: {}"
+                       .format(option_string))
+
 def get_args():
   # Include usage in the summary, so we can put the description first
   summary = '''Rewrite (or analyze) repository history
@@ -1593,6 +1606,19 @@ def get_args():
                                  NEW.  e.g.  --tag-rename foo:bar will rename
                                  tag foo-1.2.3 to bar-1.2.3; either OLD or NEW
                                  can be empty.''')
+
+  helpers = parser.add_argument_group(title='Shortcuts')
+  helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
+                       action=HelperFilter,
+                       help='''Only look at history that touches the given
+                               subdirectory and treat that directory as the
+                               project root.  Equivalent to using
+                               "--path DIRECTORY/ --path-rename DIRECTORY/:"''')
+  helpers.add_argument('--to-subdirectory-filter', metavar='DIRECTORY',
+                       action=HelperFilter,
+                       help='''Treat the project root as instead being under
+                               DIRECTORY.  Equivalent to using
+                               "--path-rename :DIRECTORY/"''')
 
   misc = parser.add_argument_group(title='Miscellaneous options')
   misc.add_argument('--help', '-h', action='store_true',
