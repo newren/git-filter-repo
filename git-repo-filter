@@ -2108,6 +2108,7 @@ def tweak_commit(args, commit):
     wanted = False
     for (mod_type, match_type, path_expression) in path_changes:
       if mod_type == 'filter' and not wanted:
+        assert match_type in ('match', 'glob', 'regex')
         if match_type == 'match' and filename_matches(path_expression, pathname):
           wanted = True
         if match_type == 'glob' and fnmatch.fnmatch(pathname, path_expression):
@@ -2116,6 +2117,7 @@ def tweak_commit(args, commit):
           wanted = True
       elif mod_type == 'rename':
         old_exp, new_exp = path_expression.split(':')
+        assert match_type in ('prefix',)
         if match_type == 'prefix' and pathname.startswith(old_exp):
           pathname = pathname.replace(old_exp, new_exp, 1)
     return pathname if (wanted == filtering_is_inclusive) else None
