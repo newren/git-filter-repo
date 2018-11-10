@@ -991,12 +991,19 @@ class FastExportFilter(object):
                         self._translate_commit_hash,
                         commit_msg)
 
-    parents = []
-    parents.append(self._parse_optional_parent_ref('from'))
-    merge_ref = self._parse_optional_parent_ref('merge')
-    while merge_ref:
-      parents.append(merge_ref)
-      merge_ref = self._parse_optional_parent_ref('merge')
+    parents = [self._parse_optional_parent_ref('from')]
+    # Due to empty pruning, we can have real 'from' and 'merge' lines that
+    # due to commit rewriting map to a parent of None.  We need to record
+    # 'from' if its non-None, and we need to parse all 'merge' lines.
+    while self._currentline.startswith('merge '):
+      parents.append(self._parse_optional_parent_ref('merge'))
+    # Since we may have added several 'None' parents due to empty pruning,
+    # get rid of all the non-existent parents
+    parents = [x for x in parents if x is not None]
+    # However, the splitting below into from_commit and merge_commits means
+    # we'd rather a parentless commit be represented as one None entry
+    if not parents:
+      parents.append(None)
 
     was_merge = len(parents) > 1
     # Remove redundant parents (if both sides of history are empty commits,
