@@ -491,6 +491,8 @@ class Commit(_GitElementWithId):
     _write_date(file_, self.committer_date)
     file_.write('\n')
     file_.write('data %d\n%s' % (len(self.message), self.message))
+    if not self.message.endswith("\n"):
+      file_.write('\n')
     if self.from_commit:
       mark = ':' if isinstance(self.from_commit, int) else ''
       file_.write('from {}{}\n'.format(mark, self.from_commit))
