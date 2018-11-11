@@ -1151,8 +1151,6 @@ class FastExportFilter(object):
     # Parse the Tag
     tag = self._parse_ref_line('tag')
     from_ref = self._parse_optional_parent_ref('from')
-    if from_ref is None:
-      raise SystemExit("Expected 'from' line while parsing tag %s" % tag)
 
     original_id = None
     if self._currentline.startswith('original-oid'):
@@ -1173,8 +1171,17 @@ class FastExportFilter(object):
     if self._everything_callback:
       self._everything_callback('tag', tag)
 
-    # Now print the resulting reset
-    if not tag.dumped:
+    # The tag might not point at anything that still exists ( self.from_ref
+    # will be None if the commit it pointed to and all its ancestors were
+    # pruned due to being empty)
+    if not tag.from_ref:
+      # If everything in the history of this tag was pruned, we need to delete
+      # the fact that it was seen so that refs_to_nuke will include it and
+      # wipe out the original version of that tag.
+      full_ref = 'refs/tags/{}'.format(tag.ref)
+      if full_ref in self._seen_refs:
+        del self._seen_refs[full_ref]
+    elif not tag.dumped:
       tag.dump(self._output)
 
   def _parse_progress(self):
