@@ -1820,19 +1820,23 @@ def analyze_commit(args, commit):
 
 def gather_data(args):
   # Get sizes of blobs by sha1
-  cf = subprocess.Popen('git cat-file --batch-check --batch-all-objects'.split(),
+  a='--batch-check=%(objectname) %(objecttype) %(objectsize) %(objectsize:disk)'
+  cf = subprocess.Popen(['git', 'cat-file', '--batch-all-objects', a],
                         stdout = subprocess.PIPE)
-  size = {}
+  unpacked_size = {}
+  packed_size = {}
   for line in cf.stdout:
-    sha, objtype, shasize = line.split()
-    shasize = int(shasize)
+    sha, objtype, objsize, objdisksize = line.split()
+    objsize, objdisksize = int(objsize), int(objdisksize)
     if objtype == 'blob':
-      size[sha] = shasize
+      unpacked_size[sha] = objsize
+      packed_size[sha] = objdisksize
   stats = {'names': collections.defaultdict(set),
            'allnames' : set(),
            'deletions': {},
            'equivalence': {},
-           'size': size}
+           'unpacked_size': unpacked_size,
+           'packed_size': packed_size}
 
   # Setup the fast-export process
   fep_cmd = ['git', 'fast-export',
@@ -1848,7 +1852,6 @@ def gather_data(args):
   output = open(os.devnull, 'w')
 
   # Create and run the filter
-  setattr(args, 'size', size)
   setattr(args, 'stats', stats)
   analyze_filter = FastExportFilter(
                      commit_callback = lambda c : analyze_commit(args, c),
@@ -1886,20 +1889,25 @@ def do_analysis(args, git_dir):
       if path == '':
         break
 
-  # Compute aggregate unpacked size information for paths, extensions, and dirs
-  total_size = 0
-  path_size = collections.defaultdict(int)
-  ext_size = collections.defaultdict(int)
-  dir_size  = collections.defaultdict(int)
+  # Compute aggregate size information for paths, extensions, and dirs
+  total_size = {'packed': 0, 'unpacked': 0}
+  path_size = {'packed': collections.defaultdict(int),
+               'unpacked': collections.defaultdict(int)}
+  ext_size = {'packed': collections.defaultdict(int),
+              'unpacked': collections.defaultdict(int)}
+  dir_size = {'packed': collections.defaultdict(int),
+              'unpacked': collections.defaultdict(int)}
   for sha in args.stats['names']:
-    size = args.size[sha]
-    for name in args.stats['names'][sha]:
-      total_size += size
-      path_size[name] += size
-      basename, ext = os.path.splitext(name)
-      ext_size[ext] += size
-      for dirname in dirnames(name):
-        dir_size[dirname] += size
+    size = {'packed': args.stats['packed_size'][sha],
+            'unpacked': args.stats['unpacked_size'][sha]}
+    for which in ('packed', 'unpacked'):
+      for name in args.stats['names'][sha]:
+        total_size[which] += size[which]
+        path_size[which][name] += size[which]
+        basename, ext = os.path.splitext(name)
+        ext_size[which][ext] += size[which]
+        for dirname in dirnames(name):
+          dir_size[which][dirname] += size[which]
 
   # Determine if and when extensions and directories were deleted
   ext_deleted_data = {}
@@ -1931,20 +1939,48 @@ def do_analysis(args, git_dir):
     # Give a basic overview of this file
     f.write("== Overal Statistics ==\n")
     f.write("  Number of commits:         {}\n".format(args.num_commits))
-    f.write("  Number of filenames:       {}\n".format(len(path_size)))
-    f.write("  Number of directories:     {}\n".format(len(dir_size)))
-    f.write("  Number of file extensions: {}\n".format(len(ext_size)))
+    f.write("  Number of filenames:       {}\n".format(len(path_size['packed'])))
+    f.write("  Number of directories:     {}\n".format(len(dir_size['packed'])))
+    f.write("  Number of file extensions: {}\n".format(len(ext_size['packed'])))
     f.write("\n")
-    f.write("  Total unpacked size: {}\n".format(total_size))
-    f.write("\n")
-    f.write("  (Unpacked size represents what size your repository would be\n")
-    f.write("   if no trees, commits, tags, or other metadata were included\n")
-    f.write("   AND if no files were packed; i.e., without delta-ing and\n")
-    f.write("   without compression.)\n")
+    f.write("  Total unpacked size (bytes): {:10d}\n"
+            .format(total_size['unpacked']))
+    f.write("  Total packed size (bytes):   {:10d}\n"
+            .format(total_size['packed']))
     f.write("\n")
 
     # Mention issues with the report
     f.write("== Caveats ==\n")
+    f.write("=== Sizes ===\n")
+    f.write(textwrap.dedent("""
+      Packed size represents what size your repository would be if no
+      trees, commits, tags, or other metadata were included (though it may
+      fail to represent de-duplication; see below).  It also represents the
+      current packing, which may be suboptimal if you haven't gc'ed for a
+      while.
+
+      Unpacked size represents what size your repository would be if no if
+      no trees, commits, tags, or other metadata were included AND if no
+      files were packed; i.e., without delta-ing or compression.
+
+      Both unpacked and packed sizes can be slightly misleading.  Deleting
+      a blob from history not save as much space as the unpacked size,
+      because it is obviously normally stored in packed form.  Also,
+      deleting a blob from history may not save as much space as its packed
+      size either, because another blob could be stored as a delta against
+      that blob, so when you remove one blob another blob's packed size may
+      grow.
+
+      Also, the sum of the packed sizes can add up to more than the
+      repository size; if the same contents appeared in the repository in
+      multiple places, git will automatically de-dupe and store only one
+      copy, while the way sizes are added in this analysis adds the size
+      for each file path that has those contents.  Further, if a file is
+      ever reverted to a previous version's contents, the previous
+      version's size will be counted multiple times in this analysis, even
+      though git will only store it once.
+      """[1:]))
+    f.write("\n")
     f.write("=== Deletions ===\n")
     f.write(textwrap.dedent("""
       Whether a file is deleted is not a binary quality, since it can be
@@ -2010,66 +2046,83 @@ def do_analysis(args, git_dir):
   # List directories in reverse sorted order of unpacked size
   with open(os.path.join(reportdir, "directories-deleted-sizes.txt"), 'w') as f:
     f.write("=== Deleted directories by reverse size ===\n")
-    f.write("Format: size (bytes), date deleted, directory name\n")
-    for dirname, size in sorted(dir_size.iteritems(),
+    f.write("Format: unpacked size, packed size, date deleted, directory name\n")
+    for dirname, size in sorted(dir_size['packed'].iteritems(),
                                 key=lambda x:x[1], reverse=True):
       if (dir_deleted_data[dirname]):
-        f.write("  {:10d} {:10s} {}\n".format(size,
-                                              datestr(dir_deleted_data[dirname]),
-                                              dirname or '<toplevel>'))
+        f.write("  {:10d} {:10d} {:10s} {}\n"
+                .format(dir_size['unpacked'][dirname],
+                        size,
+                        datestr(dir_deleted_data[dirname]),
+                        dirname or '<toplevel>'))
 
   with open(os.path.join(reportdir, "directories-all-sizes.txt"), 'w') as f:
     f.write("=== All directories by reverse size ===\n")
-    f.write("Format: size (bytes), date deleted, directory name\n")
-    for dirname, size in sorted(dir_size.iteritems(),
+    f.write("Format: unpacked size, packed size, date deleted, directory name\n")
+    for dirname, size in sorted(dir_size['packed'].iteritems(),
                                 key=lambda x:x[1], reverse=True):
-      f.write("  {:10d} {:10s} {}\n".format(size, datestr(dir_deleted_data[dirname]),
-                                        dirname or '<toplevel>'))
+      f.write("  {:10d} {:10d} {:10s} {}\n"
+              .format(dir_size['unpacked'][dirname],
+                      size,
+                      datestr(dir_deleted_data[dirname]),
+                      dirname or '<toplevel>'))
 
   # List extensions in reverse sorted order of unpacked size
   with open(os.path.join(reportdir, "extensions-deleted-sizes.txt"), 'w') as f:
     f.write("=== Deleted extensions by reverse size ===\n")
-    f.write("Format: size (bytes), date deleted, extension name\n")
-    for extname, size in sorted(ext_size.iteritems(),
+    f.write("Format: unpacked size, packed size, date deleted, extension name\n")
+    for extname, size in sorted(ext_size['packed'].iteritems(),
                                 key=lambda x:x[1], reverse=True):
       if (ext_deleted_data[extname]):
-        f.write("  {:10d} {:10s} {}\n".format(size,
-                                              datestr(ext_deleted_data[extname]),
-                                              extname or '<no extension>'))
+        f.write("  {:10d} {:10d} {:10s} {}\n"
+                .format(ext_size['unpacked'][extname],
+                        size,
+                        datestr(ext_deleted_data[extname]),
+                        extname or '<no extension>'))
 
   with open(os.path.join(reportdir, "extensions-all-sizes.txt"), 'w') as f:
     f.write("=== All extensions by reverse size ===\n")
-    f.write("Format: size (bytes), date deleted, extension name\n")
-    for extname, size in sorted(ext_size.iteritems(),
+    f.write("Format: unpacked size, packed size, date deleted, extension name\n")
+    for extname, size in sorted(ext_size['packed'].iteritems(),
                                 key=lambda x:x[1], reverse=True):
-      f.write("  {:10d} {:10s} {}\n".format(size,
-                                            datestr(ext_deleted_data[extname]),
-                                            extname or '<no extension>'))
+      f.write("  {:10d} {:10d} {:10s} {}\n"
+              .format(ext_size['unpacked'][extname],
+                      size,
+                      datestr(ext_deleted_data[extname]),
+                      extname or '<no extension>'))
 
   # List files in reverse sorted order of unpacked size
   with open(os.path.join(reportdir, "path-deleted-sizes.txt"), 'w') as f:
     f.write("=== Deleted paths by reverse accumulated size ===\n")
-    f.write("Format: size (bytes), date deleted, path name(s)\n")
-    for pathname, size in sorted(path_size.iteritems(),
+    f.write("Format: unpacked size, packed size, date deleted, path name(s)\n")
+    for pathname, size in sorted(path_size['packed'].iteritems(),
                                  key=lambda x:x[1], reverse=True):
       when = args.stats['deletions'].get(pathname, None)
       if when:
-        f.write("  {:10d} {:10s} {}\n".format(size, datestr(when), pathname))
+        f.write("  {:10d} {:10d} {:10s} {}\n"
+                .format(path_size['unpacked'][pathname],
+                        size,
+                        datestr(when),
+                        pathname))
 
   with open(os.path.join(reportdir, "path-all-sizes.txt"), 'w') as f:
     f.write("=== All paths by reverse accumulated size ===\n")
-    f.write("Format: size (bytes), date deleted, pathectory name\n")
-    for pathname, size in sorted(path_size.iteritems(),
-                                key=lambda x:x[1], reverse=True):
+    f.write("Format: unpacked size, packed size, date deleted, pathectory name\n")
+    for pathname, size in sorted(path_size['packed'].iteritems(),
+                                 key=lambda x:x[1], reverse=True):
       when = args.stats['deletions'].get(pathname, None)
-      f.write("  {:10d} {:10s} {}\n".format(size, datestr(when), pathname))
+      f.write("  {:10d} {:10d} {:10s} {}\n"
+              .format(path_size['unpacked'][pathname],
+                      size,
+                      datestr(when),
+                      pathname))
 
   # List of filenames and sizes in descending order
   with open(os.path.join(reportdir, "blob-shas-and-paths.txt"), 'w') as f:
     f.write("== Files by sha and associated pathnames in reverse size ==\n")
-    f.write("Format: sha, size (bytes), filename(s) object stored as\n")
-    for sha, size in sorted(args.size.iteritems(), key=lambda x:x[1],
-                            reverse=True):
+    f.write("Format: sha, unpacked size, packed size, filename(s) object stored as\n")
+    for sha, size in sorted(args.stats['packed_size'].iteritems(),
+                            key=lambda x:x[1], reverse=True):
       if sha not in args.stats['names']:
         # Some objects in the repository might not be referenced, or not
         # referenced by the branches/tags the user cares about; skip them.
@@ -2079,7 +2132,10 @@ def do_analysis(args, git_dir):
         names_with_sha = names_with_sha.pop()
       else:
         names_with_sha = sorted(list(names_with_sha))
-      f.write("  {} {:9d} {}\n".format(sha, size, names_with_sha))
+      f.write("  {} {:10d} {:10d} {}\n".format(sha,
+                                               args.stats['unpacked_size'][sha],
+                                               size,
+                                               names_with_sha))
 
   # Notify the user where they can find the reports
   print("Reports written to {}".format(reportdir))
