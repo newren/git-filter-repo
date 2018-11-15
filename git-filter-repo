@@ -1871,11 +1871,11 @@ def do_analysis(args, git_dir):
   results_tmp_dir = os.path.join(git_dir, 'filter-repo')
   if not os.path.isdir(results_tmp_dir):
     os.mkdir(results_tmp_dir)
-  reportfile = os.path.join(results_tmp_dir,
-                            "repo-analysis-{}.txt".format(time.strftime("%F")))
-  if not args.force and os.path.isfile(reportfile):
+  reportdir = os.path.join(results_tmp_dir, "analysis")
+  if not args.force and os.path.isdir(reportdir):
     raise SystemExit("Error: {} already exists; refusing to overwrite!".
-                     format(reportfile))
+                     format(reportdir))
+  os.mkdir(reportdir)
 
   # Now gather the data we need
   gather_data(args)
@@ -1931,25 +1931,8 @@ def do_analysis(args, git_dir):
       else:
         dir_deleted_data[dirname] = when
 
-  with open(reportfile, 'w') as f:
+  with open(os.path.join(reportdir, "README"), 'w') as f:
     # Give a basic overview of this file
-    f.write("== Table of Contents ==\n")
-    f.write("  * Overal Statistics\n")
-    f.write("  * Caveats\n")
-    f.write("  * File renames\n")
-    f.write("  * Directory sizes\n")
-    f.write("    * Deleted directories\n")
-    f.write("    * All directories\n")
-    f.write("  * Filename extension sizes\n")
-    f.write("    * Deleted extensions\n")
-    f.write("    * All extensions\n")
-    f.write("  * Path sizes (accumulated across commits)\n")
-    f.write("    * Deleted paths\n")
-    f.write("    * All paths\n")
-    f.write("  * Files by sha and associated pathnames\n")
-    f.write("\n")
-
-    # Provide total unpacked size
     f.write("== Overal Statistics ==\n")
     f.write("  Number of commits:         {}\n".format(args.num_commits))
     f.write("  Number of filenames:       {}\n".format(len(path_size)))
@@ -1983,6 +1966,7 @@ def do_analysis(args, git_dir):
       This makes it dependent on topological ordering, but generally gives
       the "right" answer.
       """[1:]))
+    f.write("\n")
     f.write("=== Renames ===\n")
     f.write(textwrap.dedent("""
       Renames share the same non-binary nature that deletions do, plus
@@ -2013,23 +1997,22 @@ def do_analysis(args, git_dir):
       """[1:]))
     f.write("\n")
 
-    # Equivalence classes for names, so if folks only want to keep a
-    # certain set of paths, they know the old names they want to include
-    # too.
-    f.write("== File renames ==\n")
+  # Equivalence classes for names, so if folks only want to keep a
+  # certain set of paths, they know the old names they want to include
+  # too.
+  with open(os.path.join(reportdir, "renames.txt"), 'w') as f:
     seen = set()
     for pathname,equiv_group in sorted(args.stats['equivalence'].iteritems(),
                                        key=lambda x:x[1]):
       if equiv_group in seen:
         continue
       seen.add(equiv_group)
-      f.write("  {} ->\n    ".format(equiv_group[0]) +
-                     "\n    ".join(equiv_group[1:]) +
+      f.write("{} ->\n    ".format(equiv_group[0]) +
+                   "\n    ".join(equiv_group[1:]) +
               "\n")
-    f.write("\n")
 
-    # List directories in reverse sorted order of unpacked size
-    f.write("== Directory sizes ==\n")
+  # List directories in reverse sorted order of unpacked size
+  with open(os.path.join(reportdir, "directories-deleted-sizes.txt"), 'w') as f:
     f.write("=== Deleted directories by reverse size ===\n")
     f.write("Format: size (bytes), date deleted, directory name\n")
     for dirname, size in sorted(dir_size.iteritems(),
@@ -2038,17 +2021,17 @@ def do_analysis(args, git_dir):
         f.write("  {:10d} {:10s} {}\n".format(size,
                                               datestr(dir_deleted_data[dirname]),
                                               dirname or '<toplevel>'))
-    f.write("\n")
+
+  with open(os.path.join(reportdir, "directories-all-sizes.txt"), 'w') as f:
     f.write("=== All directories by reverse size ===\n")
     f.write("Format: size (bytes), date deleted, directory name\n")
     for dirname, size in sorted(dir_size.iteritems(),
                                 key=lambda x:x[1], reverse=True):
       f.write("  {:10d} {:10s} {}\n".format(size, datestr(dir_deleted_data[dirname]),
                                         dirname or '<toplevel>'))
-    f.write("\n")
 
-    # List extensions in reverse sorted order of unpacked size
-    f.write("== Filename extension sizes ==\n")
+  # List extensions in reverse sorted order of unpacked size
+  with open(os.path.join(reportdir, "extensions-deleted-sizes.txt"), 'w') as f:
     f.write("=== Deleted extensions by reverse size ===\n")
     f.write("Format: size (bytes), date deleted, extension name\n")
     for extname, size in sorted(ext_size.iteritems(),
@@ -2057,7 +2040,8 @@ def do_analysis(args, git_dir):
         f.write("  {:10d} {:10s} {}\n".format(size,
                                               datestr(ext_deleted_data[extname]),
                                               extname or '<no extension>'))
-    f.write("\n")
+
+  with open(os.path.join(reportdir, "extensions-all-sizes.txt"), 'w') as f:
     f.write("=== All extensions by reverse size ===\n")
     f.write("Format: size (bytes), date deleted, extension name\n")
     for extname, size in sorted(ext_size.iteritems(),
@@ -2065,27 +2049,27 @@ def do_analysis(args, git_dir):
       f.write("  {:10d} {:10s} {}\n".format(size,
                                             datestr(ext_deleted_data[extname]),
                                             extname or '<no extension>'))
-    f.write("\n")
 
-    # List files in reverse sorted order of unpacked size
-    f.write("== Path sizes (accumulated across commits) ==\n")
-    f.write("=== Deleted paths by reverse size ===\n")
+  # List files in reverse sorted order of unpacked size
+  with open(os.path.join(reportdir, "path-deleted-sizes.txt"), 'w') as f:
+    f.write("=== Deleted paths by reverse accumulated size ===\n")
     f.write("Format: size (bytes), date deleted, path name(s)\n")
     for pathname, size in sorted(path_size.iteritems(),
                                  key=lambda x:x[1], reverse=True):
       when = args.stats['deletions'].get(pathname, None)
       if when:
         f.write("  {:10d} {:10s} {}\n".format(size, datestr(when), pathname))
-    f.write("\n")
-    f.write("=== All paths by reverse size ===\n")
+
+  with open(os.path.join(reportdir, "path-all-sizes.txt"), 'w') as f:
+    f.write("=== All paths by reverse accumulated size ===\n")
     f.write("Format: size (bytes), date deleted, pathectory name\n")
     for pathname, size in sorted(path_size.iteritems(),
                                 key=lambda x:x[1], reverse=True):
       when = args.stats['deletions'].get(pathname, None)
       f.write("  {:10d} {:10s} {}\n".format(size, datestr(when), pathname))
-    f.write("\n")
 
-    # List of filenames and sizes in descending order
+  # List of filenames and sizes in descending order
+  with open(os.path.join(reportdir, "blob-shas-and-paths.txt"), 'w') as f:
     f.write("== Files by sha and associated pathnames in reverse size ==\n")
     f.write("Format: sha, size (bytes), filename(s) object stored as\n")
     for sha, size in sorted(args.size.iteritems(), key=lambda x:x[1],
@@ -2100,8 +2084,9 @@ def do_analysis(args, git_dir):
       else:
         names_with_sha = sorted(list(names_with_sha))
       f.write("  {} {:9d} {}\n".format(sha, size, names_with_sha))
-    f.write("\n")
-  print("Report written to {}".format(reportfile))
+
+  # Notify the user where they can find the reports
+  print("Reports written to {}".format(reportdir))
 
 def tweak_commit(args, commit):
   def filename_matches(path_expression, pathname):
