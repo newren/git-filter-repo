@@ -1824,52 +1824,93 @@ def get_refs():
     output = ''
   return dict(reversed(x.split()) for x in output.splitlines())
 
-def analyze_commit(args, commit):
+def analyze_commit(stats, graph, commit, parents, date, file_changes):
   def equiv_class(filename):
-    return args.stats['equivalence'].get(filename, (filename,))
+    return stats['equivalence'].get(filename, (filename,))
 
-  for change in commit.file_changes:
-    if change.mode == '160000':
-      continue
-    if change.type == 'D':
-      # Track when files are deleted; see 'R' below about equiv_class
-      for f in equiv_class(change.filename):
-        args.stats['deletions'][f] = commit.committer_date
-    elif change.type == 'R':
-      # Since we want to know when files are deleted, renames make it slightly
-      # harder to track.  When we have a rename, track that the files are
-      # equivalent; i.e. that they refer to different versions of same file.
-      oldname, newname = change.filename
-      old_tuple = args.stats['equivalence'].get(oldname, ())
-      if newname in old_tuple:
-        continue
-      if old_tuple:
-        new_tuple = tuple(list(old_tuple)+[newname])
-      else:
-        new_tuple = (oldname, newname)
-      for f in new_tuple:
-        args.stats['equivalence'][f] = new_tuple
-      # Note, we require that we get an 'M' for every 'R' since the rename
-      # comes without information about sha1sum.  So we can handle setting
-      # a few things for newname in the 'M' section below.
-    elif change.type == 'M':
-      args.stats['names'][change.blob_id].add(change.filename)
-      args.stats['allnames'].add(change.filename)
-      # If we get an 'M', clearly the file isn't deleted anymore
-      equiv = equiv_class(change.filename)
-      for f in equiv:
-        args.stats['deletions'].pop(f, None)
-      # If we get an 'M' for a file that wasn't the latest in a rename chain,
-      # then that equivalence class isn't valid anymore.
-      if equiv[-1] != change.filename:
-        for f in equiv:
-          if f in args.stats['equivalence']:
-            del args.stats['equivalence'][f]
+  def setup_equivalence_for_rename(stats, oldname, newname):
+    # if A is renamed to B and B is renamed to C, then the user thinks of
+    # A, B, and C as all being different names for the same 'file'.  We record
+    # this as an equivalence class:
+    #   stats['equivalence'][name] = (A,B,C)
+    # for name being each of A, B, and C.
+    old_tuple = stats['equivalence'].get(oldname, ())
+    if newname in old_tuple:
+      return
+    elif old_tuple:
+      new_tuple = tuple(list(old_tuple)+[newname])
     else:
-      raise SystemExit("Unhandled change type: {}".format(change.type))
+      new_tuple = (oldname, newname)
+    for f in new_tuple:
+      stats['equivalence'][f] = new_tuple
 
-  # We're just gathering data; don't spend time dumping the commit
-  commit.dumped = 2
+  def setup_or_update_rename_history(stats, commit, oldname, newname):
+    rename_commits = stats['rename_history'].get(oldname, set())
+    rename_commits.add(commit)
+    stats['rename_history'][oldname] = rename_commits
+
+  def handle_renames(stats, commit, change_types, filenames):
+    for index, change_type in enumerate(change_types):
+      if change_type == 'R':
+        oldname, newname = filenames[index], filenames[-1]
+        setup_equivalence_for_rename(stats, oldname, newname)
+        setup_or_update_rename_history(stats, commit, oldname, newname)
+
+  def handle_file(stats, graph, commit, modes, shas, filenames):
+    mode, sha, filename = modes[-1], shas[-1], filenames[-1]
+
+    # Figure out kind of deletions to undo for this file, and update lists
+    # of all-names-by-sha and all-filenames
+    delmode = 'tree_deletions'
+    if mode != '040000':
+      delmode = 'file_deletions'
+      stats['names'][sha].add(filename)
+      stats['allnames'].add(filename)
+
+    # If the file (or equivalence class of files) was recorded as deleted,
+    # clearly it isn't anymore
+    equiv = equiv_class(filename)
+    for f in equiv:
+      stats[delmode].pop(f, None)
+
+    # If we get a modify/add for a path that was renamed, we may need to break
+    # the equivalence class.  However, if the modify/add was on a branch that
+    # doesn't have the rename in its history, we are still okay.
+    need_to_break_equivalence = False
+    if equiv[-1] != filename:
+      for rename_commit in stats['rename_history'][filename]:
+        if graph.is_ancestor(rename_commit, commit):
+          need_to_break_equivalence = True
+
+    if need_to_break_equivalence:
+      for f in equiv:
+        if f in stats['equivalence']:
+          del stats['equivalence'][f]
+
+  graph.add_commit_and_parents(commit, parents)
+  for change in file_changes:
+    modes, shas, change_types, filenames = change
+    if len(parents) == 1 and change_types.startswith('R'):
+      change_types = 'R'  # remove the rename score; we don't care
+    if modes[-1] == '160000':
+      continue
+    elif modes[-1] == '000000':
+      # Track when files/directories are deleted; see 'R' below about equiv_class
+      for f in equiv_class(filenames[-1]):
+        if any(x == '040000' for x in modes[0:-1]):
+          stats['tree_deletions'][f] = date
+        else:
+          stats['file_deletions'][f] = date
+    elif change_types.strip('AMT') == '':
+      handle_file(stats, graph, commit, modes, shas, filenames)
+    elif modes[-1] == '040000' and change_types.strip('RAM') == '':
+      handle_file(stats, graph, commit, modes, shas, filenames)
+    elif change_types.strip('RAM') == '':
+      handle_file(stats, graph, commit, modes, shas, filenames)
+      handle_renames(stats, commit, change_types, filenames)
+    else:
+      raise SystemExit("Unhandled change type(s): {} (in commit {})"
+                       .format(change_types, commit))
 
 def gather_data(args):
   blob_size_progress = ProgressWriter()
@@ -1893,36 +1934,74 @@ def gather_data(args):
   blob_size_progress.finish()
   stats = {'names': collections.defaultdict(set),
            'allnames' : set(),
-           'deletions': {},
+           'file_deletions': {},
+           'tree_deletions': {},
            'equivalence': {},
+           'rename_history': collections.defaultdict(set),
            'unpacked_size': unpacked_size,
-           'packed_size': packed_size}
+           'packed_size': packed_size,
+           'num_commits': 0}
 
-  # Setup the fast-export process
-  fep_cmd = ['git', 'fast-export',
-             '-M',
-             '--no-data',
-             '--show-original-ids',
-             '--always-show-modify-after-rename',
-             '--signed-tags=strip',
-             '--tag-of-filtered-object=rewrite',
-             '--use-done-feature'] + args.refs
-  fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
-  input = fep.stdout
-  output = open(os.devnull, 'w')
+  # Setup the rev-list/diff-tree process
+  commit_parse_progress = ProgressWriter()
+  num_commits = 0
+  cmd = 'git rev-list --topo-order --reverse {} | git diff-tree --stdin --always --root --format="%H%n%P%n%cd" --date=short -M -t -c --raw --combined-all-paths'.format(' '.join(args.refs))
+  dtp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+  f = dtp.stdout
+  line = f.next()
+  cont = bool(line)
+  graph = AncestryGraph()
+  while cont:
+    commit = line.rstrip()
+    parents = f.next().split()
+    date = f.next().rstrip()
 
-  # Create and run the filter
-  setattr(args, 'stats', stats)
-  analyze_filter = FastExportFilter(
-                     commit_callback = lambda c : analyze_commit(args, c),
-                     )
-  analyze_filter.run(input, output, quiet = args.quiet)
-  setattr(args, 'num_commits', analyze_filter.num_commits_parsed())
+    # We expect a blank line next; if we get a non-blank line then
+    # this commit modified no files and we need to move on to the next.
+    # If there is no line, we've reached end-of-input.
+    try:
+      line = f.next().rstrip()
+      cont = True
+    except StopIteration:
+      cont = False
 
-  # Close the output, ensure fast-export have completed
-  output.close()
-  if fep.wait():
-    raise SystemExit("Error: fast-export failed; see above.")
+    # If we haven't reached end of input, and we got a blank line  meaning
+    # a commit that has modified files, then get the file changes associated
+    # with this commit.
+    file_changes = []
+    if cont and not line:
+      cont = False
+      for line in f:
+        if not line.startswith(':'):
+          cont = True
+          break
+        n = 1+max(1, len(parents))
+        assert line.startswith(':'*(n-1))
+        relevant = line[n-1:-1]
+        splits = relevant.split(None, n)
+        modes = splits[0:n]
+        splits = splits[n].split(None, n)
+        shas = splits[0:n]
+        splits = splits[n].split('\t')
+        change_types = splits[0]
+        filenames = [PathQuoting.dequote(x) for x in splits[1:]]
+        file_changes.append([modes, shas, change_types, filenames])
+
+    # Analyze this commit and update progress
+    analyze_commit(stats, graph, commit, parents, date, file_changes)
+    num_commits += 1
+    commit_parse_progress.show("Processed {} commits".format(num_commits))
+
+  # Show the final commits processed message and record the number of commits
+  commit_parse_progress.finish()
+  stats['num_commits'] = num_commits
+
+  # Close the output, ensure rev-list|diff-tree pipeline completed successfully
+  dtp.stdout.close()
+  if dtp.wait():
+    raise SystemExit("Error: rev-list|diff-tree pipeline failed; see above.")
+
+  return stats
 
 def do_analysis(args, git_dir):
   # Create the report file as necessary
@@ -1936,10 +2015,10 @@ def do_analysis(args, git_dir):
   os.mkdir(reportdir)
 
   # Now gather the data we need
-  gather_data(args)
+  stats = gather_data(args)
 
-  def datestr(datetimeobj):
-    return datetimeobj.strftime('%F') if datetimeobj else '<present>'
+  def datestr(datetimestr):
+    return datetimestr if datetimestr else '<present>'
 
   def dirnames(path):
     while True:
@@ -1956,11 +2035,11 @@ def do_analysis(args, git_dir):
               'unpacked': collections.defaultdict(int)}
   dir_size = {'packed': collections.defaultdict(int),
               'unpacked': collections.defaultdict(int)}
-  for sha in args.stats['names']:
-    size = {'packed': args.stats['packed_size'][sha],
-            'unpacked': args.stats['unpacked_size'][sha]}
+  for sha in stats['names']:
+    size = {'packed': stats['packed_size'][sha],
+            'unpacked': stats['unpacked_size'][sha]}
     for which in ('packed', 'unpacked'):
-      for name in args.stats['names'][sha]:
+      for name in stats['names'][sha]:
         total_size[which] += size[which]
         path_size[which][name] += size[which]
         basename, ext = os.path.splitext(name)
@@ -1970,9 +2049,8 @@ def do_analysis(args, git_dir):
 
   # Determine if and when extensions and directories were deleted
   ext_deleted_data = {}
-  dir_deleted_data = {}
-  for name in args.stats['allnames']:
-    when = args.stats['deletions'].get(name, None)
+  for name in stats['allnames']:
+    when = stats['file_deletions'].get(name, None)
 
     # Update the extension
     basename, ext = os.path.splitext(name)
@@ -1984,20 +2062,14 @@ def do_analysis(args, git_dir):
     else:
       ext_deleted_data[ext] = when
 
-    # Update the dirs
-    for dirname in dirnames(name):
-      if when is None:
-        dir_deleted_data[dirname] = None
-      elif dirname in dir_deleted_data:
-        if dir_deleted_data[dirname] is not None:
-          dir_deleted_data[dirname] = max(dir_deleted_data[dirname], when)
-      else:
-        dir_deleted_data[dirname] = when
+  dir_deleted_data = {}
+  for name in dir_size['packed']:
+    dir_deleted_data[name] = stats['tree_deletions'].get(name, None)
 
   with open(os.path.join(reportdir, "README"), 'w') as f:
     # Give a basic overview of this file
     f.write("== Overal Statistics ==\n")
-    f.write("  Number of commits:         {}\n".format(args.num_commits))
+    f.write("  Number of commits:         {}\n".format(stats['num_commits']))
     f.write("  Number of filenames:       {}\n".format(len(path_size['packed'])))
     f.write("  Number of directories:     {}\n".format(len(dir_size['packed'])))
     f.write("  Number of file extensions: {}\n".format(len(ext_size['packed'])))
@@ -2071,17 +2143,6 @@ def do_analysis(args, git_dir):
           anymore.  We could try to portray this to the user, but it's easier
           for the user to just break the pairing and only report unbroken
           rename pairings to the user.
-        * Since modifying a renamed file on the side of history that doesn't
-          rename it should be expected to be common (unlike modifying a deleted
-          file on the side of history that doesn't delete it), tracking history
-          becomes more important to avoid incorrectly breaking rename chains.
-          This has not yet been implemented.  This seriously raises the risk
-          of erroneously breaking rename pairings; a future release may address
-          this shortcoming.
-        * We only use rename detection, not copy detection.  However, that
-          means that if some commit in history renamed two files into the same
-          location, we won't pick up one of the two renames and will instead
-          report that branch as having been deleted.
         * The ability for users to rename files differently in different
           branches means that our chains of renames will not necessarily be
           linear but may branch out.
@@ -2093,7 +2154,7 @@ def do_analysis(args, git_dir):
   # too.
   with open(os.path.join(reportdir, "renames.txt"), 'w') as f:
     seen = set()
-    for pathname,equiv_group in sorted(args.stats['equivalence'].iteritems(),
+    for pathname,equiv_group in sorted(stats['equivalence'].iteritems(),
                                        key=lambda x:x[1]):
       if equiv_group in seen:
         continue
@@ -2156,7 +2217,7 @@ def do_analysis(args, git_dir):
     f.write("Format: unpacked size, packed size, date deleted, path name(s)\n")
     for pathname, size in sorted(path_size['packed'].iteritems(),
                                  key=lambda x:x[1], reverse=True):
-      when = args.stats['deletions'].get(pathname, None)
+      when = stats['file_deletions'].get(pathname, None)
       if when:
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(path_size['unpacked'][pathname],
@@ -2169,7 +2230,7 @@ def do_analysis(args, git_dir):
     f.write("Format: unpacked size, packed size, date deleted, pathectory name\n")
     for pathname, size in sorted(path_size['packed'].iteritems(),
                                  key=lambda x:x[1], reverse=True):
-      when = args.stats['deletions'].get(pathname, None)
+      when = stats['file_deletions'].get(pathname, None)
       f.write("  {:10d} {:10d} {:10s} {}\n"
               .format(path_size['unpacked'][pathname],
                       size,
@@ -2180,19 +2241,19 @@ def do_analysis(args, git_dir):
   with open(os.path.join(reportdir, "blob-shas-and-paths.txt"), 'w') as f:
     f.write("== Files by sha and associated pathnames in reverse size ==\n")
     f.write("Format: sha, unpacked size, packed size, filename(s) object stored as\n")
-    for sha, size in sorted(args.stats['packed_size'].iteritems(),
+    for sha, size in sorted(stats['packed_size'].iteritems(),
                             key=lambda x:x[1], reverse=True):
-      if sha not in args.stats['names']:
+      if sha not in stats['names']:
         # Some objects in the repository might not be referenced, or not
         # referenced by the branches/tags the user cares about; skip them.
         continue
-      names_with_sha = args.stats['names'][sha]
+      names_with_sha = stats['names'][sha]
       if len(names_with_sha) == 1:
         names_with_sha = names_with_sha.pop()
       else:
         names_with_sha = sorted(list(names_with_sha))
       f.write("  {} {:10d} {:10d} {}\n".format(sha,
-                                               args.stats['unpacked_size'][sha],
+                                               stats['unpacked_size'][sha],
                                                size,
                                                names_with_sha))
 
