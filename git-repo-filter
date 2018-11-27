@@ -126,6 +126,24 @@ class AncestryGraph(object):
       ancestors.extend(more_ancestors)
     return False
 
+class ProgressWriter(object):
+  def __init__(self):
+    self._last_progress_update = time.time()
+    self._last_message = None
+
+  def show(self, msg):
+    self._last_message = msg
+    now = time.time()
+    if now - self._last_progress_update > .1:
+      self._last_progress_update = now
+      sys.stdout.write("\r{}".format(msg))
+      sys.stdout.flush()
+
+  def finish(self):
+    self._last_progress_update = 0
+    if self._last_message:
+      self.show(self._last_message)
+      sys.stdout.write("\n")
 
 class _IDs(object):
   """
@@ -720,9 +738,9 @@ class FastExportFilter(object):
     self._id_offset = 0
 
     # Progress handling (number of commits parsed, etc.)
+    self._progress_writer = ProgressWriter()
     self._num_commits = 0
     self._quiet = False
-    self._last_progress_update = 0   # seconds since Epoch; arbitrary old date
 
     # Whether we've run our post-processing extra commands
     self._finalize_handled = False
@@ -949,15 +967,6 @@ class FastExportFilter(object):
   def num_commits_parsed(self):
     return self._num_commits
 
-  def _show_progress(self, force=False):
-    if not self._quiet:
-      now = time.time()
-      if force or now - self._last_progress_update > .1:
-        self._last_progress_update = now
-        print("\rParsed {} commits".format(self._num_commits), end='')
-      if force:
-        print("\n")
-
   def _parse_commit(self, fast_import_pipes):
     """
     Parse input data into a Commit object. Once the Commit has been created,
@@ -1138,7 +1147,8 @@ class FastExportFilter(object):
         commit.skip(commit.first_parent())
         self._commit_renames[commit.original_id] = None
     self._num_commits += 1
-    self._show_progress()
+    if not self._quiet:
+      self._progress_writer.show("Parsed {} commits".format(self._num_commits))
 
   def _parse_tag(self):
     """
@@ -1414,7 +1424,8 @@ class FastExportFilter(object):
       else:
         raise SystemExit("Could not parse line: '%s'" % self._currentline)
 
-    self._show_progress(force = True)
+    if not self._quiet:
+      self._progress_writer.finish()
     if not self._finalize_handled:
       self._handle_final_commands()
 
