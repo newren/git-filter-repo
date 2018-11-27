@@ -1830,6 +1830,9 @@ def analyze_commit(args, commit):
   commit.dumped = 2
 
 def gather_data(args):
+  blob_size_progress = ProgressWriter()
+  num_blobs = 0
+
   # Get sizes of blobs by sha1
   a='--batch-check=%(objectname) %(objecttype) %(objectsize) %(objectsize:disk)'
   cf = subprocess.Popen(['git', 'cat-file', '--batch-all-objects', a],
@@ -1842,6 +1845,10 @@ def gather_data(args):
     if objtype == 'blob':
       unpacked_size[sha] = objsize
       packed_size[sha] = objdisksize
+    num_blobs += 1
+    blob_size_progress.show("Processed {} blob sizes".format(num_blobs))
+  cf.wait()
+  blob_size_progress.finish()
   stats = {'names': collections.defaultdict(set),
            'allnames' : set(),
            'deletions': {},
@@ -1874,7 +1881,6 @@ def gather_data(args):
   output.close()
   if fep.wait():
     raise SystemExit("Error: fast-export failed; see above.")
-  cf.wait()
 
 def do_analysis(args, git_dir):
   # Create the report file as necessary
