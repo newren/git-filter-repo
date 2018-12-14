@@ -2003,20 +2003,7 @@ def gather_data(args):
 
   return stats
 
-def do_analysis(args, git_dir):
-  # Create the report file as necessary
-  results_tmp_dir = os.path.join(git_dir, 'filter-repo')
-  if not os.path.isdir(results_tmp_dir):
-    os.mkdir(results_tmp_dir)
-  reportdir = os.path.join(results_tmp_dir, "analysis")
-  if not args.force and os.path.isdir(reportdir):
-    raise SystemExit("Error: {} already exists; refusing to overwrite!".
-                     format(reportdir))
-  os.mkdir(reportdir)
-
-  # Now gather the data we need
-  stats = gather_data(args)
-
+def write_report(reportdir, stats):
   def datestr(datetimestr):
     return datetimestr if datetimestr else '<present>'
 
@@ -2257,8 +2244,25 @@ def do_analysis(args, git_dir):
                                                size,
                                                names_with_sha))
 
-  # Notify the user where they can find the reports
-  print("Reports written to {}".format(reportdir))
+def do_analysis(args, git_dir):
+  # Create the report directory as necessary
+  results_tmp_dir = os.path.join(git_dir, 'filter-repo')
+  if not os.path.isdir(results_tmp_dir):
+    os.mkdir(results_tmp_dir)
+  reportdir = os.path.join(results_tmp_dir, "analysis")
+  if not args.force and os.path.isdir(reportdir):
+    raise SystemExit("Error: {} already exists; refusing to overwrite!".
+                     format(reportdir))
+  os.mkdir(reportdir)
+
+  # Gather the data we need
+  stats = gather_data(args)
+
+  # Write the reports
+  sys.stdout.write("Writing reports to {}...".format(reportdir))
+  sys.stdout.flush()
+  write_report(reportdir, stats)
+  sys.stdout.write("done.\n")
 
 def tweak_commit(args, commit):
   def filename_matches(path_expression, pathname):
