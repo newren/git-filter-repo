@@ -785,19 +785,21 @@ class FastExportFilter(object):
     that the name of the reference ('from', 'merge') must match the
     refname arg.
     """
-    baseref = None
+    orig_baseref, baseref = None, None
     matches = re.match('%s :(\d+)\n' % refname, self._currentline)
     if matches:
+      orig_baseref = int(matches.group(1)) + self._id_offset
       # We translate the parent commit mark to what it needs to be in
       # our mark namespace
-      baseref = _IDS.translate( int(matches.group(1))+self._id_offset )
+      baseref = _IDS.translate(orig_baseref)
       self._advance_currentline()
     else:
       matches = re.match('%s ([0-9a-f]{40})\n' % refname, self._currentline)
       if matches:
-        baseref = matches.group(1)
+        orig_baseref = matches.group(1)
+        baseref = orig_baseref
         self._advance_currentline()
-    return baseref
+    return orig_baseref, baseref
 
   def _parse_optional_filechange(self):
     """
@@ -941,7 +943,7 @@ class FastExportFilter(object):
     """
     # Parse the Reset
     ref = self._parse_ref_line('reset')
-    from_ref = self._parse_optional_parent_ref('from')
+    ignoreme, from_ref = self._parse_optional_parent_ref('from')
     if self._currentline == '\n':
       self._advance_currentline()
 
@@ -1015,12 +1017,13 @@ class FastExportFilter(object):
                         self._translate_commit_hash,
                         commit_msg)
 
-    parents = [self._parse_optional_parent_ref('from')]
+    pinfo = [self._parse_optional_parent_ref('from')]
     # Due to empty pruning, we can have real 'from' and 'merge' lines that
     # due to commit rewriting map to a parent of None.  We need to record
     # 'from' if its non-None, and we need to parse all 'merge' lines.
     while self._currentline.startswith('merge '):
-      parents.append(self._parse_optional_parent_ref('merge'))
+      pinfo.append(self._parse_optional_parent_ref('merge'))
+    orig_parents, parents = zip(*pinfo)
     # Since we may have added several 'None' parents due to empty pruning,
     # get rid of all the non-existent parents
     parents = [x for x in parents if x is not None]
@@ -1029,7 +1032,7 @@ class FastExportFilter(object):
     if not parents:
       parents.append(None)
 
-    was_merge = len(parents) > 1
+    was_merge = len(orig_parents) > 1
     # Remove redundant parents (if both sides of history are empty commits,
     # the most recent ancestor on both sides may be the same commit).
     parents = collections.OrderedDict.fromkeys(parents).keys()
@@ -1178,7 +1181,7 @@ class FastExportFilter(object):
     """
     # Parse the Tag
     tag = self._parse_ref_line('tag')
-    from_ref = self._parse_optional_parent_ref('from')
+    ignoreme, from_ref = self._parse_optional_parent_ref('from')
 
     original_id = None
     if self._currentline.startswith('original-oid'):
