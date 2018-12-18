@@ -55,9 +55,23 @@ class FixedTimeZone(tzinfo):
 
   def __init__(self, offset_string):
     tzinfo.__init__(self)
-    minus, hh, mm = re.match(r'^([-+]?)(\d\d)(\d\d)$', offset_string).groups()
-    sign = minus and -1 or 1
-    self._offset = timedelta(minutes = sign*(60*int(hh) + int(mm)))
+    try:
+      sign, hh, mm = re.match(r'^([-+]?)(\d\d)(\d\d)$', offset_string).groups()
+    except AttributeError:
+      # TimeZone idiocy; IST is any of four timezones, so someone translated
+      # it to something that was totally invalid...and it got recorded that
+      # way.  Others have suggested just using an invalid timezone that
+      # fast-import will not choke on.  Let's do that.  Note that +051800
+      # seems to be the only weird timezone found in the wild, by me or some
+      # other posts google returned on the subject...
+      if offset_string == '+051800':
+        sign, hh, mm = '+', '02', '61'
+        offset_string = offset_string.replace('+051800', '+0261')
+      else:
+        raise AttributeError("Could not parse {} as timezone"
+                             .format(offset_string))
+    factor = -1 if (sign and sign == '-') else 1
+    self._offset = timedelta(minutes = factor*(60*int(hh) + int(mm)))
     self._offset_string = offset_string
 
   def utcoffset(self, dt):
