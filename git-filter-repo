@@ -593,6 +593,10 @@ class Commit(_GitElementWithId):
       return my_parents[0]
     return None
 
+  def skip(self, new_id=None):
+    _SKIPPED_COMMITS.add(self.old_id or self.id)
+    _GitElementWithId.skip(self, new_id)
+
 class Tag(_GitElement):
   """
   This class defines our representation of annotated tag elements.
@@ -1580,6 +1584,7 @@ def record_id_rename(old_id, new_id):
 # Internal globals
 _IDS = _IDs()
 _EXTRA_CHANGES = {}  # idnum -> list of list of FileChanges
+_SKIPPED_COMMITS = set()
 _CURRENT_STREAM_NUMBER = 0
 
 ######################################################################
