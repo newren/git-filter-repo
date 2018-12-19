@@ -1159,10 +1159,10 @@ class FastExportFilter(object):
         if num_original_parents > 1 and not merge_commit:
           self._commits_no_longer_merges.append((orig_id, new_id))
       else:
-        # We skip empty commits, but want to keep track to make sure we don't
-        # lose any refs this way.
+        # We skip empty commits, but want to keep track to make sure our branch
+        # still gets set and/or updated appropriately.
         self._seen_refs[commit.branch] = commit.first_parent()
-        commit.skip(commit.first_parent())
+        commit.skip(new_id = commit.first_parent())
         self._commit_renames[commit.original_id] = None
     self._num_commits += 1
     if not self._quiet:
