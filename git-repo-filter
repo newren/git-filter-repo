@@ -1081,6 +1081,7 @@ class FastExportFilter(object):
       # buffers filling up so I instead read from it as I go.
       for change in file_changes:
         fi_input.write("ls :{} {}\n".format(from_commit, change.filename))
+        fi_input.flush()
         parent_version = fi_output.readline().split()
         if change.type == 'D':
           if parent_version == ['missing', change.filename]:
@@ -1089,6 +1090,7 @@ class FastExportFilter(object):
           blob_sha = change.blob_id
           if isinstance(change.blob_id, int):
             fi_input.write("get-mark :{}\n".format(change.blob_id))
+            fi_input.flush()
             blob_sha = fi_output.readline().rstrip()
           if parent_version == [change.mode, 'blob', blob_sha, change.filename]:
             unnecessary_filechanges.add(change)
@@ -1133,6 +1135,7 @@ class FastExportFilter(object):
         if commit.original_id and fast_import_pipes:
           fi_input, fi_output = fast_import_pipes
           fi_input.write("get-mark :{}\n".format(commit.id))
+          fi_input.flush()
           orig_id = commit.original_id
           new_id = fi_output.readline().rstrip()
           self._commit_renames[orig_id] = new_id
@@ -1490,6 +1493,7 @@ def get_commit_count(repo, *args):
   if len(args) == 1 and isinstance(args[0], list):
     args = args[0]
   p1 = subprocess.Popen(["git", "rev-list"] + args,
+                        bufsize=-1,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                         cwd=repo)
   p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -1878,6 +1882,7 @@ def gather_data(args):
   # Get sizes of blobs by sha1
   a='--batch-check=%(objectname) %(objecttype) %(objectsize) %(objectsize:disk)'
   cf = subprocess.Popen(['git', 'cat-file', '--batch-all-objects', a],
+                        bufsize = -1,
                         stdout = subprocess.PIPE)
   unpacked_size = {}
   packed_size = {}
@@ -1905,7 +1910,7 @@ def gather_data(args):
   commit_parse_progress = ProgressWriter()
   num_commits = 0
   cmd = 'git rev-list --topo-order --reverse {} | git diff-tree --stdin --always --root --format="%H%n%P%n%cd" --date=short -M --combined-with-paths -t'.format(' '.join(args.refs))
-  dtp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+  dtp = subprocess.Popen(cmd, shell=True, bufsize=-1, stdout=subprocess.PIPE)
   f = dtp.stdout
   line = f.next()
   cont = bool(line)
@@ -2361,7 +2366,7 @@ def run_fast_filter():
                '--tag-of-filtered-object=rewrite',
                '--no-data',
                '--use-done-feature'] + args.refs
-    fep = subprocess.Popen(fep_cmd, stdout=subprocess.PIPE)
+    fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
     input = fep.stdout
     if args.dry_run or args.debug:
       fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
@@ -2375,7 +2380,9 @@ def run_fast_filter():
   pipes = None
   if not args.dry_run:
     fip_cmd = 'git fast-import --force --quiet'.split()
-    fip = subprocess.Popen(fip_cmd, stdin=subprocess.PIPE,
+    fip = subprocess.Popen(fip_cmd,
+                           bufsize=-1,
+                           stdin=subprocess.PIPE,
                            stdout=subprocess.PIPE)
     pipes = (fip.stdin, fip.stdout)
   if args.dry_run or args.debug:
