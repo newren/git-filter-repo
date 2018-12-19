@@ -1024,6 +1024,165 @@ class FastExportFilter(object):
     else:
       return new_hash[0:orig_len]
 
+  def trim_extra_parents(self, orig_parents, parents):
+    '''Due to pruning of empty commits, some parents could be non-existent
+       (None) or otherwise redundant.  Remove the non-existent parents, and
+       remove redundant parents so long as that doesn't transform a merge
+       commit into a non-merge commit.
+
+       Returns a tuple:
+         (parents, new_first_parent_if_would_become_non_merge)'''
+
+    # Pruning of empty commits means multiple things:
+    #   * An original parent of this commit may have been pruned causing the
+    #     need to rewrite the reported parent to the nearest ancestor.  We
+    #     want to know when we're dealing with such a parent.
+    #   * Further, there may be no "nearest ancestor" if the entire history
+    #     of that parent was also pruned.  (Detectable by the parent being
+    #     'None')
+    # Remove all parents rewritten to None, and keep track of which parents
+    # were rewritten to an ancestor.
+    tmp = zip(parents, [x in _SKIPPED_COMMITS for x in orig_parents])
+    tmp2 = [x for x in tmp if x[0] is not None]
+    parents, is_rewritten = [list(x) for x in zip(*tmp2)] if tmp2 else ([], [])
+
+    # However, the way fast-export/fast-import split parents into from_commit
+    # and merge_commits means we'd rather a parentless commit be represented
+    # as a list containing a single None entry.
+    if not parents:
+      parents.append(None)
+
+    # We can't have redundant parents if we don't have at least 2 parents
+    if len(parents) < 2:
+      return parents, None
+
+    # Remove duplicate parents (if both sides of history have lots of commits
+    # which become empty due to pruning, the most recent ancestor on both
+    # sides may be the same commit), except only remove parents that have
+    # been rewritten due to previous empty pruning.
+    seen = set()
+    seen_add = seen.add
+    # Deleting duplicate rewritten parents means keeping parents if either
+    # they have not been seen or they are ones that have not been rewritten.
+    parents_copy = parents
+    pairs = [[p, is_rewritten[i]] for i, p in enumerate(parents)
+             if not (p in seen or seen_add(p)) or not is_rewritten[i]]
+    parents, is_rewritten = [list(x) for x in zip(*pairs)]
+    if len(parents) < 2:
+      return parents_copy, parents[0]
+
+    # Flatten unnecessary merges.  (If one side of history is entirely
+    # empty commits that were pruned, we may end up attempting to
+    # merge a commit with its ancestor.  Remove parents that are an
+    # ancestor of another parent.)
+    num_parents = len(parents)
+    to_remove = []
+    for cur in xrange(num_parents):
+      if not is_rewritten[cur]:
+        continue
+      for other in xrange(num_parents):
+        if cur != other and self._graph.is_ancestor(parents[cur],
+                                                    parents[other]):
+          to_remove.append(cur)
+          break # cur removed, so skip rest of others -- i.e. check cur+=1
+    for x in reversed(to_remove):
+      parents.pop(x)
+    if len(parents) < 2:
+      return parents_copy, parents[0]
+
+    return parents, None
+
+  def prunable(self, commit, new_1st_parent, had_file_changes, orig_parents,
+               fast_import_pipes):
+    parents = [commit.from_commit] + commit.merge_commits
+    if not commit.from_commit:
+      parents = []
+
+    # For merge commits, unless there are prunable (redundant) parents, we
+    # do not want to prune
+    if len(parents) >= 2 and not new_1st_parent:
+      return False
+
+    if len(parents) < 2:
+      # Special logic for commits that started empty...
+      if not had_file_changes:
+        # If the commit remains empty and had parents pruned, then prune
+        # this commit; otherwise, retain it
+        return (not commit.file_changes and
+                len(parents) < len(orig_parents))
+
+      # We can only get here if the commit didn't start empty, so if it's
+      # empty now, it obviously became empty
+      if not commit.file_changes:
+        return True
+
+    # If there are no parents of this commit and we didn't match the case
+    # above, then this commit cannot be pruned.  Since we have no parent(s)
+    # to compare to, abort now to prevent future checks from failing.
+    if not parents:
+      return False
+
+    # Similarly, we cannot handle the hard cases if we don't have a pipe
+    # to communicate with fast-import
+    if not fast_import_pipes:
+      return False
+
+    # Finally, the hard case: due to either blob rewriting, or due to pruning
+    # of empty commits wiping out the first parent history back to the merge
+    # base, the list of file_changes we have may not actually differ from our
+    # (new) first parent's version of the files, i.e. this would actually be
+    # an empty commit.  Check by comparing the contents of this commit to its
+    # (remaining) parent.
+    #
+    # NOTE on why this works, for the case of original first parent history
+    # having been pruned away due to being empty:
+    #     The first parent history having been pruned away due to being
+    #     empty implies the original first parent would have a tree (after
+    #     filtering) that matched the merge base's tree.  Since
+    #     file_changes has the changes needed to go from what would have
+    #     been the first parent to our new commit, and what would have been
+    #     our first parent has a tree that matches the merge base, then if
+    #     the new first parent has a tree matching the versions of files in
+    #     file_changes, then this new commit is empty and thus prunable.
+    fi_input, fi_output = fast_import_pipes
+    # Optimization note: we could have two loops over file_changes, the
+    # first doing all the fi_input.write() calls, and the second doing the
+    # rest.  But I'm worried about fast-import blocking on fi_output
+    # buffers filling up so I instead read from it as I go.
+    for change in commit.file_changes:
+      fi_input.write("ls :{} {}\n".format(new_1st_parent, change.filename))
+      fi_input.flush()
+      parent_version = fi_output.readline().split()
+      if change.type == 'D':
+        if parent_version != ['missing', change.filename]:
+          return False
+      else:
+        blob_sha = change.blob_id
+        if isinstance(change.blob_id, int):
+          fi_input.write("get-mark :{}\n".format(change.blob_id))
+          fi_input.flush()
+          blob_sha = fi_output.readline().rstrip()
+        if parent_version != [change.mode, 'blob', blob_sha, change.filename]:
+          return False
+
+    return True
+
+  def record_remapping(self, commit, orig_parents, fast_import_pipes):
+    new_id = None
+    # Record the mapping of old commit hash to new one
+    if commit.original_id and fast_import_pipes:
+      fi_input, fi_output = fast_import_pipes
+      fi_input.write("get-mark :{}\n".format(commit.id))
+      fi_input.flush()
+      orig_id = commit.original_id
+      new_id = fi_output.readline().rstrip()
+      self._commit_renames[orig_id] = new_id
+      self._commit_short_old_hashes[orig_id[0:7]].add(orig_id)
+    # Also, record if this was a merge commit that turned into a non-merge
+    # commit.
+    if len(orig_parents) >= 2 and not commit.merge_commits:
+      self._commits_no_longer_merges.append((commit.original_id, new_id))
+
   def num_commits_parsed(self):
     return self._num_commits
 
@@ -1066,96 +1225,23 @@ class FastExportFilter(object):
     # 'from' if its non-None, and we need to parse all 'merge' lines.
     while self._currentline.startswith('merge '):
       pinfo.append(self._parse_optional_parent_ref('merge'))
-    orig_parents, parents = zip(*pinfo)
-    # Since we may have added several 'None' parents due to empty pruning,
-    # get rid of all the non-existent parents
-    parents = [x for x in parents if x is not None]
-    # However, the splitting below into from_commit and merge_commits means
-    # we'd rather a parentless commit be represented as one None entry
-    if not parents:
-      parents.append(None)
+    orig_parents, parents = [list(tmp) for tmp in zip(*pinfo)]
 
-    was_merge = len(orig_parents) > 1
-    # Remove redundant parents (if both sides of history are empty commits,
-    # the most recent ancestor on both sides may be the same commit).
-    parents = collections.OrderedDict.fromkeys(parents).keys()
-
-    # Flatten unnecessary merges.  (If one side of history is entirely
-    # empty commits that were pruned, we may end up attempting to
-    # merge a commit with its ancestor.  Remove parents that are an
-    # ancestor of another parent.)
-    num_original_parents = len(parents)
-    check_merge_now_empty = False
-    if num_original_parents > 1:
-      to_remove = []
-      for cur in xrange(num_original_parents):
-        for other in xrange(num_original_parents):
-          if cur != other and self._graph.is_ancestor(parents[cur],
-                                                      parents[other]):
-            to_remove.append(cur)
-      for x in reversed(to_remove):
-        parents.pop(x)
-      if len(parents) == 1:
-        check_merge_now_empty = True
-
-    # Record our new parents after above pruning of parents representing
-    # pruned empty histories
+    # Prune parents (due to pruning of empty commits) if relevant
+    parents, new_1st_parent = self.trim_extra_parents(orig_parents, parents)
     from_commit = parents[0]
     merge_commits = parents[1:]
 
+    # Get the list of file changes
     file_changes = []
     file_change = self._parse_optional_filechange()
-    had_file_changes = file_change is not None or was_merge
+    had_file_changes = file_change is not None
     while file_change:
       if not (type(file_change) == str and file_change == 'skipped'):
         file_changes.append(file_change)
       file_change = self._parse_optional_filechange()
     if self._currentline == '\n':
       self._advance_currentline()
-
-    # If we had a merge commit and the first parent history back to the
-    # merge base was entirely composed of commits made empty by our
-    # filtering, it is likely that this merge commit is empty and can be
-    # pruned too.  Check by comparing the contents of this merge to its
-    # remaining parent.
-    #
-    # NOTES on why/how this works:
-    #   1. fast-export always gives file changes in a merge commit relative
-    #      to the first parent.
-    #   2. The only way this 'if' is active is when the first parent was
-    #      an ancestor of what is now the only remaining parent
-    #   3. The two above imply that the file changes we're looking at are
-    #      just for the line of history for the remaining parent, and show
-    #      all changes needed to make the original first parent (whose tree
-    #      matched an ancestor of the remaining parent) match the merge's tree.
-    #   4. If the versions of all specified files in the remaining parent
-    #      match the file change versions, then this "merge" commit is
-    #      actually going to be an empty non-merge commit and we should prune
-    #      it.
-    if check_merge_now_empty and fast_import_pipes:
-      unnecessary_filechanges = set()
-      fi_input, fi_output = fast_import_pipes
-      # Optimization note: we could have two loops over file_changes, the
-      # first doing all the fi_input.write() calls, and the second doing the
-      # rest.  But I'm worried about fast-import blocking on fi_output
-      # buffers filling up so I instead read from it as I go.
-      for change in file_changes:
-        fi_input.write("ls :{} {}\n".format(from_commit, change.filename))
-        fi_input.flush()
-        parent_version = fi_output.readline().split()
-        if change.type == 'D':
-          if parent_version == ['missing', change.filename]:
-            unnecessary_filechanges.add(change)
-        else:
-          blob_sha = change.blob_id
-          if isinstance(change.blob_id, int):
-            fi_input.write("get-mark :{}\n".format(change.blob_id))
-            fi_input.flush()
-            blob_sha = fi_output.readline().rstrip()
-          if parent_version == [change.mode, 'blob', blob_sha, change.filename]:
-            unnecessary_filechanges.add(change)
-      file_changes = [change for change in file_changes
-                      if change not in unnecessary_filechanges]
 
     # Okay, now we can finally create the Commit object
     commit = Commit(branch,
@@ -1183,34 +1269,26 @@ class FastExportFilter(object):
     if self._everything_callback:
       self._everything_callback('commit', commit)
 
-    # Now print the resulting commit, unless all its changes were dropped and
-    # it was a non-merge commit
-    self._seen_refs[commit.branch] = None
-    merge_commit = len(parents) > 1
+    # Sanity check that user callbacks didn't violate assumption on parents
+    if commit.merge_commits:
+      assert commit.from_commit is not None
+
+    # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
-      if (commit.file_changes or merge_commit or
-          (not had_file_changes and len(parents) >= 1)):
+      if not self.prunable(commit, new_1st_parent, had_file_changes,
+                           orig_parents, fast_import_pipes):
+        self._seen_refs[commit.branch] = None # was seen, doesn't need reset
         commit.dump(self._output)
-        new_id = None
-        # Record the mapping of old commit hash to new one
-        if commit.original_id and fast_import_pipes:
-          fi_input, fi_output = fast_import_pipes
-          fi_input.write("get-mark :{}\n".format(commit.id))
-          fi_input.flush()
-          orig_id = commit.original_id
-          new_id = fi_output.readline().rstrip()
-          self._commit_renames[orig_id] = new_id
-          self._commit_short_old_hashes[orig_id[0:7]].add(orig_id)
-        # Now, record if this was a merge commit that turned into a non-merge
-        # commit.
-        if num_original_parents > 1 and not merge_commit:
-          self._commits_no_longer_merges.append((orig_id, new_id))
+        self.record_remapping(commit, orig_parents, fast_import_pipes)
       else:
+        rewrite_to = new_1st_parent or commit.first_parent()
         # We skip empty commits, but want to keep track to make sure our branch
         # still gets set and/or updated appropriately.
-        self._seen_refs[commit.branch] = commit.first_parent()
-        commit.skip(new_id = commit.first_parent())
+        self._seen_refs[commit.branch] = rewrite_to # need reset
+        commit.skip(new_id = rewrite_to)
         self._commit_renames[commit.original_id] = None
+
+    # Show progress
     self._num_commits += 1
     if not self._quiet:
       self._progress_writer.show("Parsed {} commits".format(self._num_commits))
