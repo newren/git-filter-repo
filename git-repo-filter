@@ -23,7 +23,6 @@ import sys
 import time
 import textwrap
 
-from email.Utils import unquote
 from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
@@ -82,6 +81,44 @@ class FixedTimeZone(tzinfo):
 
   def dst(self, dt):
     return timedelta(0)
+
+class PathQuoting:
+  _unescape = {'a': '\a',
+               'b': '\b',
+               'f': '\f',
+               'n': '\n',
+               'r': '\r',
+               't': '\t',
+               'v': '\v',
+               '"': '"',
+               '\\':'\\'}
+  _unescape_re = re.compile(r'\\([a-z"\\]|[0-9]{3})')
+  _escape = [chr(x) for x in xrange(127)]+['\\'+oct(x)[1:] for x in xrange(127,256)]
+  _reverse = dict(map(reversed, _unescape.items()))
+  for x in _reverse:
+    _escape[ord(x)] = '\\'+_reverse[x]
+  _special_chars = [len(x) > 1 for x in _escape]
+
+  @staticmethod
+  def unescape_sequence(orig):
+    seq = orig.group(1)
+    return PathQuoting._unescape[seq] if len(seq) == 1 else chr(int(seq, 8))
+
+  @staticmethod
+  def dequote(quoted_string):
+    if quoted_string.startswith('"'):
+      assert quoted_string.endswith('"')
+      return PathQuoting._unescape_re.sub(PathQuoting.unescape_sequence,
+                                          quoted_string[1:-1])
+    return quoted_string
+
+  @staticmethod
+  def enquote(unquoted_string):
+    pqsc = PathQuoting._special_chars
+    if any(pqsc[ord(x)] for x in set(unquoted_string)):
+      pqe = PathQuoting._escape
+      return '"' + ''.join(pqe[ord(x)] for x in unquoted_string) + '"'
+    return unquoted_string
 
 class AncestryGraph(object):
   """
@@ -416,12 +453,13 @@ class FileChanges(_GitElement):
     if skipped_blob: return
     self.dumped = 1
 
+    quoted_filename = PathQuoting.enquote(self.filename)
     if self.type == 'M' and isinstance(self.blob_id, int):
-      file_.write('M %s :%d %s\n' % (self.mode, self.blob_id, self.filename))
+      file_.write('M %s :%d %s\n' % (self.mode, self.blob_id, quoted_filename))
     elif self.type == 'M':
-      file_.write('M %s %s %s\n' % (self.mode, self.blob_id, self.filename))
+      file_.write('M %s %s %s\n' % (self.mode, self.blob_id, quoted_filename))
     elif self.type == 'D':
-      file_.write('D %s\n' % self.filename)
+      file_.write('D %s\n' % quoted_filename)
     else:
       raise SystemExit("Unhandled filechange type: %s" % self.type)
 
@@ -822,7 +860,7 @@ class FastExportFilter(object):
         idnum = _IDS.translate( int(idnum)+self._id_offset )
       if idnum is not None:
         if path.startswith('"'):
-          path = unquote(path)
+          path = PathQuoting.dequote(path)
         filechange = FileChanges('M', path, idnum, mode)
       else:
         filechange = 'skipped'
@@ -830,7 +868,7 @@ class FastExportFilter(object):
     elif self._currentline.startswith('D '):
       path = self._currentline[2:-1]
       if path.startswith('"'):
-        path = unquote(path)
+        path = PathQuoting.dequote(path)
       filechange = FileChanges('D', path)
       self._advance_currentline()
     elif self._currentline.startswith('R '):
@@ -839,12 +877,12 @@ class FastExportFilter(object):
         m = re.match(r'"(?:[^"\\]|\\.)*"', rest)
         if not m:
           raise SystemExit("Couldn't parse rename source")
-        orig = unquote(m.group(0))
+        orig = PathQuoting.dequote(m.group(0))
         new = rest[m.end()+1:]
       else:
         orig, new = rest.split(' ', 1)
       if new.startswith('"'):
-        new = unquote(new)
+        new = PathQuoting.dequote(new)
       filechange = FileChanges('R', orig, new)
       self._advance_currentline()
     return filechange
