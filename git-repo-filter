@@ -1129,6 +1129,12 @@ class FastExportFilter(object):
     if not fast_import_pipes:
       return False
 
+    # Perf hack: since we don't support blob rewriting yet, non-merge commits
+    # can only be empty if commit.file_changes is empty, which we checked
+    # above.  So return early in such a case.
+    if len(orig_parents) < 2:
+      return False
+
     # Finally, the hard case: due to either blob rewriting, or due to pruning
     # of empty commits wiping out the first parent history back to the merge
     # base, the list of file_changes we have may not actually differ from our
