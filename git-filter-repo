@@ -113,8 +113,11 @@ class PathQuoting:
 
   @staticmethod
   def enquote(unquoted_string):
-    pqsc = PathQuoting._special_chars
-    if any(pqsc[ord(x)] for x in set(unquoted_string)):
+    # Option 1: Quoting when fast-export would:
+    #    pqsc = PathQuoting._special_chars
+    #    if any(pqsc[ord(x)] for x in set(unquoted_string)):
+    # Option 2, perf hack: do minimal amount of quoting required by fast-import
+    if unquoted_string.startswith('"') or '\n' in unquoted_string:
       pqe = PathQuoting._escape
       return '"' + ''.join(pqe[ord(x)] for x in unquoted_string) + '"'
     return unquoted_string
