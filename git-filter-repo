@@ -1891,67 +1891,6 @@ class FilteringOptions(object):
     FilteringOptions.sanity_check_args(args)
     return args
 
-def sanity_check(refs, is_bare):
-  def abort(reason):
-    raise SystemExit(
-      "Aborting: Refusing to overwrite repo history since this does not\n"
-      "look like a fresh clone.\n"
-      "  ("+reason+")\n"
-      "To override, use --force.")
-
-  # Make sure repo is fully packed, just like a fresh clone would be
-  output = subprocess.check_output('git count-objects -v'.split())
-  stats = dict(x.split(': ') for x in output.splitlines())
-  if stats['count'] != '0' or stats['packs'] != '1':
-    abort("expected freshly packed repo")
-
-  # Make sure there is precisely one remote, named "origin"
-  output = subprocess.check_output('git remote'.split()).strip()
-  if output != "origin":
-    abort("expected one remote, origin")
-
-  # Avoid letting people running with weird setups and overwriting GIT_DIR
-  # elsewhere
-  git_dir = GitUtils.determine_git_dir()
-  if is_bare and git_dir != '.':
-    abort("GIT_DIR must be .")
-  elif not is_bare and git_dir != '.git':
-    abort("GIT_DIR must be .git")
-
-  # Make sure that all reflogs have precisely one entry
-  reflog_dir=os.path.join(git_dir, 'logs')
-  for root, dirs, files in os.walk(reflog_dir):
-    for filename in files:
-      pathname = os.path.join(root, filename)
-      with open(pathname) as f:
-        if len(f.read().splitlines()) > 1:
-          shortpath = pathname[len(reflog_dir)+1:]
-          abort("expected at most one entry in the reflog for " + shortpath)
-
-  # Make sure there are no stashed changes
-  if 'refs/stash' in refs:
-    abort("has stashed changes")
-
-  # Do extra checks in non-bare repos
-  if not is_bare:
-    # Avoid uncommitted, unstaged, or untracked changes
-    if subprocess.call('git diff --staged'.split()):
-      abort("you have uncommitted changes")
-    if subprocess.call('git diff --quiet'.split()):
-      abort("you have unstaged changes")
-    if len(subprocess.check_output('git ls-files -o'.split())) > 0:
-      abort("you have untracked changes")
-
-    # Avoid unpushed changes
-    for refname, rev in refs.iteritems():
-      if not refname.startswith('refs/heads/'):
-        continue
-      origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
-      if origin_ref not in refs:
-        abort('{} exists, but {} not found'.format(refname, origin_ref))
-      if rev != refs[origin_ref]:
-        abort('{} does not match {}'.format(refname, origin_ref))
-
 def analyze_commit(stats, graph, commit, parents, date, file_changes):
   def equiv_class(filename):
     return stats['equivalence'].get(filename, (filename,))
@@ -2392,6 +2331,67 @@ def do_analysis(args, git_dir):
   sys.stdout.flush()
   write_report(reportdir, stats)
   sys.stdout.write("done.\n")
+
+def sanity_check(refs, is_bare):
+  def abort(reason):
+    raise SystemExit(
+      "Aborting: Refusing to overwrite repo history since this does not\n"
+      "look like a fresh clone.\n"
+      "  ("+reason+")\n"
+      "To override, use --force.")
+
+  # Make sure repo is fully packed, just like a fresh clone would be
+  output = subprocess.check_output('git count-objects -v'.split())
+  stats = dict(x.split(': ') for x in output.splitlines())
+  if stats['count'] != '0' or stats['packs'] != '1':
+    abort("expected freshly packed repo")
+
+  # Make sure there is precisely one remote, named "origin"
+  output = subprocess.check_output('git remote'.split()).strip()
+  if output != "origin":
+    abort("expected one remote, origin")
+
+  # Avoid letting people running with weird setups and overwriting GIT_DIR
+  # elsewhere
+  git_dir = GitUtils.determine_git_dir()
+  if is_bare and git_dir != '.':
+    abort("GIT_DIR must be .")
+  elif not is_bare and git_dir != '.git':
+    abort("GIT_DIR must be .git")
+
+  # Make sure that all reflogs have precisely one entry
+  reflog_dir=os.path.join(git_dir, 'logs')
+  for root, dirs, files in os.walk(reflog_dir):
+    for filename in files:
+      pathname = os.path.join(root, filename)
+      with open(pathname) as f:
+        if len(f.read().splitlines()) > 1:
+          shortpath = pathname[len(reflog_dir)+1:]
+          abort("expected at most one entry in the reflog for " + shortpath)
+
+  # Make sure there are no stashed changes
+  if 'refs/stash' in refs:
+    abort("has stashed changes")
+
+  # Do extra checks in non-bare repos
+  if not is_bare:
+    # Avoid uncommitted, unstaged, or untracked changes
+    if subprocess.call('git diff --staged'.split()):
+      abort("you have uncommitted changes")
+    if subprocess.call('git diff --quiet'.split()):
+      abort("you have unstaged changes")
+    if len(subprocess.check_output('git ls-files -o'.split())) > 0:
+      abort("you have untracked changes")
+
+    # Avoid unpushed changes
+    for refname, rev in refs.iteritems():
+      if not refname.startswith('refs/heads/'):
+        continue
+      origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
+      if origin_ref not in refs:
+        abort('{} exists, but {} not found'.format(refname, origin_ref))
+      if rev != refs[origin_ref]:
+        abort('{} does not match {}'.format(refname, origin_ref))
 
 def tweak_commit(args, commit):
   def filename_matches(path_expression, pathname):
