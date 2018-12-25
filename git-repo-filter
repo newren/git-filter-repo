@@ -26,9 +26,9 @@ import textwrap
 from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
-           "Checkpoint", "FastExportFilter", "FixedTimeZone",
+           "Checkpoint", "FastExportFilter", "FixedTimeZone", "ProgressWriter",
            "fast_export_output", "fast_import_input", "get_commit_count",
-           "get_total_objects", "record_id_rename"]
+           "get_total_objects", "record_id_rename", "FilteringOptions"]
 
 
 def _timedelta_to_seconds(delta):
@@ -1673,186 +1673,202 @@ _CURRENT_STREAM_NUMBER = 0
 
 ######################################################################
 
-class AppendFilter(argparse.Action):
-  def __call__(self, parser, namespace, values, option_string=None):
-    suffix = option_string[len('--path-'):] or 'match'
-    if suffix == 'rename':
-      mod_type = 'rename'
-      match_type = 'prefix'
-    elif suffix.startswith('rename-'):
-      mod_type = 'rename'
-      match_type = match_type[len('rename-'):]
-    else:
-      mod_type = 'filter'
-      match_type = suffix
-    items = getattr(namespace, self.dest, []) or []
-    items.append((mod_type, match_type, values))
-    setattr(namespace, self.dest, items)
+class FilteringOptions(object):
+  class AppendFilter(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+      suffix = option_string[len('--path-'):] or 'match'
+      if suffix == 'rename':
+        mod_type = 'rename'
+        match_type = 'prefix'
+      elif suffix.startswith('rename-'):
+        mod_type = 'rename'
+        match_type = match_type[len('rename-'):]
+      else:
+        mod_type = 'filter'
+        match_type = suffix
+      items = getattr(namespace, self.dest, []) or []
+      items.append((mod_type, match_type, values))
+      setattr(namespace, self.dest, items)
 
-class HelperFilter(argparse.Action):
-  def __call__(self, parser, namespace, values, option_string=None):
-    af = AppendFilter(dest='path_changes', option_strings=None)
-    dirname = values if values[-1] == '/' else values+'/'
-    if option_string == '--subdirectory-filter':
-      af(parser, namespace, dirname,     '--path-match')
-      af(parser, namespace, dirname+':', '--path-rename')
-    elif option_string == '--to-subdirectory-filter':
-      af(parser, namespace, ':'+dirname, '--path-rename')
-    else:
-      raise SystemExit("Error: HelperFilter given invalid option_string: {}"
-                       .format(option_string))
+  class HelperFilter(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+      af = AppendFilter(dest='path_changes', option_strings=None)
+      dirname = values if values[-1] == '/' else values+'/'
+      if option_string == '--subdirectory-filter':
+        af(parser, namespace, dirname,     '--path-match')
+        af(parser, namespace, dirname+':', '--path-rename')
+      elif option_string == '--to-subdirectory-filter':
+        af(parser, namespace, ':'+dirname, '--path-rename')
+      else:
+        raise SystemExit("Error: HelperFilter given invalid option_string: {}"
+                         .format(option_string))
 
-def get_args():
-  # Include usage in the summary, so we can put the description first
-  summary = '''Rewrite (or analyze) repository history
+  @staticmethod
+  def create_arg_parser():
+    # Include usage in the summary, so we can put the description first
+    summary = '''Rewrite (or analyze) repository history
 
-  git-repo-filter destructively rewrites history (unless --analyze or --dry-run
-  are specified) according to specified rules.  It refuses to do any rewriting
-  unless either run from a clean fresh clone, or --force was specified.
+    git-repo-filter destructively rewrites history (unless --analyze or --dry-run
+    are specified) according to specified rules.  It refuses to do any rewriting
+    unless either run from a clean fresh clone, or --force was specified.
 
-  Basic Usage:
-    git-repo-filter --analyze
-    git-repo-filter [FILTER/RENAME/CONTROL OPTIONS]
+    Basic Usage:
+      git-repo-filter --analyze
+      git-repo-filter [FILTER/RENAME/CONTROL OPTIONS]
 
-  See EXAMPLES section for details.
-  '''.rstrip()
+    See EXAMPLES section for details.
+    '''.rstrip()
 
-  # Provide a long helpful examples section
-  example_text = '''EXAMPLES
+    # Provide a long helpful examples section
+    example_text = '''EXAMPLES
 
-  To get help:
-    git-repo-filter --help
-  '''
+    To get help:
+      git-repo-filter --help
+    '''
 
-  # Create the basic parser
-  parser = argparse.ArgumentParser(description=summary,
-                                   usage = argparse.SUPPRESS,
-                                   add_help = False,
-                                   epilog = example_text,
-                                   formatter_class=argparse.RawDescriptionHelpFormatter)
-  # FIXME: Need to special case all --* args that rev-list takes, or call
-  # git rev-parse ...
-  analyze = parser.add_argument_group(title='Analysis')
-  analyze.add_argument('--analyze', action='store_true',
-                       help='''Analyze repository history and create a
-                               report that may be useful in determining
-                               what to filter in a subsequent run.  Will
-                               not modify your repo.''')
+    # Create the basic parser
+    parser = argparse.ArgumentParser(description=summary,
+                                     usage = argparse.SUPPRESS,
+                                     add_help = False,
+                                     epilog = example_text,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    # FIXME: Need to special case all --* args that rev-list takes, or call
+    # git rev-parse ...
+    analyze = parser.add_argument_group(title='Analysis')
+    analyze.add_argument('--analyze', action='store_true',
+                         help='''Analyze repository history and create a
+                                 report that may be useful in determining
+                                 what to filter in a subsequent run.  Will
+                                 not modify your repo.''')
 
-  refs = parser.add_argument_group(title='Git References (positional args)')
-  refs.add_argument('refs', nargs='*',
-                    help='''git refs (branches, tags, etc.) to rewrite,
-                            e.g. 'master v2.1.0 v0.5.0'.  Special rev-list
-                            options, such as --branches, --tags, --all, --glob,
-                            or --exclude are allowed.  [default: --all].  To
-                            avoid mixing new history with old, any references
-                            not specified will be deleted.''')
+    refs = parser.add_argument_group(title='Git References (positional args)')
+    refs.add_argument('refs', nargs='*',
+                      help='''git refs (branches, tags, etc.) to rewrite,
+                              e.g. 'master v2.1.0 v0.5.0'.  Special rev-list
+                              options, such as --branches, --tags, --all, --glob,
+                              or --exclude are allowed.  [default: --all].  To
+                              avoid mixing new history with old, any references
+                              not specified will be deleted.''')
 
-  path = parser.add_argument_group(title='Filtering based on paths')
-  path.add_argument('--invert-paths', action='store_false',
-                    dest='inclusive',
-                    help='''Invert the selection of files from the specified
-                            --path-{match,glob,regex} options below, i.e. only
-                            select files matching none of those options.''')
+    path = parser.add_argument_group(title='Filtering based on paths')
+    path.add_argument('--invert-paths', action='store_false',
+                      dest='inclusive',
+                      help='''Invert the selection of files from the specified
+                              --path-{match,glob,regex} options below, i.e. only
+                              select files matching none of those options.''')
 
-  path.add_argument('--path-match', '--path', metavar='DIR_OR_FILE',
-                    action=AppendFilter, dest='path_changes',
-                    help='''Exact paths (files or directories) to include in
-                            filtered history.  Multiple --path options can be
-                            specified to get a union of paths.''')
-  path.add_argument('--path-glob', metavar='GLOB',
-                    action=AppendFilter, dest='path_changes',
-                    help='''Glob of paths to include in filtered history.
-                            Multiple --path-glob options can be specified to
-                            get a union of paths.''')
-  path.add_argument('--path-regex', metavar='REGEX',
-                    action=AppendFilter, dest='path_changes',
-                    help='''Regex of paths to include in filtered history.
-                            Multiple --path-regex options can be specified to
-                            get a union of paths''')
+    path.add_argument('--path-match', '--path', metavar='DIR_OR_FILE',
+                      action=FilteringOptions.AppendFilter, dest='path_changes',
+                      help='''Exact paths (files or directories) to include in
+                              filtered history.  Multiple --path options can be
+                              specified to get a union of paths.''')
+    path.add_argument('--path-glob', metavar='GLOB',
+                      action=FilteringOptions.AppendFilter, dest='path_changes',
+                      help='''Glob of paths to include in filtered history.
+                              Multiple --path-glob options can be specified to
+                              get a union of paths.''')
+    path.add_argument('--path-regex', metavar='REGEX',
+                      action=FilteringOptions.AppendFilter, dest='path_changes',
+                      help='''Regex of paths to include in filtered history.
+                              Multiple --path-regex options can be specified to
+                              get a union of paths''')
 
-  rename = parser.add_argument_group(title='Renaming based on paths')
-  rename.add_argument('--path-rename-prefix', '--path-rename',
-                      metavar='OLD_NAME:NEW_NAME',
-                      action=AppendFilter, dest='path_changes',
-                      help='''Prefix to rename; if filename starts with
-                              OLD_NAME, replace that with NEW_NAME.  Multiple
-                              --path-rename options can be specified.''')
+    rename = parser.add_argument_group(title='Renaming based on paths')
+    rename.add_argument('--path-rename-prefix', '--path-rename',
+                        metavar='OLD_NAME:NEW_NAME',
+                        action=FilteringOptions.AppendFilter,
+                        dest='path_changes',
+                        help='''Prefix to rename; if filename starts with
+                                OLD_NAME, replace that with NEW_NAME.  Multiple
+                                --path-rename options can be specified.''')
 
-  refrename = parser.add_argument_group(title='Renaming of refs')
-  refrename.add_argument('--tag-rename', metavar='OLD:NEW',
-                         help='''Rename tags starting with OLD to start with
-                                 NEW.  e.g.  --tag-rename foo:bar will rename
-                                 tag foo-1.2.3 to bar-1.2.3; either OLD or NEW
-                                 can be empty.''')
+    refrename = parser.add_argument_group(title='Renaming of refs')
+    refrename.add_argument('--tag-rename', metavar='OLD:NEW',
+                           help='''Rename tags starting with OLD to start with
+                                   NEW.  e.g.  --tag-rename foo:bar will rename
+                                   tag foo-1.2.3 to bar-1.2.3; either OLD or NEW
+                                   can be empty.''')
 
-  helpers = parser.add_argument_group(title='Shortcuts')
-  helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
-                       action=HelperFilter,
-                       help='''Only look at history that touches the given
-                               subdirectory and treat that directory as the
-                               project root.  Equivalent to using
-                               "--path DIRECTORY/ --path-rename DIRECTORY/:"''')
-  helpers.add_argument('--to-subdirectory-filter', metavar='DIRECTORY',
-                       action=HelperFilter,
-                       help='''Treat the project root as instead being under
-                               DIRECTORY.  Equivalent to using
-                               "--path-rename :DIRECTORY/"''')
+    helpers = parser.add_argument_group(title='Shortcuts')
+    helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
+                         action=FilteringOptions.HelperFilter,
+                         help='''Only look at history that touches the given
+                                 subdirectory and treat that directory as the
+                                 project root.  Equivalent to using
+                                 "--path DIRECTORY/ --path-rename DIRECTORY/:"
+                                 ''')
+    helpers.add_argument('--to-subdirectory-filter', metavar='DIRECTORY',
+                         action=FilteringOptions.HelperFilter,
+                         help='''Treat the project root as instead being under
+                                 DIRECTORY.  Equivalent to using
+                                 "--path-rename :DIRECTORY/"''')
 
-  misc = parser.add_argument_group(title='Miscellaneous options')
-  misc.add_argument('--help', '-h', action='store_true',
-                    help='''Show this help message and exit.''')
-  misc.add_argument('--force', '-f', action='store_true',
-                    help='''Rewrite history even if the current repo does not
-                            look like a fresh clone.''')
+    misc = parser.add_argument_group(title='Miscellaneous options')
+    misc.add_argument('--help', '-h', action='store_true',
+                      help='''Show this help message and exit.''')
+    misc.add_argument('--force', '-f', action='store_true',
+                      help='''Rewrite history even if the current repo does not
+                              look like a fresh clone.''')
 
-  misc.add_argument('--dry-run', action='store_true',
-                    help='''Do not change the repository.  Run `git
-                            fast-export` and filter its output, and save both
-                            the original and the filtered version for
-                            comparison.  Some filtering of empty commits may
-                            not occur due to inability to query the fast-import
-                            backend.''')
-  misc.add_argument('--debug', action='store_true',
-                    help='''Print additional information about operations being
-                            performed and commands being run.  When used
-                            together with --dry-run, also show extra
-                            information about what would be run.''')
-  misc.add_argument('--stdin', action='store_true',
-                    help='''Instead of running `git fast-export` and filtering
-                            its output, filter the fast-export stream from
-                            stdin.''')
-  misc.add_argument('--quiet', action='store_true',
-                    help='''Pass --quiet to other git commands called''')
+    misc.add_argument('--dry-run', action='store_true',
+                      help='''Do not change the repository.  Run `git
+                              fast-export` and filter its output, and save both
+                              the original and the filtered version for
+                              comparison.  Some filtering of empty commits may
+                              not occur due to inability to query the fast-import
+                              backend.''')
+    misc.add_argument('--debug', action='store_true',
+                      help='''Print additional information about operations being
+                              performed and commands being run.  When used
+                              together with --dry-run, also show extra
+                              information about what would be run.''')
+    misc.add_argument('--stdin', action='store_true',
+                      help='''Instead of running `git fast-export` and filtering
+                              its output, filter the fast-export stream from
+                              stdin.''')
+    misc.add_argument('--quiet', action='store_true',
+                      help='''Pass --quiet to other git commands called''')
+    return parser
 
-  if len(sys.argv) == 1:
-    parser.print_usage()
-    raise SystemExit("No arguments specified.")
-  args = parser.parse_args()
-  if args.help:
-    parser.print_help()
-    raise SystemExit()
-  if not args.refs:
-    args.refs = ['--all']
-  if args.analyze and args.path_changes:
-    raise SystemExit("Error: --analyze is incompatible with --path* flags; "
-                     "it's a read-only operation.")
-  if args.analyze and args.stdin:
-    raise SystemExit("Error: --analyze is incompatible with --stdin.")
-  # If no path_changes are found, initialize with empty list but mark as
-  # not inclusive so that all files match
-  if args.path_changes == None:
-    args.path_changes = []
-    args.inclusive = False
-  # Similarly, if we only have renames, all paths should match
-  else:
-    has_filter = False
-    for (mod_type, match_type, path_expression) in args.path_changes:
-      if mod_type == 'filter':
-        has_filter = True
-    if not has_filter:
+  @staticmethod
+  def sanity_check_args(args):
+    if args.help:
+      parser.print_help()
+      raise SystemExit()
+    if not args.refs:
+      args.refs = ['--all']
+    if args.analyze and args.path_changes:
+      raise SystemExit("Error: --analyze is incompatible with --path* flags; "
+                       "it's a read-only operation.")
+    if args.analyze and args.stdin:
+      raise SystemExit("Error: --analyze is incompatible with --stdin.")
+    # If no path_changes are found, initialize with empty list but mark as
+    # not inclusive so that all files match
+    if args.path_changes == None:
+      args.path_changes = []
       args.inclusive = False
-  return args
+    # Similarly, if we only have renames, all paths should match
+    else:
+      has_filter = False
+      for (mod_type, match_type, path_expression) in args.path_changes:
+        if mod_type == 'filter':
+          has_filter = True
+      if not has_filter:
+        args.inclusive = False
+
+  @staticmethod
+  def default_options():
+    return FilteringOptions.parse_args([], error_on_empty = False)
+
+  @staticmethod
+  def parse_args(input_args, error_on_empty = True):
+    parser = FilteringOptions.create_arg_parser()
+    if not input_args and error_on_empty:
+      parser.print_usage()
+      raise SystemExit("No arguments specified.")
+    args = parser.parse_args(input_args)
+    FilteringOptions.sanity_check_args(args)
+    return args
 
 def is_repository_bare():
   output = subprocess.check_output('git rev-parse --is-bare-repository'.split())
@@ -2479,7 +2495,7 @@ class DualFileWriter:
     self.file2.close()
 
 def run_fast_filter():
-  args = get_args()
+  args = FilteringOptions.parse_args(sys.argv[1:])
   if args.debug:
     print("[DEBUG] Parsed arguments:\n{}".format(args))
 
