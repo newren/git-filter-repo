@@ -28,7 +28,7 @@ from datetime import tzinfo, timedelta, datetime
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
            "Checkpoint", "FastExportFilter", "FixedTimeZone", "ProgressWriter",
            "fast_export_output", "fast_import_input", "record_id_rename",
-           "GitUtils", "FilteringOptions"]
+           "GitUtils", "FilteringOptions", "RepoFilter"]
 
 
 def _timedelta_to_seconds(delta):
@@ -2334,7 +2334,9 @@ class RepoAnalyze(object):
                                                  names_with_sha))
 
   @staticmethod
-  def run(args, git_dir):
+  def run(args):
+    git_dir = GitUtils.determine_git_dir()
+
     # Create the report directory as necessary
     results_tmp_dir = os.path.join(git_dir, 'repo-filter')
     if not os.path.isdir(results_tmp_dir):
@@ -2353,140 +2355,6 @@ class RepoAnalyze(object):
     sys.stdout.flush()
     RepoAnalyze.write_report(reportdir, stats)
     sys.stdout.write("done.\n")
-
-def sanity_check(refs, is_bare, git_dir):
-  def abort(reason):
-    raise SystemExit(
-      "Aborting: Refusing to overwrite repo history since this does not\n"
-      "look like a fresh clone.\n"
-      "  ("+reason+")\n"
-      "To override, use --force.")
-
-  # Make sure repo is fully packed, just like a fresh clone would be
-  output = subprocess.check_output('git count-objects -v'.split())
-  stats = dict(x.split(': ') for x in output.splitlines())
-  if stats['count'] != '0' or stats['packs'] != '1':
-    abort("expected freshly packed repo")
-
-  # Make sure there is precisely one remote, named "origin"
-  output = subprocess.check_output('git remote'.split()).strip()
-  if output != "origin":
-    abort("expected one remote, origin")
-
-  # Avoid letting people running with weird setups and overwriting GIT_DIR
-  # elsewhere
-  git_dir = GitUtils.determine_git_dir()
-  if is_bare and git_dir != '.':
-    abort("GIT_DIR must be .")
-  elif not is_bare and git_dir != '.git':
-    abort("GIT_DIR must be .git")
-
-  # Make sure that all reflogs have precisely one entry
-  reflog_dir=os.path.join(git_dir, 'logs')
-  for root, dirs, files in os.walk(reflog_dir):
-    for filename in files:
-      pathname = os.path.join(root, filename)
-      with open(pathname) as f:
-        if len(f.read().splitlines()) > 1:
-          shortpath = pathname[len(reflog_dir)+1:]
-          abort("expected at most one entry in the reflog for " + shortpath)
-
-  # Make sure there are no stashed changes
-  if 'refs/stash' in refs:
-    abort("has stashed changes")
-
-  # Do extra checks in non-bare repos
-  if not is_bare:
-    # Avoid uncommitted, unstaged, or untracked changes
-    if subprocess.call('git diff --staged'.split()):
-      abort("you have uncommitted changes")
-    if subprocess.call('git diff --quiet'.split()):
-      abort("you have unstaged changes")
-    if len(subprocess.check_output('git ls-files -o'.split())) > 0:
-      abort("you have untracked changes")
-
-    # Avoid unpushed changes
-    for refname, rev in refs.iteritems():
-      if not refname.startswith('refs/heads/'):
-        continue
-      origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
-      if origin_ref not in refs:
-        abort('{} exists, but {} not found'.format(refname, origin_ref))
-      if rev != refs[origin_ref]:
-        abort('{} does not match {}'.format(refname, origin_ref))
-
-def tweak_commit(args, commit):
-  def filename_matches(path_expression, pathname):
-    if path_expression == '':
-      return True
-    n = len(path_expression)
-    if (pathname.startswith(path_expression) and
-        (path_expression[n-1] == '/' or
-         len(pathname) == n or
-         pathname[n] == '/')):
-      return True
-    return False
-
-  def newname(path_changes, pathname, filtering_is_inclusive):
-    wanted = False
-    for (mod_type, match_type, path_expression) in path_changes:
-      if mod_type == 'filter' and not wanted:
-        assert match_type in ('match', 'glob', 'regex')
-        if match_type == 'match' and filename_matches(path_expression, pathname):
-          wanted = True
-        if match_type == 'glob' and fnmatch.fnmatch(pathname, path_expression):
-          wanted = True
-        if match_type == 'regex' and re.search(path_expression, pathname):
-          wanted = True
-      elif mod_type == 'rename':
-        old_exp, new_exp = path_expression.split(':')
-        assert match_type in ('prefix',)
-        if match_type == 'prefix' and pathname.startswith(old_exp):
-          pathname = pathname.replace(old_exp, new_exp, 1)
-    return pathname if (wanted == filtering_is_inclusive) else None
-
-  # Sometimes the 'branch' given is a tag; if so, rename it as requested so
-  # we don't get any old tagnames
-  commit.branch = new_tagname(args, commit.branch)
-
-  # Filter the list of file changes
-  new_file_changes = {}
-  for change in commit.file_changes:
-    change.filename = newname(args.path_changes, change.filename, args.inclusive)
-    if not change.filename:
-      continue # Filtering criteria excluded this file; move on to next one
-    if change.filename in new_file_changes:
-      # Getting here means that path renaming is in effect, and caused one
-      # path to collide with another.  That's usually bad, but sometimes
-      # people have a file named OLDFILE in old revisions of history, and they
-      # rename to NEWFILE, and would like to rewrite history so that all
-      # revisions refer to it as NEWFILE.  As such, we can allow a collision
-      # when (at least) one of the two paths is a deletion.  Note that if
-      # OLDFILE and NEWFILE are unrelated this also allows the rewrite to
-      # continue, which makes sense since OLDFILE is no longer in the way.
-      if change.type == 'D':
-        # We can just throw this one away and keep the other
-        continue
-      elif new_file_changes[change.filename].type != 'D':
-        raise SystemExit("File renaming caused colliding pathnames!\n" +
-                         "  Commit: {}\n".format(commit.original_id) +
-                         "  Filename: {}".format(change.filename))
-    new_file_changes[change.filename] = change
-  commit.file_changes = new_file_changes.values()
-
-def new_tagname(args, tagname, shortname = False):
-  replace = args.tag_rename
-  if not replace:
-    return tagname
-  old, new = replace.split(':', 1)
-  if not shortname:
-    old, new = 'refs/tags/'+old, 'refs/tags/'+new
-  if tagname.startswith(old):
-    return tagname.replace(old, new, 1)
-  return tagname
-
-def handle_tag(args, reset_or_tag, shortname = False):
-  reset_or_tag.ref = new_tagname(args, reset_or_tag.ref, shortname)
 
 class InputFileBackup:
   def __init__(self, input_file, output_file):
@@ -2516,122 +2384,261 @@ class DualFileWriter:
     self.file1.close()
     self.file2.close()
 
-def run_fast_filter():
-  args = FilteringOptions.parse_args(sys.argv[1:])
-  if args.debug:
-    print("[DEBUG] Parsed arguments:\n{}".format(args))
+class RepoFilter(object):
+  @staticmethod
+  def sanity_check(refs, is_bare, git_dir):
+    def abort(reason):
+      raise SystemExit(
+        "Aborting: Refusing to overwrite repo history since this does not\n"
+        "look like a fresh clone.\n"
+        "  ("+reason+")\n"
+        "To override, use --force.")
 
-  # Determine basic repository information
-  orig_refs = GitUtils.get_refs()
-  is_bare = GitUtils.is_repository_bare()
-  git_dir = GitUtils.determine_git_dir()
+    # Make sure repo is fully packed, just like a fresh clone would be
+    output = subprocess.check_output('git count-objects -v'.split())
+    stats = dict(x.split(': ') for x in output.splitlines())
+    if stats['count'] != '0' or stats['packs'] != '1':
+      abort("expected freshly packed repo")
 
-  # Do analysis, if requested
-  if args.analyze:
-    RepoAnalyze.run(args, git_dir)
-    return
+    # Make sure there is precisely one remote, named "origin"
+    output = subprocess.check_output('git remote'.split()).strip()
+    if output != "origin":
+      abort("expected one remote, origin")
 
-  # Do sanity checks
-  if not args.force:
-    sanity_check(orig_refs, is_bare, git_dir)
+    # Avoid letting people running with weird setups and overwriting GIT_DIR
+    # elsewhere
+    git_dir = GitUtils.determine_git_dir()
+    if is_bare and git_dir != '.':
+      abort("GIT_DIR must be .")
+    elif not is_bare and git_dir != '.git':
+      abort("GIT_DIR must be .git")
 
-  # Create a temporary directory for storing some results
-  results_tmp_dir = os.path.join(git_dir, 'repo-filter')
-  if not os.path.isdir(results_tmp_dir):
-    os.mkdir(results_tmp_dir)
+    # Make sure that all reflogs have precisely one entry
+    reflog_dir=os.path.join(git_dir, 'logs')
+    for root, dirs, files in os.walk(reflog_dir):
+      for filename in files:
+        pathname = os.path.join(root, filename)
+        with open(pathname) as f:
+          if len(f.read().splitlines()) > 1:
+            shortpath = pathname[len(reflog_dir)+1:]
+            abort("expected at most one entry in the reflog for " + shortpath)
 
-  # Determine where to get input (and whether to make a copy)
-  if args.stdin:
-    input = sys.stdin
-    fe_orig = None
-  else:
-    fep_cmd = ['git', 'fast-export',
-               '--show-original-ids',
-               '--signed-tags=strip',
-               '--tag-of-filtered-object=rewrite',
-               '--no-data',
-               '--use-done-feature'] + args.refs
-    fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
-    input = fep.stdout
+    # Make sure there are no stashed changes
+    if 'refs/stash' in refs:
+      abort("has stashed changes")
+
+    # Do extra checks in non-bare repos
+    if not is_bare:
+      # Avoid uncommitted, unstaged, or untracked changes
+      if subprocess.call('git diff --staged'.split()):
+        abort("you have uncommitted changes")
+      if subprocess.call('git diff --quiet'.split()):
+        abort("you have unstaged changes")
+      if len(subprocess.check_output('git ls-files -o'.split())) > 0:
+        abort("you have untracked changes")
+
+      # Avoid unpushed changes
+      for refname, rev in refs.iteritems():
+        if not refname.startswith('refs/heads/'):
+          continue
+        origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
+        if origin_ref not in refs:
+          abort('{} exists, but {} not found'.format(refname, origin_ref))
+        if rev != refs[origin_ref]:
+          abort('{} does not match {}'.format(refname, origin_ref))
+
+  @staticmethod
+  def tweak_commit(args, commit):
+    def filename_matches(path_expression, pathname):
+      if path_expression == '':
+        return True
+      n = len(path_expression)
+      if (pathname.startswith(path_expression) and
+          (path_expression[n-1] == '/' or
+           len(pathname) == n or
+           pathname[n] == '/')):
+        return True
+      return False
+
+    def newname(path_changes, pathname, filtering_is_inclusive):
+      wanted = False
+      for (mod_type, match_type, path_exp) in path_changes:
+        if mod_type == 'filter' and not wanted:
+          assert match_type in ('match', 'glob', 'regex')
+          if match_type == 'match' and filename_matches(path_exp, pathname):
+            wanted = True
+          if match_type == 'glob' and fnmatch.fnmatch(pathname, path_exp):
+            wanted = True
+          if match_type == 'regex' and re.search(path_exp, pathname):
+            wanted = True
+        elif mod_type == 'rename':
+          old_exp, new_exp = path_exp.split(':')
+          assert match_type in ('prefix',)
+          if match_type == 'prefix' and pathname.startswith(old_exp):
+            pathname = pathname.replace(old_exp, new_exp, 1)
+      return pathname if (wanted == filtering_is_inclusive) else None
+
+    # Sometimes the 'branch' given is a tag; if so, rename it as requested so
+    # we don't get any old tagnames
+    commit.branch = RepoFilter.new_tagname(args, commit.branch)
+
+    # Filter the list of file changes
+    new_file_changes = {}
+    for change in commit.file_changes:
+      change.filename = newname(args.path_changes, change.filename,
+                                args.inclusive)
+      if not change.filename:
+        continue # Filtering criteria excluded this file; move on to next one
+      if change.filename in new_file_changes:
+        # Getting here means that path renaming is in effect, and caused one
+        # path to collide with another.  That's usually bad, but sometimes
+        # people have a file named OLDFILE in old revisions of history, and they
+        # rename to NEWFILE, and would like to rewrite history so that all
+        # revisions refer to it as NEWFILE.  As such, we can allow a collision
+        # when (at least) one of the two paths is a deletion.  Note that if
+        # OLDFILE and NEWFILE are unrelated this also allows the rewrite to
+        # continue, which makes sense since OLDFILE is no longer in the way.
+        if change.type == 'D':
+          # We can just throw this one away and keep the other
+          continue
+        elif new_file_changes[change.filename].type != 'D':
+          raise SystemExit("File renaming caused colliding pathnames!\n" +
+                           "  Commit: {}\n".format(commit.original_id) +
+                           "  Filename: {}".format(change.filename))
+      new_file_changes[change.filename] = change
+    commit.file_changes = new_file_changes.values()
+
+  @staticmethod
+  def new_tagname(args, tagname, shortname = False):
+    replace = args.tag_rename
+    if not replace:
+      return tagname
+    old, new = replace.split(':', 1)
+    if not shortname:
+      old, new = 'refs/tags/'+old, 'refs/tags/'+new
+    if tagname.startswith(old):
+      return tagname.replace(old, new, 1)
+    return tagname
+
+  @staticmethod
+  def handle_tag(args, reset_or_tag, shortname = False):
+    reset_or_tag.ref = RepoFilter.new_tagname(args, reset_or_tag.ref, shortname)
+
+  @staticmethod
+  def run(args):
+    if args.debug:
+      print("[DEBUG] Passed arguments:\n{}".format(args))
+
+    # Determine basic repository information
+    orig_refs = GitUtils.get_refs()
+    is_bare = GitUtils.is_repository_bare()
+    git_dir = GitUtils.determine_git_dir()
+
+    # Do sanity checks
+    if not args.force:
+      RepoFilter.sanity_check(orig_refs, is_bare, git_dir)
+
+    # Create a temporary directory for storing some results
+    results_tmp_dir = os.path.join(git_dir, 'repo-filter')
+    if not os.path.isdir(results_tmp_dir):
+      os.mkdir(results_tmp_dir)
+
+    # Determine where to get input (and whether to make a copy)
+    if args.stdin:
+      input = sys.stdin
+      fe_orig = None
+    else:
+      fep_cmd = ['git', 'fast-export',
+                 '--show-original-ids',
+                 '--signed-tags=strip',
+                 '--tag-of-filtered-object=rewrite',
+                 '--no-data',
+                 '--use-done-feature'] + args.refs
+      fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
+      input = fep.stdout
+      if args.dry_run or args.debug:
+        fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
+        output = open(fe_orig, 'w')
+        input = InputFileBackup(input, output)
+        if args.debug:
+          print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
+          print("  (saving a copy of the output at {})".format(fe_orig))
+
+    # Determine where to send output
+    pipes = None
+    if not args.dry_run:
+      fip_cmd = 'git fast-import --force --quiet'.split()
+      fip = subprocess.Popen(fip_cmd,
+                             bufsize=-1,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE)
+      pipes = (fip.stdin, fip.stdout)
     if args.dry_run or args.debug:
-      fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
-      output = open(fe_orig, 'w')
-      input = InputFileBackup(input, output)
+      fe_filt = os.path.join(results_tmp_dir, 'fast-export.filtered')
+      output = open(fe_filt, 'w')
+    else:
+      output = fip.stdin
+    if args.debug:
+      output = DualFileWriter(fip.stdin, output)
+      print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
+      print("  (using the following file as input: {})".format(fe_filt))
+
+    # Create and run the filter
+    filter = FastExportFilter(
+               commit_callback = lambda c : RepoFilter.tweak_commit(args, c),
+               tag_callback =    lambda t : RepoFilter.handle_tag(args, t, shortname = True),
+               reset_callback =  lambda r : RepoFilter.handle_tag(args, r),
+               )
+    filter.run(input, output, fast_import_pipes = pipes, quiet = args.quiet)
+
+    # Close the output, ensure fast-export and fast-import have completed
+    output.close()
+    if not args.stdin and fep.wait():
+      raise SystemExit("Error: fast-export failed; see above.")
+    if not args.dry_run and fip.wait():
+      raise SystemExit("Error: fast-import failed; see above.")
+
+    # Exit early, if requested
+    if args.dry_run:
+      orig_str = "by comparing:\n        "+fe_orig if fe_orig else "at:"
+      print("NOTE: Not running fast-import or cleaning up; --dry-run passed.")
+      print("      Requested filtering can be seen {}".format(orig_str))
+      print("        " + fe_filt)
+      sys.exit(0)
+
+    # Remove unused refs
+    refs_to_nuke = set(orig_refs) - set(filter.get_seen_refs())
+    if refs_to_nuke:
       if args.debug:
-        print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
-        print("  (saving a copy of the output at {})".format(fe_orig))
+        print("[DEBUG] Deleting the following refs:\n  "+
+              "\n  ".join(refs_to_nuke))
+      p = subprocess.Popen('git update-ref --stdin'.split(),
+                           stdin=subprocess.PIPE)
+      p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
+                             for x in refs_to_nuke]))
+      p.stdin.close()
+      if p.wait():
+        raise SystemExit("git update-ref failed; see above")
 
-  # Determine where to send output
-  pipes = None
-  if not args.dry_run:
-    fip_cmd = 'git fast-import --force --quiet'.split()
-    fip = subprocess.Popen(fip_cmd,
-                           bufsize=-1,
-                           stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE)
-    pipes = (fip.stdin, fip.stdout)
-  if args.dry_run or args.debug:
-    fe_filt = os.path.join(results_tmp_dir, 'fast-export.filtered')
-    output = open(fe_filt, 'w')
-  else:
-    output = fip.stdin
-  if args.debug:
-    output = DualFileWriter(fip.stdin, output)
-    print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
-    print("  (using the following file as input: {})".format(fe_filt))
+    # Write out data about run
+    filter.record_metadata(results_tmp_dir, orig_refs, refs_to_nuke)
 
-  # Create and run the filter
-  filter = FastExportFilter(
-             commit_callback = lambda c : tweak_commit(args, c),
-             tag_callback =    lambda t : handle_tag(args, t, shortname = True),
-             reset_callback =  lambda r : handle_tag(args, r),
-             )
-  filter.run(input, output, fast_import_pipes = pipes, quiet = args.quiet)
-
-  # Close the output, ensure fast-export and fast-import have completed
-  output.close()
-  if not args.stdin and fep.wait():
-    raise SystemExit("Error: fast-export failed; see above.")
-  if not args.dry_run and fip.wait():
-    raise SystemExit("Error: fast-import failed; see above.")
-
-  # Exit early
-  if args.dry_run:
-    orig_str = "by comparing:\n        "+fe_orig if fe_orig else "at:"
-    print("NOTE: Not running fast-import or cleaning up; --dry-run passed.")
-    print("      Requested filtering can be seen {}".format(orig_str))
-    print("        " + fe_filt)
-    sys.exit(0)
-
-  # Remove unused refs
-  refs_to_nuke = set(orig_refs) - set(filter.get_seen_refs())
-  if refs_to_nuke:
-    if args.debug:
-      print("[DEBUG] Deleting the following refs:\n  "+
-            "\n  ".join(refs_to_nuke))
-    p = subprocess.Popen('git update-ref --stdin'.split(),
-                         stdin=subprocess.PIPE)
-    p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
-                           for x in refs_to_nuke]))
-    p.stdin.close()
-    if p.wait():
-      raise SystemExit("git update-ref failed; see above")
-
-  # Write out data about run
-  filter.record_metadata(results_tmp_dir, orig_refs, refs_to_nuke)
-
-  # Nuke the reflogs and repack
-  if not args.quiet and not args.debug:
-    print("Repacking your repo and cleaning out old unneeded objects")
-  quiet_flags = '--quiet' if args.quiet else ''
-  cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
-                  'git gc {} --prune=now'.format(quiet_flags).split()]
-  if not is_bare:
-    cleanup_cmds.append('git reset {} --hard'.format(quiet_flags).split())
-  for cmd in cleanup_cmds:
-    if args.debug:
-      print("[DEBUG] Running: {}".format(' '.join(cmd)))
-    subprocess.call(cmd)
+    # Nuke the reflogs and repack
+    if not args.quiet and not args.debug:
+      print("Repacking your repo and cleaning out old unneeded objects")
+    quiet_flags = '--quiet' if args.quiet else ''
+    cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
+                    'git gc {} --prune=now'.format(quiet_flags).split()]
+    if not is_bare:
+      cleanup_cmds.append('git reset {} --hard'.format(quiet_flags).split())
+    for cmd in cleanup_cmds:
+      if args.debug:
+        print("[DEBUG] Running: {}".format(' '.join(cmd)))
+      subprocess.call(cmd)
 
 if __name__ == '__main__':
-  run_fast_filter()
+  args = FilteringOptions.parse_args(sys.argv[1:])
+  if args.analyze:
+    RepoAnalyze.run(args)
+  else:
+    RepoFilter.run(args)
