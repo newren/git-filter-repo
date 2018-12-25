@@ -27,8 +27,8 @@ from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
            "Checkpoint", "FastExportFilter", "FixedTimeZone", "ProgressWriter",
-           "fast_export_output", "fast_import_input", "get_commit_count",
-           "get_total_objects", "record_id_rename", "FilteringOptions"]
+           "fast_export_output", "fast_import_input", "record_id_rename",
+           "GitUtils", "FilteringOptions"]
 
 
 def _timedelta_to_seconds(delta):
@@ -1630,34 +1630,6 @@ def fast_import_input(target_repo, extra_args = None):
                           stdin=subprocess.PIPE,
                           cwd=target_repo)
 
-def get_commit_count(repo, *args):
-  """
-  Return the number of commits that have been made on repo.
-  """
-  if not args:
-    args = ['--all']
-  if len(args) == 1 and isinstance(args[0], list):
-    args = args[0]
-  p1 = subprocess.Popen(["git", "rev-list"] + args,
-                        bufsize=-1,
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                        cwd=repo)
-  p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
-  count = int(p2.communicate()[0])
-  if p1.poll() != 0:
-    raise SystemExit("%s does not appear to be a valid git repository" % repo)
-  return count
-
-def get_total_objects(repo):
-  """
-  Return the number of objects (both packed and unpacked)
-  """
-  p1 = subprocess.Popen(["git", "count-objects", "-v"],
-                        stdout=subprocess.PIPE, cwd=repo)
-  lines = p1.stdout.read().splitlines()
-  # Return unpacked objects + packed-objects
-  return int(lines[0].split()[1]) + int(lines[2].split()[1])
-
 def record_id_rename(old_id, new_id):
   """
   Register a new translation
@@ -1671,7 +1643,58 @@ _EXTRA_CHANGES = {}  # idnum -> list of list of FileChanges
 _SKIPPED_COMMITS = set()
 _CURRENT_STREAM_NUMBER = 0
 
-######################################################################
+class GitUtils(object):
+  @staticmethod
+  def get_commit_count(repo, *args):
+    """
+    Return the number of commits that have been made on repo.
+    """
+    if not args:
+      args = ['--all']
+    if len(args) == 1 and isinstance(args[0], list):
+      args = args[0]
+    p1 = subprocess.Popen(["git", "rev-list"] + args,
+                          bufsize=-1,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          cwd=repo)
+    p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    count = int(p2.communicate()[0])
+    if p1.poll() != 0:
+      raise SystemExit("%s does not appear to be a valid git repository" % repo)
+    return count
+
+  @staticmethod
+  def get_total_objects(repo):
+    """
+    Return the number of objects (both packed and unpacked)
+    """
+    p1 = subprocess.Popen(["git", "count-objects", "-v"],
+                          stdout=subprocess.PIPE, cwd=repo)
+    lines = p1.stdout.read().splitlines()
+    # Return unpacked objects + packed-objects
+    return int(lines[0].split()[1]) + int(lines[2].split()[1])
+
+  @staticmethod
+  def is_repository_bare():
+    out = subprocess.check_output('git rev-parse --is-bare-repository'.split())
+    return (out.strip() == 'true')
+
+  @staticmethod
+  def determine_git_dir():
+    out = subprocess.check_output('git rev-parse --git-dir'.split())
+    return out.strip()
+
+  @staticmethod
+  def get_refs():
+    try:
+      output = subprocess.check_output('git show-ref'.split())
+    except subprocess.CalledProcessError as e:
+      # If error code is 1, there just aren't any refs; i.e. new repo.
+      # If error code is other than 1, some other error (e.g. not a git repo)
+      if e.returncode != 1:
+        raise SystemExit('fatal: {}'.format(e))
+      output = ''
+    return dict(reversed(x.split()) for x in output.splitlines())
 
 class FilteringOptions(object):
   class AppendFilter(argparse.Action):
@@ -1870,14 +1893,6 @@ class FilteringOptions(object):
     FilteringOptions.sanity_check_args(args)
     return args
 
-def is_repository_bare():
-  output = subprocess.check_output('git rev-parse --is-bare-repository'.split())
-  return (output.strip() == 'true')
-
-def determine_git_dir():
-  output = subprocess.check_output('git rev-parse --git-dir'.split())
-  return output.strip()
-
 def sanity_check(refs, is_bare, git_dir):
   def abort(reason):
     raise SystemExit(
@@ -1899,7 +1914,7 @@ def sanity_check(refs, is_bare, git_dir):
 
   # Avoid letting people running with weird setups and overwriting GIT_DIR
   # elsewhere
-  git_dir = determine_git_dir()
+  git_dir = GitUtils.determine_git_dir()
   if is_bare and git_dir != '.':
     abort("GIT_DIR must be .")
   elif not is_bare and git_dir != '.git':
@@ -1938,17 +1953,6 @@ def sanity_check(refs, is_bare, git_dir):
         abort('{} exists, but {} not found'.format(refname, origin_ref))
       if rev != refs[origin_ref]:
         abort('{} does not match {}'.format(refname, origin_ref))
-
-def get_refs():
-  try:
-    output = subprocess.check_output('git show-ref'.split())
-  except subprocess.CalledProcessError as e:
-    # If error code is 1, there just isn't any refs; i.e. bare repo.
-    # If error code is other than 1, some other error (e.g. not a git repo)
-    if e.returncode != 1:
-      raise SystemExit('fatal: {}'.format(e))
-    output = ''
-  return dict(reversed(x.split()) for x in output.splitlines())
 
 def analyze_commit(stats, graph, commit, parents, date, file_changes):
   def equiv_class(filename):
@@ -2500,9 +2504,9 @@ def run_fast_filter():
     print("[DEBUG] Parsed arguments:\n{}".format(args))
 
   # Determine basic repository information
-  orig_refs = get_refs()
-  is_bare = is_repository_bare()
-  git_dir = determine_git_dir()
+  orig_refs = GitUtils.get_refs()
+  is_bare = GitUtils.is_repository_bare()
+  git_dir = GitUtils.determine_git_dir()
 
   # Do analysis, if requested
   if args.analyze:
