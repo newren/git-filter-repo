@@ -2525,7 +2525,12 @@ class RepoFilter(object):
     reset_or_tag.ref = RepoFilter.new_tagname(args, reset_or_tag.ref, shortname)
 
   @staticmethod
-  def run(args):
+  def run(args,
+          blob_callback = None,
+          commit_callback = None,
+          tag_callback = None,
+          reset_callback = None,
+          everything_callback = None):
     if args.debug:
       print("[DEBUG] Passed arguments:\n{}".format(args))
 
@@ -2583,12 +2588,23 @@ class RepoFilter(object):
       print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
       print("  (using the following file as input: {})".format(fe_filt))
 
+    # Set up the callbacks
+    def actual_commit_callback(c):
+      RepoFilter.tweak_commit(args, c)
+      commit_callback and commit_callback(c)
+    def actual_tag_callback(t):
+      RepoFilter.handle_tag(args, t, shortname = True)
+      tag_callback and tag_callback(t)
+    def actual_reset_callback(r):
+      RepoFilter.handle_tag(args, r)
+      reset_callback and reset_callback(r)
+
     # Create and run the filter
-    filter = FastExportFilter(
-               commit_callback = lambda c : RepoFilter.tweak_commit(args, c),
-               tag_callback =    lambda t : RepoFilter.handle_tag(args, t, shortname = True),
-               reset_callback =  lambda r : RepoFilter.handle_tag(args, r),
-               )
+    filter = FastExportFilter(blob_callback       = blob_callback,
+                              commit_callback     = actual_commit_callback,
+                              tag_callback        = actual_tag_callback,
+                              reset_callback      = actual_reset_callback,
+                              everything_callback = everything_callback)
     filter.run(input, output, fast_import_pipes = pipes, quiet = args.quiet)
 
     # Close the output, ensure fast-export and fast-import have completed
