@@ -806,6 +806,10 @@ class FastExportFilter(object):
     # Whether we've run our post-processing extra commands
     self._finalize_handled = False
 
+    # Names of files that were tweaked in any commit; such paths could lead
+    # to subsequent commits being empty
+    self._files_tweaked = set()
+
   def _advance_currentline(self):
     """
     Grab the next line of input
@@ -1130,10 +1134,11 @@ class FastExportFilter(object):
     if not fast_import_pipes:
       return False
 
-    # Perf hack: since we don't support blob rewriting yet, non-merge commits
-    # can only be empty if commit.file_changes is empty, which we checked
-    # above.  So return early in such a case.
-    if len(orig_parents) < 2:
+    # non-merge commits can only be empty if blob/file-change editing caused
+    # all file changes in the commit to have the same file contents as
+    # the parent.
+    changed_files = set(change.filename for change in commit.file_changes)
+    if len(orig_parents) < 2 and changed_files - self._files_tweaked:
       return False
 
     # Finally, the hard case: due to either blob rewriting, or due to pruning
@@ -1272,6 +1277,9 @@ class FastExportFilter(object):
     # Record ancestry graph
     self._graph.add_commit_and_parents(commit.id, commit.get_parents())
 
+    # Record the original list of file changes relative to first parent
+    orig_file_changes = set(commit.file_changes)
+
     # Call any user callback to allow them to modify the commit
     if self._commit_callback:
       self._commit_callback(commit)
@@ -1281,6 +1289,14 @@ class FastExportFilter(object):
     # Sanity check that user callbacks didn't violate assumption on parents
     if commit.merge_commits:
       assert commit.from_commit is not None
+
+    # Find out which files were modified by the callbacks.  Such paths could
+    # lead to sebsequent commits being empty (e.g. if removed a line containing
+    # a password from every version of a file that had the password, and some
+    # later commit did nothing more than remove that line)
+    final_file_changes = set(commit.file_changes)
+    differences = orig_file_changes.symmetric_difference(final_file_changes)
+    self._files_tweaked.update(x.filename for x in differences)
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
@@ -2555,12 +2571,13 @@ class RepoFilter(object):
       input = sys.stdin
       fe_orig = None
     else:
+      skip_blobs = blob_callback is None and everything_callback is None
+      extra_flags = ['--no-data'] if skip_blobs else []
       fep_cmd = ['git', 'fast-export',
                  '--show-original-ids',
                  '--signed-tags=strip',
                  '--tag-of-filtered-object=rewrite',
-                 '--no-data',
-                 '--use-done-feature'] + args.refs
+                 '--use-done-feature'] + extra_flags + args.refs
       fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
       input = fep.stdout
       if args.dry_run or args.debug:
