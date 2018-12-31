@@ -2553,12 +2553,13 @@ class RepoFilter(object):
       input = sys.stdin
       fe_orig = None
     else:
+      skip_blobs = blob_callback is None and everything_callback is None
+      extra_flags = ['--no-data'] if skip_blobs else []
       fep_cmd = ['git', 'fast-export',
                  '--show-original-ids',
                  '--signed-tags=strip',
                  '--tag-of-filtered-object=rewrite',
-                 '--no-data',
-                 '--use-done-feature'] + args.refs
+                 '--use-done-feature'] + extra_flags + args.refs
       fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
       input = fep.stdout
       if args.dry_run or args.debug:
