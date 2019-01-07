@@ -114,10 +114,12 @@ test_expect_success 'setup two extra repositories' '
 '
 
 test_expect_success 'splice_repos.py' '
-	rm -rf new &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/splice_repos.py repo1 repo2 new &&
-	(cd new &&
-         test 4 = $(git rev-list master | wc -l))
+	setup splice_repos &&
+	(
+		cd splice_repos &&
+		$TEST_DIRECTORY/lib-usage/splice_repos.py repo1 repo2 new &&
+		test 4 = $(git rev-list master | wc -l)
+	)
 '
 
 test_expect_success 'create_fast_export_output.py' '

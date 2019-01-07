@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 
+import imp
 import re
 import sys
+sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-repo-filterc' files
 
-from git_fast_filter import Reset, Commit, FastExportFilter, record_id_rename
-from git_fast_filter import fast_export_output, fast_import_input
+# python makes importing files with dashes hard, sorry.  Renaming would
+# allow us to simplify this to "import git_repo_filter"; however,
+# since git style commands are dashed and git-repo-filter is used more
+# as a tool than a library, renaming is not an option.
+with open("../../../git-repo-filter") as f:
+  repo_filter = imp.load_module('repo_filter', f, "git-repo-filter", ('.py', 'U', 1))
 
 class InterleaveRepositories:
   def __init__(self, repo1, repo2, output_dir):
@@ -44,6 +50,25 @@ class InterleaveRepositories:
       record_id_rename(new_commit.id, commit.id)
 
   def run(self):
+    args = repo_filter.FilteringOptions.parse_args(['--target', self.output_dir])
+    out = repo_filter.RepoFilter()
+    output_stream = out.setup_streams(input = None)
+
+    i1args = repo_filter.FilteringOptions.parse_args(['--source', self.repo1])
+    i1 = repo_filter.RepoFilter(reset_callback  = lambda r: self.skip_reset(r),
+                                commit_callback = lambda c: self.hold_commit(c))
+    i1.setup_streams(output = output_stream)
+    i1.run(i1args)
+
+    i2args = repo_filter.FilteringOptions.parse_args(['--source', self.repo2])
+    i2 = repo_filter.RepoFilter(commit_callback = lambda c: self.weave_commit(c))
+    i2.setup_streams(output = output_stream)
+    i2.run(i2args)
+    out.run(args)
+
+
+
+
     self.target = fast_import_input(self.output_dir)
 
     input1 = fast_export_output(self.repo1)
