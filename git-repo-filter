@@ -2385,6 +2385,31 @@ class DualFileWriter:
     self.file2.close()
 
 class RepoFilter(object):
+  def __init__(self,
+               args,
+               blob_callback = None,
+               commit_callback = None,
+               tag_callback = None,
+               reset_callback = None,
+               everything_callback = None):
+    # Store arguments for later use
+    self._args = args
+    self._blob_callback       = blob_callback
+    self._commit_callback     = commit_callback
+    self._tag_callback        = tag_callback
+    self._reset_callback      = reset_callback
+    self._everything_callback = everything_callback
+
+    # Defaults for input
+    self._input = None
+    self._fep = None  # Fast Export Process
+
+    # Defaults for output
+    self._output = None
+    self._fip = None  # Fast Import Process
+    self._import_pipes = None
+    self._managed_output = True
+
   @staticmethod
   def sanity_check(refs, is_bare, git_dir):
     def abort(reason):
@@ -2524,99 +2549,122 @@ class RepoFilter(object):
   def handle_tag(args, reset_or_tag, shortname = False):
     reset_or_tag.ref = RepoFilter.new_tagname(args, reset_or_tag.ref, shortname)
 
-  @staticmethod
-  def run(args,
-          blob_callback = None,
-          commit_callback = None,
-          tag_callback = None,
-          reset_callback = None,
-          everything_callback = None):
-    if args.debug:
-      print("[DEBUG] Passed arguments:\n{}".format(args))
+  def importer_only(self):
+    self._setup_output()
 
-    # Determine basic repository information
-    orig_refs = GitUtils.get_refs()
-    is_bare = GitUtils.is_repository_bare()
-    git_dir = GitUtils.determine_git_dir()
+  def set_output(self, outputRepoFilter):
+    assert outputRepoFilter._output
 
-    # Do sanity checks
-    if not args.force:
-      RepoFilter.sanity_check(orig_refs, is_bare, git_dir)
+    # set_output implies this RepoFilter is doing exporting, though may not
+    # be the only one.
+    self._setup_input(use_done_feature = False)
 
-    # Create a temporary directory for storing some results
-    results_tmp_dir = os.path.join(git_dir, 'repo-filter')
-    if not os.path.isdir(results_tmp_dir):
-      os.mkdir(results_tmp_dir)
+    # Set our output management up to pipe to outputRepoFilter's locations
+    self._managed_output = False
+    self._output = outputRepoFilter._output
+    self._import_pipes = outputRepoFilter._import_pipes
 
-    # Determine where to get input (and whether to make a copy)
-    if args.stdin:
-      input = sys.stdin
+  def _setup_input(self, use_done_feature):
+    if self._args.stdin:
+      self._input = sys.stdin
       fe_orig = None
     else:
-      skip_blobs = blob_callback is None and everything_callback is None
+      skip_blobs = (self._blob_callback is None) and (
+                    self._everything_callback is None)
       extra_flags = ['--no-data'] if skip_blobs else []
-      fep_cmd = ['git', 'fast-export',
-                 '--show-original-ids',
-                 '--signed-tags=strip',
-                 '--tag-of-filtered-object=rewrite',
-                 '--use-done-feature'] + extra_flags + args.refs
-      fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
-      input = fep.stdout
-      if args.dry_run or args.debug:
+      done_feature = ['--use-done-feature'] if use_done_feature else []
+      fep_cmd = ['git', 'fast-export', '--show-original-ids',
+                 '--signed-tags=strip', '--tag-of-filtered-object=rewrite'
+                 ] + done_feature + extra_flags + self._args.refs
+      self._fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
+      self._input = self._fep.stdout
+      if self._args.dry_run or self._args.debug:
         fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
         output = open(fe_orig, 'w')
-        input = InputFileBackup(input, output)
-        if args.debug:
+        self._input = InputFileBackup(self._input, output)
+        if self._args.debug:
           print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
           print("  (saving a copy of the output at {})".format(fe_orig))
 
-    # Determine where to send output
-    pipes = None
-    if not args.dry_run:
+  def _setup_output(self):
+    if not self._args.dry_run:
       fip_cmd = 'git fast-import --force --quiet'.split()
-      fip = subprocess.Popen(fip_cmd,
-                             bufsize=-1,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE)
-      pipes = (fip.stdin, fip.stdout)
-    if args.dry_run or args.debug:
+      self._fip = subprocess.Popen(fip_cmd,
+                                   bufsize=-1,
+                                   stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE)
+      self._import_pipes = (self._fip.stdin, self._fip.stdout)
+    if self._args.dry_run or self._args.debug:
       fe_filt = os.path.join(results_tmp_dir, 'fast-export.filtered')
-      output = open(fe_filt, 'w')
+      self._output = open(fe_filt, 'w')
     else:
-      output = fip.stdin
-    if args.debug:
-      output = DualFileWriter(fip.stdin, output)
+      self._output = self._fip.stdin
+    if self._args.debug:
+      self._output = DualFileWriter(self._fip.stdin, self._output)
       print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
       print("  (using the following file as input: {})".format(fe_filt))
 
-    # Set up the callbacks
-    def actual_commit_callback(c):
-      RepoFilter.tweak_commit(args, c)
-      commit_callback and commit_callback(c)
-    def actual_tag_callback(t):
-      RepoFilter.handle_tag(args, t, shortname = True)
-      tag_callback and tag_callback(t)
-    def actual_reset_callback(r):
-      RepoFilter.handle_tag(args, r)
-      reset_callback and reset_callback(r)
+  def run(self):
+    if not self._input and not self._output:
+      self._setup_input(use_done_feature = True)
+      self._setup_output()
 
-    # Create and run the filter
-    filter = FastExportFilter(blob_callback       = blob_callback,
-                              commit_callback     = actual_commit_callback,
-                              tag_callback        = actual_tag_callback,
-                              reset_callback      = actual_reset_callback,
-                              everything_callback = everything_callback)
-    filter.run(input, output, fast_import_pipes = pipes, quiet = args.quiet)
+    if self._managed_output:
+      if self._args.debug:
+        print("[DEBUG] Passed arguments:\n{}".format(self._args))
 
-    # Close the output, ensure fast-export and fast-import have completed
-    output.close()
-    if not args.stdin and fep.wait():
-      raise SystemExit("Error: fast-export failed; see above.")
-    if not args.dry_run and fip.wait():
+      # Determine basic repository information
+      orig_refs = GitUtils.get_refs()
+      is_bare = GitUtils.is_repository_bare()
+      git_dir = GitUtils.determine_git_dir()
+
+      # Do sanity checks
+      if not self._args.force:
+        RepoFilter.sanity_check(orig_refs, is_bare, git_dir)
+
+      # Create a temporary directory for storing some results
+      results_tmp_dir = os.path.join(git_dir, 'repo-filter')
+      if not os.path.isdir(results_tmp_dir):
+        os.mkdir(results_tmp_dir)
+
+    if self._input:
+      # Set up the callbacks
+      def actual_commit_callback(c):
+        RepoFilter.tweak_commit(self._args, c)
+        self._commit_callback and self._commit_callback(c)
+      def actual_tag_callback(t):
+        RepoFilter.handle_tag(self._args, t, shortname = True)
+        self._tag_callback and self._tag_callback(t)
+      def actual_reset_callback(r):
+        RepoFilter.handle_tag(self._args, r)
+        self._reset_callback and self._reset_callback(r)
+
+      # Create and run the filter
+      filter = FastExportFilter(blob_callback       = self._blob_callback,
+                                commit_callback     = actual_commit_callback,
+                                tag_callback        = actual_tag_callback,
+                                reset_callback      = actual_reset_callback,
+                                everything_callback = self._everything_callback)
+      filter.run(self._input,
+                 self._output,
+                 fast_import_pipes = self._import_pipes,
+                 quiet = self._args.quiet)
+
+      # Make sure fast-export completed successfully
+      if not self._args.stdin and self._fep.wait():
+        raise SystemExit("Error: fast-export failed; see above.")
+
+    # If we're not the manager of self._output, we should avoid post-run cleanup
+    if not self._managed_output:
+      return
+
+    # Close the output and ensure fast-import successfully completes
+    self._output.close()
+    if not self._args.dry_run and self._fip.wait():
       raise SystemExit("Error: fast-import failed; see above.")
 
     # Exit early, if requested
-    if args.dry_run:
+    if self._args.dry_run:
       orig_str = "by comparing:\n        "+fe_orig if fe_orig else "at:"
       print("NOTE: Not running fast-import or cleaning up; --dry-run passed.")
       print("      Requested filtering can be seen {}".format(orig_str))
@@ -2626,7 +2674,7 @@ class RepoFilter(object):
     # Remove unused refs
     refs_to_nuke = set(orig_refs) - set(filter.get_seen_refs())
     if refs_to_nuke:
-      if args.debug:
+      if self._args.debug:
         print("[DEBUG] Deleting the following refs:\n  "+
               "\n  ".join(refs_to_nuke))
       p = subprocess.Popen('git update-ref --stdin'.split(),
@@ -2641,15 +2689,15 @@ class RepoFilter(object):
     filter.record_metadata(results_tmp_dir, orig_refs, refs_to_nuke)
 
     # Nuke the reflogs and repack
-    if not args.quiet and not args.debug:
+    if not self._args.quiet and not self._args.debug:
       print("Repacking your repo and cleaning out old unneeded objects")
-    quiet_flags = '--quiet' if args.quiet else ''
+    quiet_flags = '--quiet' if self._args.quiet else ''
     cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
                     'git gc {} --prune=now'.format(quiet_flags).split()]
     if not is_bare:
       cleanup_cmds.append('git reset {} --hard'.format(quiet_flags).split())
     for cmd in cleanup_cmds:
-      if args.debug:
+      if self._args.debug:
         print("[DEBUG] Running: {}".format(' '.join(cmd)))
       subprocess.call(cmd)
 
@@ -2658,4 +2706,5 @@ if __name__ == '__main__':
   if args.analyze:
     RepoAnalyze.run(args)
   else:
-    RepoFilter.run(args)
+    filter = RepoFilter(args)
+    filter.run()
