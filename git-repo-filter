@@ -1826,6 +1826,13 @@ class FilteringOptions(object):
                                  DIRECTORY.  Equivalent to using
                                  "--path-rename :DIRECTORY/"''')
 
+    location = parser.add_argument_group(title='Location to filter from/to')
+    location.add_argument('--source',
+                          help='''Git repository to read from''')
+    location.add_argument('--target',
+                          help='''Git repository to overwrite with filtered
+                                  history''')
+
     misc = parser.add_argument_group(title='Miscellaneous options')
     misc.add_argument('--help', '-h', action='store_true',
                       help='''Show this help message and exit.''')
@@ -2569,11 +2576,14 @@ class RepoFilter(object):
       self._input = sys.stdin
       fe_orig = None
     else:
-      skip_blobs = (self._blob_callback is None) and (
-                    self._everything_callback is None)
+      skip_blobs = (self._blob_callback is None and
+                    self._everything_callback is None and
+                    self._args.source is None and
+                    self._args.target is None)
       extra_flags = ['--no-data'] if skip_blobs else []
       done_feature = ['--use-done-feature'] if use_done_feature else []
-      fep_cmd = ['git', 'fast-export', '--show-original-ids',
+      location = ['-C', self._args.source] if self._args.source else []
+      fep_cmd = ['git'] + location + ['fast-export', '--show-original-ids',
                  '--signed-tags=strip', '--tag-of-filtered-object=rewrite'
                  ] + done_feature + extra_flags + self._args.refs
       self._fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
@@ -2588,7 +2598,8 @@ class RepoFilter(object):
 
   def _setup_output(self):
     if not self._args.dry_run:
-      fip_cmd = 'git fast-import --force --quiet'.split()
+      location = ['-C', self._args.target] if self._args.target else []
+      fip_cmd = ['git'] + location + 'fast-import --force --quiet'.split()
       self._fip = subprocess.Popen(fip_cmd,
                                    bufsize=-1,
                                    stdin=subprocess.PIPE,
