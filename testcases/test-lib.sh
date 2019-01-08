@@ -494,7 +494,6 @@ test_create_repo () {
 	cd "$repo" || error "Cannot setup test environment"
 	"$GIT_EXEC_PATH/git-init" >&3 2>&4 ||
 	error "cannot run git init -- have you built things yet?"
-	mv .git/hooks .git/hooks-disabled
 	cd "$owd"
 }
 
