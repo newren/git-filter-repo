@@ -17,5 +17,5 @@ def my_commit_callback(commit):
 
 args = repo_filter.FilteringOptions.default_options()
 args.force = True
-repo_filter.RepoFilter.run(args,
-                           commit_callback = my_commit_callback)
+filter = repo_filter.RepoFilter(args, commit_callback = my_commit_callback)
+filter.run()

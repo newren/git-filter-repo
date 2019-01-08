@@ -37,6 +37,7 @@ def my_commit_callback(commit):
   print_progress()
 
 args = repo_filter.FilteringOptions.parse_args(['--force', '--quiet'])
-repo_filter.RepoFilter.run(args,
-                           blob_callback   = my_blob_callback,
-                           commit_callback = my_commit_callback)
+filter = repo_filter.RepoFilter(args,
+                                blob_callback   = my_blob_callback,
+                                commit_callback = my_commit_callback)
+filter.run()

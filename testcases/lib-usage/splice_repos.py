@@ -51,20 +51,22 @@ class InterleaveRepositories:
 
   def run(self):
     args = repo_filter.FilteringOptions.parse_args(['--target', self.output_dir])
-    out = repo_filter.RepoFilter()
-    output_stream = out.setup_streams(input = None)
+    out = repo_filter.RepoFilter(args)
+    out.importer_only()
 
     i1args = repo_filter.FilteringOptions.parse_args(['--source', self.repo1])
-    i1 = repo_filter.RepoFilter(reset_callback  = lambda r: self.skip_reset(r),
+    i1 = repo_filter.RepoFilter(i1args,
+                                reset_callback  = lambda r: self.skip_reset(r),
                                 commit_callback = lambda c: self.hold_commit(c))
-    i1.setup_streams(output = output_stream)
-    i1.run(i1args)
+    i1.set_output(out)
+    i1.run()
 
     i2args = repo_filter.FilteringOptions.parse_args(['--source', self.repo2])
-    i2 = repo_filter.RepoFilter(commit_callback = lambda c: self.weave_commit(c))
-    i2.setup_streams(output = output_stream)
-    i2.run(i2args)
-    out.run(args)
+    i2 = repo_filter.RepoFilter(i2args,
+                                commit_callback = lambda c: self.weave_commit(c))
+    i2.set_output(out)
+    i2.run()
+    out.run()
 
 
 

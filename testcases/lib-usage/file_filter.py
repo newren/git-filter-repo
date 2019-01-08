@@ -26,6 +26,7 @@ def drop_files_by_name(commit):
 sys.argv.append('--force')
 args = repo_filter.FilteringOptions.parse_args(sys.argv[1:])
 
-repo_filter.RepoFilter.run(args,
-                           blob_callback   = drop_file_by_contents,
-                           commit_callback = drop_files_by_name)
+filter = repo_filter.RepoFilter(args,
+                                blob_callback   = drop_file_by_contents,
+                                commit_callback = drop_files_by_name)
+filter.run()

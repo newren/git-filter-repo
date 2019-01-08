@@ -21,4 +21,5 @@ def strip_cvs_keywords(blob):
   blob.data = re.sub(pattern, replacement, blob.data)
 
 args = repo_filter.FilteringOptions.parse_args(['--force'])
-repo_filter.RepoFilter.run(args, blob_callback = strip_cvs_keywords)
+filter = repo_filter.RepoFilter(args, blob_callback = strip_cvs_keywords)
+filter.run()

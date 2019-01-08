@@ -39,4 +39,5 @@ def change_up_them_commits(commit):
                           commit.message)
 
 args = repo_filter.FilteringOptions.parse_args(['--force'])
-repo_filter.RepoFilter.run(args, commit_callback = change_up_them_commits)
+filter = repo_filter.RepoFilter(args, commit_callback = change_up_them_commits)
+filter.run()
