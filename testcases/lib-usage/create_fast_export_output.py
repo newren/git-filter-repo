@@ -1,12 +1,26 @@
 #!/usr/bin/env python
 
+# It would be nice if we could just
+#   import git_repo_filter
+# but that'd require renaming git-repo-filter to git_repo_filter.py, which would
+# be detrimental to its predominant usage as a tool rather than a library.  So,
+# we use the next five lines instead.
+import imp
 import sys
+sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-repo-filterc' files
+with open("../../../git-repo-filter") as f:
+  repo_filter = imp.load_source('repo_filter', "git-repo-filter", f)
+# End of import workaround
+from repo_filter import Blob, Reset, FileChanges, Commit, Tag, FixedTimeZone
+from repo_filter import Progress, Checkpoint
 
-from git_fast_filter import Blob, Reset, FileChanges, Commit, Tag
-from git_fast_filter import Progress, Checkpoint, FixedTimeZone
 from datetime import datetime, timedelta
 
-output = sys.stdout
+args = repo_filter.FilteringOptions.default_options()
+out = repo_filter.RepoFilter(args)
+out.importer_only()
+
+output = out._output
 
 world = Blob("Hello")
 world.dump(output)
@@ -110,3 +124,4 @@ mytag = Tag("refs/tags/v1.0", commit5.id,
             "His R. Highness", "royalty@my.kingdom", when,
             "I bequeath to my peons this royal software")
 mytag.dump(output)
+out.finish()

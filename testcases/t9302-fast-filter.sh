@@ -121,11 +121,11 @@ test_expect_success 'splice_repos.py' '
 
 test_expect_success 'create_fast_export_output.py' '
 	git init create_fast_export_output &&
-	$TEST_DIRECTORY/lib-usage/create_fast_export_output.py |
 	(cd create_fast_export_output &&
-	 test e5e0569b = $(git rev-parse --short=8 --verify refs/heads/master) &&
-	 test 122ead00 = $(git rev-parse --short=8 --verify refs/heads/devel) &&
-	 test f36143f9 = $(git rev-parse --short=8 --verify refs/tags/v1.0))
+		$TEST_DIRECTORY/lib-usage/create_fast_export_output.py &&
+		test e5e0569b = $(git rev-parse --short=8 --verify refs/heads/master) &&
+		test 122ead00 = $(git rev-parse --short=8 --verify refs/heads/devel) &&
+		test f36143f9 = $(git rev-parse --short=8 --verify refs/tags/v1.0))
 '
 
 test_expect_success 'collab' '
