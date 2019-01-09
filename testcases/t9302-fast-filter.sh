@@ -128,34 +128,4 @@ test_expect_success 'create_fast_export_output.py' '
 		test f36143f9 = $(git rev-parse --short=8 --verify refs/tags/v1.0))
 '
 
-test_expect_success 'collab' '
-	setup collab_source &&
-	git init collab &&
-	(
-		cd collab &&
-		$TEST_DIRECTORY/lib-usage/collab clone ../collab_source --exclude=secret &&
-		test 18dd5834 = $(git rev-parse --short=8 refs/remotes/collab/master) &&
-		git merge collab/master
-	) &&
-	(
-		cd collab_source &&
-		echo content > another-file &&
-		git add another-file &&
-		git commit -m "Yet another commit"
-	) &&
-	(
-		cd collab &&
-		$TEST_DIRECTORY/lib-usage/collab pull-grafts &&
-		test d042f798 = $(git rev-parse --short=8 refs/remotes/collab/master) &&
-		git merge collab/master &&
-		echo more content >> another-file &&
-		git commit -m "And yet another commit" another-file &&
-		$TEST_DIRECTORY/lib-usage/collab push-grafts
-	) &&
-	(
-		cd collab_source &&
-		test d50d11fc = $(git rev-parse --short=8 refs/remotes/collab/master)
-	)
-'
-
 test_done
