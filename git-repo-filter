@@ -1267,6 +1267,9 @@ class FastExportFilter(object):
       commit.old_id = id_
       _IDS.record_rename(id_, commit.id)
 
+    # Record ancestry graph
+    self._graph.add_commit_and_parents(commit.id, commit.get_parents())
+
     # Call any user callback to allow them to modify the commit
     if self._commit_callback:
       self._commit_callback(commit)
@@ -1276,9 +1279,6 @@ class FastExportFilter(object):
     # Sanity check that user callbacks didn't violate assumption on parents
     if commit.merge_commits:
       assert commit.from_commit is not None
-
-    # Record ancestry graph
-    self._graph.add_commit_and_parents(commit.id, commit.get_parents())
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
