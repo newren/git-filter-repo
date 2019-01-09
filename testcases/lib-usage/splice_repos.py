@@ -9,7 +9,7 @@ sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-repo-filterc' file
 # allow us to simplify this to "import git_repo_filter"; however,
 # since git style commands are dashed and git-repo-filter is used more
 # as a tool than a library, renaming is not an option.
-with open("../../../git-repo-filter") as f:
+with open("../../git-repo-filter") as f:
   repo_filter = imp.load_module('repo_filter', f, "git-repo-filter", ('.py', 'U', 1))
 
 class InterleaveRepositories:
@@ -37,56 +37,37 @@ class InterleaveRepositories:
     if prev_letter in self.commit_map:
       new_commit = self.commit_map[prev_letter]
       new_commit.from_commit = self.last_commit
-      new_commit.dump(self.target.stdin)
+      new_commit.dump(self.out._output)
       commit.from_commit = new_commit.id
 
     # Dump our commit now
-    commit.dump(self.target.stdin)
+    commit.dump(self.out._output)
 
     # Make sure that commits that depended on new_commit.id will now depend
     # on commit.id
     if prev_letter in self.commit_map:
       self.last_commit = commit.id
-      record_id_rename(new_commit.id, commit.id)
+      repo_filter.record_id_rename(new_commit.id, commit.id)
 
   def run(self):
-    args = repo_filter.FilteringOptions.parse_args(['--target', self.output_dir])
+    args = repo_filter.FilteringOptions.parse_args(['--debug', '--target', self.output_dir])
     out = repo_filter.RepoFilter(args)
     out.importer_only()
+    self.out = out
 
-    i1args = repo_filter.FilteringOptions.parse_args(['--source', self.repo1])
+    i1args = repo_filter.FilteringOptions.parse_args(['--debug', '--source', self.repo1])
     i1 = repo_filter.RepoFilter(i1args,
                                 reset_callback  = lambda r: self.skip_reset(r),
                                 commit_callback = lambda c: self.hold_commit(c))
     i1.set_output(out)
     i1.run()
 
-    i2args = repo_filter.FilteringOptions.parse_args(['--source', self.repo2])
+    i2args = repo_filter.FilteringOptions.parse_args(['--debug', '--source', self.repo2])
     i2 = repo_filter.RepoFilter(i2args,
                                 commit_callback = lambda c: self.weave_commit(c))
     i2.set_output(out)
     i2.run()
     out.run()
-
-
-
-
-    self.target = fast_import_input(self.output_dir)
-
-    input1 = fast_export_output(self.repo1)
-    filter1 = FastExportFilter(reset_callback  = lambda r: self.skip_reset(r),
-                               commit_callback = lambda c: self.hold_commit(c))
-    filter1.run(input1.stdout, self.target.stdin)
-
-    input2 = fast_export_output(self.repo2)
-    filter2 = FastExportFilter(commit_callback = lambda c: self.weave_commit(c))
-    filter2.run(input2.stdout, self.target.stdin)
-
-    # Wait for git-fast-import to complete (only necessary since we passed
-    # file objects to FastExportFilter.run; and even then the worst that
-    # happens is git-fast-import completes after this python script does)
-    self.target.stdin.close()
-    self.target.wait()
 
 splicer = InterleaveRepositories(sys.argv[1], sys.argv[2], sys.argv[3])
 splicer.run()

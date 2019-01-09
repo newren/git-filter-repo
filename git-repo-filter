@@ -146,6 +146,11 @@ class AncestryGraph(object):
     Record in graph that commit has the given parents.  parents _MUST_ have
     been first recorded.  commit _MUST_ not have been recorded yet.
     """
+    if not all(p in self.value for p in parents):
+      print("Whoops")
+      print([p for p in parents])
+      print(commit)
+      print(self.value)
     assert all(p in self.value for p in parents)
     assert commit not in self.value
 
@@ -1441,6 +1446,7 @@ class FastExportFilter(object):
           new_hash = new_hash if new_hash != None else deleted_hash
         else: # Must be an annotated tag
           if not batch_check_process:
+            ### FIXME: Run in target repo
             cmd = 'git cat-file --batch-check'.split()
             batch_check_process = subprocess.Popen(cmd,
                                                    stdin=subprocess.PIPE,
@@ -1676,16 +1682,21 @@ class GitUtils(object):
 
   @staticmethod
   def is_repository_bare():
+    ### FIXME: Take a parameter so it can run in target repo??
     out = subprocess.check_output('git rev-parse --is-bare-repository'.split())
     return (out.strip() == 'true')
 
   @staticmethod
-  def determine_git_dir():
-    out = subprocess.check_output('git rev-parse --git-dir'.split())
-    return out.strip()
+  def determine_git_dir(working_dir='.'):
+    d = subprocess.check_output('git rev-parse --git-dir'.split(),
+                                cwd=working_dir).strip()
+    if working_dir=='.' or d.startswith('/'):
+      return d
+    return os.path.join(working_dir, d)
 
   @staticmethod
   def get_refs():
+    ### FIXME: Take a parameter so it can run in target repo
     try:
       output = subprocess.check_output('git show-ref'.split())
     except subprocess.CalledProcessError as e:
@@ -2429,12 +2440,12 @@ class RepoFilter(object):
     # Make sure repo is fully packed, just like a fresh clone would be
     output = subprocess.check_output('git count-objects -v'.split())
     stats = dict(x.split(': ') for x in output.splitlines())
-    if stats['count'] != '0' or stats['packs'] != '1':
+    if stats['count'] != '0' or int(stats['packs']) > 1:
       abort("expected freshly packed repo")
 
     # Make sure there is precisely one remote, named "origin"
     output = subprocess.check_output('git remote'.split()).strip()
-    if output != "origin":
+    if output != "origin" and output:  ### FIXME FIXME FIXME; depends on packs
       abort("expected one remote, origin")
 
     # Avoid letting people running with weird setups and overwriting GIT_DIR
@@ -2556,6 +2567,14 @@ class RepoFilter(object):
   def handle_tag(args, reset_or_tag, shortname = False):
     reset_or_tag.ref = RepoFilter.new_tagname(args, reset_or_tag.ref, shortname)
 
+  def results_tmp_dir(self):
+    working_dir = self._args.target or self._args.source or '.'
+    git_dir = GitUtils.determine_git_dir(working_dir)
+    d = os.path.join(git_dir, 'repo-filter')
+    if not os.path.isdir(d):
+      os.mkdir(d)
+    return d
+
   def importer_only(self):
     self._setup_output()
 
@@ -2589,7 +2608,7 @@ class RepoFilter(object):
       self._fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
       self._input = self._fep.stdout
       if self._args.dry_run or self._args.debug:
-        fe_orig = os.path.join(results_tmp_dir, 'fast-export.original')
+        fe_orig = os.path.join(self.results_tmp_dir(), 'fast-export.original')
         output = open(fe_orig, 'w')
         self._input = InputFileBackup(self._input, output)
         if self._args.debug:
@@ -2606,7 +2625,7 @@ class RepoFilter(object):
                                    stdout=subprocess.PIPE)
       self._import_pipes = (self._fip.stdin, self._fip.stdout)
     if self._args.dry_run or self._args.debug:
-      fe_filt = os.path.join(results_tmp_dir, 'fast-export.filtered')
+      fe_filt = os.path.join(self.results_tmp_dir(), 'fast-export.filtered')
       self._output = open(fe_filt, 'w')
     else:
       self._output = self._fip.stdin
@@ -2622,6 +2641,7 @@ class RepoFilter(object):
 
     if self._managed_output:
       if self._args.debug:
+        # Does this belong in the constructor?
         print("[DEBUG] Passed arguments:\n{}".format(self._args))
 
       # Determine basic repository information
@@ -2630,12 +2650,14 @@ class RepoFilter(object):
 
       # Do sanity checks
       if not self._args.force:
+        # FIXME: This should be in the constructor; for splice_repos, it
+        # comes WAAY too late.  In fact, it should occur before setup_input
+        # and setup_output as we don't want processes started if sanity
+        # checks fail.
+        cwd = os.getcwd()
+        os.chdir(self._args.target or '.')
         RepoFilter.sanity_check(orig_refs, is_bare)
-
-      # Create a temporary directory for storing some results
-      results_tmp_dir = os.path.join(git_dir, 'repo-filter')
-      if not os.path.isdir(results_tmp_dir):
-        os.mkdir(results_tmp_dir)
+        os.chdir(cwd)
 
     if self._input:
       # Set up the callbacks
@@ -2681,30 +2703,34 @@ class RepoFilter(object):
       print("        " + fe_filt)
       sys.exit(0)
 
-    # Remove unused refs
-    refs_to_nuke = set(orig_refs) - set(filter.get_seen_refs())
-    if refs_to_nuke:
-      if self._args.debug:
-        print("[DEBUG] Deleting the following refs:\n  "+
-              "\n  ".join(refs_to_nuke))
-      p = subprocess.Popen('git update-ref --stdin'.split(),
-                           stdin=subprocess.PIPE)
-      p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
-                             for x in refs_to_nuke]))
-      p.stdin.close()
-      if p.wait():
-        raise SystemExit("git update-ref failed; see above")
+    if self._input:
+      # Remove unused refs
+      refs_to_nuke = set(orig_refs) - set(filter.get_seen_refs())
+      if refs_to_nuke:
+        if self._args.debug:
+          print("[DEBUG] Deleting the following refs:\n  "+
+                "\n  ".join(refs_to_nuke))
+        ### FIXME: Make sure to run within the target repo...
+        p = subprocess.Popen('git update-ref --stdin'.split(),
+                             stdin=subprocess.PIPE)
+        p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
+                               for x in refs_to_nuke]))
+        p.stdin.close()
+        if p.wait():
+          raise SystemExit("git update-ref failed; see above")
 
-    # Write out data about run
-    filter.record_metadata(results_tmp_dir, orig_refs, refs_to_nuke)
+      # Write out data about run
+      filter.record_metadata(self.results_tmp_dir(), orig_refs, refs_to_nuke)
 
     # Nuke the reflogs and repack
     if not self._args.quiet and not self._args.debug:
       print("Repacking your repo and cleaning out old unneeded objects")
     quiet_flags = '--quiet' if self._args.quiet else ''
+    ### FIXME: Make sure to run within the target repo...
     cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
                     'git gc {} --prune=now'.format(quiet_flags).split()]
     if not is_bare:
+      ### FIXME: Make sure to run within the target repo...
       cleanup_cmds.append('git reset {} --hard'.format(quiet_flags).split())
     for cmd in cleanup_cmds:
       if self._args.debug:

@@ -114,21 +114,15 @@ test_expect_success 'setup two extra repositories' '
 '
 
 test_expect_success 'splice_repos.py' '
-	setup splice_repos &&
-	(
-		cd splice_repos &&
-		$TEST_DIRECTORY/lib-usage/splice_repos.py repo1 repo2 new &&
-		test 4 = $(git rev-list master | wc -l)
-	)
+	git init splice_repos &&
+	$TEST_DIRECTORY/lib-usage/splice_repos.py repo1 repo2 splice_repos &&
+	test 4 = $(git -C splice_repos rev-list master | wc -l)
 '
 
 test_expect_success 'create_fast_export_output.py' '
-	rm -rf new &&
-	mkdir new &&
-	git --git-dir=new/.git init &&
-	PYTHONPATH=$TEST_DIRECTORY/..: $TEST_DIRECTORY/lib-usage/create_fast_export_output.py |
-	(cd new &&
-	 git fast-import --quiet &&
+	git init create_fast_export_output &&
+	$TEST_DIRECTORY/lib-usage/create_fast_export_output.py |
+	(cd create_fast_export_output &&
 	 test e5e0569b = $(git rev-parse --short=8 --verify refs/heads/master) &&
 	 test 122ead00 = $(git rev-parse --short=8 --verify refs/heads/devel) &&
 	 test f36143f9 = $(git rev-parse --short=8 --verify refs/tags/v1.0))
