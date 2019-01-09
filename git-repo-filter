@@ -364,7 +364,7 @@ class Blob(_GitElementWithId):
   way of representing file contents).
   """
 
-  def __init__(self, original_id, data):
+  def __init__(self, data, original_id = None):
     _GitElementWithId.__init__(self)
 
     # Denote that this is a blob
@@ -477,13 +477,14 @@ class Commit(_GitElementWithId):
   contain all the information associated with a commit.
   """
 
-  def __init__(self, branch, original_id,
+  def __init__(self, branch,
                author_name,    author_email,    author_date,
                committer_name, committer_email, committer_date,
                message,
                file_changes,
                from_commit = None,
                merge_commits = [],
+               original_id = None,
                **kwargs):
     _GitElementWithId.__init__(self)
 
@@ -610,8 +611,9 @@ class Tag(_GitElement):
   This class defines our representation of annotated tag elements.
   """
 
-  def __init__(self, ref, from_ref, original_id,
-               tagger_name, tagger_email, tagger_date, tag_msg):
+  def __init__(self, ref, from_ref,
+               tagger_name, tagger_email, tagger_date, tag_msg,
+               original_id = None):
     _GitElement.__init__(self)
 
     # Denote that this is a tag element
@@ -965,7 +967,7 @@ class FastExportFilter(object):
       self._advance_currentline()
 
     # Create the blob
-    blob = Blob(original_id, data)
+    blob = Blob(data, original_id)
 
     # If fast-export text had a mark for this blob, need to make sure this
     # mark translates to the blob's true id.
@@ -1257,13 +1259,14 @@ class FastExportFilter(object):
       self._advance_currentline()
 
     # Okay, now we can finally create the Commit object
-    commit = Commit(branch, original_id,
+    commit = Commit(branch,
                     author_name,    author_email,    author_date,
                     committer_name, committer_email, committer_date,
                     commit_msg,
                     file_changes,
                     from_commit,
                     merge_commits,
+                    original_id,
                     stream_number = _CURRENT_STREAM_NUMBER)
 
     # If fast-export text had a mark for this commit, need to make sure this
@@ -1327,8 +1330,9 @@ class FastExportFilter(object):
       self._advance_currentline()
 
     # Create the tag
-    tag = Tag(tag, from_ref, original_id,
-              tagger_name, tagger_email, tagger_date, tag_msg)
+    tag = Tag(tag, from_ref,
+              tagger_name, tagger_email, tagger_date, tag_msg,
+              original_id)
 
     # Call any user callback to allow them to modify the tag
     if self._tag_callback:
