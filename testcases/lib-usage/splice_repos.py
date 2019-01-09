@@ -67,7 +67,7 @@ class InterleaveRepositories:
                                 commit_callback = lambda c: self.weave_commit(c))
     i2.set_output(out)
     i2.run()
-    out.run()
+    out.finish()
 
 splicer = InterleaveRepositories(sys.argv[1], sys.argv[2], sys.argv[3])
 splicer.run()
