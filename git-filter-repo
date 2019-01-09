@@ -2684,6 +2684,14 @@ class RepoFilter(object):
       print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
       print("  (using the following file as input: {})".format(self._fe_filt))
 
+  def finish(self):
+    ''' Alternative to run() when there is no input of our own to parse,
+        meaning that run only really needs to close the handle to fast-import
+        and let it finish, thus making a call to "run" feel like a misnomer. '''
+    assert not self._input
+    assert self._managed_output
+    self.run()
+
   def run(self):
     if not self._input and not self._output:
       self._run_sanity_checks()
