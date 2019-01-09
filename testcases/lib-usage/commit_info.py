@@ -11,7 +11,8 @@ sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-repo-filterc' file
 # since git style commands are dashed and git-repo-filter is used more
 # as a tool than a library, renaming is not an option.
 with open("../../../git-repo-filter") as f:
-  repo_filter = imp.load_module('repo_filter', f, "git-repo-filter", ('.py', 'U', 1))
+  #repo_filter = imp.load_module('repo_filter', f, "git-repo-filter", ('.py', 'U', 1))
+  repo_filter = imp.load_source('repo_filter', "git-repo-filter", f)
 
 #for x in os.environ.get("PYTHONPATH", '.').split(':'):
 #  modpath = os.path.join(x, "git-fast-filter")
