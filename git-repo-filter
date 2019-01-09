@@ -2418,7 +2418,7 @@ class RepoFilter(object):
     self._managed_output = True
 
   @staticmethod
-  def sanity_check(refs, is_bare, git_dir):
+  def sanity_check(refs, is_bare):
     def abort(reason):
       raise SystemExit(
         "Aborting: Refusing to overwrite repo history since this does not\n"
@@ -2627,11 +2627,10 @@ class RepoFilter(object):
       # Determine basic repository information
       orig_refs = GitUtils.get_refs()
       is_bare = GitUtils.is_repository_bare()
-      git_dir = GitUtils.determine_git_dir()
 
       # Do sanity checks
       if not self._args.force:
-        RepoFilter.sanity_check(orig_refs, is_bare, git_dir)
+        RepoFilter.sanity_check(orig_refs, is_bare)
 
       # Create a temporary directory for storing some results
       results_tmp_dir = os.path.join(git_dir, 'repo-filter')
