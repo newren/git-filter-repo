@@ -2415,12 +2415,14 @@ class RepoFilter(object):
     # Make sure repo is fully packed, just like a fresh clone would be
     output = subprocess.check_output('git count-objects -v'.split())
     stats = dict(x.split(': ') for x in output.splitlines())
-    if stats['count'] != '0' or stats['packs'] != '1':
+    num_packs = int(stats['packs'])
+    if stats['count'] != '0' or num_packs > 1:
       abort("expected freshly packed repo")
 
-    # Make sure there is precisely one remote, named "origin"
+    # Make sure there is precisely one remote, named "origin"...or that this
+    # is a new bare repo with no packs and no remotes
     output = subprocess.check_output('git remote'.split()).strip()
-    if output != "origin":
+    if not (output == "origin" or (num_packs == 0 and not output)):
       abort("expected one remote, origin")
 
     # Avoid letting people running with weird setups and overwriting GIT_DIR
