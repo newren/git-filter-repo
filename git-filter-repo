@@ -2430,6 +2430,26 @@ class RepoFilter(object):
     self._import_pipes = None
     self._managed_output = True
 
+    # Other vars
+    self._sanity_checks_handled = False
+    self._orig_refs = None
+
+  def _run_sanity_checks(self):
+    self._sanity_checks_handled = True
+    if not self._managed_output:
+      return
+
+    if self._args.debug:
+      print("[DEBUG] Passed arguments:\n{}".format(self._args))
+
+    # Determine basic repository information
+    self._orig_refs = GitUtils.get_refs()
+    is_bare = GitUtils.is_repository_bare()
+
+    # Do sanity checks from the correct directory
+    if not self._args.force:
+      RepoFilter.sanity_check(self._orig_refs, is_bare)
+
   @staticmethod
   def sanity_check(refs, is_bare):
     def abort(reason):
@@ -2579,6 +2599,7 @@ class RepoFilter(object):
     return d
 
   def importer_only(self):
+    self._run_sanity_checks()
     self._setup_output()
 
   def set_output(self, outputRepoFilter):
@@ -2592,6 +2613,9 @@ class RepoFilter(object):
     self._managed_output = False
     self._output = outputRepoFilter._output
     self._import_pipes = outputRepoFilter._import_pipes
+
+    # Handle sanity checks, though currently none needed for export-only cases
+    self._run_sanity_checks()
 
   def _setup_input(self, use_done_feature):
     if self._args.stdin:
@@ -2637,20 +2661,10 @@ class RepoFilter(object):
 
   def run(self):
     if not self._input and not self._output:
+      self._run_sanity_checks()
       self._setup_input(use_done_feature = True)
       self._setup_output()
-
-    if self._managed_output:
-      if self._args.debug:
-        print("[DEBUG] Passed arguments:\n{}".format(self._args))
-
-      # Determine basic repository information
-      orig_refs = GitUtils.get_refs()
-      is_bare = GitUtils.is_repository_bare()
-
-      # Do sanity checks
-      if not self._args.force:
-        RepoFilter.sanity_check(orig_refs, is_bare)
+    assert self._sanity_checks_handled
 
     if self._input:
       # Set up the callbacks
@@ -2701,12 +2715,11 @@ class RepoFilter(object):
 
     if self._input:
       # Remove unused refs
-      refs_to_nuke = set(orig_refs) - set(filter.get_seen_refs())
+      refs_to_nuke = set(self._orig_refs) - set(filter.get_seen_refs())
       if refs_to_nuke:
         if self._args.debug:
           print("[DEBUG] Deleting the following refs:\n  "+
                 "\n  ".join(refs_to_nuke))
-        ### FIXME: Make sure to run within the target repo...
         p = subprocess.Popen('git update-ref --stdin'.split(),
                              stdin=subprocess.PIPE)
         p.stdin.write(''.join(["option no-deref\ndelete {}\n".format(x)
@@ -2716,7 +2729,9 @@ class RepoFilter(object):
           raise SystemExit("git update-ref failed; see above")
 
       # Write out data about run
-      filter.record_metadata(self.results_tmp_dir(), orig_refs, refs_to_nuke)
+      filter.record_metadata(self.results_tmp_dir(),
+                             self._orig_refs,
+                             refs_to_nuke)
 
     # Nuke the reflogs and repack
     if not self._args.quiet and not self._args.debug:
@@ -2724,7 +2739,7 @@ class RepoFilter(object):
     quiet_flags = '--quiet' if self._args.quiet else ''
     cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
                     'git gc {} --prune=now'.format(quiet_flags).split()]
-    if not is_bare:
+    if not GitUtils.is_repository_bare():
       cleanup_cmds.append('git reset {} --hard'.format(quiet_flags).split())
     for cmd in cleanup_cmds:
       if self._args.debug:
