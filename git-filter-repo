@@ -26,8 +26,7 @@ from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
            "Checkpoint", "FastExportFilter", "FixedTimeZone", "ProgressWriter",
-           "fast_export_output", "fast_import_input", "record_id_rename",
-           "GitUtils", "FilteringOptions", "RepoFilter"]
+           "record_id_rename", "GitUtils", "FilteringOptions", "RepoFilter"]
 
 
 def _timedelta_to_seconds(delta):
@@ -280,12 +279,6 @@ class _IDs(object):
       rv += "  " + str(k) + " -> " + str(self._reverse_translation[k]) + "\n"
 
     return rv
-
-  def _avoid_ids_below(self, skip_value):
-    """
-    Make sure that we don't use ids <= skip_value
-    """
-    self._next_id = max(self._next_id, skip_value + 1)
 
 class _GitElement(object):
   """
@@ -1512,52 +1505,14 @@ class FastExportFilter(object):
   def get_seen_refs(self):
     return self._seen_refs.keys()
 
-  def run(self, *args, **kwargs):
+  def run(self, input, output, fast_import_pipes, quiet):
     """
-    This method performs the filter. The method optionally takes two arguments.
-    The first represents the source repository (either a file object
-    containing git-fast-export output, or a string containing the path to the
-    source repository where we can run git-fast-export), and the second
-    argument represents the target repository (again either a file object into
-    which we write git-fast-import input, or a string containing the path to
-    the source repository where we can run git-fast-import).
+    This method filters fast export output.
     """
-    # Sanity check arguments
-    if len(args) != 0 and len(args) != 2:
-      raise SystemExit("run() must be called with 0 or 2 arguments")
-    if type(args[0]) != str and not (
-       hasattr(args[0], 'read') and hasattr(args[0], 'readline')):
-      raise SystemExit("arguments to run() must be filenames or files")
-    if type(args[1]) != str and not (
-       hasattr(args[1], 'write') and hasattr(args[1], 'close')):
-      raise SystemExit("arguments to run() must be filenames or files")
-
     # Set input. If no args provided, use stdin.
-    self._input = sys.stdin
-    if len(args) > 0:
-      if type(args[0]) == str:
-        # If repo-name provided, set up fast_export process pipe as input
-        self._input = fast_export_output(args[0]).stdout
-      else:
-        # If file-obj provided, just use that
-        self._input = args[0]
-
-    # Set output. If no args provided, use stdout.
-    self._output = sys.stdout
-    output_pipe = None
-    need_wait = False
-    if len(args) > 1:
-      if type(args[1]) == str:
-        # If repo-name provided, output to fast_import process pipe
-        output_pipe = fast_import_input(args[1])
-        self._output = output_pipe.stdin
-        need_wait = True
-      else:
-        # If file-obj provided, just use that
-        self._output = args[1]
-
-    # Show progress by default
-    self._quiet = kwargs.get('quiet', False)
+    self._input = input
+    self._output = output
+    self._quiet = quiet
 
     # Setup some vars
     global _CURRENT_STREAM_NUMBER
@@ -1574,7 +1529,7 @@ class FastExportFilter(object):
       elif self._currentline.startswith('reset'):
         self._parse_reset()
       elif self._currentline.startswith('commit'):
-        self._parse_commit(kwargs.get('fast_import_pipes', None))
+        self._parse_commit(fast_import_pipes)
       elif self._currentline.startswith('tag'):
         self._parse_tag()
       elif self._currentline.startswith('progress'):
@@ -1601,57 +1556,6 @@ class FastExportFilter(object):
       self._progress_writer.finish()
     if not self._finalize_handled:
       self._handle_final_commands()
-
-    # If we created fast_import process, close pipe and wait for it to finish
-    if need_wait:
-      self._output.close()
-      output_pipe.wait()
-
-def fast_export_output(source_repo, extra_args = None):
-  """
-  Given a source-repo location, setup a Popen process that runs fast-export
-  on that repo. The Popen object is returned (we do NOT wait for it to
-  finish).
-  """
-  if not extra_args:
-    extra_args = ["--all"]
-
-  # If the client specified an import-marks file, we find the biggest mark
-  # within that file and make sure that _IDS generates new marks that are
-  # at least higher than that.
-  for arg in extra_args:
-    if arg.startswith("--import-marks"):
-      filename = arg[len("--import-marks="):]
-      lines = open(filename,'r').read().strip().splitlines()
-      if lines:
-        biggest_mark = max([int(line.split()[0][1:]) for line in lines])
-        _IDS._avoid_ids_below(biggest_mark)
-
-  # Create and return the git process
-  extra_args.append('--use-done-feature')
-  return subprocess.Popen(["git", "fast-export", "--topo-order"] + extra_args,
-                          stdout=subprocess.PIPE,
-                          cwd=source_repo)
-
-def fast_import_input(target_repo, extra_args = None):
-  """
-  Given a target-repo location, setup a Popen process that runs fast-import
-  on that repo. The Popen object is returned (we do NOT wait for it to
-  finish).
-  """
-  if extra_args is None:
-    extra_args = []
-
-  # If target-repo directory does not exist, create it and initialize it
-  if not os.path.isdir(target_repo):
-    os.makedirs(target_repo)
-    if subprocess.call(["git", "init", "--shared"], cwd=target_repo) != 0:
-      raise SystemExit("git init in %s failed!" % target_repo)
-
-  # Create and return the git process
-  return subprocess.Popen(["git", "fast-import", "--quiet"] + extra_args,
-                          stdin=subprocess.PIPE,
-                          cwd=target_repo)
 
 def record_id_rename(old_id, new_id):
   """
@@ -2712,16 +2616,16 @@ class RepoFilter(object):
         self._reset_callback and self._reset_callback(r)
 
       # Create and run the filter
-      filter = FastExportFilter(self._args.source or '.',
-                                blob_callback       = self._blob_callback,
-                                commit_callback     = actual_commit_callback,
-                                tag_callback        = actual_tag_callback,
-                                reset_callback      = actual_reset_callback,
-                                everything_callback = self._everything_callback)
-      filter.run(self._input,
-                 self._output,
-                 fast_import_pipes = self._import_pipes,
-                 quiet = self._args.quiet)
+      fef = FastExportFilter(self._args.source or '.',
+                             blob_callback       = self._blob_callback,
+                             commit_callback     = actual_commit_callback,
+                             tag_callback        = actual_tag_callback,
+                             reset_callback      = actual_reset_callback,
+                             everything_callback = self._everything_callback)
+      fef.run(self._input,
+              self._output,
+              fast_import_pipes = self._import_pipes,
+              quiet = self._args.quiet)
 
       # Make sure fast-export completed successfully
       if not self._args.stdin and self._fep.wait():
@@ -2750,7 +2654,7 @@ class RepoFilter(object):
     target_working_dir = self._args.target or '.'
     if self._input:
       # Remove unused refs
-      refs_to_nuke = set(self._orig_refs) - set(filter.get_seen_refs())
+      refs_to_nuke = set(self._orig_refs) - set(fef.get_seen_refs())
       if refs_to_nuke:
         if self._args.debug:
           print("[DEBUG] Deleting the following refs:\n  "+
@@ -2765,9 +2669,9 @@ class RepoFilter(object):
           raise SystemExit("git update-ref failed; see above")
 
       # Write out data about run
-      filter.record_metadata(self.results_tmp_dir(),
-                             self._orig_refs,
-                             refs_to_nuke)
+      fef.record_metadata(self.results_tmp_dir(),
+                          self._orig_refs,
+                          refs_to_nuke)
 
     # Nuke the reflogs and repack
     if not self._args.quiet and not self._args.debug:
