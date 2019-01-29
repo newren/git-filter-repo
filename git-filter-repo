@@ -179,6 +179,56 @@ class AncestryGraph(object):
       ancestors.extend(more_ancestors)
     return False
 
+class MailmapInfo(object):
+  def __init__(self, filename):
+    self.changes = {}
+    self._parse_file(filename)
+
+  def _parse_file(self, filename):
+    name_and_email_re = re.compile(r'(.*?)\s*<([^>]+)>\s*')
+    if not os.access(filename, os.R_OK):
+      raise SystemExit("Cannot read {}".format(filename))
+    with open(filename) as f:
+      count = 0
+      for line in f:
+        count += 1
+        err = "Unparseable mailmap file: line #{} is bad: {}".format(count, line)
+        # Remove comments
+        line = re.sub(r'\s*#.*', '', line)
+        # Remove leading and trailing whitespace
+        line = line.strip()
+        if not line:
+          continue
+
+        m = name_and_email_re.match(line)
+        if not m:
+          raise SystemExit(err)
+        proper_name, proper_email = m.groups()
+        if len(line) == m.end():
+          self.changes[(None, proper_email)] = (proper_name, proper_email)
+          continue
+        rest = line[m.end():]
+        m = name_and_email_re.match(rest)
+        if m:
+          commit_name, commit_email = m.groups()
+          if len(rest) != m.end():
+            raise SystemExit(err)
+        else:
+          commit_name, commit_email = rest, None
+        self.changes[(commit_name, commit_email)] = (proper_name, proper_email)
+
+  def translate(self, name, email):
+    ''' Given a name and email, return the expected new name and email from the
+        mailmap if there is a translation rule for it, otherwise just return
+        the given name and email.'''
+    for old, new in self.changes.iteritems():
+      old_name, old_email = old
+      new_name, new_email = new
+      if (email == old_email or not old_email) and (
+          name  == old_name  or not old_name):
+        return (new_name or name, new_email or email)
+    return (name, email)
+
 class ProgressWriter(object):
   def __init__(self):
     self._last_progress_update = time.time()
@@ -1759,6 +1809,19 @@ class FilteringOptions(object):
                                  DIRECTORY.  Equivalent to using
                                  "--path-rename :DIRECTORY/"''')
 
+    people = parser.add_argument_group(title='Filtering of names/emails')
+    people.add_argument('--mailmap', dest='mailmap', metavar='FILENAME',
+                        help='''Use specified mailmap file (see git-shortlog(1)
+                                for details on the format) when rewriting
+                                author, committer, and tagger names and
+                                emails.  If the specified file is part of git
+                                history, historical versions of the file will
+                                be ignored; only the current contents are
+                                consulted.''')
+    people.add_argument('--use-mailmap', dest='mailmap',
+                        action='store_const', const='.mailmap',
+                        help='''Same as: '--mailmap .mailmap' ''')
+
     location = parser.add_argument_group(title='Location to filter from/to')
     location.add_argument('--source',
                           help='''Git repository to read from''')
@@ -1831,6 +1894,8 @@ class FilteringOptions(object):
       parser.print_help()
       raise SystemExit()
     FilteringOptions.sanity_check_args(args)
+    if args.mailmap:
+      args.mailmap = MailmapInfo(args.mailmap)
     return args
 
 class RepoAnalyze(object):
@@ -2469,6 +2534,13 @@ class RepoFilter(object):
             pathname = pathname.replace(old_exp, new_exp, 1)
       return pathname if (wanted == filtering_is_inclusive) else None
 
+    # Change the author & committer according to mailmap rules
+    if args.mailmap:
+      commit.author_name, commit.author_email = \
+          args.mailmap.translate(commit.author_name, commit.author_email)
+      commit.committer_name, commit.committer_email = \
+          args.mailmap.translate(commit.committer_name, commit.committer_email)
+
     # Sometimes the 'branch' given is a tag; if so, rename it as requested so
     # we don't get any old tagnames
     commit.branch = RepoFilter.new_tagname(args, commit.branch)
@@ -2512,8 +2584,15 @@ class RepoFilter(object):
     return tagname
 
   @staticmethod
-  def handle_tag(args, reset_or_tag, shortname = False):
-    reset_or_tag.ref = RepoFilter.new_tagname(args, reset_or_tag.ref, shortname)
+  def handle_tag(args, tag, shortname = False):
+    tag.ref = RepoFilter.new_tagname(args, tag.ref, shortname)
+    if args.mailmap:
+      tag.tagger_name, tag.tagger_email = \
+          args.mailmap.translate(tag.tagger_name, tag.tagger_email)
+
+  @staticmethod
+  def handle_reset(args, reset, shortname = False):
+    reset.ref = RepoFilter.new_tagname(args, reset.ref, shortname)
 
   def results_tmp_dir(self):
     working_dir = self._args.target or self._args.source or '.'
@@ -2612,7 +2691,7 @@ class RepoFilter(object):
         RepoFilter.handle_tag(self._args, t, shortname = True)
         self._tag_callback and self._tag_callback(t)
       def actual_reset_callback(r):
-        RepoFilter.handle_tag(self._args, r)
+        RepoFilter.handle_reset(self._args, r)
         self._reset_callback and self._reset_callback(r)
 
       # Create and run the filter
