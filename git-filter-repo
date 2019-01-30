@@ -1210,7 +1210,9 @@ class FastExportFilter(object):
     # rest.  But I'm worried about fast-import blocking on fi_output
     # buffers filling up so I instead read from it as I go.
     for change in commit.file_changes:
-      fi_input.write("ls :{} {}\n".format(new_1st_parent, change.filename))
+      parent = new_1st_parent or commit.from_commit
+      assert parent # Should be good based on the checks above
+      fi_input.write("ls :{} {}\n".format(parent, change.filename))
       fi_input.flush()
       parent_version = fi_output.readline().split()
       if change.type == 'D':
