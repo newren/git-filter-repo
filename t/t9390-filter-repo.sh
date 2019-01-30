@@ -34,5 +34,6 @@ filter_testcase basic basic-filename --path filename
 filter_testcase basic basic-twenty   --path twenty
 filter_testcase basic basic-ten      --path ten
 filter_testcase basic basic-mailmap  --mailmap ../t9390/sample-mailmap
+filter_testcase basic basic-replace  --replace-text ../t9390/sample-replace
 
 test_done

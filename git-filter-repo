@@ -1824,6 +1824,16 @@ class FilteringOptions(object):
                         action='store_const', const='.mailmap',
                         help='''Same as: '--mailmap .mailmap' ''')
 
+    contents = parser.add_argument_group(title='Content editing filters')
+    contents.add_argument('--replace-text', metavar='EXPRESSIONS_FILE',
+                          help='''A file with expressions that, if found, will
+                               be replaced.  By default, each expression is
+                               treated as literal text, but 'regex:' and 'glob:'
+                               prefixes are supported.  You can end the line
+                               with "==>" and some replacement text to choose
+                               a replacement choice other than the default of
+                               "***REMOVED***". ''')
+
     location = parser.add_argument_group(title='Location to filter from/to')
     location.add_argument('--source',
                           help='''Git repository to read from''')
@@ -1882,6 +1892,38 @@ class FilteringOptions(object):
         args.inclusive = False
 
   @staticmethod
+  def get_replace_text(filename):
+    replace_literals = []
+    replace_regexes = []
+    with open(filename) as f:
+      for line in f:
+        line = line.rstrip('\r\n')
+
+        # Determine the replacement
+        replacement = '***REMOVED***'
+        if '==>' in line:
+          line, replacement = line.rsplit('==>', 1)
+
+        # See if we need to match via regex
+        regex = None
+        if line.startswith('regex:'):
+          regex = line[6:]
+        elif line.startswith('glob:'):
+          regex = fnmatch.translate(line[5:])
+          if regex.endswith(r'\Z(?ms)'):
+            regex = regex[0:-7]
+        if regex:
+          replace_regexes.append((re.compile(regex), replacement))
+        else:
+          # Otherwise, find the literal we need to replace
+          if line.startswith('literal:'):
+            line = line[8:]
+          if not line:
+            continue
+          replace_literals.append((line, replacement))
+    return {'literals': replace_literals, 'regexes':  replace_regexes}
+
+  @staticmethod
   def default_options():
     return FilteringOptions.parse_args([], error_on_empty = False)
 
@@ -1898,6 +1940,8 @@ class FilteringOptions(object):
     FilteringOptions.sanity_check_args(args)
     if args.mailmap:
       args.mailmap = MailmapInfo(args.mailmap)
+    if args.replace_text:
+      args.replace_text = FilteringOptions.get_replace_text(args.replace_text)
     return args
 
 class RepoAnalyze(object):
@@ -2506,6 +2550,14 @@ class RepoFilter(object):
           abort('{} does not match {}'.format(refname, origin_ref))
 
   @staticmethod
+  def tweak_blob(args, blob):
+    if args.replace_text:
+      for literal, replacement in args.replace_text['literals']:
+        blob.data = blob.data.replace(literal, replacement)
+      for regex,   replacement in args.replace_text['regexes']:
+        blob.data = regex.sub(replacement, blob.data)
+
+  @staticmethod
   def tweak_commit(args, commit):
     def filename_matches(path_expression, pathname):
       if path_expression == '':
@@ -2630,6 +2682,7 @@ class RepoFilter(object):
     else:
       skip_blobs = (self._blob_callback is None and
                     self._everything_callback is None and
+                    self._args.replace_text is None and
                     self._args.source is None and
                     self._args.target is None)
       extra_flags = ['--no-data'] if skip_blobs else []
@@ -2686,6 +2739,9 @@ class RepoFilter(object):
 
     if self._input:
       # Set up the callbacks
+      def combined_blob_callback(b):
+        RepoFilter.tweak_blob(self._args, b)
+        self._blob_callback and self._blob_callback(b)
       def actual_commit_callback(c):
         RepoFilter.tweak_commit(self._args, c)
         self._commit_callback and self._commit_callback(c)
@@ -2695,10 +2751,13 @@ class RepoFilter(object):
       def actual_reset_callback(r):
         RepoFilter.handle_reset(self._args, r)
         self._reset_callback and self._reset_callback(r)
+      actual_blob_callback = self._blob_callback
+      if self._args.replace_text:
+        actual_blob_callback = combined_blob_callback
 
       # Create and run the filter
       fef = FastExportFilter(self._args.source or '.',
-                             blob_callback       = self._blob_callback,
+                             blob_callback       = actual_blob_callback,
                              commit_callback     = actual_commit_callback,
                              tag_callback        = actual_tag_callback,
                              reset_callback      = actual_reset_callback,
