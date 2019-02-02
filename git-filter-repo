@@ -687,9 +687,10 @@ class Tag(_GitElement):
     file_.write('tag %s\n' % self.ref)
     mark = ':' if isinstance(self.from_ref, int) else ''
     file_.write('from {}{}\n'.format(mark, self.from_ref))
-    file_.write('tagger %s <%s> ' % (self.tagger_name, self.tagger_email))
-    _write_date(file_, self.tagger_date)
-    file_.write('\n')
+    if self.tagger_name:
+      file_.write('tagger %s <%s> ' % (self.tagger_name, self.tagger_email))
+      _write_date(file_, self.tagger_date)
+      file_.write('\n')
     file_.write('data %d\n%s' % (len(self.tag_message), self.tag_message))
     file_.write('\n')
 
@@ -1382,7 +1383,9 @@ class FastExportFilter(object):
     if self._currentline.startswith('original-oid'):
       original_id = self._parse_original_id();
 
-    (tagger_name, tagger_email, tagger_date) = self._parse_user('tagger')
+    tagger_name, tagger_email, tagger_date = None, None, None
+    if self._currentline.startswith('tagger'):
+      (tagger_name, tagger_email, tagger_date) = self._parse_user('tagger')
     tag_msg = self._parse_data()
     if self._currentline == '\n':
       self._advance_currentline()
