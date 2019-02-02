@@ -1893,6 +1893,15 @@ class FilteringOptions(object):
           has_filter = True
       if not has_filter:
         args.inclusive = False
+    # Also throw in a sanity check on git version here;
+    # PERF: remove this check once new enough git versions are common
+    p = subprocess.Popen('git diff-tree -h'.split(),
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p.wait()
+    output = p.stdout.read()
+    if '--combined-all-paths' not in output:
+      raise SystemExit("Error: need a version of git whose diff-tree command "
+                       "has the --combined-all-paths option")
 
   @staticmethod
   def get_replace_text(filename):
