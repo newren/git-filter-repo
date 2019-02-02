@@ -838,6 +838,9 @@ class FastExportFilter(object):
     # on many of the git elements we create).
     self._output = None
 
+    # A pair of (input, output) pipes for communicating with fast import.
+    self._fast_import_pipes = None
+
     # Stores the contents of the current line of input being parsed
     self._currentline = ''
 
@@ -1146,8 +1149,7 @@ class FastExportFilter(object):
 
     return parents, None
 
-  def prunable(self, commit, new_1st_parent, had_file_changes, orig_parents,
-               fast_import_pipes):
+  def prunable(self, commit, new_1st_parent, had_file_changes, orig_parents):
     parents = [commit.from_commit] + commit.merge_commits
     if not commit.from_commit:
       parents = []
@@ -1178,7 +1180,7 @@ class FastExportFilter(object):
 
     # Similarly, we cannot handle the hard cases if we don't have a pipe
     # to communicate with fast-import
-    if not fast_import_pipes:
+    if not self._fast_import_pipes:
       return False
 
     # non-merge commits can only be empty if blob/file-change editing caused
@@ -1205,7 +1207,7 @@ class FastExportFilter(object):
     #     our first parent has a tree that matches the merge base, then if
     #     the new first parent has a tree matching the versions of files in
     #     file_changes, then this new commit is empty and thus prunable.
-    fi_input, fi_output = fast_import_pipes
+    fi_input, fi_output = self._fast_import_pipes
     # Optimization note: we could have two loops over file_changes, the
     # first doing all the fi_input.write() calls, and the second doing the
     # rest.  But I'm worried about fast-import blocking on fi_output
@@ -1230,11 +1232,11 @@ class FastExportFilter(object):
 
     return True
 
-  def record_remapping(self, commit, orig_parents, fast_import_pipes):
+  def record_remapping(self, commit, orig_parents):
     new_id = None
     # Record the mapping of old commit hash to new one
-    if commit.original_id and fast_import_pipes:
-      fi_input, fi_output = fast_import_pipes
+    if commit.original_id and self._fast_import_pipes:
+      fi_input, fi_output = self._fast_import_pipes
       fi_input.write("get-mark :{}\n".format(commit.id))
       fi_input.flush()
       orig_id = commit.original_id
@@ -1249,7 +1251,7 @@ class FastExportFilter(object):
   def num_commits_parsed(self):
     return self._num_commits
 
-  def _parse_commit(self, fast_import_pipes):
+  def _parse_commit(self):
     """
     Parse input data into a Commit object. Once the Commit has been created,
     it will be handed off to the appropriate callbacks. Current-line will
@@ -1350,10 +1352,10 @@ class FastExportFilter(object):
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
       if not self.prunable(commit, new_1st_parent, had_file_changes,
-                           orig_parents, fast_import_pipes):
+                           orig_parents):
         self._seen_refs[commit.branch] = None # was seen, doesn't need reset
         commit.dump(self._output)
-        self.record_remapping(commit, orig_parents, fast_import_pipes)
+        self.record_remapping(commit, orig_parents)
       else:
         rewrite_to = new_1st_parent or commit.first_parent()
         # We skip empty commits, but want to keep track to make sure our branch
@@ -1567,6 +1569,7 @@ class FastExportFilter(object):
     # Set input. If no args provided, use stdin.
     self._input = input
     self._output = output
+    self._fast_import_pipes = fast_import_pipes
     self._quiet = quiet
 
     # Setup some vars
@@ -1584,7 +1587,7 @@ class FastExportFilter(object):
       elif self._currentline.startswith('reset'):
         self._parse_reset()
       elif self._currentline.startswith('commit'):
-        self._parse_commit(fast_import_pipes)
+        self._parse_commit()
       elif self._currentline.startswith('tag'):
         self._parse_tag()
       elif self._currentline.startswith('progress'):
