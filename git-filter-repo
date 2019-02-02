@@ -2734,6 +2734,40 @@ class RepoFilter(object):
       print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
       print("  (using the following file as input: {})".format(self._fe_filt))
 
+  def _migrate_origin_to_heads(self):
+    if self._args.dry_run:
+      return
+    refs_to_migrate = set(x for x in self._orig_refs
+                          if x.startswith('refs/remotes/origin/'))
+    if not refs_to_migrate:
+      return
+    if self._args.debug:
+      print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
+    target_working_dir = self._args.target or '.'
+    p = subprocess.Popen('git update-ref --no-deref --stdin'.split(),
+                         stdin=subprocess.PIPE,
+                         cwd=target_working_dir)
+    for ref in refs_to_migrate:
+      if ref == 'refs/remotes/origin/HEAD':
+        p.stdin.write('delete {} {}\n'.format(ref, self._orig_refs[ref]))
+        del self._orig_refs[ref]
+        continue
+      newref = ref.replace('refs/remotes/origin/', 'refs/heads/')
+      if newref not in self._orig_refs:
+        p.stdin.write('create {} {}\n'.format(newref, self._orig_refs[ref]))
+      p.stdin.write('delete {} {}\n'.format(ref, self._orig_refs[ref]))
+      self._orig_refs[newref] = self._orig_refs[ref]
+      del self._orig_refs[ref]
+    p.stdin.close()
+    if p.wait():
+      raise SystemExit("git update-ref failed; see above")
+
+    # Now remove
+    if self._args.debug:
+      print("[DEBUG] Removing 'origin' remote (rewritten history will no ")
+      print("        longer be related; consider re-pushing it elsewhere.")
+    subprocess.call('git remote rm origin'.split(), cwd=target_working_dir)
+
   def finish(self):
     ''' Alternative to run() when there is no input of our own to parse,
         meaning that run only really needs to close the handle to fast-import
@@ -2745,6 +2779,7 @@ class RepoFilter(object):
   def run(self):
     if not self._input and not self._output:
       self._run_sanity_checks()
+      self._migrate_origin_to_heads()
       self._setup_input(use_done_feature = True)
       self._setup_output()
     assert self._sanity_checks_handled
