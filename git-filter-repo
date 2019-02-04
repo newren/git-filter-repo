@@ -2825,6 +2825,7 @@ class RepoFilter(object):
     self.run()
 
   def run(self):
+    start = time.time()
     if not self._input and not self._output:
       self._run_sanity_checks()
       self._migrate_origin_to_heads()
@@ -2875,6 +2876,10 @@ class RepoFilter(object):
     if not self._args.dry_run and self._fip.wait():
       raise SystemExit("Error: fast-import failed; see above.")
 
+    # Notify user how long it took, before doing a gc and such
+    msg = "New history written in {:.2f} seconds; now repacking/cleaning..."
+    print(msg.format(time.time()-start))
+
     # Exit early, if requested
     if self._args.dry_run:
       if self._fe_orig:
@@ -2920,6 +2925,9 @@ class RepoFilter(object):
       if self._args.debug:
         print("[DEBUG] Running: {}".format(' '.join(cmd)))
       subprocess.call(cmd, cwd=target_working_dir)
+
+    # Let user know how long it took
+    print("Completely finished after {:.2f} seconds.".format(time.time()-start))
 
 if __name__ == '__main__':
   args = FilteringOptions.parse_args(sys.argv[1:])
