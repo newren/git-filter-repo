@@ -818,6 +818,12 @@ class FastExportFilter(object):
     # commit became empty and was pruned or was otherwise dropped.
     self._commit_renames = {}
 
+    # A set of original_ids for which we have not yet gotten the
+    # new_ids; we use OrderedDict because we need to know the order of
+    # insertion, but the values are always ignored (and set to None).
+    # If there was an OrderedSet class, I'd use it instead.
+    self._pending_renames = collections.OrderedDict()
+
     # A dict of commit_hash[1:7] -> set(commit_hashes with that prefix).
     #
     # It's common for commit messages to refer to commits by abbreviated
@@ -1061,10 +1067,45 @@ class FastExportFilter(object):
     if not reset.dumped:
       reset.dump(self._output)
 
+  def _get_rename(self, old_hash):
+    # If we already know the rename, just return it
+    new_hash = self._commit_renames.get(old_hash, None)
+    if new_hash:
+      return new_hash
+
+    # If it's not in the remaining pending renames, we don't know it
+    if old_hash is not None and old_hash not in self._pending_renames:
+      return None
+
+    # Read through the pending renames until we find it or we've read them all,
+    # and return whatever we might find
+    self._flush_renames(old_hash)
+    return self._commit_renames.get(old_hash, None)
+
+  def _flush_renames(self, old_hash=None, limit=0):
+    # Parse through self._pending_renames until we have read enough.  We have
+    # read enough if:
+    #   self._pending_renames is empty
+    #   old_hash != None and we found a rename for old_hash
+    #   limit > 0 and len(self._pending_renames) started less than 2*limit
+    #   limit > 0 and len(self._pending_renames) < limit
+    if limit and len(self._pending_renames) < 2 * limit:
+      return
+    fi_input, fi_output = self._fast_import_pipes
+    while self._pending_renames:
+      orig_id, ignore = self._pending_renames.popitem(last=False)
+      new_id = fi_output.readline().rstrip()
+      self._commit_renames[orig_id] = new_id
+      if old_hash == orig_id:
+        return
+      if limit and len(self._pending_renames) < limit:
+        return
+
   def _translate_commit_hash(self, matchobj):
     old_hash = matchobj.group(1)
     orig_len = len(old_hash)
-    if old_hash not in self._commit_renames:
+    new_hash = self._get_rename(old_hash)
+    if new_hash is None:
       if old_hash[0:7] not in self._commit_short_old_hashes:
         return old_hash
       possibilities = self._commit_short_old_hashes[old_hash[0:7]]
@@ -1073,8 +1114,8 @@ class FastExportFilter(object):
       if len(matches) != 1:
         return old_hash
       old_hash = matches[0]
+      new_hash = self._get_rename(old_hash)
 
-    new_hash = self._commit_renames[old_hash]
     if new_hash is None:
       self._commits_referenced_but_removed.add(old_hash)
       return old_hash[0:orig_len]
@@ -1208,6 +1249,7 @@ class FastExportFilter(object):
     #     the new first parent has a tree matching the versions of files in
     #     file_changes, then this new commit is empty and thus prunable.
     fi_input, fi_output = self._fast_import_pipes
+    self._flush_renames()  # Avoid fi_output having other stuff present
     # Optimization note: we could have two loops over file_changes, the
     # first doing all the fi_input.write() calls, and the second doing the
     # rest.  But I'm worried about fast-import blocking on fi_output
@@ -1240,9 +1282,11 @@ class FastExportFilter(object):
       fi_input.write("get-mark :{}\n".format(commit.id))
       fi_input.flush()
       orig_id = commit.original_id
-      new_id = fi_output.readline().rstrip()
-      self._commit_renames[orig_id] = new_id
       self._commit_short_old_hashes[orig_id[0:7]].add(orig_id)
+      # Note that we have queued up an id for later reading; flush a
+      # few of the older ones if we have too many queued up
+      self._pending_renames[orig_id] = None
+      self._flush_renames(None, limit=40)
     # Also, record if this was a merge commit that turned into a non-merge
     # commit.
     if len(orig_parents) >= 2 and not commit.merge_commits:
@@ -1498,6 +1542,7 @@ class FastExportFilter(object):
 
   def record_metadata(self, metadata_dir, orig_refs, refs_nuked):
     deleted_hash = '0'*40
+    self._flush_renames()
     with open(os.path.join(metadata_dir, 'commit-map'), 'w') as f:
       f.write("old                                      new\n")
       for (old,new) in self._commit_renames.iteritems():
