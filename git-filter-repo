@@ -25,7 +25,8 @@ import textwrap
 from datetime import tzinfo, timedelta, datetime
 
 __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
-           "Checkpoint", "FastExportFilter", "FixedTimeZone", "ProgressWriter",
+           "Checkpoint", "FastExportFilter", "ProgressWriter",
+           "string_to_date", "date_to_string",
            "record_id_rename", "GitUtils", "FilteringOptions", "RepoFilter"]
 
 
@@ -36,15 +37,6 @@ def _timedelta_to_seconds(delta):
   offset = delta.days*86400 + delta.seconds + (delta.microseconds+0.0)/1000000
   return round(offset)
 
-def _write_date(file_, date):
-  """
-  Writes a date to a file. The file should already be open. The date is
-  written as seconds-since-epoch followed by the name of the timezone.
-  """
-  epoch = datetime.fromtimestamp(0, date.tzinfo)
-  file_.write('%d %s' % (_timedelta_to_seconds(date - epoch),
-                         date.tzinfo.tzname(0)))
-
 class FixedTimeZone(tzinfo):
   """
   Fixed offset in minutes east from UTC.
@@ -52,21 +44,7 @@ class FixedTimeZone(tzinfo):
 
   def __init__(self, offset_string):
     tzinfo.__init__(self)
-    try:
-      sign, hh, mm = re.match(r'^([-+]?)(\d\d)(\d\d)$', offset_string).groups()
-    except AttributeError:
-      # TimeZone idiocy; IST is any of four timezones, so someone translated
-      # it to something that was totally invalid...and it got recorded that
-      # way.  Others have suggested just using an invalid timezone that
-      # fast-import will not choke on.  Let's do that.  Note that +051800
-      # seems to be the only weird timezone found in the wild, by me or some
-      # other posts google returned on the subject...
-      if offset_string == '+051800':
-        sign, hh, mm = '+', '02', '61'
-        offset_string = offset_string.replace('+051800', '+0261')
-      else:
-        raise AttributeError("Could not parse {} as timezone"
-                             .format(offset_string))
+    sign, hh, mm = re.match(r'^([-+]?)(\d\d)(\d\d)$', offset_string).groups()
     factor = -1 if (sign and sign == '-') else 1
     self._offset = timedelta(minutes = factor*(60*int(hh) + int(mm)))
     self._offset_string = offset_string
@@ -79,6 +57,16 @@ class FixedTimeZone(tzinfo):
 
   def dst(self, dt):
     return timedelta(0)
+
+def string_to_date(datestring):
+  (unix_timestamp, tz_offset) = datestring.split()
+  return datetime.fromtimestamp(int(unix_timestamp),
+                                FixedTimeZone(tz_offset))
+
+def date_to_string(dateobj):
+  epoch = datetime.fromtimestamp(0, dateobj.tzinfo)
+  return('{} {}'.format(int(_timedelta_to_seconds(dateobj - epoch)),
+                        dateobj.tzinfo.tzname(0)))
 
 class PathQuoting:
   _unescape = {'a': '\a',
@@ -601,11 +589,11 @@ class Commit(_GitElementWithId):
     file_.write('commit %s\n' % self.branch)
     file_.write('mark :%d\n' % self.id)
     file_.write('author %s <%s> ' % (self.author_name, self.author_email))
-    _write_date(file_, self.author_date)
+    file_.write(self.author_date)
     file_.write('\n')
     file_.write('committer %s <%s> ' % \
                      (self.committer_name, self.committer_email))
-    _write_date(file_, self.committer_date)
+    file_.write(self.committer_date)
     file_.write('\n')
     file_.write('data %d\n%s' % (len(self.message), self.message))
     if not self.message.endswith("\n"):
@@ -689,7 +677,7 @@ class Tag(_GitElement):
     file_.write('from {}{}\n'.format(mark, self.from_ref))
     if self.tagger_name:
       file_.write('tagger %s <%s> ' % (self.tagger_name, self.tagger_email))
-      _write_date(file_, self.tagger_date)
+      file_.write(self.tagger_date)
       file_.write('\n')
     file_.write('data %d\n%s' % (len(self.tag_message), self.tag_message))
     file_.write('\n')
@@ -980,13 +968,17 @@ class FastExportFilter(object):
       re.match('%s (.*?) <(.*?)> (.*)\n$' %
                usertype, self._currentline).groups()
 
-    # Translate when into a datetime object, with corresponding timezone info
-    (unix_timestamp, tz_offset) = when.split()
-    datestamp = datetime.fromtimestamp(int(unix_timestamp),
-                                       FixedTimeZone(tz_offset))
+    # TimeZone idiocy; IST is any of four timezones, so someone translated
+    # it to something that was totally invalid...and it got recorded that
+    # way.  Others have suggested just using an invalid timezone that
+    # fast-import will not choke on.  Let's do that.  Note that +051800
+    # seems to be the only weird timezone found in the wild, by me or some
+    # other posts google returned on the subject...
+    if when.endswith('+051800'):
+      when = when[0:-7]+'+0261'
 
     self._advance_currentline()
-    return (name, email, datestamp)
+    return (name, email, when)
 
   def _parse_data(self):
     """

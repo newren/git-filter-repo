@@ -26,7 +26,9 @@ def change_up_them_commits(commit):
   commit.author_email = re.sub("@my.crp", "@my.corp", commit.author_email)
 
   # Fix the committer date (bad timezone conversion in initial import)
-  commit.committer_date += timedelta(hours=-5)
+  oldtime = repo_filter.string_to_date(commit.committer_date)
+  newtime = oldtime + timedelta(hours=-5)
+  commit.committer_date = repo_filter.date_to_string(newtime)
 
   # Fix the commit message
   commit.message = re.sub("Marketing is staffed with pansies", "",
