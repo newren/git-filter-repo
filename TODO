@@ -1,8 +1,11 @@
+* Fix whitespace errors
+* Make a t9391/bfg script :-)
+* Check if setting bufsize for subprocess.Popen to large positive value helps
+* Use python timeit to see if to use regexes or splits
+* Make a git_filter_repo.py symlink to git-filter-repo in the toplevel
+
 Before widely announcing:
   - Notes on splitting
-    - exporter needs to know the pipe combination for commit message rewriting
-      - commit message rewriting gets weird if commits held in memory for later
-      - pruning gets weird too
     - need to handle 1 export -> 2 imports
   - Test setup
     - Add several more tests, particularly around:
@@ -13,33 +16,29 @@ Before widely announcing:
         - pruning parent(s) of a merge
         - coalescing common commits of a merge
 	- coalescing parents of a merge when one is an ancestor of the other
+	- crazy no-ff stuff
+	- what about when splicing repos; does it still work?
       - ref pruning
         - tags pointing at commits which are pruned along with their history
 	- refs pointing at commits which are pruned along with their history
 	- refs or tags behind a negative revision specification
       - commit message rewriting
+        - does it also work with repo splicing?
       - renaming, particular when it causes collisions
       - use coverage.py to direct test writing
-  - Check whether the version of git in use supports the appropriate flags
-  - Rewrite history
-    - Remove tests from older commits until they would actually work
 
 Generate upstream patches:
-  - Tags of tags of commits fail to export:
+  - Tags of tags of commits fail to export (so does tags of blobs):
     - In git.git, try:
       $ git fast-export --no-data --use-done-feature --signed-tags=strip \
                   --tag-of-filtered-object=rewrite-feature v1.0rc1 >/dev/null
       fatal: tag 5f4cd4ca015dc795b9f7f4fed11b3f80a60ac175 tags unexported tag!
 
 Bigger ideas
-  - 1st step, create local branches for each remote tracking branch:
-      git fetch . refs/remotes/origin/*:refs/heads/*
-    also, nuke refs/remotes/origin/*; it won't match upstream anyway
   - Performance:
+    - If I do a --dry-run and then use saved input to run again with another
+      --stdin --dry-run, is it faster?  i.e. am I blocking on fast-export/import?
     - Smarter record_remapping -- do it lazily
-    - Unnecessary re-computation of 'epoch' (calling fromtimestamp)
-      ...and perhaps just unnecessary use of FixedTimeZone when most the time
-      it will not be checked or modified?
     - What part of _parse_commit takes so much time?
     - What part of commit.dump takes so much time?
     - Speedup _parse_optional_filechange using str.split(None, 3) instead of re
@@ -68,7 +67,7 @@ Left over bits:
   - metadata
     - On second and subsequent runs, update metadata instead of overwriting
        - for maps, give beginning_hash -> end_hash, not intermediate hashes
-    - OR error out if .git/repo-filter already created?
+    - OR error out if .git/filter-repo already created?
   - error out if any progress messages in stream (can't deal with them unless
     we can pass --cat-blob-fd to fast-import, and that seems non-portable)
 
@@ -83,19 +82,27 @@ Ref stuff
 Blob filter
   --tree-filter
 
+Add a filename_callback parameter for those that want to affect just that
+Add
+  --blob-callback <string serving as python code>
+  --commit-callback <string serving as python code>
+  --tag-callback <string serving as python code>
+and two special ones:
+  --refname-callback <string serving as python code>
+  --filename-callback <string serving as python code>
+
 
 Safety stuff
   --keep-excluded-revisions
   --keep-excluded-refs
   --store-backup
   --empty-pruning={no/off,auto,always/on}
+  --no-ff-pruning={no/off,auto,always/on}
   --negative-refs={drop,reference}
 
 Other things:
   - add a filename_callback too, for just editing file names
   - add --skip-cleanup (pruning, gc, etc.; keep reset --hard) for speed compare
-  - get rid of user-run fast-export & fast-import; don't want to have to
-    update two callsites.
 
 Performance notes:
   * On rails:
@@ -144,12 +151,12 @@ Performance notes:
 
     Other Notes:
       * cProfile:
-        python -m cProfile -o repo-filter.profile \
-            ~/floss/git-repo-filter/git-repo-filter \
+        python -m cProfile -o filter-repo.profile \
+            ~/floss/git-filter-repo/git-filter-repo \
             --invert-paths --path pushgems.rb
         python
         >>> import pstats
-        >>> p = pstats.Stats('repo-filter.profile')
+        >>> p = pstats.Stats('filter-repo.profile')
         >>> p.strip_dirs().sort_stats('cumtime').print_stats()
       * reports 64.2% of time in readline()
       * reports 37.0% of time under _advance_currentline
