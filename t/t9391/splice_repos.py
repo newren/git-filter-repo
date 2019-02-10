@@ -1,19 +1,8 @@
 #!/usr/bin/env python
 
-# python makes importing files with dashes hard, sorry.  Renaming would
-# allow us to simplify this to
-#   import git_repo_filter
-# However, since git style commands are dashed and git-filter-repo is used more
-# as a tool than a library, renaming is not an option, so import is 5 lines:
-import imp
-import sys
-sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-filter-repoc' files
-with open("../../git-filter-repo") as f:
-  repo_filter = imp.load_source('repo_filter', "git-filter-repo", f)
-# End of convoluted import of git-filter-repo
-
-import datetime
 import re
+import sys
+import git_filter_repo as fr
 
 class InterleaveRepositories:
   def __init__(self, repo1, repo2, output_dir):
@@ -50,30 +39,28 @@ class InterleaveRepositories:
     # on commit.id
     if prev_letter in self.commit_map:
       self.last_commit = commit.id
-      repo_filter.record_id_rename(new_commit.id, commit.id)
+      fr.record_id_rename(new_commit.id, commit.id)
 
   def run(self):
-    blob = repo_filter.Blob('public gpg key contents')
-    when = datetime.datetime(2006, 1, 2, 3, 4, 5,
-                             tzinfo=repo_filter.FixedTimeZone("+0300"))
-    tag = repo_filter.Tag('gpg-pubkey', blob.id,
-                          'Ima Tagger', 'ima@tagg.er', when,
-                          'Very important explanation and stuff')
+    blob = fr.Blob('public gpg key contents')
+    tag = fr.Tag('gpg-pubkey', blob.id,
+                 'Ima Tagger', 'ima@tagg.er', '1136199845 +0300',
+                 'Very important explanation and stuff')
 
-    args = repo_filter.FilteringOptions.parse_args(['--target', self.output_dir])
-    out = repo_filter.RepoFilter(args)
+    args = fr.FilteringOptions.parse_args(['--target', self.output_dir])
+    out = fr.RepoFilter(args)
     out.importer_only()
     self.out = out
 
-    i1args = repo_filter.FilteringOptions.parse_args(['--source', self.repo1])
-    i1 = repo_filter.RepoFilter(i1args,
+    i1args = fr.FilteringOptions.parse_args(['--source', self.repo1])
+    i1 = fr.RepoFilter(i1args,
                                 reset_callback  = lambda r: self.skip_reset(r),
                                 commit_callback = lambda c: self.hold_commit(c))
     i1.set_output(out)
     i1.run()
 
-    i2args = repo_filter.FilteringOptions.parse_args(['--source', self.repo2])
-    i2 = repo_filter.RepoFilter(i2args,
+    i2args = fr.FilteringOptions.parse_args(['--source', self.repo2])
+    i2 = fr.RepoFilter(i2args,
                                 commit_callback = lambda c: self.weave_commit(c))
     i2.set_output(out)
     i2.run()

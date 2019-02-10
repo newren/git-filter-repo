@@ -3,6 +3,11 @@
 test_description='Usage of git-filter-repo as a library'
 . ./test-lib.sh
 
+# for git_filter_repo.py import
+export PYTHONPATH=$(dirname $TEST_DIRECTORY):$PYTHONPATH
+# Avoid writing git_filter_repo.pyc file
+export PYTHONDONTWRITEBYTECODE=1
+
 setup()
 {
 	git init $1 &&

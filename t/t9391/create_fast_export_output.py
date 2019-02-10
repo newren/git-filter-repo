@@ -1,23 +1,13 @@
 #!/usr/bin/env python
 
-# It would be nice if we could just
-#   import git_repo_filter
-# but that'd require renaming git-filter-repo to git_repo_filter.py, which would
-# be detrimental to its predominant usage as a tool rather than a library.  So,
-# we use the next five lines instead.
-import imp
-import sys
-sys.dont_write_bytecode = True # .pyc generation -> ugly 'git-filter-repoc' files
-with open("../../../git-filter-repo") as f:
-  repo_filter = imp.load_source('repo_filter', "git-filter-repo", f)
-# End of import workaround
-from repo_filter import Blob, Reset, FileChanges, Commit, Tag, FixedTimeZone
-from repo_filter import Progress, Checkpoint
+import git_filter_repo as fr
+from git_filter_repo import Blob, Reset, FileChanges, Commit, Tag, FixedTimeZone
+from git_filter_repo import Progress, Checkpoint
 
 from datetime import datetime, timedelta
 
-args = repo_filter.FilteringOptions.default_options()
-out = repo_filter.RepoFilter(args)
+args = fr.FilteringOptions.default_options()
+out = fr.RepoFilter(args)
 out.importer_only()
 
 output = out._output
@@ -36,7 +26,7 @@ changes = [FileChanges('M', 'world', world.id, mode="100644"),
 when = datetime(year=2005, month=4, day=7,
                 hour=15, minute=16, second=10,
                 tzinfo=FixedTimeZone("-0700"))
-when_string = repo_filter.date_to_string(when)
+when_string = fr.date_to_string(when)
 commit1 = Commit("refs/heads/master",
                  "A U Thor", "au@thor.email", when_string,
                  "Com M. Iter", "comm@iter.email", when_string,
@@ -54,7 +44,7 @@ world_link.dump(output)
 changes = [FileChanges('M', 'world',  world.id,      mode="100644"),
            FileChanges('M', 'planet', world_link.id, mode="120000")]
 when += timedelta(days=3, hours=4, minutes=6)
-when_string = repo_filter.date_to_string(when)
+when_string = fr.date_to_string(when)
 commit2 = Commit("refs/heads/master",
                  "A U Thor", "au@thor.email", when_string,
                  "Com M. Iter", "comm@iter.email", when_string,
@@ -91,7 +81,7 @@ world.dump(output)
 
 changes = [FileChanges('M', 'world', world.id, mode="100644")]
 when = datetime(2006, 8, 17, tzinfo=FixedTimeZone("+0200"))
-when_string = repo_filter.date_to_string(when)
+when_string = fr.date_to_string(when)
 commit4 = Commit("refs/heads/devel",
                  "A U Thor", "au@thor.email", when_string,
                  "Com M. Iter", "comm@iter.email", when_string,
@@ -103,8 +93,8 @@ commit4.dump(output)
 
 world = Blob("Hello\nHi\nGoodbye")
 world.dump(output)
-when = repo_filter.string_to_date(commit3.author_date) + timedelta(days=47)
-when_string = repo_filter.date_to_string(when)
+when = fr.string_to_date(commit3.author_date) + timedelta(days=47)
+when_string = fr.date_to_string(when)
 # git fast-import requires file changes to be listed in terms of differences
 # to the first parent.  Thus, despite the fact that runme and planet have
 # not changed and bar was not modified in the devel side, we have to list them
