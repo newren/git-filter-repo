@@ -27,6 +27,10 @@ Before widely announcing:
       - renaming, particular when it causes collisions
       - use coverage.py to direct test writing
 
+Crazy ideas, showing filter-repo flexibility:
+  - implement bfg
+  - implement filter-branch (except only provide changed files)
+
 Generate upstream patches:
   - Tags of tags of commits fail to export (so does tags of blobs):
     - In git.git, try:
@@ -36,13 +40,8 @@ Generate upstream patches:
 
 Bigger ideas
   - Performance:
-    - If I do a --dry-run and then use saved input to run again with another
-      --stdin --dry-run, is it faster?  i.e. am I blocking on fast-export/import?
     - Smarter record_remapping -- do it lazily
-    - What part of _parse_commit takes so much time?
-    - What part of commit.dump takes so much time?
-    - Speedup _parse_optional_filechange using str.split(None, 3) instead of re
-    - Which wait() are we waiting on?
+    - memoize net result: dequote -> do mods -> requote
     - Smarter become-empty checks; only do more expensive checks if:
       - First parent is no longer original first parent or ancestor thereof
         - e.g. first-parent history empty, second parent becomes first parent
@@ -50,9 +49,6 @@ Bigger ideas
                maybe we don't want to prune in this case anyway...)
       - Blob filtering is active AND the only file_changes involved correspond
         to filenames that have previously been modified.
-    - Regex optimization
-    - memoize (or just outright store?) filename remapping
-      - memoize net result: dequote -> do mods -> requote
   - Work with submodules
   - Important features
     - paths-from-file (--paths-from-file <(git ls-tree -r HEAD)
@@ -70,17 +66,6 @@ Left over bits:
     - OR error out if .git/filter-repo already created?
   - error out if any progress messages in stream (can't deal with them unless
     we can pass --cat-blob-fd to fast-import, and that seems non-portable)
-
-More path stuff, maybe
-  --path-rename-regex
-  --path-stream-rename  (invoked once; must read one line then print)
-  --path-stream-filter  (invoked once per commit with new files)
-  --path-tree-filter
-Ref stuff
-  --ref-rename
-  --ref-stream-rename
-Blob filter
-  --tree-filter
 
 Add a filename_callback parameter for those that want to affect just that
 Add
@@ -101,7 +86,6 @@ Safety stuff
   --negative-refs={drop,reference}
 
 Other things:
-  - add a filename_callback too, for just editing file names
   - add --skip-cleanup (pruning, gc, etc.; keep reset --hard) for speed compare
 
 Performance notes:
