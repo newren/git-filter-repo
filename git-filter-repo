@@ -864,7 +864,6 @@ class FastExportFilter(object):
     for parent_refname in ('from', 'merge'):
       ans = [re.compile(x.format(parent_refname)) for x in parent_regex_rules]
       self._parent_regexes[parent_refname] = ans
-    self._modify_re = re.compile('M (\d+) (?::?([0-9a-f]{40}|\d+)) (.*)\n$')
     self._quoted_string_re = re.compile(r'"(?:[^"\\]|\\.)*"')
     self._refline_regexes = {}
     for refline_name in ('reset', 'commit', 'tag', 'progress'):
@@ -924,8 +923,12 @@ class FastExportFilter(object):
     of file-changes that fast-export will provide).
     """
     filechange = None
-    if self._currentline.startswith('M '):
-      (mode, idnum, path) = self._modify_re.match(self._currentline).groups()
+    changetype = self._currentline[0]
+    if changetype == 'M':
+      (changetype, mode, idnum, path) = self._currentline.split(None, 3)
+      if idnum[0] == ':':
+        idnum = idnum[1:]
+      path = path.rstrip('\n')
       # We translate the idnum to our id system
       if len(idnum) != 40:
         idnum = _IDS.translate( int(idnum)+self._id_offset )
@@ -936,13 +939,14 @@ class FastExportFilter(object):
       else:
         filechange = 'skipped'
       self._advance_currentline()
-    elif self._currentline.startswith('D '):
-      path = self._currentline[2:-1]
+    elif changetype == 'D':
+      (changetype, path) = self._currentline.split(None, 1)
+      path = path.rstrip('\n')
       if path.startswith('"'):
         path = PathQuoting.dequote(path)
       filechange = FileChanges('D', path)
       self._advance_currentline()
-    elif self._currentline.startswith('R '):
+    elif changetype == 'R':
       rest = self._currentline[2:-1]
       if rest.startswith('"'):
         m = self._quoted_string_re.match(rest)
