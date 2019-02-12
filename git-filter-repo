@@ -2537,6 +2537,7 @@ class RepoFilter(object):
     # Other vars
     self._sanity_checks_handled = False
     self._orig_refs = None
+    self._newnames = {}
 
   def _run_sanity_checks(self):
     self._sanity_checks_handled = True
@@ -2630,8 +2631,7 @@ class RepoFilter(object):
       for regex,   replacement in args.replace_text['regexes']:
         blob.data = regex.sub(replacement, blob.data)
 
-  @staticmethod
-  def tweak_commit(args, commit):
+  def tweak_commit(self, args, commit):
     def filename_matches(path_expression, pathname):
       if path_expression == '':
         return True
@@ -2675,8 +2675,12 @@ class RepoFilter(object):
     # Filter the list of file changes
     new_file_changes = {}
     for change in commit.file_changes:
-      change.filename = newname(args.path_changes, change.filename,
-                                args.inclusive)
+      if change.filename in self._newnames:
+        change.filename = self._newnames[change.filename]
+      else:
+        change.filename = newname(args.path_changes, change.filename,
+                                  args.inclusive)
+        self._newnames[change.filename] = change.filename
       if not change.filename:
         continue # Filtering criteria excluded this file; move on to next one
       if change.filename in new_file_changes:
@@ -2852,7 +2856,7 @@ class RepoFilter(object):
         RepoFilter.tweak_blob(self._args, b)
         self._blob_callback and self._blob_callback(b)
       def actual_commit_callback(c):
-        RepoFilter.tweak_commit(self._args, c)
+        self.tweak_commit(self._args, c)
         self._commit_callback and self._commit_callback(c)
       def actual_tag_callback(t):
         RepoFilter.handle_tag(self._args, t, shortname = True)
