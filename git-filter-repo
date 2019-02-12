@@ -42,9 +42,11 @@ class FixedTimeZone(tzinfo):
   Fixed offset in minutes east from UTC.
   """
 
+  tz_re = re.compile(r'^([-+]?)(\d\d)(\d\d)$')
+
   def __init__(self, offset_string):
     tzinfo.__init__(self)
-    sign, hh, mm = re.match(r'^([-+]?)(\d\d)(\d\d)$', offset_string).groups()
+    sign, hh, mm = FixedTimeZone.tz_re.match(offset_string).groups()
     factor = -1 if (sign and sign == '-') else 1
     self._offset = timedelta(minutes = factor*(60*int(hh) + int(mm)))
     self._offset_string = offset_string
@@ -174,6 +176,7 @@ class MailmapInfo(object):
 
   def _parse_file(self, filename):
     name_and_email_re = re.compile(r'(.*?)\s*<([^>]+)>\s*')
+    comment_re = re.compile(r'\s*#.*')
     if not os.access(filename, os.R_OK):
       raise SystemExit("Cannot read {}".format(filename))
     with open(filename) as f:
@@ -182,7 +185,7 @@ class MailmapInfo(object):
         count += 1
         err = "Unparseable mailmap file: line #{} is bad: {}".format(count, line)
         # Remove comments
-        line = re.sub(r'\s*#.*', '', line)
+        line = comment_re.sub('', line)
         # Remove leading and trailing whitespace
         line = line.strip()
         if not line:
@@ -854,6 +857,23 @@ class FastExportFilter(object):
     # to subsequent commits being empty
     self._files_tweaked = set()
 
+    # Compile some regexes and cache those
+    self._mark_re = re.compile(r'mark :(\d+)\n$')
+    self._parent_regexes = {}
+    parent_regex_rules = ('{} :(\d+)\n$', '{} ([0-9a-f]{{40}})\n')
+    for parent_refname in ('from', 'merge'):
+      ans = [re.compile(x.format(parent_refname)) for x in parent_regex_rules]
+      self._parent_regexes[parent_refname] = ans
+    self._modify_re = re.compile('M (\d+) (?::?([0-9a-f]{40}|\d+)) (.*)\n$')
+    self._quoted_string_re = re.compile(r'"(?:[^"\\]|\\.)*"')
+    self._refline_regexes = {}
+    for refline_name in ('reset', 'commit', 'tag', 'progress'):
+      self._refline_regexes[refline_name] = re.compile(refline_name+' (.*)\n$')
+    self._user_regexes = {}
+    for user in ('author', 'committer', 'tagger'):
+      self._user_regexes[user] = re.compile(user + ' (.*?) <(.*?)> (.*)\n$')
+    self._hash_re = re.compile(r'(\b[0-9a-f]{7,40}\b)')
+
   def _advance_currentline(self):
     """
     Grab the next line of input
@@ -866,7 +886,7 @@ class FastExportFilter(object):
     next line; return None otherwise
     """
     mark = None
-    matches = re.match('mark :(\d+)\n$', self._currentline)
+    matches = self._mark_re.match(self._currentline)
     if matches:
       mark = int(matches.group(1))+self._id_offset
       self._advance_currentline()
@@ -880,7 +900,8 @@ class FastExportFilter(object):
     refname arg.
     """
     orig_baseref, baseref = None, None
-    matches = re.match('%s :(\d+)\n' % refname, self._currentline)
+    rule, altrule = self._parent_regexes[refname]
+    matches = rule.match(self._currentline)
     if matches:
       orig_baseref = int(matches.group(1)) + self._id_offset
       # We translate the parent commit mark to what it needs to be in
@@ -888,7 +909,7 @@ class FastExportFilter(object):
       baseref = _IDS.translate(orig_baseref)
       self._advance_currentline()
     else:
-      matches = re.match('%s ([0-9a-f]{40})\n' % refname, self._currentline)
+      matches = altrule.match(self._currentline)
       if matches:
         orig_baseref = matches.group(1)
         baseref = orig_baseref
@@ -904,9 +925,7 @@ class FastExportFilter(object):
     """
     filechange = None
     if self._currentline.startswith('M '):
-      (mode, idnum, path) = \
-        re.match('M (\d+) (?::?([0-9a-f]{40}|\d+)) (.*)\n$',
-                 self._currentline).groups()
+      (mode, idnum, path) = self._modify_re.match(self._currentline).groups()
       # We translate the idnum to our id system
       if len(idnum) != 40:
         idnum = _IDS.translate( int(idnum)+self._id_offset )
@@ -926,7 +945,7 @@ class FastExportFilter(object):
     elif self._currentline.startswith('R '):
       rest = self._currentline[2:-1]
       if rest.startswith('"'):
-        m = re.match(r'"(?:[^"\\]|\\.)*"', rest)
+        m = self._quoted_string_re.match(rest)
         if not m:
           raise SystemExit("Couldn't parse rename source")
         orig = PathQuoting.dequote(m.group(0))
@@ -951,7 +970,7 @@ class FastExportFilter(object):
     current-line does not match, so current-line will always be advanced if
     this method returns.
     """
-    matches = re.match('%s (.*)\n$' % refname, self._currentline)
+    matches = self._refline_regexes[refname].match(self._currentline)
     if not matches:
       raise SystemExit("Malformed %s line: '%s'" %
                        (refname, self._currentline))
@@ -964,9 +983,8 @@ class FastExportFilter(object):
     Get user name, email, datestamp from current-line. Current-line will
     be advanced.
     """
-    (name, email, when) = \
-      re.match('%s (.*?) <(.*?)> (.*)\n$' %
-               usertype, self._currentline).groups()
+    user_regex = self._user_regexes[usertype]
+    (name, email, when) = user_regex.match(self._currentline).groups()
 
     # TimeZone idiocy; IST is any of four timezones, so someone translated
     # it to something that was totally invalid...and it got recorded that
@@ -985,7 +1003,9 @@ class FastExportFilter(object):
     Reads data from _input. Current-line will be advanced until it is beyond
     the data.
     """
-    size = int(re.match('data (\d+)\n$', self._currentline).group(1))
+    fields = self._currentline.split()
+    assert fields[0] == 'data'
+    size = int(fields[1])
     data = self._input.read(size)
     self._advance_currentline()
     if self._currentline == '\n':
@@ -1316,9 +1336,7 @@ class FastExportFilter(object):
         (committer_name, committer_email, committer_date)
 
     commit_msg = self._parse_data()
-    commit_msg = re.sub(r'(\b[0-9a-f]{7,40}\b)',
-                        self._translate_commit_hash,
-                        commit_msg)
+    commit_msg = self._hash_re.sub(self._translate_commit_hash, commit_msg)
 
     pinfo = [self._parse_optional_parent_ref('from')]
     # Due to empty pruning, we can have real 'from' and 'merge' lines that
@@ -1541,6 +1559,7 @@ class FastExportFilter(object):
         f.write('{} {}\n'.format(old, new if new != None else deleted_hash))
 
     batch_check_process = None
+    batch_check_output_re = re.compile('^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
     with open(os.path.join(metadata_dir, 'ref-map'), 'w') as f:
       for refname, old_hash in orig_refs.iteritems():
         if refname in refs_nuked:
@@ -1557,7 +1576,7 @@ class FastExportFilter(object):
                                                    cwd=self._repo_working_dir)
           batch_check_process.stdin.write(refname+"\n")
           line = batch_check_process.stdout.readline()
-          m = re.match('^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$', line)
+          m = batch_check_output_re.match(line)
           if not m or m.group(2) != 'tag':
             raise SystemExit("Failed to find new id for {} (old id was {})"
                              .format(refname, old_hash))
@@ -1736,6 +1755,8 @@ class FilteringOptions(object):
       else:
         mod_type = 'filter'
         match_type = suffix
+      if match_type == 'regex':
+        values = re.compile(values)
       items = getattr(namespace, self.dest, []) or []
       items.append((mod_type, match_type, values))
       setattr(namespace, self.dest, items)
@@ -2631,7 +2652,7 @@ class RepoFilter(object):
             wanted = True
           if match_type == 'glob' and fnmatch.fnmatch(pathname, path_exp):
             wanted = True
-          if match_type == 'regex' and re.search(path_exp, pathname):
+          if match_type == 'regex' and path_exp.search(pathname):
             wanted = True
         elif mod_type == 'rename':
           old_exp, new_exp = path_exp.split(':')
