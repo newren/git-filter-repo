@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+
+import timeit
+#import time
+#import random
+import re
+
+class Lame(object):
+  def __init__(self, line):
+    self._currentline = line
+    self._id_offset = 0
+
+  def _advance_currentline(self):
+    pass
+
+  def _parse_optional_filechange(self):
+    """
+    If the current line contains a file-change object, then parse it
+    and advance the current line; otherwise return None. We only care
+    about file changes of type 'M' and 'D' (these are the only types
+    of file-changes that fast-export will provide).
+    """
+    filechange = None
+    if self._currentline.startswith('M '):
+      (mode, idnum, path) = \
+        re.match('M (\d+) (?::?([0-9a-f]{40}|\d+)) (.*)\n$',
+                 self._currentline).groups()
+      # We translate the idnum to our id system
+      if len(idnum) != 40:
+        idnum = int(idnum)+self._id_offset
+      if idnum is not None:
+        if path.startswith('"'):
+          path = PathQuoting.dequote(path)
+        filechange = ('M', path, idnum, mode)
+      else:
+        filechange = 'skipped'
+      self._advance_currentline()
+    elif self._currentline.startswith('D '):
+      path = self._currentline[2:-1]
+      if path.startswith('"'):
+        path = PathQuoting.dequote(path)
+      filechange = ('D', path)
+      self._advance_currentline()
+    elif self._currentline.startswith('R '):
+      rest = self._currentline[2:-1]
+      if rest.startswith('"'):
+        m = re.match(r'"(?:[^"\\]|\\.)*"', rest)
+        if not m:
+          raise SystemExit("Couldn't parse rename source")
+        orig = PathQuoting.dequote(m.group(0))
+        new = rest[m.end()+1:]
+      else:
+        orig, new = rest.split(' ', 1)
+      if new.startswith('"'):
+        new = PathQuoting.dequote(new)
+      filechange = ('R', orig, new)
+      self._advance_currentline()
+    return filechange
+
+  def _parse_optional_filechange2(self):
+    """
+    If the current line contains a file-change object, then parse it
+    and advance the current line; otherwise return None. We only care
+    about file changes of type 'M' and 'D' (these are the only types
+    of file-changes that fast-export will provide).
+    """
+    filechange = None
+    changetype = self._currentline[0]
+    if changetype == 'M':
+      # mode is \d+, idnum is :\d+ or a hash, path is a string
+      (changetype, mode, idnum, path) = self._currentline.split(None, 3)
+      if idnum[0] == ':':
+        idnum = idnum[1:]
+      # We translate the idnum to our id system
+      if len(idnum) != 40:
+        idnum = int(idnum)+self._id_offset
+      if idnum is not None:
+        if path.startswith('"'):
+          path = PathQuoting.dequote(path)
+        filechange = ('M', path, idnum, mode)
+      else:
+        filechange = 'skipped'
+      self._advance_currentline()
+    elif changetype == 'D':
+      (changetype, path) = self._currentline.split(None, 1)
+      if path.startswith('"'):
+        path = PathQuoting.dequote(path)
+      filechange = ('D', path)
+      self._advance_currentline()
+    elif changetype == 'R':
+      rest = self._currentline[2:-1]
+      if rest.startswith('"'):
+        m = re.match(r'"(?:[^"\\]|\\.)*"', rest)
+        if not m:
+          raise SystemExit("Couldn't parse rename source")
+        orig = PathQuoting.dequote(m.group(0))
+        new = rest[m.end()+1:]
+      else:
+        orig, new = rest.split(' ', 1)
+      if new.startswith('"'):
+        new = PathQuoting.dequote(new)
+      filechange = ('R', orig, new)
+      self._advance_currentline()
+    return filechange
+
+a = timeit.timeit(stmt = "f._parse_optional_filechange()",
+                  setup = "from __main__ import Lame; f = Lame('M 100644 :32 path/to/file\\n')")
+b = timeit.timeit(stmt = "f._parse_optional_filechange2()",
+                  setup = "from __main__ import Lame; f = Lame('M 100644 :32 path/to/file\\n')")
+print(a, b)
+
+#
+#words = {}
+#with open('/usr/share/dict/words') as f:
+#  for line in f:
+#    words[line.strip()] = random.randint(1,100)
+#
+#def getsum():
+#  sum = 0
+#  for word in words:
+#    if word in words:
+#      sum += words[word]
+#  for word in 'elijah, yun, yy, spencer, chris, alex, zach'.split(', ')*10000:
+#    if word in words:
+#      sum += words[word]
+#  return sum
+#
+#def getsumcache():
+#  sum = 0
+#  for word in words:
+#    value = words.get(word, 'INVALID')
+#    if value != 'INVALID':
+#      sum += value
+#  for word in 'elijah, yun, yy, spencer, chris, alex, zach'.split(', ')*10000:
+#    value = words.get(word, 'INVALID')
+#    if value != 'INVALID':
+#      sum += value
+#  return sum
+#
+#start = time.time()
+#value1 = getsum()
+#total1 = time.time()-start
+#
+#start = time.time()
+#value2 = getsumcache()
+#total2 = time.time()-start
+#
+#print(value1, value2)
+#print(total1, total2)
+##timeit.timeit('getsum()')
+##timeit.timeit('getsumcache()')
