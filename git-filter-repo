@@ -589,18 +589,18 @@ class Commit(_GitElementWithId):
       _EXTRA_CHANGES[self.id] = parent_extra_changes
     # End workaround
 
-    file_.write('commit %s\n' % self.branch)
-    file_.write('mark :%d\n' % self.id)
-    file_.write('author %s <%s> ' % (self.author_name, self.author_email))
-    file_.write(self.author_date)
-    file_.write('\n')
-    file_.write('committer %s <%s> ' % \
-                     (self.committer_name, self.committer_email))
-    file_.write(self.committer_date)
-    file_.write('\n')
-    file_.write('data %d\n%s' % (len(self.message), self.message))
-    if not self.message.endswith("\n"):
-      file_.write('\n')
+    file_.write(('commit {}\n'
+                 'mark :{}\n'
+                 'author {} <{}> {}\n'
+                 'committer {} <{}> {}\n'
+                 'data {}\n{}{}'
+                ).format(
+                  self.branch, self.id,
+                  self.author_name, self.author_email, self.author_date,
+                  self.committer_name, self.committer_email, self.committer_date,
+                  len(self.message), self.message,
+                  '' if self.message.endswith('\n') else '\n')
+               )
     if self.from_commit:
       mark = ':' if isinstance(self.from_commit, int) else ''
       file_.write('from {}{}\n'.format(mark, self.from_commit))
