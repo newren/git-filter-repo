@@ -1,9 +1,3 @@
-* Fix whitespace errors
-* Make a t9391/bfg script :-)
-* Check if setting bufsize for subprocess.Popen to large positive value helps
-* Use python timeit to see if to use regexes or splits
-* Make a git_filter_repo.py symlink to git-filter-repo in the toplevel
-
 Before widely announcing:
   - Notes on splitting
     - need to handle 1 export -> 2 imports
@@ -87,64 +81,6 @@ Safety stuff
 
 Other things:
   - add --skip-cleanup (pruning, gc, etc.; keep reset --hard) for speed compare
-
-Performance notes:
-  * On rails:
-    * 1) time git fast-export --show-original-ids --signed-tags=strip \
-                           --tag-of-filtered-object=rewrite --no-data \
-                           --use-done-feature --all >/dev/null
-    * 2) time git fast-export --show-original-ids --signed-tags=strip \
-                           --tag-of-filtered-object=rewrite --no-data \
-                           --use-done-feature --all >saved_output
-    * 3a) time git fast-export --show-original-ids --signed-tags=strip \
-                           --tag-of-filtered-object=rewrite --no-data \
-                           --use-done-feature --all \
-                           | sed -e s/+051800/+0261/ >/dev/null
-    * 3b) time git fast-export --show-original-ids --signed-tags=strip \
-                           --tag-of-filtered-object=rewrite --no-data \
-                           --use-done-feature --all \
-                           | stupid.py >/dev/null
-    * 4) time git fast-export --show-original-ids --signed-tags=strip \
-                           --tag-of-filtered-object=rewrite --no-data \
-                           --use-done-feature --all \
-                           | sed -e s/+051800/+0261/ \
-                           | git fast-import --force --quiet >/dev/null
-    * 5) time git repo-filter --invert-paths --path pushgems.rb
-         (with early quit right before removing unused refs)
-    * 6) time python -m cProfile -o repo-filter.profile \
-             ~/floss/git-repo-filter/git-repo-filter \
-             --invert-paths --path pushgems.rb
-    * 7) time java -jar ~/Downloads/bfg-1.13.0.jar --delete-files pushgems.rb
-
-
-      1:  3.910    fast-export
-      2:  3.958    fast-export + save output
-      3:  4.128    fast-export + sed (but toss output)
-      3a: 4.234    fast-export + python stdin using 'for' iterator
-      3b: 4.189    fast-export + python stdin using readline
-      3c:27.796    fast-export + python from subprocess using readline
-      3d: 4.196    fast-export + python from subprocess using 'for' iterator
-      3e: 4.580    fast-export + python3 from subprocess using readline
-      3f: 5.334    fast-export + python3 from subprocess using 'for' iterator
-      3g: 4.264    fast-export + python from subprocess using readline & bufsize
-      4: 11.279    fast-export + sed + fast-import
-      5: 64.098    filter-repo
-      5: 35.914    filter-repo, after bufsize=-1 for subprocess stuff
-      6: 69.150    filter-repo run under cProfile
-      7: 20.155    bfg
-
-    Other Notes:
-      * cProfile:
-        python -m cProfile -o filter-repo.profile \
-            ~/floss/git-filter-repo/git-filter-repo \
-            --invert-paths --path pushgems.rb
-        python
-        >>> import pstats
-        >>> p = pstats.Stats('filter-repo.profile')
-        >>> p.strip_dirs().sort_stats('cumtime').print_stats()
-      * reports 64.2% of time in readline()
-      * reports 37.0% of time under _advance_currentline
-
 
 Argument parsing stuff:
   # NOT YET IMPLEMENTED OPTIONS BELOW
