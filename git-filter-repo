@@ -16,6 +16,7 @@ import collections
 import fnmatch
 import os
 import re
+import shutil
 import StringIO
 import subprocess
 import sys
@@ -2475,8 +2476,7 @@ class RepoAnalyze(object):
       os.mkdir(results_tmp_dir)
     reportdir = os.path.join(results_tmp_dir, "analysis")
     if not args.force and os.path.isdir(reportdir):
-      raise SystemExit("Error: {} already exists; refusing to overwrite!".
-                       format(reportdir))
+      shutil.rmtree(reportdir)
     os.mkdir(reportdir)
 
     # Gather the data we need
