@@ -1627,6 +1627,9 @@ class FastExportFilter(object):
       if not issues_found:
         f.write("No filtering problems encountered.")
 
+    with open(os.path.join(metadata_dir, 'already_ran'), 'w') as f:
+       f.write("This file exists to allow you to filter again without --force.")
+
   def get_seen_refs(self):
     return self._seen_refs.keys()
 
@@ -2560,7 +2563,9 @@ class RepoFilter(object):
     is_bare = GitUtils.is_repository_bare(target_working_dir)
 
     # Do sanity checks from the correct directory
-    if not self._args.force:
+    tmp_dir = self.results_tmp_dir(create_if_missing=False)
+    if not self._args.force and \
+       not os.path.isfile(os.path.join(tmp_dir, 'already_ran')):
       cwd = os.getcwd()
       os.chdir(target_working_dir)
       RepoFilter.sanity_check(self._orig_refs, is_bare)
@@ -2732,11 +2737,11 @@ class RepoFilter(object):
   def handle_reset(args, reset, shortname = False):
     reset.ref = RepoFilter.new_tagname(args, reset.ref, shortname)
 
-  def results_tmp_dir(self):
+  def results_tmp_dir(self, create_if_missing=True):
     working_dir = self._args.target or self._args.source or '.'
     git_dir = GitUtils.determine_git_dir(working_dir)
     d = os.path.join(git_dir, 'filter-repo')
-    if not os.path.isdir(d):
+    if create_if_missing and not os.path.isdir(d):
       os.mkdir(d)
     return d
 
