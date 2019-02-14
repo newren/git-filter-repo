@@ -2161,7 +2161,10 @@ class RepoAnalyze(object):
            ' --date=short -M -t -c --raw --combined-all-paths')
     dtp = subprocess.Popen(cmd, shell=True, bufsize=-1, stdout=subprocess.PIPE)
     f = dtp.stdout
-    line = f.next()
+    try:
+      line = f.next()
+    except StopIteration:
+      raise SystemExit("Nothing to analyze; repository is empty.")
     cont = bool(line)
     graph = AncestryGraph()
     while cont:
