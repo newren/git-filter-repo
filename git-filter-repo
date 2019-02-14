@@ -1069,6 +1069,13 @@ class FastExportFilter(object):
     if self._currentline == '\n':
       self._advance_currentline()
 
+    # fast-export likes to print extraneous resets that serve no purpose.
+    # While we could continue processing such resets, that is a waste of
+    # resources.  Also, we want to avoid recording that this ref was
+    # seen in such cases, since this ref could be rewritten to nothing.
+    if not from_ref:
+      return
+
     # Create the reset
     reset = Reset(ref, from_ref)
 
@@ -1418,7 +1425,8 @@ class FastExportFilter(object):
         rewrite_to = new_1st_parent or commit.first_parent()
         # We skip empty commits, but want to keep track to make sure our branch
         # still gets set and/or updated appropriately.
-        self._seen_refs[commit.branch] = rewrite_to # need reset
+        if rewrite_to:
+          self._seen_refs[commit.branch] = rewrite_to # need reset
         commit.skip(new_id = rewrite_to)
         self._commit_renames[commit.original_id] = None
 
