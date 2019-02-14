@@ -1816,8 +1816,7 @@ class FilteringOptions(object):
                                      add_help = False,
                                      epilog = example_text,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    # FIXME: Need to special case all --* args that rev-list takes, or call
-    # git rev-parse ...
+
     analyze = parser.add_argument_group(title='Analysis')
     analyze.add_argument('--analyze', action='store_true',
                          help='''Analyze repository history and create a
@@ -1825,14 +1824,9 @@ class FilteringOptions(object):
                                  what to filter in a subsequent run.  Will
                                  not modify your repo.''')
 
-    refs = parser.add_argument_group(title='Git References (positional args)')
-    refs.add_argument('refs', nargs='*',
-                      help='''git refs (branches, tags, etc.) to rewrite,
-                              e.g. 'master v2.1.0 v0.5.0'.  Special rev-list
-                              options, such as --branches, --tags, --all, --glob,
-                              or --exclude are allowed.  [default: --all].  To
-                              avoid mixing new history with old, any references
-                              not specified will be deleted.''')
+    refs = parser.add_argument_group(title='Git References')
+    refs.add_argument('--refs', action='store_const', const=['--all'],
+                      default=['--all'], help=argparse.SUPPRESS)
 
     path = parser.add_argument_group(title='Filtering based on paths')
     path.add_argument('--invert-paths', action='store_false',
@@ -1946,8 +1940,6 @@ class FilteringOptions(object):
 
   @staticmethod
   def sanity_check_args(args):
-    if not args.refs:
-      args.refs = ['--all']
     if args.analyze and args.path_changes:
       raise SystemExit("Error: --analyze is incompatible with --path* flags; "
                        "it's a read-only operation.")
