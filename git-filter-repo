@@ -2643,7 +2643,7 @@ class RepoFilter(object):
       for regex,   replacement in args.replace_text['regexes']:
         blob.data = regex.sub(replacement, blob.data)
 
-  def tweak_commit(self, args, commit):
+  def tweak_commit(self, commit):
     def filename_matches(path_expression, pathname):
       if path_expression == '':
         return True
@@ -2674,6 +2674,7 @@ class RepoFilter(object):
       return pathname if (wanted == filtering_is_inclusive) else None
 
     # Change the author & committer according to mailmap rules
+    args = self._args
     if args.mailmap:
       commit.author_name, commit.author_email = \
           args.mailmap.translate(commit.author_name, commit.author_email)
@@ -2682,7 +2683,8 @@ class RepoFilter(object):
 
     # Sometimes the 'branch' given is a tag; if so, rename it as requested so
     # we don't get any old tagnames
-    commit.branch = RepoFilter.new_tagname(args, commit.branch)
+    if self._args.tag_rename:
+      commit.branch = RepoFilter.do_tag_rename(args.tag_rename, commit.branch)
 
     # Filter the list of file changes
     new_file_changes = {}
@@ -2715,27 +2717,28 @@ class RepoFilter(object):
     commit.file_changes = new_file_changes.values()
 
   @staticmethod
-  def new_tagname(args, tagname, shortname = False):
-    replace = args.tag_rename
-    if not replace:
-      return tagname
-    old, new = replace.split(':', 1)
-    if not shortname:
-      old, new = 'refs/tags/'+old, 'refs/tags/'+new
+  def do_tag_rename(rename_pair, tagname):
+    old, new = rename_pair.split(':', 1)
+    old, new = 'refs/tags/'+old, 'refs/tags/'+new
     if tagname.startswith(old):
       return tagname.replace(old, new, 1)
     return tagname
 
-  @staticmethod
-  def handle_tag(args, tag, shortname = False):
-    tag.ref = RepoFilter.new_tagname(args, tag.ref, shortname)
-    if args.mailmap:
-      tag.tagger_name, tag.tagger_email = \
-          args.mailmap.translate(tag.tagger_name, tag.tagger_email)
+  def handle_tag(self, tag):
+    # Tweak the tag name according to tag_rename rules
+    if self._args.tag_rename:
+      fullref = 'refs/tags/'+tag.ref
+      fullref = RepoFilter.do_tag_rename(self._args.tag_rename, fullref)
+      tag.ref = fullref[len('refs/tags/'):]
 
-  @staticmethod
-  def handle_reset(args, reset, shortname = False):
-    reset.ref = RepoFilter.new_tagname(args, reset.ref, shortname)
+    # Tweak the tagger according to mailmap rules
+    if self._args.mailmap:
+      tag.tagger_name, tag.tagger_email = \
+          self._args.mailmap.translate(tag.tagger_name, tag.tagger_email)
+
+  def handle_reset(self, reset):
+    if self._args.tag_rename:
+      reset.ref = RepoFilter.do_tag_rename(self._args.tag_rename, reset.ref)
 
   def results_tmp_dir(self, create_if_missing=True):
     working_dir = self._args.target or self._args.source or '.'
@@ -2868,13 +2871,13 @@ class RepoFilter(object):
         RepoFilter.tweak_blob(self._args, b)
         self._blob_callback and self._blob_callback(b)
       def actual_commit_callback(c):
-        self.tweak_commit(self._args, c)
+        self.tweak_commit(c)
         self._commit_callback and self._commit_callback(c)
       def actual_tag_callback(t):
-        RepoFilter.handle_tag(self._args, t, shortname = True)
+        self.handle_tag(t)
         self._tag_callback and self._tag_callback(t)
       def actual_reset_callback(r):
-        RepoFilter.handle_reset(self._args, r)
+        self.handle_reset(r)
         self._reset_callback and self._reset_callback(r)
       actual_blob_callback = self._blob_callback
       if self._args.replace_text:
