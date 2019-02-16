@@ -2519,18 +2519,32 @@ class DualFileWriter:
 class RepoFilter(object):
   def __init__(self,
                args,
+               filename_callback = None,
+               message_callback = None,
+               person_name_callback = None,
+               email_callback = None,
+               refname_callback = None,
                blob_callback = None,
                commit_callback = None,
                tag_callback = None,
                reset_callback = None,
                everything_callback = None):
-    # Store arguments for later use
+
     self._args = args
-    self._blob_callback       = blob_callback
-    self._commit_callback     = commit_callback
-    self._tag_callback        = tag_callback
-    self._reset_callback      = reset_callback
-    self._everything_callback = everything_callback
+
+    # Store callbacks for acting on objects printed by FastExport
+    self._blob_callback        = blob_callback
+    self._commit_callback      = commit_callback
+    self._tag_callback         = tag_callback
+    self._reset_callback       = reset_callback
+    self._everything_callback  = everything_callback  # {blob,commit,tag,reset}
+
+    # Store callbacks for acting on slices of FastExport objects
+    self._filename_callback    = filename_callback    # filenames from commits
+    self._message_callback     = message_callback     # commit OR tag message
+    self._person_name_callback = person_name_callback # author, committer, tagger
+    self._email_callback       = email_callback       # author, committer, tagger
+    self._refname_callback     = refname_callback     # from commit/tag/reset
 
     # Defaults for input
     self._input = None
@@ -2673,6 +2687,10 @@ class RepoFilter(object):
             pathname = pathname.replace(old_exp, new_exp, 1)
       return pathname if (wanted == filtering_is_inclusive) else None
 
+    # Change the commit message according to callback
+    if self._message_callback:
+      commit.message = self._message_callback(commit.message)
+
     # Change the author & committer according to mailmap rules
     args = self._args
     if args.mailmap:
@@ -2680,13 +2698,22 @@ class RepoFilter(object):
           args.mailmap.translate(commit.author_name, commit.author_email)
       commit.committer_name, commit.committer_email = \
           args.mailmap.translate(commit.committer_name, commit.committer_email)
+    # Change author & committer according to callbacks
+    if self._person_name_callback:
+      commit.author_name = self._person_name_callback(commit.author_name)
+      commit.committer_name = self._person_name_callback(commit.committer_name)
+    if self._email_callback:
+      commit.author_email = self._email_callback(commit.author_email)
+      commit.committer_email = self._email_callback(commit.committer_email)
 
     # Sometimes the 'branch' given is a tag; if so, rename it as requested so
     # we don't get any old tagnames
     if self._args.tag_rename:
       commit.branch = RepoFilter.do_tag_rename(args.tag_rename, commit.branch)
+    if self._refname_callback:
+      commit.branch = self._refname_callback(commit.branch)
 
-    # Filter the list of file changes
+    # Filter or rename the list of file changes
     new_file_changes = {}
     for change in commit.file_changes:
       if change.filename in self._newnames:
@@ -2694,6 +2721,8 @@ class RepoFilter(object):
       else:
         change.filename = newname(args.path_changes, change.filename,
                                   args.inclusive)
+        if self._filename_callback:
+          change.filename = self._filename_callback(change.filename)
         self._newnames[change.filename] = change.filename
       if not change.filename:
         continue # Filtering criteria excluded this file; move on to next one
@@ -2725,20 +2754,37 @@ class RepoFilter(object):
     return tagname
 
   def handle_tag(self, tag):
-    # Tweak the tag name according to tag_rename rules
-    if self._args.tag_rename:
-      fullref = 'refs/tags/'+tag.ref
-      fullref = RepoFilter.do_tag_rename(self._args.tag_rename, fullref)
-      tag.ref = fullref[len('refs/tags/'):]
+    # Tweak the tag message according to callbacks
+    if self._message_callback:
+      tag.message = self._message_callback(tag.message)
 
-    # Tweak the tagger according to mailmap rules
+    # Tweak the tag name according to callbacks
+    tag_prefix = 'refs/tags/'
+    fullref = tag_prefix+tag.ref
+    if self._args.tag_rename:
+      fullref = RepoFilter.do_tag_rename(self._args.tag_rename, fullref)
+    if self._refname_callback:
+      fullref = self._refname_callback(fullref)
+      if not fullref.startswith(tag_prefix):
+        msg = "Error: fast-import requires tags to be in refs/tags/ namespace."
+        msg += "\n       {} renamed to {}".format(tag_prefix+tag.ref, fullref)
+        raise SystemExit(msg)
+    tag.ref = fullref[len(tag_prefix):]
+
+    # Tweak the tagger according to callbacks
     if self._args.mailmap:
       tag.tagger_name, tag.tagger_email = \
           self._args.mailmap.translate(tag.tagger_name, tag.tagger_email)
+    if self._person_name_callback:
+      tag.tagger_name = self._person_name_callback(tag.tagger_name)
+    if self._email_callback:
+      tag.tagger_email = self._email_callback(tag.tagger_email)
 
   def handle_reset(self, reset):
     if self._args.tag_rename:
       reset.ref = RepoFilter.do_tag_rename(self._args.tag_rename, reset.ref)
+    if self._refname_callback:
+      reset.ref = self._refname_callback(reset.ref)
 
   def results_tmp_dir(self, create_if_missing=True):
     working_dir = self._args.target or self._args.source or '.'
