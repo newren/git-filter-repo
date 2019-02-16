@@ -1,86 +1,134 @@
-Before widely announcing:
-  - Notes on splitting
-    - need to handle 1 export -> 2 imports
-  - Test setup
-    - Add several more tests, particularly around:
-      - commit pruning
-        - pruning commits that become empty
-	- pruning commits that started empty and have no parent
-	- not pruning commits that have changes or remain a merge commit
-        - pruning parent(s) of a merge
-        - coalescing common commits of a merge
-	- coalescing parents of a merge when one is an ancestor of the other
-	- crazy no-ff stuff
-	- what about when splicing repos; does it still work?
-      - ref pruning
-        - tags pointing at commits which are pruned along with their history
-	- refs pointing at commits which are pruned along with their history
-	- refs or tags behind a negative revision specification
-      - commit message rewriting
-        - does it also work with repo splicing?
-      - renaming, particular when it causes collisions
-      - use coverage.py to direct test writing
+Callbacks
+  - filename_callback
+  - message_callback (commit and tag messages; see also commit/tag_callback)
+  - person_name_callback
+  - email_callback
+  - date_callback (?!?  author/committer/tagger)
+  - refname_callback (error if annotated tag gets rewritten outside refs/tags/)
+  - commit_callback
+  - blob_callback
+  - tag_callback
 
 Crazy ideas, showing filter-repo flexibility:
-  - implement bfg
-  - implement filter-branch (except only provide changed files)
+  - show modifying mode (e.g. mark executable)
+  - delete commits older than certain date (simple commit.skip())
+  - alternative path filtering
+    - doing case-insensitive path deletion
+    - clean via (current) .gitignore files [see git-check-ignore]
+  - removing/inserting files
+    - removing symlinks?
+    - adding a new file (LICENSE/COPYING) to the beginning of history
+    - remove a submodule (copy contents into tree for each submodule commit)
+    - extract to submodule (where to put submodule history though?)
+    - convert to git lfs
+  - reformatting (lint) files in history [maybe only via git-very-bad-idea??]
+  - extend argument parser and use extended version
+  - git-bfgish (bfg) and git-very-bad-idea (filter-branch, on changed-only tree)
 
-Generate upstream patches:
-  - Tags of tags of commits fail to export (so does tags of blobs):
-    - In git.git, try:
-      $ git fast-export --no-data --use-done-feature --signed-tags=strip \
-                  --tag-of-filtered-object=rewrite-feature v1.0rc1 >/dev/null
+More thorough testing
+  - commit pruning
+    - pruning commits that become empty
+      - pruning commits that started empty and have no parent
+      - not pruning commits that have changes or remain a merge commit
+    - pruning parent(s) of a merge
+    - coalescing common commits of a merge
+      - coalescing parents of a merge when one is an ancestor of the other
+      - crazy no-ff stuff
+      - what about when splicing repos; does it still work?
+  - ref pruning
+    - tags pointing at commits which are pruned along with their history
+      - refs pointing at commits which are pruned along with their history
+      - refs or tags behind a negative revision specification
+  - splitting a repo in addition to splicing
+  - commit message rewriting
+    - does it also work with repo splicing/splitting?
+  - renaming, particular when it causes collisions
+  - use coverage.py to direct test writing
+
+Repository diffing
+  - Specialized fast-export --no-data --show-original-ids --all output
+  - If blobs differ, then I manually augment output with blob info
+  - Replace "from :<id>" with "from :<commit-msg-summary>"
+  - Filter out original ids, but remember them
+  - Change "commit <refname>" lines into just "commit"
+  - At the end, augment with "reset <refname> from :<commit-msg-summary>"
+    for each non-tag refname, in sorted order
+
+Bug reporting:
+  git.git:
+    - fast export fails on tags of blobs (example: git.git)
+    - fast export fails on tags of tags (example: git.git)
+      - $ git fast-export --no-data --use-done-feature --signed-tags=strip \
+              --tag-of-filtered-object=rewrite-feature v1.0rc1 >/dev/null
       fatal: tag 5f4cd4ca015dc795b9f7f4fed11b3f80a60ac175 tags unexported tag!
+    - [fundamental] fast export fails on tags of trees (example: linux.git)
+    - fast export does not report annotated/signed tags outside of refs/tags/
+      namespace correctly when name doesn't match internal 'tag' field.
+    - fast import always places tags under refs/tags/, which combined with
+      fast export reported tags outside of refs/tags/ weird means we get tags
+      that migrate to new locations.
 
-Bigger ideas
-  - Performance:
-    - Smarter record_remapping -- do it lazily
-    - memoize net result: dequote -> do mods -> requote
-    - Smarter become-empty checks; only do more expensive checks if:
-      - First parent is no longer original first parent or ancestor thereof
-        - e.g. first-parent history empty, second parent becomes first parent
-        - e.g. --parent-filter causes some kind of graft operation (although
-               maybe we don't want to prune in this case anyway...)
-      - Blob filtering is active AND the only file_changes involved correspond
-        to filenames that have previously been modified.
-  - Work with submodules
-  - Important features
-    - paths-from-file (--paths-from-file <(git ls-tree -r HEAD)
-    - include-old-names-of-specified-files
-      - so users don't have to look for rename data from --analyze
-  - Do git rev-list --count to get idea of amount of work; show progress
+Handle tags of trees:
+  - create commit has the given tree as main objects, rewrite the tag to tag it
+  - run it through normal filter-repo stuff
+  - at the end, rewrite the tag to tag its commit's tree
 
-Left over bits:
-  - Fix up --analyze
-    * shouldn't allow running --analyze with negative refspecs
-    * add a --no-detect-renames option (for performance)
+Document or start conversation around general issues:
+  - May not be able to force push over e.g. refs/changes/, refs/pulls/, etc.
+  - People need a way to do "update project", and get GitHub/Gerrit/Gitlab fixed
+
+Other feature ideas:
+  - Compatibility:
+    - Handle grafts and replace files
+    - Is any work needed to handle submodules?
+  - Options:
+    - paths-from-file (similar to --replace-text, maybe also invert or basename?)
+    - include-old-names-of-specified-files (auto get rename data from --analyze?)
+    - Write git notes mapping old ids to new ids (or make special references?)
+    - add --skip-cleanup (pruning, gc, etc.; keep reset --hard) for speed compare
+    - Old list:
+      - --keep-excluded-revisions
+      - --keep-excluded-refs
+      - --store-backup
+      - --empty-pruning={no/off,auto,always/on}
+      - --no-ff-pruning={no/off,auto,always/on}
+      - --negative-refs={drop,reference}
+
+Cleanups and left-over bits:
+  - put $(git --exec-path) in front of PYTHONPATH before importing?
+  - should handle remote symrefs better (don't special case origin/HEAD)
   - metadata
     - On second and subsequent runs, update metadata instead of overwriting
        - for maps, give beginning_hash -> end_hash, not intermediate hashes
-    - OR error out if .git/filter-repo already created?
   - error out if any progress messages in stream (can't deal with them unless
     we can pass --cat-blob-fd to fast-import, and that seems non-portable)
 
-Add a filename_callback parameter for those that want to affect just that
-Add
-  --blob-callback <string serving as python code>
-  --commit-callback <string serving as python code>
-  --tag-callback <string serving as python code>
-and two special ones:
-  --refname-callback <string serving as python code>
-  --filename-callback <string serving as python code>
+Documentation
+  - Examples, include these in:
+    - help output
+    - README.md
+    - manpage
+  - Backward compatiblity guarantees (or lack thereof)
+    - Big comment at top of git-filter-tree
+    - Reference caveat next to every import statement
+  - Make list of caveats:
+    - notes about history becoming incompatible (from rebase documentation)
+    - signed tags will be stripped
+    - empty commit pruning and topological changes
+    - commit message rewriting
+    - path rename collisions
+    - all the git.git bug reports
 
-
-Safety stuff
-  --keep-excluded-revisions
-  --keep-excluded-refs
-  --store-backup
-  --empty-pruning={no/off,auto,always/on}
-  --no-ff-pruning={no/off,auto,always/on}
-  --negative-refs={drop,reference}
-
-Other things:
-  - add --skip-cleanup (pruning, gc, etc.; keep reset --hard) for speed compare
+Performance:
+  - Smarter record_remapping -- do it lazily
+  - Pathquoting memoization; or full result? (dequote -> do mods -> requote)
+  - Smarter become-empty checks; only do more expensive checks if:
+    - First parent is no longer original first parent or ancestor thereof
+      - e.g. first-parent history empty, second parent becomes first parent
+      - e.g. --parent-filter causes some kind of graft operation (although
+             maybe we don't want to prune in this case anyway...)
+    - Blob filtering is active AND the only file_changes involved correspond
+      to filenames that have previously been modified.
 
 Argument parsing stuff:
   # NOT YET IMPLEMENTED OPTIONS BELOW
@@ -122,3 +170,17 @@ Argument parsing stuff:
                             changes).  With --keep-excluded-revisions, those
                             commits are all retained (in their unfiltered
                             form).''')
+
+BFG issues:
+  - only works if repo is packed (can't find sizes of loose objects)
+  - can fail badly if not pre-gc'ed (issue 7)
+  - rewrite of files annoyingly leaves ids around if nuked by size
+  - private is weird/annoying: issue 139, issue 112
+  - filter-content-including doesn't affect -b option
+  - After replace text operation, index & working tree not updated
+    - may be the 'real' reason behind blob protection?
+  - Doesn't auto-repack (users think repo got bigger, may slow down)
+  - Issue 221: JGit looks at pack-refs and not individual refs, causing problems
+  - Issue 221: symrefs cause problems
+  - Issue 116: --convert-to-git-lfs doesn't really work
+    - and in Issue 215 they suggest https://github.com/bozaro/git-lfs-migrate

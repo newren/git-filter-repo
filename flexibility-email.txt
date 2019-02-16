@@ -1,0 +1,51 @@
+Subject 1: filter-repo: history rewriting tool OR tool for writing history rewriting tools?
+Subject 2: filter-repo versatility
+
+
+Hi everyone,
+
+A while ago, Jonathan expressed a worry that making filter-repo a core
+command could discourage experimentation with history-rewriting, much
+as he felt filter-branch did.  So, I came up with a crazy idea to
+demonstrate why I think including filter-repo may actually do the
+opposite:
+
+  I re-wrote BFG and filter-branch as scripts on top of filter-repo.
+
+You can see these scripts at t/t9392/git-bfgish and
+t/t9392/git-really-bad-idea in the filter-repo repository.  In BFG's
+case, I left out BFG's nice post-run reports but believe I implemented
+everything else and lightly tested on a couple cases to verify I got
+the same results[1].  In filter-branch's case, what I implemented is
+technically not backwards compatible -- it creates trees and indexes
+with only the subset of files that changed in any given commit and
+without access to the full 'git-log' of history to that point.  BUT,
+I've never seen a filter-branch invocation that made use of either in
+modifying history, so it gives results that match filter-branch for
+all practical intents and purposes[2].
+
+Crazy?  Genius?  I don't know.
+
+
+
+Maybe most people will just use filter-repo as a simple tool and I'm
+the only one interested in this kind of flexibility, but filter-repo
+is certainly far more versatile than filter-branch in addition to being
+faster and (in my opinion) having much better usability.
+
+
+
+[1] Of course, I had to disable empty commit pruning, make sure to
+only match on file basenames rather than full paths, and needed to add
+the concept of blob protection in order to match, but none of this
+needed changes to filter-repo core.  Only the match on blob size
+needed a change to filter-repo core, and it was relatively small and
+something I wanted anyway.
+
+[2] Also, to match filter branch I did have to turn off automatic
+commit message updating, use less-accurate prune-empty logic, slow
+history rewriting to a crawl by forking zillions of shell commands
+(though it's still a lot faster than filter-branch), implement
+infuriating defaults, add usability pitfalls for users, etc., but it
+allowed me to compare end results (e.g. git show-ref) and verify
+identicalness.
