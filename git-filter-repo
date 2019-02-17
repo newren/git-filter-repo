@@ -1908,6 +1908,37 @@ class FilteringOptions(object):
                                a replacement choice other than the default of
                                "***REMOVED***". ''')
 
+    callback = parser.add_argument_group(title='Generic callback code snippets')
+    callback.add_argument('--filename-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing filenames;
+                                  see CALLBACKS sections below.''')
+    callback.add_argument('--message-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing messages
+                                  (both commit messages and tag messages);
+                                  see CALLBACKS sections below.''')
+    callback.add_argument('--name-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing names of
+                                  people; see CALLBACKS sections below.''')
+    callback.add_argument('--email-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing emails
+                                  addresses; see CALLBACKS sections below.''')
+    callback.add_argument('--refname-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing refnames;
+                                  see CALLBACKS sections below.''')
+
+    callback.add_argument('--blob-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing blob objects;
+                                  see CALLBACKS sections below.''')
+    callback.add_argument('--commit-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing commit objects;
+                                  see CALLBACKS sections below.''')
+    callback.add_argument('--tag-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing tag objects;
+                                  see CALLBACKS sections below.''')
+    callback.add_argument('--reset-callback', metavar="FUNCTION_BODY",
+                          help='''Python code body for processing reset objects;
+                                  see CALLBACKS sections below.''')
+
     location = parser.add_argument_group(title='Location to filter from/to')
     location.add_argument('--source',
                           help='''Git repository to read from''')
@@ -2521,7 +2552,7 @@ class RepoFilter(object):
                args,
                filename_callback = None,
                message_callback = None,
-               person_name_callback = None,
+               name_callback = None,
                email_callback = None,
                refname_callback = None,
                blob_callback = None,
@@ -2540,11 +2571,12 @@ class RepoFilter(object):
     self._everything_callback  = everything_callback  # {blob,commit,tag,reset}
 
     # Store callbacks for acting on slices of FastExport objects
-    self._filename_callback    = filename_callback    # filenames from commits
-    self._message_callback     = message_callback     # commit OR tag message
-    self._person_name_callback = person_name_callback # author, committer, tagger
-    self._email_callback       = email_callback       # author, committer, tagger
-    self._refname_callback     = refname_callback     # from commit/tag/reset
+    self._filename_callback    = filename_callback  # filenames from commits
+    self._message_callback     = message_callback   # commit OR tag message
+    self._name_callback        = name_callback      # author, committer, tagger
+    self._email_callback       = email_callback     # author, committer, tagger
+    self._refname_callback     = refname_callback   # from commit/tag/reset
+    self._handle_arg_callbacks()
 
     # Defaults for input
     self._input = None
@@ -2562,6 +2594,34 @@ class RepoFilter(object):
     self._sanity_checks_handled = False
     self._orig_refs = None
     self._newnames = {}
+
+  def _handle_arg_callbacks(self):
+    def make_callback(argname, str):
+      exec('def callback({}):\n'.format(argname)+
+           '  '+'\n  '.join(str.splitlines()), globals())
+      return callback #namespace['callback']
+    def handle(type):
+      callback_field = '_{}_callback'.format(type)
+      code_string = getattr(self._args, type+'_callback')
+      if code_string:
+        if getattr(self, callback_field):
+          raise SystemExit("Error: Cannot pass a {}_callback to RepoFilter "
+                           "AND pass --{}-callback"
+                           .format(type, type))
+        if 'return ' not in code_string and \
+           type not in ('blob', 'commit', 'tag', 'reset'):
+          raise SystemExit("Error: --{}-callback should have a return statement"
+                           .format(type))
+        setattr(self, callback_field, make_callback(type, code_string))
+    handle('filename')
+    handle('message')
+    handle('name')
+    handle('email')
+    handle('refname')
+    handle('blob')
+    handle('commit')
+    handle('tag')
+    handle('reset')
 
   def _run_sanity_checks(self):
     self._sanity_checks_handled = True
@@ -2699,9 +2759,9 @@ class RepoFilter(object):
       commit.committer_name, commit.committer_email = \
           args.mailmap.translate(commit.committer_name, commit.committer_email)
     # Change author & committer according to callbacks
-    if self._person_name_callback:
-      commit.author_name = self._person_name_callback(commit.author_name)
-      commit.committer_name = self._person_name_callback(commit.committer_name)
+    if self._name_callback:
+      commit.author_name = self._name_callback(commit.author_name)
+      commit.committer_name = self._name_callback(commit.committer_name)
     if self._email_callback:
       commit.author_email = self._email_callback(commit.author_email)
       commit.committer_email = self._email_callback(commit.committer_email)
@@ -2775,8 +2835,8 @@ class RepoFilter(object):
     if self._args.mailmap:
       tag.tagger_name, tag.tagger_email = \
           self._args.mailmap.translate(tag.tagger_name, tag.tagger_email)
-    if self._person_name_callback:
-      tag.tagger_name = self._person_name_callback(tag.tagger_name)
+    if self._name_callback:
+      tag.tagger_name = self._name_callback(tag.tagger_name)
     if self._email_callback:
       tag.tagger_email = self._email_callback(tag.tagger_email)
 
