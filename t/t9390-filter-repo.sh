@@ -22,7 +22,7 @@ filter_testcase() {
 		rm .git/packed-refs &&
 
 		# Run the example
-		cat $DATA/$INPUT | git filter-repo --stdin --quiet --force ${REST[@]} &&
+		cat $DATA/$INPUT | git filter-repo --stdin --quiet --force "${REST[@]}" &&
 
 		# Compare the resulting repo to expected value
 		git fast-export --use-done-feature --all >compare &&
@@ -33,6 +33,9 @@ filter_testcase() {
 filter_testcase basic basic-filename --path filename
 filter_testcase basic basic-twenty   --path twenty
 filter_testcase basic basic-ten      --path ten
+filter_testcase basic basic-numbers  --path ten --path twenty
+filter_testcase basic basic-filename --invert-paths --path-glob 't*en*'
+filter_testcase basic basic-numbers  --invert-paths --path-regex 'f.*e.*e'
 filter_testcase basic basic-mailmap  --mailmap ../t9390/sample-mailmap
 filter_testcase basic basic-replace  --replace-text ../t9390/sample-replace
 
