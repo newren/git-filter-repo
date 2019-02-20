@@ -1275,14 +1275,14 @@ class FastExportFilter(object):
     fi_input, fi_output = self._fast_import_pipes
     self._flush_renames()  # Avoid fi_output having other stuff present
     # Optimization note: we could have two loops over file_changes, the
-    # first doing all the fi_input.write() calls, and the second doing the
-    # rest.  But I'm worried about fast-import blocking on fi_output
+    # first doing all the self._output.write() calls, and the second doing
+    # the rest.  But I'm worried about fast-import blocking on fi_output
     # buffers filling up so I instead read from it as I go.
     for change in commit.file_changes:
       parent = new_1st_parent or commit.from_commit
       assert parent # Should be good based on the checks above
-      fi_input.write("ls :{} {}\n".format(parent, change.filename))
-      fi_input.flush()
+      self._output.write("ls :{} {}\n".format(parent, change.filename))
+      self._output.flush()
       parent_version = fi_output.readline().split()
       if change.type == 'D':
         if parent_version != ['missing', change.filename]:
@@ -1290,8 +1290,8 @@ class FastExportFilter(object):
       else:
         blob_sha = change.blob_id
         if isinstance(change.blob_id, int):
-          fi_input.write("get-mark :{}\n".format(change.blob_id))
-          fi_input.flush()
+          self._output.write("get-mark :{}\n".format(change.blob_id))
+          self._output.flush()
           blob_sha = fi_output.readline().rstrip()
         if parent_version != [change.mode, 'blob', blob_sha, change.filename]:
           return False
@@ -1303,8 +1303,8 @@ class FastExportFilter(object):
     # Record the mapping of old commit hash to new one
     if commit.original_id and self._fast_import_pipes:
       fi_input, fi_output = self._fast_import_pipes
-      fi_input.write("get-mark :{}\n".format(commit.id))
-      fi_input.flush()
+      self._output.write("get-mark :{}\n".format(commit.id))
+      self._output.flush()
       orig_id = commit.original_id
       self._commit_short_old_hashes[orig_id[0:7]].add(orig_id)
       # Note that we have queued up an id for later reading; flush a
@@ -2542,6 +2542,10 @@ class DualFileWriter:
   def write(self, *args):
     self.file1.write(*args)
     self.file2.write(*args)
+
+  def flush(self):
+    self.file1.flush()
+    self.file2.flush()
 
   def close(self):
     self.file1.close()
