@@ -39,5 +39,8 @@ filter_testcase basic basic-numbers  --invert-paths --path-regex 'f.*e.*e'
 filter_testcase basic basic-mailmap  --mailmap ../t9390/sample-mailmap
 filter_testcase basic basic-replace  --replace-text ../t9390/sample-replace
 filter_testcase empty empty-keepme   --path keepme
+filter_testcase degenerate degenerate-keepme   --path moduleA/keepme
+filter_testcase degenerate degenerate-moduleA  --path moduleA
+filter_testcase degenerate degenerate-globme   --path-glob *me
 
 test_done

@@ -1,0 +1,402 @@
+feature done
+# Simple repo with only three files, with a bunch of cases of dealing with
+# topology changes possibly causing merge commits to need to be pruned.
+#
+# As with case1, the original-oid directives are very fake, but if an error
+# is hit that shows one of these, it makes it really easy to know where it
+# came from.
+#
+# Expressed with shorthand, log history in the format
+#     Commit Name(Parent(s)): files changed
+# for this case looks like the following:
+#     W(V): moduleA/keepme
+#     V(U,U): moduleB/nukeme
+#     U(T): moduleA/sometimes
+#     T(S): moduleA/keepme
+#     S(R,R): moduleA/sometimes
+#     R(R): moduleB/nukeme
+#     Q(P): moduleA/keepme
+#     P(N,M): moduleA/sometimes
+#     O(M,N): moduleA/sometimes
+#     N(C): moduleB/nukeme
+#     M(L): moduleB/nukeme
+#     L(K): moduleA/keepme
+#     K(J): moduleB/nukeme
+#     J(D,H): moduleA/sometimes
+#     I(H,D): moduleA/sometimes  # backwards-ish merge
+#     H(G): moduleB/nukeme
+#     G(F): moduleA/keepme
+#     F(D): moduleB/nukeme
+#     D(B,C): moduleA/sometimes
+#     C(A): moduleB/nukeme
+#     B(A): moduleB/nukeme
+#     A(): moduleA/keepme
+#
+# This involved case is intended to test the following:
+#   * Merge becoming non-merge due to both parents becoming same commit
+#     * Two sub-cases: it has changes of its own, or it doesn't
+#   * Merge becoming merge of commit with its own ancestor
+#     * Two cases: and it has changes, and it doesn't have changes
+#     * Two cases: first parent is the ancestor, second parent is the ancestor
+#   * Merge starting as merge of commit with its own ancestor
+#     * Two cases: has changes, doesn't have changes
+#     * Two cases: first parent, or second parent
+blob
+mark :1
+original-oid 0000000000000000000000000000000000000001
+data 10
+keepme v1
+
+blob
+mark :2
+original-oid 0000000000000000000000000000000000000002
+data 10
+nukeme v1
+
+blob
+mark :3
+original-oid 0000000000000000000000000000000000000003
+data 10
+nukeme v2
+
+blob
+mark :4
+original-oid 0000000000000000000000000000000000000004
+data 13
+sometimes v1
+
+blob
+mark :5
+original-oid 0000000000000000000000000000000000000005
+data 10
+nukeme v3
+
+blob
+mark :6
+original-oid 0000000000000000000000000000000000000006
+data 10
+keepme v2
+
+blob
+mark :7
+original-oid 0000000000000000000000000000000000000007
+data 10
+nukem4 v4
+
+blob
+mark :8
+original-oid 0000000000000000000000000000000000000008
+data 13
+sometimes v2
+
+blob
+mark :9
+original-oid 0000000000000000000000000000000000000009
+data 13
+sometimes v3
+
+blob
+mark :10
+original-oid 000000000000000000000000000000000000000A
+data 10
+nukeme v4
+
+blob
+mark :11
+original-oid 000000000000000000000000000000000000000B
+data 10
+keepme v3
+
+blob
+mark :12
+original-oid 000000000000000000000000000000000000000C
+data 10
+nukeme v5
+
+blob
+mark :13
+original-oid 000000000000000000000000000000000000000D
+data 10
+nukeme v6
+
+blob
+mark :14
+original-oid 000000000000000000000000000000000000000E
+data 13
+sometimes v4
+
+blob
+mark :15
+original-oid 000000000000000000000000000000000000000F
+data 13
+sometimes v5
+
+blob
+mark :16
+original-oid 0000000000000000000000000000000000000010
+data 10
+keepme v4
+
+blob
+mark :17
+original-oid 0000000000000000000000000000000000000011
+data 10
+nukeme v7
+
+blob
+mark :18
+original-oid 0000000000000000000000000000000000000012
+data 13
+sometimes v6
+
+blob
+mark :19
+original-oid 0000000000000000000000000000000000000013
+data 10
+keepme v5
+
+blob
+mark :20
+original-oid 0000000000000000000000000000000000000014
+data 13
+sometimes v7
+
+blob
+mark :21
+original-oid 0000000000000000000000000000000000000015
+data 10
+nukeme v8
+
+blob
+mark :22
+original-oid 0000000000000000000000000000000000000016
+data 10
+keepme v6
+
+commit refs/heads/master
+mark :26
+original-oid 0000000000000000000000000000000000000020
+author Full Name <user@organization.tld> 2000000000 +0100
+committer Full Name <user@organization.tld> 2000000000 +0100
+data 2
+A
+M 100644 :1 moduleA/keepme
+
+commit refs/heads/master
+mark :27
+original-oid 0000000000000000000000000000000000000021
+author Full Name <user@organization.tld> 2000010000 +0100
+committer Full Name <user@organization.tld> 2000010000 +0100
+data 2
+B
+from :26
+M 100644 :2 moduleB/nukeme
+
+commit refs/heads/master
+mark :28
+original-oid 0000000000000000000000000000000000000022
+author Full Name <user@organization.tld> 2000020000 +0100
+committer Full Name <user@organization.tld> 2000020000 +0100
+data 2
+C
+from :26
+M 100644 :3 moduleB/nukeme
+
+commit refs/heads/master
+mark :29
+original-oid 0000000000000000000000000000000000000023
+author Full Name <user@organization.tld> 2000030000 +0100
+committer Full Name <user@organization.tld> 2000030000 +0100
+data 29
+D: Merge commit 'C' into 'B'
+from :27
+merge :28
+M 100644 :4 moduleA/sometimes
+
+commit refs/heads/master
+mark :30
+original-oid 0000000000000000000000000000000000000024
+author Full Name <user@organization.tld> 2000040000 +0100
+committer Full Name <user@organization.tld> 2000040000 +0100
+data 2
+F
+from :29
+M 100644 :5 moduleB/nukeme
+
+commit refs/heads/master
+mark :31
+original-oid 0000000000000000000000000000000000000025
+author Full Name <user@organization.tld> 2000050000 +0100
+committer Full Name <user@organization.tld> 2000050000 +0100
+data 2
+G
+from :30
+M 100644 :6 moduleA/keepme
+
+commit refs/heads/master
+mark :32
+original-oid 0000000000000000000000000000000000000026
+author Full Name <user@organization.tld> 2000060000 +0100
+committer Full Name <user@organization.tld> 2000060000 +0100
+data 2
+H
+from :31
+M 100644 :7 moduleB/nukeme
+
+commit refs/heads/branchI
+mark :33
+original-oid 0000000000000000000000000000000000000027
+author Full Name <user@organization.tld> 2000070000 +0100
+committer Full Name <user@organization.tld> 2000070000 +0100
+data 29
+I: Merge commit 'D' into 'H'
+from :32
+merge :29
+M 100644 :8 moduleA/sometimes
+
+commit refs/heads/master
+mark :34
+original-oid 0000000000000000000000000000000000000028
+author Full Name <user@organization.tld> 2000080000 +0100
+committer Full Name <user@organization.tld> 2000080000 +0100
+data 29
+J: Merge commit 'H' into 'D'
+from :29
+merge :32
+M 100644 :9 moduleA/sometimes
+
+commit refs/heads/master
+mark :35
+original-oid 0000000000000000000000000000000000000029
+author Full Name <user@organization.tld> 2000090000 +0100
+committer Full Name <user@organization.tld> 2000090000 +0100
+data 2
+K
+from :34
+M 100644 :10 moduleB/nukeme
+
+commit refs/heads/master
+mark :36
+original-oid 000000000000000000000000000000000000002A
+author Full Name <user@organization.tld> 2000092000 +0100
+committer Full Name <user@organization.tld> 2000092000 +0100
+data 2
+L
+from :35
+M 100644 :11 moduleA/keepme
+
+commit refs/heads/master
+mark :37
+original-oid 000000000000000000000000000000000000002B
+author Full Name <user@organization.tld> 2000094000 +0100
+committer Full Name <user@organization.tld> 2000094000 +0100
+data 2
+M
+from :36
+M 100644 :12 moduleB/nukeme
+
+commit refs/heads/master
+mark :38
+original-oid 000000000000000000000000000000000000002C
+author Full Name <user@organization.tld> 2000096000 +0100
+committer Full Name <user@organization.tld> 2000096000 +0100
+data 2
+N
+from :28
+M 100644 :13 moduleB/nukeme
+
+commit refs/heads/branchO
+mark :39
+original-oid 000000000000000000000000000000000000002D
+author Full Name <user@organization.tld> 2000098000 +0100
+committer Full Name <user@organization.tld> 2000098000 +0100
+data 29
+O: Merge commit 'N' into 'M'
+from :37
+merge :38
+D moduleA/sometimes
+
+commit refs/heads/master
+mark :40
+original-oid 000000000000000000000000000000000000002E
+author Full Name <user@organization.tld> 2000099000 +0100
+committer Full Name <user@organization.tld> 2000099000 +0100
+data 29
+P: Merge commit 'M' into 'N'
+from :38
+merge :37
+M 100644 :15 moduleA/sometimes
+
+commit refs/heads/master
+mark :41
+original-oid 0000000000000000000000000000000000000030
+author Full Name <user@organization.tld> 3000000000 +0100
+committer Full Name <user@organization.tld> 3000000000 +0100
+data 2
+Q
+from :40
+M 100644 :16 moduleA/keepme
+
+commit refs/heads/master
+mark :42
+original-oid 0000000000000000000000000000000000000031
+author Full Name <user@organization.tld> 3000010000 +0100
+committer Full Name <user@organization.tld> 3000010000 +0100
+data 2
+R
+from :41
+M 100644 :17 moduleB/nukeme
+
+commit refs/heads/master
+mark :43
+original-oid 0000000000000000000000000000000000000032
+author Full Name <user@organization.tld> 3000020000 +0100
+committer Full Name <user@organization.tld> 3000020000 +0100
+data 29
+S: Merge commit 'R' into 'R'
+from :42
+merge :42
+M 100644 :18 moduleA/sometimes
+
+commit refs/heads/master
+mark :44
+original-oid 0000000000000000000000000000000000000033
+author Full Name <user@organization.tld> 3000030000 +0100
+committer Full Name <user@organization.tld> 3000030000 +0100
+data 2
+T
+from :43
+M 100644 :19 moduleA/keepme
+
+commit refs/heads/master
+mark :45
+original-oid 0000000000000000000000000000000000000034
+author Full Name <user@organization.tld> 3000040000 +0100
+committer Full Name <user@organization.tld> 3000040000 +0100
+data 2
+U
+from :44
+M 100644 :20 moduleA/sometimes
+
+commit refs/heads/master
+mark :46
+original-oid 0000000000000000000000000000000000000035
+author Full Name <user@organization.tld> 3000050000 +0100
+committer Full Name <user@organization.tld> 3000050000 +0100
+data 29
+V: Merge commit 'U' into 'U'
+from :45
+merge :45
+M 100644 :21 moduleB/nukeme
+
+commit refs/heads/master
+mark :47
+original-oid 0000000000000000000000000000000000000036
+author Full Name <user@organization.tld> 3000060000 +0100
+committer Full Name <user@organization.tld> 3000060000 +0100
+data 2
+W
+from :46
+M 100644 :22 moduleA/keepme
+
+done
