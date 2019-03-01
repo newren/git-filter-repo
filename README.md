@@ -202,22 +202,22 @@ provide at least one of the last three traits as well:
      the pruning of parents and other ancestors can ultimately result
      in the loss of one or more parents.  If a merge commit loses
      enough parents to become a non-merge commit and it has no file
-     changes, then it too can be pruned.  Topology changes are also
-     possible if the entire non-first-parent history is pruned away;
-     rather than having that parent of the merge be rewritten to the
-     merge base, it may (depending on whether the merge also had file
-     changes of its own) instead make sense to just prune that parent.
-     (We do not want to prune away a first parent being rewritten to
-     the merge base since some projects prefer --no-ff merges, though
-     this could be made an option.)  Finally, note that we originally
-     talked not about pruning empty commits, but about pruning commits
-     which become empty.  Some projects intentionally create empty
-     commits for versioning or publishing reasons, and these should
-     not be removed.  Instead, only commits which become empty should
-     be pruned.  (As a special case, commits which started empty but
-     originally had a parent and which become a root commit due to the
-     pruning of other commits will also be considered to have "become
-     empty".)
+     changes, then it too can be pruned.  Merge commits can also have
+     a topology that becomes degenerate: it could end up with the
+     merge_base serving as both parents (if all intervening commits
+     from the original repo were pruned), or it could end up with one
+     parent which is an ancestor of its other parent.  In such cases,
+     if the merge has no file changes of its own, then the merge
+     commit can also be pruned.  However, if the merge commit was
+     already degenerate in the original history, then it was probably
+     intentional and the merge commit will not be pruned.  Finally,
+     note that we originally talked about pruning commits which become
+     empty, NOT about pruning empty commits.  Some projects
+     intentionally create empty commits for versioning or publishing
+     reasons, and these should not be removed.  Instead, only commits
+     which become empty should be pruned.  (As a special case, commits
+     which started empty but whose parent was pruned away will also be
+     considered to have "become empty".)
 
   1. [Speed] Filtering should be reasonably fast
 

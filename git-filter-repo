@@ -806,6 +806,8 @@ class FastExportFilter(object):
     # speak).  The depth of a commit is one more than the max depth of any
     # of its ancestors.
     self._graph = AncestryGraph()
+    # Another one, for ancestry of commits in the original repo
+    self._orig_graph = AncestryGraph()
 
     # A set of commit hash pairs (oldhash, newhash) which used to be merge
     # commits but due to filtering were turned into non-merge commits.
@@ -1174,15 +1176,17 @@ class FastExportFilter(object):
     #     'None')
     # Remove all parents rewritten to None, and keep track of which parents
     # were rewritten to an ancestor.
-    tmp = zip(parents, [x in _SKIPPED_COMMITS for x in orig_parents])
+    tmp = zip(parents,
+              orig_parents,
+              [x in _SKIPPED_COMMITS for x in orig_parents])
     tmp2 = [x for x in tmp if x[0] is not None]
-    parents, is_rewritten = [list(x) for x in zip(*tmp2)] if tmp2 else ([], [])
-
-    # However, the way fast-export/fast-import split parents into from_commit
-    # and merge_commits means we'd rather a parentless commit be represented
-    # as a list containing a single None entry.
-    if not parents:
-      parents.append(None)
+    if not tmp2:
+      # All ancestors have been pruned; we have no parents.  Note that the
+      # way fast-export/fast-import split parents into from_commit and
+      # merge_commits means we'd rather a parentless commit be represented
+      # as a list containing a single None entry.
+      return [None], None
+    parents, orig_parents, is_rewritten = [list(x) for x in zip(*tmp2)]
 
     # We can't have redundant parents if we don't have at least 2 parents
     if len(parents) < 2:
@@ -1197,9 +1201,9 @@ class FastExportFilter(object):
     # Deleting duplicate rewritten parents means keeping parents if either
     # they have not been seen or they are ones that have not been rewritten.
     parents_copy = parents
-    pairs = [[p, is_rewritten[i]] for i, p in enumerate(parents)
-             if not (p in seen or seen_add(p)) or not is_rewritten[i]]
-    parents, is_rewritten = [list(x) for x in zip(*pairs)]
+    uniq = [[p, orig_parents[i], is_rewritten[i]] for i, p in enumerate(parents)
+            if not (p in seen or seen_add(p)) or not is_rewritten[i]]
+    parents, orig_parents, is_rewritten = [list(x) for x in zip(*uniq)]
     if len(parents) < 2:
       return parents_copy, parents[0]
 
@@ -1213,10 +1217,21 @@ class FastExportFilter(object):
       if not is_rewritten[cur]:
         continue
       for other in xrange(num_parents):
-        if cur != other and self._graph.is_ancestor(parents[cur],
-                                                    parents[other]):
-          to_remove.append(cur)
-          break # cur removed, so skip rest of others -- i.e. check cur+=1
+        if cur == other:
+          continue
+        if not self._graph.is_ancestor(parents[cur], parents[other]):
+          continue
+        # parents[cur] is an ancestor of parents[other], so parents[cur]
+        # seems redundant.  However, if it was intentionally redundant
+        # (e.g. a no-ff merge) in the original, then we want to keep it.
+        if self._orig_graph.is_ancestor(orig_parents[cur],
+                                        orig_parents[other]):
+          continue
+        # Okay so the cur-th parent is an ancestor of the other-th parent,
+        # and it wasn't that way in the original repository; mark the
+        # cur-th parent as removable.
+        to_remove.append(cur)
+        break # cur removed, so skip rest of others -- i.e. check cur+=1
     for x in reversed(to_remove):
       parents.pop(x)
     if len(parents) < 2:
@@ -1237,8 +1252,6 @@ class FastExportFilter(object):
     if len(orig_parents) < 2:
       # Special logic for commits that started empty...
       if not had_file_changes:
-        if orig_parents == [None]:
-          orig_parents = []
         had_parents_pruned = (len(parents) < len(orig_parents) or
                               (len(orig_parents) == 1 and
                                orig_parents[0] in _SKIPPED_COMMITS))
@@ -1376,6 +1389,8 @@ class FastExportFilter(object):
     parents, new_1st_parent = self.trim_extra_parents(orig_parents, parents)
     from_commit = parents[0]
     merge_commits = parents[1:]
+    if orig_parents == [None]:
+      orig_parents = []
 
     # Get the list of file changes
     file_changes = []
@@ -1407,6 +1422,7 @@ class FastExportFilter(object):
 
     # Record ancestry graph
     self._graph.add_commit_and_parents(commit.id, commit.get_parents())
+    self._orig_graph.add_commit_and_parents(id_, orig_parents)
 
     # Record the original list of file changes relative to first parent
     orig_file_changes = set(commit.file_changes)
