@@ -590,6 +590,12 @@ class Commit(_GitElementWithId):
       _EXTRA_CHANGES[self.id] = parent_extra_changes
     # End workaround
 
+    # Make output to fast-import slightly easier for humans to read if the
+    # message has no trailing newline of its own; cosmetic, but a nice touch...
+    extra_newline = '\n'
+    if self.message.endswith('\n') or not (self.from_commit or self.file_changes):
+      extra_newline = ''
+
     file_.write(('commit {}\n'
                  'mark :{}\n'
                  'author {} <{}> {}\n'
@@ -600,7 +606,7 @@ class Commit(_GitElementWithId):
                   self.author_name, self.author_email, self.author_date,
                   self.committer_name, self.committer_email, self.committer_date,
                   len(self.message), self.message,
-                  '' if self.message.endswith('\n') else '\n')
+                  extra_newline)
                )
     if self.from_commit:
       mark = ':' if isinstance(self.from_commit, int) else ''
@@ -610,6 +616,10 @@ class Commit(_GitElementWithId):
       file_.write('merge {}{}\n'.format(mark, ref))
     for change in self.file_changes:
       change.dump(file_)
+    if not self.from_commit and not self.file_changes:
+      # Workaround a bug in pre-git-2.22 versions of fast-import with
+      # the get-mark directive.
+      file_.write('\n')
     file_.write('\n')
 
   def get_parents(self):
