@@ -1237,6 +1237,8 @@ class FastExportFilter(object):
     if len(parents) < 2:
       # Special logic for commits that started empty...
       if not had_file_changes:
+        if orig_parents == [None]:
+          orig_parents = []
         # If the commit remains empty and had parents pruned, then prune
         # this commit; otherwise, retain it
         return (not commit.file_changes and
