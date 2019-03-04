@@ -1,0 +1,84 @@
+* Notes updating
+  * fast-export --no-data SHOULD include blobs under notes (they are "messages"
+    not "data")
+  * fast-export should force the order of revision traversal to do normal
+    history first, then everything under refs/notes LAST.  Otherwise, we can't
+    rewrite notes names to reference the new objects
+  * (maybe fast-export should also handle refs/replace/ after other things?)
+  * --message-callback should also operate on notes
+  * --commit-callback should NOT be invoked for notes; add a special
+    --notes-callback instead (and I guess assume notes are only in refs/notes/?)
+  * Make sure filter-repo rewrites both refnames of notes (so that they are
+    attached to the rewritten commits) and commit hashes within the note
+    message
+* check for .keep packs; bail if found (cannot clean up history with .keep's)
+* Verify error messages for non-existent --source or --target are sane
+
+/ Demonstrate versatility
+  / filter-lamely (filter-branch)
+    - --state-branch
+  / convert-to-lfs
+    - upload files to lfs
+    - https auth?  (or just error out?)
+    - handling .lfsconfig file
+    - de-convert from lfs too
+  - submodule-extract-subsume (subsume is hard; where to graft in?)
+    - error if any submodule updates are not strict fast forwards
+    - use the splice-or-recombine repos ideas, except commits of submodule
+      updates provide graft points and smooth based on committer dates inbetween
+  - splice-or-recombine repos
+    - error if committer date non-monotonic for any commit relative to parents
+    - splice first parent history of each branch (pair) by committer date
+
+- Repo diffing (script to diff `log --format="commit %s" --raw` output, or more)
+
+BFG checking:
+  X does it rewrite tags of trees? [ANSWER: Yes]
+  X what if two filenames have same blob, but only one is protected? [works]
+  X [already known] things fail badly if same basename appears multiple times
+
+Interesting sites:
+  https://wiki.freephile.org/wiki/Git/migrating_to_git#Combining_git_repos
+  https://github.com/j5int/jbosstools-gitmigration
+
+
+Explaining "more versatile":
+
+  The versatility comes in a few layers:
+
+  * an optional analysis report:
+    * assists users in determining how to filter (what is big in history?)
+    * helps users verify that filtering did what they expected and they didn't
+      miss anything important
+
+  * more base capabilities:
+    * more intelligent safety
+    * avoids mixing new and old history[1]
+    * creating replace refs to allow access via old commit IDs
+    * pruning of commits which become empty due to filtering
+    * rewriting commit hashes in commit messages (like BFG)
+    * using grafts and replace refs in rewrite (like filter-branch)
+
+  * additional filtering types:
+    * selecting files to keep (instead of just files to remove)
+    * filtering based on full pathnames or just basenames
+    * renaming paths
+    * applying a mailmap
+
+  * generic callbacks, based on:
+    * fundamental fast-import types: blob, commit, reset, tag
+    * pieces of fundamental types:   filename, refname, name, email, message
+
+  * ability to import filter-repo as a library and build different tools[2]
+
+  [1] full repo rewrite, remove old references even if renaming, auto-shrink
+
+  [2] Several examples already exist:
+    * a faster and almost perfectly compatible filter-branch
+    * a bfg replacement with several bug fixes
+    * a tool to add a new file to the beginning of history
+    * a tool to run a lint command on all non-binary files in history
+    * a tool to delete files from history which match current gitignore rules.
+    * a tool to either convert a repo to use lfs, or from using lfs.
+    * a tool for extracting or subsuming a submodule
+    See https://github.com/newren/git-filter-repo/tree/master/contrib/filter-repo-demos
