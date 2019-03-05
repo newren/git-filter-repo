@@ -2843,15 +2843,29 @@ class RepoFilter(object):
         continue # Filtering criteria excluded this file; move on to next one
       if change.filename in new_file_changes:
         # Getting here means that path renaming is in effect, and caused one
-        # path to collide with another.  That's usually bad, but sometimes
-        # people have a file named OLDFILE in old revisions of history, and they
-        # rename to NEWFILE, and would like to rewrite history so that all
-        # revisions refer to it as NEWFILE.  As such, we can allow a collision
-        # when (at least) one of the two paths is a deletion.  Note that if
-        # OLDFILE and NEWFILE are unrelated this also allows the rewrite to
-        # continue, which makes sense since OLDFILE is no longer in the way.
+        # path to collide with another.  That's usually bad, but can be okay
+        # under two circumstances:
+        #   1) Sometimes people have a file named OLDFILE in old revisions of
+        #      history, and they rename to NEWFILE, and would like to rewrite
+        #      history so that all revisions refer to it as NEWFILE.  As such,
+        #      we can allow a collision when (at least) one of the two paths
+        #      is a deletion.  Note that if OLDFILE and NEWFILE are unrelated
+        #      this also allows the rewrite to continue, which makes sense
+        #      since OLDFILE is no longer in the way.
+        #   2) If OLDFILE and NEWFILE are exactly equal, then writing them
+        #      both to the same location poses no problem; we only need one
+        #      file.  (This could come up if someone copied a file in some
+        #      commit, then later either deleted the file or kept it exactly
+        #      in sync with the original with any changes, and then decides
+        #      they want to rewrite history to only have one of the two files)
+        colliding_change = new_file_changes[change.filename]
         if change.type == 'D':
           # We can just throw this one away and keep the other
+          continue
+        elif change.type == 'M' and (
+            change.mode == colliding_change.mode and
+            change.blob_id == colliding_change.blob_id):
+          # The two are identical, so we can throw this one away and keep other
           continue
         elif new_file_changes[change.filename].type != 'D':
           raise SystemExit("File renaming caused colliding pathnames!\n" +
