@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Please see the
+  ***** API BACKWARD COMPATIBILITY CAVEAT *****
+near the top of git-filter-repo
+"""
+
 import re
 import datetime
 
