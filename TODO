@@ -1,14 +1,3 @@
-Callbacks
-  - filename_callback
-  - message_callback (commit and tag messages; see also commit/tag_callback)
-  - person_name_callback
-  - email_callback
-  - date_callback (?!?  author/committer/tagger)
-  - refname_callback (error if annotated tag gets rewritten outside refs/tags/)
-  - commit_callback
-  - blob_callback
-  - tag_callback
-
 Crazy ideas, showing filter-repo flexibility:
   - show modifying mode (e.g. mark executable)
   - delete commits older than certain date (simple commit.skip())
@@ -27,13 +16,7 @@ Crazy ideas, showing filter-repo flexibility:
 
 More thorough testing
   - commit pruning
-    - pruning commits that become empty
-      - pruning commits that started empty and have no parent
-      - not pruning commits that have changes or remain a merge commit
-    - pruning parent(s) of a merge
     - coalescing common commits of a merge
-      - coalescing parents of a merge when one is an ancestor of the other
-      - crazy no-ff stuff
       - what about when splicing repos; does it still work?
   - ref pruning
     - tags pointing at commits which are pruned along with their history
@@ -46,13 +29,19 @@ More thorough testing
   - use coverage.py to direct test writing
 
 Repository diffing
-  - Specialized fast-export --no-data --show-original-ids --all output
-  - If blobs differ, then I manually augment output with blob info
-  - Replace "from :<id>" with "from :<commit-msg-summary>"
-  - Filter out original ids, but remember them
-  - Change "commit <refname>" lines into just "commit"
-  - At the end, augment with "reset <refname> from :<commit-msg-summary>"
-    for each non-tag refname, in sorted order
+  - New ideas:
+    - Basically, diffing `git log --raw --all --format="commit %s"` output
+    - Add flags to allow customization; examples
+      - --pretty=fuller instead of --format
+      - -p or --name-status instead of --raw
+  - Old ideas:
+    - Specialized fast-export --no-data --show-original-ids --all output
+    - If blobs differ, then I manually augment output with blob info
+    - Replace "from :<id>" with "from :<commit-msg-summary>"
+    - Filter out original ids, but remember them
+    - Change "commit <refname>" lines into just "commit"
+    - At the end, augment with "reset <refname> from :<commit-msg-summary>"
+      for each non-tag refname, in sorted order
 
 Bug reporting:
   git.git:
@@ -73,7 +62,7 @@ Handle tags of trees:
   - run it through normal filter-repo stuff
   - at the end, rewrite the tag to tag its commit's tree
 
-Document or start conversation around general issues:
+Document or start conversation around interaction with external systems:
   - May not be able to force push over e.g. refs/changes/, refs/pulls/, etc.
   - People need a way to do "update project", and get GitHub/Gerrit/Gitlab fixed
 
@@ -172,10 +161,17 @@ Argument parsing stuff:
                             form).''')
 
 BFG issues:
+  3 basic types:
+    - nasty surprises ("bugs")
+    - limited capability (only solves one usecase)
+    - design problems
+
+  Nasty surprises:
   - only works if repo is packed (can't find sizes of loose objects)
   - can fail badly if not pre-gc'ed (issue 7)
   - rewrite of files annoyingly leaves ids around if nuked by size
-  - private is weird/annoying: issue 139, issue 112
+  - private (issue 139, issue 112) is huge principle of least surprise violation
+    (randomly turned on for some types of rewrites but not others)
   - filter-content-including doesn't affect -b option
   - After replace text operation, index & working tree not updated
     - may be the 'real' reason behind blob protection?
@@ -184,3 +180,42 @@ BFG issues:
   - Issue 221: symrefs cause problems
   - Issue 116: --convert-to-git-lfs doesn't really work
     - and in Issue 215 they suggest https://github.com/bozaro/git-lfs-migrate
+
+  Limited View:
+    BFG unabashedly focuses on one usecase, which is fine, but that means...
+    - Defaults that kinda work with single usecase but mesh poorly with others
+    - Lacks facilities to help users know what to filter (--analyze)
+    - Lack of integration with default git capabilities:
+      - mailmap
+      - grafts and replace refs
+    - Lacking lots of filtering abilities:
+      - selection by path (instead of de-selection)
+      - path renaming
+      - tag renaming or general ref renaming
+      - pulling out one or a few subdirectories, or moving to a subdir
+      - modifying user names/emails
+      - modifying commit messages
+      - renaming refs
+    - Obviously, a complete lack of generic extension capability
+      - no callback mechanism (e.g. shell, python, or whatever)
+      - no facility for usage of internals as as library
+
+  Design problems:
+  - only works on pack information
+    - related surprise: index & working tree not update afterward
+    - related surprise: can't find sizes of loose objects
+    - related surprise: can fail badly if not pre-gc'ed
+  - looks at trees, not full commit info
+    - file basenames only; can't selectively remove files/directories
+    - related surprise: convert-to-git-lfs horribly buggy
+  - only writes new history in .git/objects
+    - what about auto-gc?
+    - what about index/working tree update afterward?
+    - what about replace refs (using or writing?)
+    - if pruning empty commits, what about deleting now-unused refs?
+  - writes loose objects instead of new packfile
+    - could severely degrade performance for big enough cases
+    - could severely degrade performance for user after rewrite
+    - why tell user how to fix up afterwards instead of just doing so?
+    - might be fundamental: vaunted parallelism limited if writing to same
+      packfile
