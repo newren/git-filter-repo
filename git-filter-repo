@@ -1521,18 +1521,17 @@ class FastExportFilter(object):
     if self._everything_callback:
       self._everything_callback('tag', tag)
 
-    # The tag might not point at anything that still exists ( self.from_ref
+    # The tag might not point at anything that still exists (self.from_ref
     # will be None if the commit it pointed to and all its ancestors were
     # pruned due to being empty)
-    if not tag.from_ref:
-      # If everything in the history of this tag was pruned, we need to delete
-      # the fact that it was seen so that refs_to_nuke will include it and
-      # wipe out the original version of that tag.
+    if tag.from_ref:
+      # Print out this tag's information
+      if not tag.dumped:
+        tag.dump(self._output)
+      # Record the fact that this tag was seen so we don't nuke it as part
+      # of refs_to_nuke.
       full_ref = 'refs/tags/{}'.format(tag.ref)
-      if full_ref in self._seen_refs:
-        del self._seen_refs[full_ref]
-    elif not tag.dumped:
-      tag.dump(self._output)
+      self._seen_refs[full_ref] = None
 
   def _parse_progress(self):
     """
