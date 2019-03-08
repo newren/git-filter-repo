@@ -140,16 +140,19 @@ test_expect_success '--path-rename inability to squash' '
 	)
 '
 
-test_expect_success 'setup tag_rename' '
-	test_create_repo tag_rename &&
+test_expect_success 'more setup' '
+	test_create_repo metasyntactic &&
 	(
-		cd tag_rename &&
+		cd metasyntactic &&
+		weird_name=$(printf "file\tna\nme") &&
+		echo "funny" >"$weird_name" &&
 		mkdir numbers &&
 		test_seq 1 10 >numbers/small &&
 		test_seq 100 110 >numbers/medium &&
-		git add numbers &&
+		git add "$weird_name" numbers &&
 		git commit -m initial &&
 		git tag v1.0 &&
+		git tag -a -m v1.1 v1.1 &&
 
 		mkdir words &&
 		echo foo >words/important &&
@@ -161,26 +164,66 @@ test_expect_success 'setup tag_rename' '
 		git tag v2.0 &&
 
 		echo spam >words/to &&
-		echo spam >words/know &&
+		echo eggs >words/know &&
 		git add words
+		git rm "$weird_name" &&
 		git commit -m more.words &&
 		git tag -a -m "Look, ma, I made a tag" v3.0
 	)
 '
 
-test_expect_success 'check --tag-rename' '
+test_expect_success '--tag-rename' '
 	(
-		git clone file://"$(pwd)"/tag_rename tag_rename_actual &&
-		cd tag_rename_actual &&
+		git clone file://"$(pwd)"/metasyntactic tag_rename &&
+		cd tag_rename &&
 		git filter-repo \
 			--tag-rename "":"myrepo-" \
 			--path words &&
 		test_must_fail git cat-file -t v1.0 &&
+		test_must_fail git cat-file -t v1.1 &&
 		test_must_fail git cat-file -t v2.0 &&
 		test_must_fail git cat-file -t v3.0 &&
 		test_must_fail git cat-file -t myrepo-v1.0 &&
+		test_must_fail git cat-file -t myrepo-v1.1 &&
 		test $(git cat-file -t myrepo-v2.0) = commit &&
 		test $(git cat-file -t myrepo-v3.0) = tag
+	)
+'
+
+test_expect_success '--subdirectory-filter' '
+	(
+		git clone file://"$(pwd)"/metasyntactic subdir_filter &&
+		cd subdir_filter &&
+		git filter-repo \
+			--subdirectory-filter words &&
+		git cat-file --batch-check --batch-all-objects >all-objs &&
+		test_line_count = 10 all-objs &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		test_line_count = 6 filenames &&
+		grep ^important$ filenames &&
+		test_must_fail git cat-file -t v1.0 &&
+		test_must_fail git cat-file -t v1.1 &&
+		test $(git cat-file -t v2.0) = commit &&
+		test $(git cat-file -t v3.0) = tag
+	)
+'
+
+test_expect_success '--to-subdirectory-filter' '
+	(
+		git clone file://"$(pwd)"/metasyntactic to_subdir_filter &&
+		cd to_subdir_filter &&
+		git filter-repo \
+			--to-subdirectory-filter mysubdir &&
+		git cat-file --batch-check --batch-all-objects >all-objs &&
+		test_line_count = 22 all-objs &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		test_line_count = 9 filenames &&
+		grep "^\"mysubdir/file\\\\tna\\\\nme\"$" filenames &&
+		grep ^mysubdir/words/important$ filenames &&
+		test $(git cat-file -t v1.0) = commit &&
+		test $(git cat-file -t v1.1) = tag &&
+		test $(git cat-file -t v2.0) = commit &&
+		test $(git cat-file -t v3.0) = tag
 	)
 '
 
