@@ -3127,7 +3127,7 @@ class RepoFilter(object):
     cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
                     'git gc {} --prune=now'.format(quiet_flags).split()]
     if not GitUtils.is_repository_bare(target_working_dir):
-      cleanup_cmds.append('git reset {} --hard'.format(quiet_flags).split())
+      cleanup_cmds.insert(0, 'git reset {} --hard'.format(quiet_flags).split())
     for cmd in cleanup_cmds:
       if self._args.debug:
         print("[DEBUG] Running: {}".format(' '.join(cmd)))
