@@ -140,4 +140,48 @@ test_expect_success '--path-rename inability to squash' '
 	)
 '
 
+test_expect_success 'setup tag_rename' '
+	test_create_repo tag_rename &&
+	(
+		cd tag_rename &&
+		mkdir numbers &&
+		test_seq 1 10 >numbers/small &&
+		test_seq 100 110 >numbers/medium &&
+		git add numbers &&
+		git commit -m initial &&
+		git tag v1.0 &&
+
+		mkdir words &&
+		echo foo >words/important &&
+		echo bar >words/whimsical &&
+		echo baz >words/sequences &&
+		git add words &&
+		git commit -m some.words &&
+		git branch another_branch &&
+		git tag v2.0 &&
+
+		echo spam >words/to &&
+		echo spam >words/know &&
+		git add words
+		git commit -m more.words &&
+		git tag -a -m "Look, ma, I made a tag" v3.0
+	)
+'
+
+test_expect_success 'check --tag-rename' '
+	(
+		git clone file://"$(pwd)"/tag_rename tag_rename_actual &&
+		cd tag_rename_actual &&
+		git filter-repo \
+			--tag-rename "":"myrepo-" \
+			--path words &&
+		test_must_fail git cat-file -t v1.0 &&
+		test_must_fail git cat-file -t v2.0 &&
+		test_must_fail git cat-file -t v3.0 &&
+		test_must_fail git cat-file -t myrepo-v1.0 &&
+		test $(git cat-file -t myrepo-v2.0) = commit &&
+		test $(git cat-file -t myrepo-v3.0) = tag
+	)
+'
+
 test_done
