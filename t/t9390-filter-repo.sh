@@ -227,4 +227,59 @@ test_expect_success '--to-subdirectory-filter' '
 	)
 '
 
+test_expect_success 'refs/replace/ to skip a parent' '
+	(
+		git clone file://"$(pwd)"/metasyntactic replace_skip_ref &&
+		cd replace_skip_ref &&
+
+		git tag -d v2.0 &&
+		git replace HEAD~1 HEAD~2 &&
+
+		git filter-repo --path "" --force &&
+		test $(git rev-list --count HEAD) = 2 &&
+		git cat-file --batch-check --batch-all-objects >all-objs &&
+		test_line_count = 16 all-objs &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		test_line_count = 9 filenames &&
+		test $(git cat-file -t v1.0) = commit &&
+		test $(git cat-file -t v1.1) = tag &&
+		test_must_fail git cat-file -t v2.0 &&
+		test $(git cat-file -t v3.0) = tag
+	)
+'
+
+test_expect_success 'refs/replace/ to add more initial history' '
+	(
+		git clone file://"$(pwd)"/metasyntactic replace_add_refs &&
+		cd replace_add_refs &&
+
+		git checkout --orphan new_root &&
+		rm .git/index &&
+		git add numbers/small &&
+		git clean -fd &&
+		git commit -m new.root &&
+
+		git replace --graft master~2 new_root &&
+		git checkout master &&
+
+		git --no-replace-objects cat-file -p master~2 >grandparent &&
+		! grep parent grandparent &&
+
+		git filter-repo --path "" --force &&
+
+		git --no-replace-objects cat-file -p master~2 >new-grandparent &&
+		grep parent new-grandparent &&
+
+		test $(git rev-list --count HEAD) = 4 &&
+		git cat-file --batch-check --batch-all-objects >all-objs &&
+		test_line_count = 22 all-objs &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		test_line_count = 9 filenames &&
+		test $(git cat-file -t v1.0) = commit &&
+		test $(git cat-file -t v1.1) = tag &&
+		test $(git cat-file -t v2.0) = commit &&
+		test $(git cat-file -t v3.0) = tag
+	)
+'
+
 test_done
