@@ -282,4 +282,168 @@ test_expect_success 'refs/replace/ to add more initial history' '
 	)
 '
 
+test_expect_success 'setup analyze_me' '
+	test_create_repo analyze_me &&
+	(
+		cd analyze_me &&
+		mkdir numbers words &&
+		test_seq 1 10 >numbers/small.num &&
+		test_seq 100 110 >numbers/medium.num &&
+		echo spam >words/to &&
+		echo eggs >words/know &&
+		echo rename a lot >fickle &&
+		git add numbers words fickle &&
+		test_tick &&
+		git commit -m initial &&
+
+		git branch other &&
+		git mv fickle capricious &&
+		test_tick &&
+		git commit -m "rename on main branch" &&
+
+		git checkout other &&
+		echo random other change >whatever &&
+		git add whatever &&
+		git mv fickle capricious &&
+		test_tick &&
+		git commit -m "rename on other branch" &&
+
+		git checkout master &&
+		git merge --no-commit other &&
+		git mv capricious mercurial &&
+		test_tick &&
+		git commit &&
+
+		git mv words sequence &&
+		test_tick &&
+		git commit -m now.sequence &&
+
+		git rm -rf numbers &&
+		test_tick &&
+		git commit -m remove.words &&
+
+		mkdir words &&
+		echo no >words/know &&
+		git add words/know &&
+		test_tick &&
+		git commit -m "Recreated file previously renamed" &&
+
+		echo "160000 deadbeefdeadbeefdeadbeefdeadbeefdeadbeefQfake_submodule" | q_to_tab | git update-index --index-info &&
+		test_tick &&
+		git commit -m "Add a fake submodule" &&
+
+		test_tick &&
+		git commit --allow-empty -m "Final commit, empty" &&
+
+		# Add a random extra unreferenced object
+		echo foobar | git hash-object --stdin -w
+	)
+'
+
+test_expect_success '--analyze' '
+	(
+		cd analyze_me &&
+
+		git filter-repo --analyze &&
+
+		# It should work and overwrite report if run again
+		git filter-repo --analyze &&
+
+		test -d .git/filter-repo/analysis &&
+		cd .git/filter-repo/analysis &&
+
+		cat >expect <<-EOF &&
+		fickle ->
+		    capricious
+		    mercurial
+		words/to ->
+		    sequence/to
+		EOF
+		test_cmp expect renames.txt &&
+
+		cat >expect <<-EOF &&
+		== Overal Statistics ==
+		  Number of commits:         9
+		  Number of filenames:       10
+		  Number of directories:     4
+		  Number of file extensions: 2
+
+		  Total unpacked size (bytes):        147
+		  Total packed size (bytes):          306
+
+		EOF
+		head -n 9 README >actual &&
+		test_cmp expect actual &&
+
+		cat | tr Q "\047" >expect <<-\EOF &&
+		== Files by sha and associated pathnames in reverse size ==
+		Format: sha, unpacked size, packed size, filename(s) object stored as
+		  a89c82a2d4b713a125a4323d25adda062cc0013d         44         48 numbers/medium.num
+		  f00c965d8307308469e537302baa73048488f162         21         37 numbers/small.num
+		  2aa69a2a708eed00cb390e30f6bcc3eed773f390         20         36 whatever
+		  51b95456de9274c9a95f756742808dfd480b9b35         13         29 [QcapriciousQ, QfickleQ, QmercurialQ]
+		  34b6a0c9d02cb6ef7f409f248c0c1224ce9dd373          5         20 [Qsequence/toQ, Qwords/toQ]
+		  732c85a1b3d7ce40ec8f78fd9ffea32e9f45fae0          5         20 [Qsequence/knowQ, Qwords/knowQ]
+		  7ecb56eb3fa3fa6f19dd48bca9f971950b119ede          3         18 words/know
+		EOF
+		test_cmp expect blob-shas-and-paths.txt &&
+
+		cat >expect <<-EOF &&
+		=== All directories by reverse size ===
+		Format: unpacked size, packed size, date deleted, directory name
+		         147        306 <present>  <toplevel>
+		          65         85 2005-04-07 numbers
+		          13         58 <present>  words
+		          10         40 <present>  sequence
+		EOF
+		test_cmp expect directories-all-sizes.txt &&
+
+		cat >expect <<-EOF &&
+		=== Deleted directories by reverse size ===
+		Format: unpacked size, packed size, date deleted, directory name
+		          65         85 2005-04-07 numbers
+		EOF
+		test_cmp expect directories-deleted-sizes.txt &&
+
+		cat >expect <<-EOF &&
+		=== All extensions by reverse size ===
+		Format: unpacked size, packed size, date deleted, extension name
+		          82        221 <present>  <no extension>
+		          65         85 2005-04-07 .num
+		EOF
+		test_cmp expect extensions-all-sizes.txt &&
+
+		cat >expect <<-EOF &&
+		=== Deleted extensions by reverse size ===
+		Format: unpacked size, packed size, date deleted, extension name
+		          65         85 2005-04-07 .num
+		EOF
+		test_cmp expect extensions-deleted-sizes.txt &&
+
+		cat >expect <<-EOF &&
+		=== All paths by reverse accumulated size ===
+		Format: unpacked size, packed size, date deleted, pathectory name
+		          44         48 2005-04-07 numbers/medium.num
+		           8         38 <present>  words/know
+		          21         37 2005-04-07 numbers/small.num
+		          20         36 <present>  whatever
+		          13         29 <present>  fickle
+		          13         29 <present>  mercurial
+		          13         29 <present>  capricious
+		           5         20 <present>  words/to
+		           5         20 <present>  sequence/know
+		           5         20 <present>  sequence/to
+		EOF
+		test_cmp expect path-all-sizes.txt &&
+
+		cat >expect <<-EOF &&
+		=== Deleted paths by reverse accumulated size ===
+		Format: unpacked size, packed size, date deleted, path name(s)
+		          44         48 2005-04-07 numbers/medium.num
+		          21         37 2005-04-07 numbers/small.num
+		EOF
+		test_cmp expect path-deleted-sizes.txt
+	)
+'
+
 test_done
