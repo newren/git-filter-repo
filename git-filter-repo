@@ -498,7 +498,7 @@ class FileChanges(_GitElement):
       self.blob_id = id_
 
     # For 'R' file changes (rename), expect to have newname as third arg
-    elif type_ == 'R':
+    elif type_ == 'R':  # pragma: no cover (now avoid fast-export renames)
       if id_ is None:
         raise SystemExit("new name needed for rename of %s" % filename)
       self.filename = (self.filename, id_)
@@ -980,7 +980,7 @@ class FastExportFilter(object):
         path = PathQuoting.dequote(path)
       filechange = FileChanges('D', path)
       self._advance_currentline()
-    elif changetype == 'R':
+    elif changetype == 'R':  # pragma: no cover (now avoid fast-export renames)
       rest = self._currentline[2:-1]
       if rest.startswith('"'):
         m = self._quoted_string_re.match(rest)
