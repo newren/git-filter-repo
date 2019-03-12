@@ -446,6 +446,30 @@ test_expect_success '--analyze' '
 	)
 '
 
+test_expect_success '--replace-text all options' '
+	(
+		git clone file://"$(pwd)"/analyze_me replace_text &&
+		cd replace_text &&
+
+		cat >../replace-rules <<-\EOF &&
+		other
+		change==>variation
+
+		literal:spam==>foodstuff
+		glob:ran*m==>haphazard
+		regex:1(.[0-9])==>2\1
+		EOF
+		git filter-repo --replace-text ../replace-rules &&
+
+		test_seq 200 210 >expect &&
+		git show HEAD~4:numbers/medium.num >actual &&
+		test_cmp expect actual &&
+
+		echo "haphazard ***REMOVED*** variation" >expect &&
+		test_cmp expect whatever
+	)
+'
+
 test_expect_success 'setup commit message rewriting' '
 	test_create_repo commit_msg &&
 	(
