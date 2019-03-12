@@ -446,4 +446,102 @@ test_expect_success '--analyze' '
 	)
 '
 
+test_expect_success 'setup commit message rewriting' '
+	test_create_repo commit_msg &&
+	(
+		cd commit_msg &&
+		echo two guys walking into a >bar &&
+		git add bar &&
+		git commit -m initial &&
+
+		test_commit another &&
+
+		name=$(git rev-parse HEAD) &&
+		echo hello >world &&
+		git add world &&
+		git commit -m "Commit referencing ${name:0:8}" &&
+
+		git revert HEAD &&
+
+		for i in $(test_seq 1 200)
+		do
+			git commit --allow-empty -m "another commit"
+		done &&
+
+		echo foo >bar &&
+		git add bar &&
+		git commit -m bar &&
+
+		git revert --no-commit HEAD &&
+		echo foo >baz &&
+		git add baz &&
+		git commit
+	)
+'
+
+test_expect_success 'commit message rewrite' '
+	(
+		git clone file://"$(pwd)"/commit_msg commit_msg_clone &&
+		cd commit_msg_clone &&
+
+		git filter-repo --invert-paths --path bar &&
+
+		git log --oneline >changes &&
+		test_line_count = 204 changes &&
+
+		name=$(git rev-parse HEAD~203) &&
+		echo "Commit referencing ${name:0:8}" >expect &&
+		git log --no-walk --format=%s HEAD~202 >actual &&
+		test_cmp expect actual &&
+
+		latest=$(git log --no-walk | grep reverts | awk "{print \$4}" | tr -d '.') &&
+		test -n "$latest" &&
+		test_must_fail git cat-file -e "$latest"
+	)
+'
+
+test_expect_success 'commit message rewrite unsuccessful' '
+	(
+		git init commit_msg_not_found &&
+		cd commit_msg_not_found &&
+
+		cat >input <<-\EOF &&
+		feature done
+		commit refs/heads/develop
+		mark :1
+		original-oid deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+		author Just Me <just@here.org> 1234567890 -0200
+		committer Just Me <just@here.org> 1234567890 -0200
+		data 2
+		A
+
+		commit refs/heads/develop
+		mark :2
+		original-oid deadbeefcafedeadbeefcafedeadbeefcafecafe
+		author Just Me <just@here.org> 1234567890 -0200
+		committer Just Me <just@here.org> 1234567890 -0200
+		data 2
+		B
+
+		commit refs/heads/develop
+		mark :3
+		original-oid 0000000000000000000000000000000000000004
+		author Just Me <just@here.org> 3980014290 -0200
+		committer Just Me <just@here.org> 3980014290 -0200
+		data 93
+		Four score and seven years ago, commit deadbeef ("B",
+		2009-02-13) messed up.  This fixes it.
+		done
+		EOF
+
+		cat input | git filter-repo --stdin --path salutation --force &&
+
+		git log --oneline develop >changes &&
+		test_line_count = 3 changes &&
+
+		git log develop >out &&
+		grep deadbeef out
+	)
+'
+
 test_done
