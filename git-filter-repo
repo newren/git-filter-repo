@@ -1164,11 +1164,13 @@ class FastExportFilter(object):
     new_hash = self._get_rename(old_hash)
     if new_hash is None:
       if old_hash[0:7] not in self._commit_short_old_hashes:
+        self._commits_referenced_but_removed.add(old_hash)
         return old_hash
       possibilities = self._commit_short_old_hashes[old_hash[0:7]]
       matches = [x for x in possibilities
                  if x[0:orig_len] == old_hash]
       if len(matches) != 1:
+        self._commits_referenced_but_removed.add(old_hash)
         return old_hash
       old_hash = matches[0]
       new_hash = self._get_rename(old_hash)
