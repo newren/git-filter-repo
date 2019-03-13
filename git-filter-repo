@@ -1554,9 +1554,11 @@ class FastExportFilter(object):
     if self._everything_callback:
       self._everything_callback('progress', progress)
 
-    # Now print the resulting progress message
-    if not progress.dumped:
-      progress.dump(self._output)
+    # NOTE: By default, we do NOT print the progress message; git
+    # fast-import would write it to fast_import_pipes which could mess with
+    # our parsing of output from the 'ls' and 'get-mark' directives we send
+    # to fast-import.  If users want these messages, they need to process
+    # and handle them in the appropriate callback above.
 
   def _parse_checkpoint(self):
     """
@@ -1580,9 +1582,11 @@ class FastExportFilter(object):
     if self._everything_callback:
       self._everything_callback('checkpoint', checkpoint)
 
-    # Now print the resulting checkpoint
-    if not checkpoint.dumped:
-      checkpoint.dump(self._output)
+    # NOTE: By default, we do NOT print the checkpoint message; although it
+    # we would only realistically get them with --stdin, the fact that we
+    # are filtering makes me think the checkpointing is less likely to be
+    # reasonable.  In fact, I don't think it's necessary in general.  If
+    # users do want it, they should process it in the checkpoint_callback.
 
   def _parse_literal_command(self):
     """
