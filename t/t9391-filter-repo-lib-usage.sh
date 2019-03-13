@@ -129,4 +129,16 @@ test_expect_success 'create_fast_export_output.py' '
 		test f36143f9 = $(git rev-parse --short=8 --verify refs/tags/v1.0))
 '
 
+test_expect_success 'unusual.py' '
+	setup unusual &&
+	(
+		cd unusual &&
+		cat $TEST_DIRECTORY/t9390/unusual | \
+			$TEST_DIRECTORY/t9391/unusual.py >output &&
+
+		grep "Decipher this: .oy ,tropmi eht gnitrats ma I" output &&
+		grep "Found 2 blobs/commits and 4 other objects" output
+	)
+'
+
 test_done

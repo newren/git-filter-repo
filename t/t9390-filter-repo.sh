@@ -42,6 +42,7 @@ filter_testcase empty empty-keepme   --path keepme
 filter_testcase degenerate degenerate-keepme   --path moduleA/keepme
 filter_testcase degenerate degenerate-moduleA  --path moduleA
 filter_testcase degenerate degenerate-globme   --path-glob *me
+filter_testcase unusual unusual-filtered --path ''
 
 test_expect_success 'setup path_rename' '
 	test_create_repo path_rename &&
