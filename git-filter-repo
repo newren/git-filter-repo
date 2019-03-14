@@ -2749,7 +2749,7 @@ class RepoFilter(object):
     # Do extra checks in non-bare repos
     if not is_bare:
       # Avoid uncommitted, unstaged, or untracked changes
-      if subprocess.call('git diff --staged'.split()):
+      if subprocess.call('git diff --staged --quiet'.split()):
         abort("you have uncommitted changes")
       if subprocess.call('git diff --quiet'.split()):
         abort("you have unstaged changes")
