@@ -1173,11 +1173,8 @@ class FastExportFilter(object):
       old_hash = matches[0]
       new_hash = self._get_rename(old_hash)
 
-    if new_hash is None:
-      self._commits_referenced_but_removed.add(old_hash)
-      return old_hash[0:orig_len]
-    else:
-      return new_hash[0:orig_len]
+    assert new_hash is not None
+    return new_hash[0:orig_len]
 
   def trim_extra_parents(self, orig_parents, parents):
     '''Due to pruning of empty commits, some parents could be non-existent
