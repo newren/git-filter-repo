@@ -1083,7 +1083,7 @@ class FastExportFilter(object):
     if self._blob_callback:
       self._blob_callback(blob)
     if self._everything_callback:
-      self._everything_callback('blob', blob)
+      self._everything_callback(blob)
 
     # Now print the resulting blob
     if not blob.dumped:
@@ -1117,7 +1117,7 @@ class FastExportFilter(object):
     if self._reset_callback:
       self._reset_callback(reset)
     if self._everything_callback:
-      self._everything_callback('reset', reset)
+      self._everything_callback(reset)
 
     # Now print the resulting reset
     self._seen_refs[reset.ref] = None
@@ -1451,7 +1451,7 @@ class FastExportFilter(object):
     if self._commit_callback:
       self._commit_callback(commit)
     if self._everything_callback:
-      self._everything_callback('commit', commit)
+      self._everything_callback(commit)
 
     # Sanity check that user callbacks didn't violate assumption on parents
     if commit.merge_commits:
@@ -1518,7 +1518,7 @@ class FastExportFilter(object):
     if self._tag_callback:
       self._tag_callback(tag)
     if self._everything_callback:
-      self._everything_callback('tag', tag)
+      self._everything_callback(tag)
 
     # The tag might not point at anything that still exists (self.from_ref
     # will be None if the commit it pointed to and all its ancestors were
@@ -1552,7 +1552,7 @@ class FastExportFilter(object):
     if self._progress_callback:
       self._progress_callback(progress)
     if self._everything_callback:
-      self._everything_callback('progress', progress)
+      self._everything_callback(progress)
 
     # NOTE: By default, we do NOT print the progress message; git
     # fast-import would write it to fast_import_pipes which could mess with
@@ -1580,7 +1580,7 @@ class FastExportFilter(object):
     if self._checkpoint_callback:
       self._checkpoint_callback(checkpoint)
     if self._everything_callback:
-      self._everything_callback('checkpoint', checkpoint)
+      self._everything_callback(checkpoint)
 
     # NOTE: By default, we do NOT print the checkpoint message; although it
     # we would only realistically get them with --stdin, the fact that we
@@ -1611,7 +1611,7 @@ class FastExportFilter(object):
         if self._reset_callback:
           self._reset_callback(reset)
         if self._everything_callback:
-          self._everything_callback('reset', reset)
+          self._everything_callback(reset)
 
         # Now print the resulting reset
         reset.dump(self._output)
