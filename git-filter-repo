@@ -375,7 +375,7 @@ class _GitElement(object):
     method such that the output would match the format produced by
     fast-export.
     """
-    raise SystemExit("Unimplemented function: %s.dump()" % type(self).__name__)
+    raise SystemExit("Unimplemented function: %s.dump()" % type(self).__name__) # pragma: no cover
 
   def __str__(self):
     """
@@ -504,7 +504,7 @@ class FileChanges(_GitElement):
     # For 'M' file changes (modify), expect to have id and mode
     if type_ == 'M':
       if mode is None:
-        raise SystemExit("file mode and idnum needed for %s" % filename)
+        raise SystemExit("file mode and idnum needed for %s" % filename) # pragma: no cover
       self.mode = mode
       self.blob_id = id_
 
@@ -530,7 +530,7 @@ class FileChanges(_GitElement):
     elif self.type == 'D':
       file_.write('D %s\n' % quoted_filename)
     else:
-      raise SystemExit("Unhandled filechange type: %s" % self.type)
+      raise SystemExit("Unhandled filechange type: %s" % self.type) # pragma: no cover
 
 class Commit(_GitElementWithId):
   """
@@ -1022,7 +1022,7 @@ class FastExportFilter(object):
     matches = self._refline_regexes[refname].match(self._currentline)
     if not matches:
       raise SystemExit("Malformed %s line: '%s'" %
-                       (refname, self._currentline))
+                       (refname, self._currentline))  # pragma: no cover
     ref = matches.group(1)
     self._advance_currentline()
     return ref
@@ -1660,7 +1660,7 @@ class FastExportFilter(object):
           m = batch_check_output_re.match(line)
           if not m or m.group(2) != 'tag':
             raise SystemExit("Failed to find new id for {} (old id was {})"
-                             .format(refname, old_hash))
+                             .format(refname, old_hash)) # pragma: no cover
           new_hash = m.group(1)
         f.write('{} {} {}\n'.format(old_hash, new_hash, refname))
     if batch_check_process:
@@ -1857,7 +1857,7 @@ class FilteringOptions(object):
         af(parser, namespace, ':'+dirname, '--path-rename')
       else:
         raise SystemExit("Error: HelperFilter given invalid option_string: {}"
-                         .format(option_string))
+                         .format(option_string)) # pragma: no cover
 
   @staticmethod
   def create_arg_parser():
@@ -2069,7 +2069,7 @@ class FilteringOptions(object):
     output = p.stdout.read()
     if '--combined-all-paths' not in output:
       raise SystemExit("Error: need a version of git whose diff-tree command "
-                       "has the --combined-all-paths option")
+                       "has the --combined-all-paths option") # pragma: no cover
 
   @staticmethod
   def get_replace_text(filename):
@@ -2221,7 +2221,7 @@ class RepoAnalyze(object):
         RepoAnalyze.handle_renames(stats, commit, change_types, filenames)
       else:
         raise SystemExit("Unhandled change type(s): {} (in commit {})"
-                         .format(change_types, commit))
+                         .format(change_types, commit)) # pragma: no cover
 
   @staticmethod
   def gather_data(args):
@@ -2319,7 +2319,7 @@ class RepoAnalyze(object):
     # Close the output, ensure rev-list|diff-tree pipeline completed successfully
     dtp.stdout.close()
     if dtp.wait():
-      raise SystemExit("Error: rev-list|diff-tree pipeline failed; see above.")
+      raise SystemExit("Error: rev-list|diff-tree pipeline failed; see above.") # pragma: no cover
 
     return stats
 
@@ -3032,7 +3032,7 @@ class RepoFilter(object):
       del self._orig_refs[ref]
     p.stdin.close()
     if p.wait():
-      raise SystemExit("git update-ref failed; see above")
+      raise SystemExit("git update-ref failed; see above") # pragma: no cover
 
     # Now remove
     if self._args.debug:
@@ -3089,7 +3089,7 @@ class RepoFilter(object):
 
       # Make sure fast-export completed successfully
       if not self._args.stdin and self._fep.wait():
-        raise SystemExit("Error: fast-export failed; see above.")
+        raise SystemExit("Error: fast-export failed; see above.") # pragma: no cover
 
     # If we're not the manager of self._output, we should avoid post-run cleanup
     if not self._managed_output:
@@ -3098,7 +3098,7 @@ class RepoFilter(object):
     # Close the output and ensure fast-import successfully completes
     self._output.close()
     if not self._args.dry_run and self._fip.wait():
-      raise SystemExit("Error: fast-import failed; see above.")
+      raise SystemExit("Error: fast-import failed; see above.") # pragma: no cover
 
     # Notify user how long it took, before doing a gc and such
     msg = "New history written in {:.2f} seconds; now repacking/cleaning..."
@@ -3130,7 +3130,7 @@ class RepoFilter(object):
                                for x in refs_to_nuke]))
         p.stdin.close()
         if p.wait():
-          raise SystemExit("git update-ref failed; see above")
+          raise SystemExit("git update-ref failed; see above") # pragma: no cover
 
       # Write out data about run
       fef.record_metadata(self.results_tmp_dir(),
