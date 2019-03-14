@@ -151,6 +151,17 @@ class AncestryGraph(object):
     # than the max depth of any of its ancestors.
     self.graph = {}
 
+  def record_external_commits(self, external_commits):
+    """
+    Record in graph that each commit in external_commits exists, and is
+    treated as a root commit with no parents.
+    """
+    for c in external_commits:
+      if c not in self.value:
+        self.cur_value += 1
+        self.value[c] = self.cur_value
+        self.graph[self.cur_value] = (1, [])
+
   def add_commit_and_parents(self, commit, parents):
     """
     Record in graph that commit has the given parents.  parents _MUST_ have
@@ -1441,6 +1452,10 @@ class FastExportFilter(object):
       _IDS.record_rename(id_, commit.id)
 
     # Record ancestry graph
+    external_parents = [p for p in commit.get_parents()
+                        if not isinstance(p, int)]
+    self._graph.record_external_commits(external_parents)
+    self._orig_graph.record_external_commits(external_parents)
     self._graph.add_commit_and_parents(commit.id, commit.get_parents())
     self._orig_graph.add_commit_and_parents(id_, orig_parents)
 

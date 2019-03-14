@@ -788,4 +788,16 @@ test_expect_success 'mailmap sanity checks' '
 	)
 '
 
+test_expect_success 'incremental import' '
+	(
+		git clone file://"$(pwd)"/analyze_me incremental &&
+		cd incremental &&
+
+		original=$(git rev-parse master) &&
+		git fast-export --reference-excluded-parents master~2..master \
+			| git filter-repo --stdin --refname-callback "return \"develop\"" &&
+		test "$(git rev-parse develop)" = "$original"
+	)
+'
+
 test_done
