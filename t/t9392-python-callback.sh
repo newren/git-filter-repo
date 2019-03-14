@@ -170,4 +170,15 @@ test_expect_success '--reset-callback' '
 	)
 '
 
+test_expect_success 'callback has return statement sanity check' '
+	setup callback_return_sanity &&
+	(
+		cd callback_return_sanity &&
+
+		test_must_fail git filter-repo --filename-callback "filename + \".txt\"" 2>../err&&
+		test_i18ngrep "Error: --filename-callback should have a return statement" ../err &&
+		rm ../err
+	)
+'
+
 test_done

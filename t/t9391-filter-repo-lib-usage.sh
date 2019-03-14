@@ -141,4 +141,14 @@ test_expect_success 'unusual.py' '
 	)
 '
 
+test_expect_success 'erroneous.py' '
+	setup erroneous &&
+	(
+		cd erroneous &&
+		test_must_fail $TEST_DIRECTORY/t9391/erroneous.py 2>../err &&
+
+		test_i18ngrep "Error: Cannot pass a tag_callback to RepoFilter AND pass --tag-callback" ../err
+	)
+'
+
 test_done
