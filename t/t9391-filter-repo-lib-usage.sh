@@ -151,4 +151,16 @@ test_expect_success 'erroneous.py' '
 	)
 '
 
+test_expect_success 'other error cases' '
+	GIT_CEILING_DIRECTORIES=$(pwd) &&
+	export GIT_CEILING_DIRECTORIES &&
+	(
+		mkdir other &&
+		cd other &&
+
+		! python -c "import git_filter_repo as fr; fr.GitUtils.get_commit_count(\".\", [\"HEAD\"])" 2>err &&
+		test_i18ngrep ". does not appear to be a valid git repository" err
+	)
+'
+
 test_done
