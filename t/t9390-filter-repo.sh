@@ -717,6 +717,40 @@ test_expect_success 'startup sanity checks' '
 	)
 '
 
+test_expect_success 'other startup error cases and requests for help' '
+	(
+		git init startup_errors &&
+		cd startup_errors &&
+
+		git filter-repo -h >out &&
+		test_i18ngrep "filter-repo destructively rewrites history" out &&
+
+		test_must_fail git filter-repo 2>err &&
+		test_i18ngrep "No arguments specified." err &&
+
+		test_must_fail git filter-repo --analyze 2>err &&
+		test_i18ngrep "Nothing to analyze; repository is empty" err &&
+
+		(
+			GIT_CEILING_DIRECTORIES=$(pwd) &&
+			export GIT_CEILING_DIRECTORIES &&
+			mkdir not_a_repo &&
+			cd not_a_repo &&
+			test_must_fail git filter-repo --dry-run 2>err &&
+			test_i18ngrep "returned non-zero exit status" err &&
+			rm err &&
+			cd .. &&
+			rmdir not_a_repo
+		) &&
+
+		test_must_fail git filter-repo --analyze --path foobar 2>err &&
+		test_i18ngrep ": --analyze is incompatible with --path" err &&
+
+		test_must_fail git filter-repo --analyze --stdin 2>err &&
+		test_i18ngrep ": --analyze is incompatible with --stdin" err
+	)
+'
+
 test_expect_success 'mailmap sanity checks' '
 	(
 		git clone file://"$(pwd)"/analyze_me mailmap_sanity_checks &&
