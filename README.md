@@ -121,7 +121,7 @@ new and old history before pushing somewhere.  Other caveats:
 None of the existing repository filtering tools do what I want.  They're
 all good in their own way, but come up short for my needs.  No tool
 provided any of the first seven traits below I wanted, and all failed to
-provide at least one of the last three traits as well:
+provide at least one of the last four traits as well:
 
   1. [Starting report] Provide user an analysis of their repo to help
      them get started on what to prune or rename, instead of expecting
@@ -191,33 +191,39 @@ provide at least one of the last three traits as well:
      commit 0013deadbeef9a..."), those commit messages should be
      rewritten to refer to the new commit IDs.
 
-  1. [Empty pruning] Commits which become empty due to filtering
-     should be pruned.  Note that pruning of commits which become
-     empty can potentially cause topology changes, and there are lots
-     of special cases.  The most basic is that if the parent of a
-     commit is pruned, the first non-pruned ancestor needs to become
-     the new parent; if no non-pruned ancestor exists, the commit
-     becomes a new root commit.  Normally, merge commits are not
-     removed since they are needed to preserve the graph topology, but
-     the pruning of parents and other ancestors can ultimately result
-     in the loss of one or more parents.  If a merge commit loses
-     enough parents to become a non-merge commit and it has no file
-     changes, then it too can be pruned.  Merge commits can also have
-     a topology that becomes degenerate: it could end up with the
-     merge_base serving as both parents (if all intervening commits
-     from the original repo were pruned), or it could end up with one
-     parent which is an ancestor of its other parent.  In such cases,
-     if the merge has no file changes of its own, then the merge
-     commit can also be pruned.  However, if the merge commit was
-     already degenerate in the original history, then it was probably
-     intentional and the merge commit will not be pruned.  Finally,
-     note that we originally talked about pruning commits which become
-     empty, NOT about pruning empty commits.  Some projects
-     intentionally create empty commits for versioning or publishing
-     reasons, and these should not be removed.  Instead, only commits
-     which become empty should be pruned.  (As a special case, commits
-     which started empty but whose parent was pruned away will also be
+  1. [Become-empty pruning] Commits which become empty due to filtering
+     should be pruned.  If the parent of a commit is pruned, the first
+     non-pruned ancestor needs to become the new parent.  If no
+     non-pruned ancestor exists and the commit was not a merge, then it
+     becomes a new root commit.  If no non-pruned ancestor exists and
+     the commit was a merge, then the merge will have one less parent
+     (and thus make it likely to become a non-merge commit which would
+     itself be pruned if it had no file changes of its own).  One
+     special thing to note here is that we prune commits which become
+     empty, NOT commits which start empty.  Some projects intentionally
+     create empty commits for versioning or publishing reasons, and
+     these should not be removed.  (As a special case, commits which
+     started empty but whose parent was pruned away will also be
      considered to have "become empty".)
+
+  1. [Become-degenerate pruning] Pruning of commits which become empty
+     can potentially cause topology changes, and there are lots of
+     special cases.  Normally, merge commits are not removed since they
+     are needed to preserve the graph topology, but the pruning of
+     parents and other ancestors can ultimately result in the loss of
+     one or more parents.  A simple case was already noted above: if a
+     merge commit loses enough parents to become a non-merge commit and
+     it has no file changes, then it too can be pruned.  Merge commits
+     can also have a topology that becomes degenerate: it could end up
+     with the merge_base serving as both parents (if all intervening
+     commits from the original repo were pruned), or it could end up
+     with one parent which is an ancestor of its other parent.  In such
+     cases, if the merge has no file changes of its own, then the merge
+     commit can also be pruned.  However, much as we do with empty
+     pruning we do not prune merge commits that started degenerate
+     (which indicates it may have been intentional, such as with --no-ff
+     merges) but only merge commits that become degenerate and have no
+     file changes of their own.
 
   1. [Speed] Filtering should be reasonably fast
 
