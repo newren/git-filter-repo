@@ -751,6 +751,21 @@ test_expect_success 'other startup error cases and requests for help' '
 	)
 '
 
+test_expect_success 'invalid fast-import directives' '
+	(
+		git init invalid_directives &&
+		cd invalid_directives &&
+
+		echo "get-mark :15" | \
+			test_must_fail git filter-repo --stdin --force 2>err &&
+		test_i18ngrep "Unsupported command" err &&
+
+		echo "invalid-directive" | \
+			test_must_fail git filter-repo --stdin --force 2>err &&
+		test_i18ngrep "Could not parse line" err
+	)
+'
+
 test_expect_success 'mailmap sanity checks' '
 	(
 		git clone file://"$(pwd)"/analyze_me mailmap_sanity_checks &&
