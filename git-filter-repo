@@ -590,37 +590,11 @@ class Commit(_GitElementWithId):
     # Record additional parent commits
     self.merge_commits = merge_commits
 
-    # Member below is necessary for workaround fast-import's/fast-export's
-    # weird handling of merges.
-    self.stream_number = 0
-    if "stream_number" in kwargs:
-      self.stream_number = kwargs["stream_number"]
-
   def dump(self, file_):
     """
     Write this commit element to a file.
     """
     self.dumped = 1
-
-    # Workaround fast-import/fast-export weird handling of merges
-    if self.stream_number != _CURRENT_STREAM_NUMBER:
-      _EXTRA_CHANGES[self.id] = [[change for change in self.file_changes]]
-
-    merge_extra_changes = []
-    for parent in self.merge_commits:
-      if parent in _EXTRA_CHANGES:
-        merge_extra_changes += _EXTRA_CHANGES[parent]
-
-    for additional_changes in merge_extra_changes:
-      self.file_changes += additional_changes
-
-    if self.stream_number == _CURRENT_STREAM_NUMBER:
-      parent_extra_changes = []
-      if self.from_commit and self.from_commit in _EXTRA_CHANGES:
-        parent_extra_changes = _EXTRA_CHANGES[self.from_commit]
-      parent_extra_changes += merge_extra_changes
-      _EXTRA_CHANGES[self.id] = parent_extra_changes
-    # End workaround
 
     # Make output to fast-import slightly easier for humans to read if the
     # message has no trailing newline of its own; cosmetic, but a nice touch...
@@ -886,10 +860,6 @@ class FastExportFilter(object):
     # Stores the contents of the current line of input being parsed
     self._currentline = ''
 
-    # Stores a translation of ids, useful when reading the output of a second
-    # or third (or etc.) git fast-export output stream
-    self._id_offset = 0
-
     # Progress handling (number of commits parsed, etc.)
     self._progress_writer = ProgressWriter()
     self._num_commits = 0
@@ -932,7 +902,7 @@ class FastExportFilter(object):
     mark = None
     matches = self._mark_re.match(self._currentline)
     if matches:
-      mark = int(matches.group(1))+self._id_offset
+      mark = int(matches.group(1))
       self._advance_currentline()
     return mark
 
@@ -947,7 +917,7 @@ class FastExportFilter(object):
     rule, altrule = self._parent_regexes[refname]
     matches = rule.match(self._currentline)
     if matches:
-      orig_baseref = int(matches.group(1)) + self._id_offset
+      orig_baseref = int(matches.group(1))
       # We translate the parent commit mark to what it needs to be in
       # our mark namespace
       baseref = _IDS.translate(orig_baseref)
@@ -976,7 +946,7 @@ class FastExportFilter(object):
       path = path.rstrip('\n')
       # We translate the idnum to our id system
       if len(idnum) != 40:
-        idnum = _IDS.translate( int(idnum)+self._id_offset )
+        idnum = _IDS.translate( int(idnum) )
       if idnum is not None:
         if path.startswith('"'):
           path = PathQuoting.dequote(path)
@@ -1442,8 +1412,7 @@ class FastExportFilter(object):
                     file_changes,
                     from_commit,
                     merge_commits,
-                    original_id,
-                    stream_number = _CURRENT_STREAM_NUMBER)
+                    original_id)
 
     # If fast-export text had a mark for this commit, need to make sure this
     # mark translates to the commit's true id.
@@ -1712,13 +1681,6 @@ class FastExportFilter(object):
     self._fast_import_pipes = fast_import_pipes
     self._quiet = quiet
 
-    # Setup some vars
-    global _CURRENT_STREAM_NUMBER
-
-    _CURRENT_STREAM_NUMBER += 1
-    if _CURRENT_STREAM_NUMBER > 1:
-      self._id_offset = _IDS._next_id-1
-
     # Run over the input and do the filtering
     self._advance_currentline()
     while self._currentline:
@@ -1764,9 +1726,7 @@ def record_id_rename(old_id, new_id):
 
 # Internal globals
 _IDS = _IDs()
-_EXTRA_CHANGES = {}  # idnum -> list of list of FileChanges
 _SKIPPED_COMMITS = set()
-_CURRENT_STREAM_NUMBER = 0
 
 class GitUtils(object):
   @staticmethod
