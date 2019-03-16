@@ -14,20 +14,6 @@ Crazy ideas, showing filter-repo flexibility:
   - extend argument parser and use extended version
   - git-bfgish (bfg) and git-very-bad-idea (filter-branch, on changed-only tree)
 
-More thorough testing
-  - commit pruning
-    - coalescing common commits of a merge
-      - what about when splicing repos; does it still work?
-  - ref pruning
-    - tags pointing at commits which are pruned along with their history
-      - refs pointing at commits which are pruned along with their history
-      - refs or tags behind a negative revision specification
-  - splitting a repo in addition to splicing
-  - commit message rewriting
-    - does it also work with repo splicing/splitting?
-  - renaming, particular when it causes collisions
-  - use coverage.py to direct test writing
-
 Repository diffing
   - New ideas:
     - Basically, diffing `git log --raw --all --format="commit %s"` output
@@ -97,16 +83,24 @@ Documentation
     - help output
     - README.md
     - manpage
-  - Backward compatiblity guarantees (or lack thereof)
-    - Big comment at top of git-filter-tree
-    - Reference caveat next to every import statement
+  - Add backward compatiblity guarantee warning where needed
+    - manpage
+    - discussion of --*-callback options
   - Make list of caveats:
     - notes about history becoming incompatible (from rebase documentation)
     - signed tags will be stripped
     - empty commit pruning and topological changes
+    - --fake-missing-tagger stuff
     - commit message rewriting
     - path rename collisions
     - all the git.git bug reports
+
+More thorough testing
+  - pruning: refs or tags behind a negative revision specification
+  - splitting a repo in addition to splicing
+  - special splicing/splitting questions:
+    - commit message rewriting
+    - coalescing common commits of a merge
 
 Performance:
   - Smarter record_remapping -- do it lazily
@@ -121,6 +115,7 @@ Performance:
 
 Argument parsing stuff:
   # NOT YET IMPLEMENTED OPTIONS BELOW
+                    '--degenerate-handling'
   misc.add_argument('--empty-pruning', choices=['always', 'auto', 'never'],
                     default='auto',
                     help='''The default, auto, will check if filtering
