@@ -2805,6 +2805,11 @@ class RepoFilter(object):
     # Filter or rename the list of file changes
     new_file_changes = {}
     for change in commit.file_changes:
+      # NEEDSWORK: _If_ we ever want to pass `--full-tree` to fast-export and
+      # parse that output, we'll need to modify this block; `--full-tree`
+      # issues a deleteall directive which has no filename, and thus this
+      # block would normally strip it.  Of course, FileChanges() and
+      # _parse_optional_filechange() would need updates too.
       if change.filename in self._newnames:
         change.filename = self._newnames[change.filename]
       else:
