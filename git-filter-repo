@@ -236,7 +236,7 @@ class MailmapInfo(object):
     name_and_email_re = re.compile(r'(.*?)\s*<([^>]+)>\s*')
     comment_re = re.compile(r'\s*#.*')
     if not os.access(filename, os.R_OK):
-      raise SystemExit("Cannot read {}".format(filename))
+      raise SystemExit(_("Cannot read %s") % filename)
     with open(filename) as f:
       count = 0
       for line in f:
@@ -400,7 +400,8 @@ class _GitElement(object):
     method such that the output would match the format produced by
     fast-export.
     """
-    raise SystemExit("Unimplemented function: %s.dump()" % type(self).__name__) # pragma: no cover
+    raise SystemExit(_("Unimplemented function: %s") % type(self).__name__
+                     +".dump()") # pragma: no cover
 
   def __str__(self):
     """
@@ -529,14 +530,14 @@ class FileChanges(_GitElement):
     # For 'M' file changes (modify), expect to have id and mode
     if type_ == 'M':
       if mode is None:
-        raise SystemExit("file mode and idnum needed for %s" % filename) # pragma: no cover
+        raise SystemExit(_("file mode and idnum needed for %s") % filename) # pragma: no cover
       self.mode = mode
       self.blob_id = id_
 
     # For 'R' file changes (rename), expect to have newname as third arg
     elif type_ == 'R':  # pragma: no cover (now avoid fast-export renames)
       if id_ is None:
-        raise SystemExit("new name needed for rename of %s" % filename)
+        raise SystemExit(_("new name needed for rename of %s") % filename)
       self.filename = (self.filename, id_)
 
   def dump(self, file_):
@@ -555,7 +556,7 @@ class FileChanges(_GitElement):
     elif self.type == 'D':
       file_.write('D %s\n' % quoted_filename)
     else:
-      raise SystemExit("Unhandled filechange type: %s" % self.type) # pragma: no cover
+      raise SystemExit(_("Unhandled filechange type: %s") % self.type) # pragma: no cover
 
 class Commit(_GitElementWithId):
   """
@@ -991,7 +992,7 @@ class FastExportFilter(object):
       if rest.startswith('"'):
         m = self._quoted_string_re.match(rest)
         if not m:
-          raise SystemExit("Couldn't parse rename source")
+          raise SystemExit(_("Couldn't parse rename source"))
         orig = PathQuoting.dequote(m.group(0))
         new = rest[m.end()+1:]
       else:
@@ -1016,8 +1017,9 @@ class FastExportFilter(object):
     """
     matches = self._refline_regexes[refname].match(self._currentline)
     if not matches:
-      raise SystemExit("Malformed %s line: '%s'" %
-                       (refname, self._currentline))  # pragma: no cover
+      raise SystemExit(_("Malformed %(refname)s line: '%(line)s'") %
+                       ({'refname': refname, 'line':self._currentline})
+                       ) # pragma: no cover
     ref = matches.group(1)
     self._advance_currentline()
     return ref
@@ -1493,7 +1495,7 @@ class FastExportFilter(object):
     # Show progress
     self._num_commits += 1
     if not self._quiet:
-      self._progress_writer.show("Parsed {} commits".format(self._num_commits))
+      self._progress_writer.show(_("Parsed %d commits") % self._num_commits)
 
   def _parse_tag(self):
     """
@@ -1629,7 +1631,7 @@ class FastExportFilter(object):
     deleted_hash = '0'*40
     self._flush_renames()
     with open(os.path.join(metadata_dir, 'commit-map'), 'w') as f:
-      f.write("old                                      new\n")
+      f.write("%-40s %s\n" % (_("old"), _("new")))
       for (old,new) in self._commit_renames.iteritems():
         f.write('{} {}\n'.format(old, new if new != None else deleted_hash))
 
@@ -1653,8 +1655,10 @@ class FastExportFilter(object):
           line = batch_check_process.stdout.readline()
           m = batch_check_output_re.match(line)
           if not m or m.group(2) != 'tag':
-            raise SystemExit("Failed to find new id for {} (old id was {})"
-                             .format(refname, old_hash)) # pragma: no cover
+            raise SystemExit(_("Failed to find new id for %(refname)s "
+                               "(old id was %(old_hash)s)")
+                             % ({'refname': refname, 'old_hash': old_hash})
+                             ) # pragma: no cover
           new_hash = m.group(1)
         f.write('{} {} {}\n'.format(old_hash, new_hash, refname))
     if batch_check_process:
@@ -1666,32 +1670,32 @@ class FastExportFilter(object):
       if self._commits_no_longer_merges:
         issues_found = True
 
-        f.write(textwrap.dedent('''
+        f.write(textwrap.dedent(_('''
           The following commits used to be merge commits but due to filtering
           are now regular commits; they likely have suboptimal commit messages
           (e.g. "Merge branch next into master").  Original commit hash on the
           left, commit hash after filtering/rewriting on the right:
-          '''[1:]))
+          ''')[1:]))
         for oldhash, newhash in self._commits_no_longer_merges:
           f.write('  {} {}\n'.format(oldhash, newhash))
         f.write('\n')
 
       if self._commits_referenced_but_removed:
         issues_found = True
-        f.write(textwrap.dedent('''
+        f.write(textwrap.dedent(_('''
           The following commits were filtered out, but referenced in another
           commit message.  The reference to the now-nonexistent commit hash
           (or a substring thereof) was left as-is in any commit messages:
-          '''[1:]))
+          ''')[1:]))
         for bad_commit_reference in self._commits_referenced_but_removed:
           f.write('  {}\n'.format(bad_commit_reference))
         f.write('\n')
 
       if not issues_found:
-        f.write("No filtering problems encountered.")
+        f.write(_("No filtering problems encountered."))
 
     with open(os.path.join(metadata_dir, 'already_ran'), 'w') as f:
-       f.write("This file exists to allow you to filter again without --force.")
+       f.write(_("This file exists to allow you to filter again without --force."))
 
   def get_seen_refs(self):
     return self._seen_refs.keys()
@@ -1733,9 +1737,9 @@ class FastExportFilter(object):
       elif self._currentline.startswith('get-mark') or \
            self._currentline.startswith('cat-blob') or \
            self._currentline.startswith('ls'):
-        raise SystemExit("Unsupported command: '%s'" % self._currentline)
+        raise SystemExit(_("Unsupported command: '%s'") % self._currentline)
       else:
-        raise SystemExit("Could not parse line: '%s'" % self._currentline)
+        raise SystemExit(_("Could not parse line: '%s'") % self._currentline)
 
     if not self._quiet:
       self._progress_writer.finish()
@@ -1770,7 +1774,8 @@ class GitUtils(object):
     p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
     count = int(p2.communicate()[0])
     if p1.poll() != 0:
-      raise SystemExit("%s does not appear to be a valid git repository" % repo)
+      raise SystemExit(_("%s does not appear to be a valid git repository")
+                       % repo)
     return count
 
   @staticmethod
@@ -1838,13 +1843,13 @@ class FilteringOptions(object):
       elif option_string == '--to-subdirectory-filter':
         af(parser, namespace, ':'+dirname, '--path-rename')
       else:
-        raise SystemExit("Error: HelperFilter given invalid option_string: {}"
-                         .format(option_string)) # pragma: no cover
+        raise SystemExit(_("Error: HelperFilter given invalid option_string: %s")
+                         % option_string) # pragma: no cover
 
   @staticmethod
   def create_arg_parser():
     # Include usage in the summary, so we can put the description first
-    summary = '''Rewrite (or analyze) repository history
+    summary = _('''Rewrite (or analyze) repository history
 
     git-filter-repo destructively rewrites history (unless --analyze or --dry-run
     are specified) according to specified rules.  It refuses to do any rewriting
@@ -1855,14 +1860,14 @@ class FilteringOptions(object):
       git-filter-repo [FILTER/RENAME/CONTROL OPTIONS]
 
     See EXAMPLES section for details.
-    '''.rstrip()
+    ''').rstrip()
 
     # Provide a long helpful examples section
-    example_text = '''EXAMPLES
+    example_text = _('''EXAMPLES
 
     To get help:
       git-filter-repo --help
-    '''
+    ''')
 
     # Create the basic parser
     parser = argparse.ArgumentParser(description=summary,
@@ -1871,165 +1876,150 @@ class FilteringOptions(object):
                                      epilog = example_text,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    analyze = parser.add_argument_group(title='Analysis')
+    analyze = parser.add_argument_group(title=_("Analysis"))
     analyze.add_argument('--analyze', action='store_true',
-                         help='''Analyze repository history and create a
-                                 report that may be useful in determining
-                                 what to filter in a subsequent run.  Will
-                                 not modify your repo.''')
+        help=_("Analyze repository history and create a report that may be "
+               "useful in determining what to filter in a subsequent run. "
+               "Will not modify your repo."))
 
-    refs = parser.add_argument_group(title='Git References')
+    refs = parser.add_argument_group(title=_("Git References"))
     refs.add_argument('--refs', action='store_const', const=['--all'],
                       default=['--all'], help=argparse.SUPPRESS)
 
-    path = parser.add_argument_group(title='Filtering based on paths')
-    path.add_argument('--invert-paths', action='store_false',
-                      dest='inclusive',
-                      help='''Invert the selection of files from the specified
-                              --path-{match,glob,regex} options below, i.e. only
-                              select files matching none of those options.''')
+    path = parser.add_argument_group(title=_("Filtering based on paths"))
+    path.add_argument('--invert-paths', action='store_false', dest='inclusive',
+        help=_("Invert the selection of files from the specified "
+               "--path-{match,glob,regex} options below, i.e. only select "
+               "files matching none of those options."))
 
     path.add_argument('--path-match', '--path', metavar='DIR_OR_FILE',
-                      action=FilteringOptions.AppendFilter, dest='path_changes',
-                      help='''Exact paths (files or directories) to include in
-                              filtered history.  Multiple --path options can be
-                              specified to get a union of paths.''')
+        action=FilteringOptions.AppendFilter, dest='path_changes',
+        help=_("Exact paths (files or directories) to include in filtered "
+               "history.  Multiple --path options can be specified to get "
+               "a union of paths."))
     path.add_argument('--path-glob', metavar='GLOB',
-                      action=FilteringOptions.AppendFilter, dest='path_changes',
-                      help='''Glob of paths to include in filtered history.
-                              Multiple --path-glob options can be specified to
-                              get a union of paths.''')
+        action=FilteringOptions.AppendFilter, dest='path_changes',
+        help=_("Glob of paths to include in filtered history. Multiple "
+               "--path-glob options can be specified to get a union of "
+               "paths."))
     path.add_argument('--path-regex', metavar='REGEX',
-                      action=FilteringOptions.AppendFilter, dest='path_changes',
-                      help='''Regex of paths to include in filtered history.
-                              Multiple --path-regex options can be specified to
-                              get a union of paths''')
+        action=FilteringOptions.AppendFilter, dest='path_changes',
+        help=_("Regex of paths to include in filtered history. Multiple "
+               "--path-regex options can be specified to get a union of "
+               "paths"))
 
-    rename = parser.add_argument_group(title='Renaming based on paths')
+    rename = parser.add_argument_group(title=_("Renaming based on paths"))
     rename.add_argument('--path-rename', '--path-rename-prefix',
-                        metavar='OLD_NAME:NEW_NAME',
-                        action=FilteringOptions.AppendFilter,
-                        dest='path_changes',
-                        help='''Prefix to rename; if filename starts with
-                                OLD_NAME, replace that with NEW_NAME.  Multiple
-                                --path-rename options can be specified.''')
+        metavar='OLD_NAME:NEW_NAME', dest='path_changes',
+        action=FilteringOptions.AppendFilter,
+        help=_("Prefix to rename; if filename starts with OLD_NAME, "
+               "replace that with NEW_NAME.  Multiple --path-rename "
+               "options can be specified."))
 
-    refrename = parser.add_argument_group(title='Renaming of refs')
+    refrename = parser.add_argument_group(title=_("Renaming of refs"))
     refrename.add_argument('--tag-rename', metavar='OLD:NEW',
-                           help='''Rename tags starting with OLD to start with
-                                   NEW.  e.g.  --tag-rename foo:bar will rename
-                                   tag foo-1.2.3 to bar-1.2.3; either OLD or NEW
-                                   can be empty.''')
+        help=_("Rename tags starting with OLD to start with NEW.  For "
+               "example, --tag-rename foo:bar will rename tag foo-1.2.3 "
+               "to bar-1.2.3; either OLD or NEW can be empty."))
 
-    helpers = parser.add_argument_group(title='Shortcuts')
+    helpers = parser.add_argument_group(title=_("Shortcuts"))
     helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
-                         action=FilteringOptions.HelperFilter,
-                         help='''Only look at history that touches the given
-                                 subdirectory and treat that directory as the
-                                 project root.  Equivalent to using
-                                 "--path DIRECTORY/ --path-rename DIRECTORY/:"
-                                 ''')
+        action=FilteringOptions.HelperFilter,
+        help=_("Only look at history that touches the given subdirectory "
+               "and treat that directory as the project root.  Equivalent "
+               "to using '--path DIRECTORY/ --path-rename DIRECTORY/:'"))
     helpers.add_argument('--to-subdirectory-filter', metavar='DIRECTORY',
-                         action=FilteringOptions.HelperFilter,
-                         help='''Treat the project root as instead being under
-                                 DIRECTORY.  Equivalent to using
-                                 "--path-rename :DIRECTORY/"''')
+        action=FilteringOptions.HelperFilter,
+        help=_("Treat the project root as instead being under DIRECTORY. "
+               "Equivalent to using '--path-rename :DIRECTORY/'"))
 
-    people = parser.add_argument_group(title='Filtering of names/emails')
+    people = parser.add_argument_group(title=_("Filtering of names/emails"))
     people.add_argument('--mailmap', dest='mailmap', metavar='FILENAME',
-                        help='''Use specified mailmap file (see git-shortlog(1)
-                                for details on the format) when rewriting
-                                author, committer, and tagger names and
-                                emails.  If the specified file is part of git
-                                history, historical versions of the file will
-                                be ignored; only the current contents are
-                                consulted.''')
+        help=_("Use specified mailmap file (see git-shortlog(1) for "
+               "details on the format) when rewriting author, committer, "
+               "and tagger names and emails.  If the specified file is "
+               "part of git history, historical versions of the file will "
+               "be ignored; only the current contents are consulted."))
     people.add_argument('--use-mailmap', dest='mailmap',
-                        action='store_const', const='.mailmap',
-                        help='''Same as: '--mailmap .mailmap' ''')
+        action='store_const', const='.mailmap',
+        help=_("Same as: '--mailmap .mailmap' "))
 
-    contents = parser.add_argument_group(title='Content editing filters')
+    contents = parser.add_argument_group(title=_("Content editing filters"))
     contents.add_argument('--replace-text', metavar='EXPRESSIONS_FILE',
-                          help='''A file with expressions that, if found, will
-                               be replaced.  By default, each expression is
-                               treated as literal text, but 'regex:' and 'glob:'
-                               prefixes are supported.  You can end the line
-                               with "==>" and some replacement text to choose
-                               a replacement choice other than the default of
-                               "***REMOVED***". ''')
+        help=_("A file with expressions that, if found, will be replaced. "
+               "By default, each expression is treated as literal text, "
+               "but 'regex:' and 'glob:' prefixes are supported.  You can "
+               "end the line with '==>' and some replacement text to "
+               "choose a replacement choice other than the default of "
+               "'***REMOVED***'. "))
 
-    callback = parser.add_argument_group(title='Generic callback code snippets')
+    callback = parser.add_argument_group(title=_("Generic callback code snippets"))
     callback.add_argument('--filename-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing filenames;
-                                  see CALLBACKS sections below.''')
+        help=_("Python code body for processing filenames; see CALLBACKS "
+               "sections below."))
     callback.add_argument('--message-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing messages
-                                  (both commit messages and tag messages);
-                                  see CALLBACKS sections below.''')
+        help=_("Python code body for processing messages (both commit "
+               "messages and tag messages); see CALLBACKS section below."))
     callback.add_argument('--name-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing names of
-                                  people; see CALLBACKS sections below.''')
+        help=_("Python code body for processing names of people; see "
+               "CALLBACKS section below."))
     callback.add_argument('--email-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing emails
-                                  addresses; see CALLBACKS sections below.''')
+        help=_("Python code body for processing emails addresses; see "
+               "CALLBACKS section below."))
     callback.add_argument('--refname-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing refnames;
-                                  see CALLBACKS sections below.''')
+        help=_("Python code body for processing refnames; see CALLBACKS "
+               "section below."))
 
     callback.add_argument('--blob-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing blob objects;
-                                  see CALLBACKS sections below.''')
+        help=_("Python code body for processing blob objects; see "
+               "CALLBACKS section below."))
     callback.add_argument('--commit-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing commit objects;
-                                  see CALLBACKS sections below.''')
+        help=_("Python code body for processing commit objects; see "
+               "CALLBACKS section below."))
     callback.add_argument('--tag-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing tag objects;
-                                  see CALLBACKS sections below.''')
+        help=_("Python code body for processing tag objects; see CALLBACKS "
+               "section below."))
     callback.add_argument('--reset-callback', metavar="FUNCTION_BODY",
-                          help='''Python code body for processing reset objects;
-                                  see CALLBACKS sections below.''')
+        help=_("Python code body for processing reset objects; see "
+               "CALLBACKS section below."))
 
-    location = parser.add_argument_group(title='Location to filter from/to')
-    location.add_argument('--source',
-                          help='''Git repository to read from''')
+    location = parser.add_argument_group(title=_("Location to filter from/to"))
+    location.add_argument('--source', help=_("Git repository to read from"))
     location.add_argument('--target',
-                          help='''Git repository to overwrite with filtered
-                                  history''')
+        help=_("Git repository to overwrite with filtered history"))
 
-    misc = parser.add_argument_group(title='Miscellaneous options')
+    misc = parser.add_argument_group(title=_("Miscellaneous options"))
     misc.add_argument('--help', '-h', action='store_true',
-                      help='''Show this help message and exit.''')
+        help=_("Show this help message and exit."))
     misc.add_argument('--force', '-f', action='store_true',
-                      help='''Rewrite history even if the current repo does not
-                              look like a fresh clone.''')
+        help=_("Rewrite history even if the current repo does not look "
+               "like a fresh clone."))
 
     misc.add_argument('--dry-run', action='store_true',
-                      help='''Do not change the repository.  Run `git
-                              fast-export` and filter its output, and save both
-                              the original and the filtered version for
-                              comparison.  Some filtering of empty commits may
-                              not occur due to inability to query the fast-import
-                              backend.''')
+        help=_("Do not change the repository.  Run `git fast-export` and "
+               "filter its output, and save both the original and the "
+               "filtered version for comparison.  Some filtering of empty "
+               "commits may not occur due to inability to query the "
+               "fast-import backend."))
     misc.add_argument('--debug', action='store_true',
-                      help='''Print additional information about operations being
-                              performed and commands being run.  When used
-                              together with --dry-run, also show extra
-                              information about what would be run.''')
+        help=_("Print additional information about operations being "
+               "performed and commands being run.  When used together "
+               "with --dry-run, also show extra information about what "
+               "would be run."))
     misc.add_argument('--stdin', action='store_true',
-                      help='''Instead of running `git fast-export` and filtering
-                              its output, filter the fast-export stream from
-                              stdin.''')
+        help=_("Instead of running `git fast-export` and filtering its "
+               "output, filter the fast-export stream from stdin."))
     misc.add_argument('--quiet', action='store_true',
-                      help='''Pass --quiet to other git commands called''')
+        help=_("Pass --quiet to other git commands called"))
     return parser
 
   @staticmethod
   def sanity_check_args(args):
     if args.analyze and args.path_changes:
-      raise SystemExit("Error: --analyze is incompatible with --path* flags; "
-                       "it's a read-only operation.")
+      raise SystemExit(_("Error: --analyze is incompatible with --path* flags; "
+                         "it's a read-only operation."))
     if args.analyze and args.stdin:
-      raise SystemExit("Error: --analyze is incompatible with --stdin.")
+      raise SystemExit(_("Error: --analyze is incompatible with --stdin."))
     # If no path_changes are found, initialize with empty list but mark as
     # not inclusive so that all files match
     if args.path_changes == None:
@@ -2050,8 +2040,8 @@ class FilteringOptions(object):
     p.wait()
     output = p.stdout.read()
     if '--combined-all-paths' not in output:
-      raise SystemExit("Error: need a version of git whose diff-tree command "
-                       "has the --combined-all-paths option") # pragma: no cover
+      raise SystemExit(_("Error: need a version of git whose diff-tree command "
+                         "has the --combined-all-paths option")) # pragma: no cover
 
   @staticmethod
   def get_replace_text(filename):
@@ -2094,7 +2084,7 @@ class FilteringOptions(object):
     parser = FilteringOptions.create_arg_parser()
     if not input_args and error_on_empty:
       parser.print_usage()
-      raise SystemExit("No arguments specified.")
+      raise SystemExit(_("No arguments specified."))
     args = parser.parse_args(input_args)
     if args.help:
       parser.print_help()
@@ -2202,8 +2192,10 @@ class RepoAnalyze(object):
         RepoAnalyze.handle_file(stats, graph, commit, modes, shas, filenames)
         RepoAnalyze.handle_renames(stats, commit, change_types, filenames)
       else:
-        raise SystemExit("Unhandled change type(s): {} (in commit {})"
-                         .format(change_types, commit)) # pragma: no cover
+        raise SystemExit(_("Unhandled change type(s): %(change_type)s "
+                           "(in commit %(commit)s)")
+                         % ({'change_type': change_types, 'commit': commit})
+                         ) # pragma: no cover
 
   @staticmethod
   def gather_data(args):
@@ -2225,7 +2217,7 @@ class RepoAnalyze(object):
         unpacked_size[sha] = objsize
         packed_size[sha] = objdisksize
       num_blobs += 1
-      blob_size_progress.show("Processed {} blob sizes".format(num_blobs))
+      blob_size_progress.show(_("Processed %d blob sizes") % num_blobs)
     cf.wait()
     blob_size_progress.finish()
     stats = {'names': collections.defaultdict(set),
@@ -2249,7 +2241,7 @@ class RepoAnalyze(object):
     try:
       line = f.next()
     except StopIteration:
-      raise SystemExit("Nothing to analyze; repository is empty.")
+      raise SystemExit(_("Nothing to analyze; repository is empty."))
     cont = bool(line)
     graph = AncestryGraph()
     while cont:
@@ -2292,7 +2284,7 @@ class RepoAnalyze(object):
       RepoAnalyze.analyze_commit(stats, graph, commit, parents, date,
                                  file_changes)
       num_commits += 1
-      commit_parse_progress.show("Processed {} commits".format(num_commits))
+      commit_parse_progress.show(_("Processed %d commits") % num_commits)
 
     # Show the final commits processed message and record the number of commits
     commit_parse_progress.finish()
@@ -2301,14 +2293,14 @@ class RepoAnalyze(object):
     # Close the output, ensure rev-list|diff-tree pipeline completed successfully
     dtp.stdout.close()
     if dtp.wait():
-      raise SystemExit("Error: rev-list|diff-tree pipeline failed; see above.") # pragma: no cover
+      raise SystemExit(_("Error: rev-list|diff-tree pipeline failed; see above.")) # pragma: no cover
 
     return stats
 
   @staticmethod
   def write_report(reportdir, stats):
     def datestr(datetimestr):
-      return datetimestr if datetimestr else '<present>'
+      return datetimestr if datetimestr else _('<present>')
 
     def dirnames(path):
       while True:
@@ -2358,22 +2350,26 @@ class RepoAnalyze(object):
 
     with open(os.path.join(reportdir, "README"), 'w') as f:
       # Give a basic overview of this file
-      f.write("== Overal Statistics ==\n")
-      f.write("  Number of commits:         {}\n".format(stats['num_commits']))
-      f.write("  Number of filenames:       {}\n".format(len(path_size['packed'])))
-      f.write("  Number of directories:     {}\n".format(len(dir_size['packed'])))
-      f.write("  Number of file extensions: {}\n".format(len(ext_size['packed'])))
+      f.write("== %s ==\n" % _("Overall Statistics"))
+      f.write("  %s: %d\n" % (_("Number of commits"),
+                              stats['num_commits']))
+      f.write("  %s: %d\n" % (_("Number of filenames"),
+                              len(path_size['packed'])))
+      f.write("  %s: %d\n" % (_("Number of directories"),
+                              len(dir_size['packed'])))
+      f.write("  %s: %d\n" % (_("Number of file extensions"),
+                              len(ext_size['packed'])))
       f.write("\n")
-      f.write("  Total unpacked size (bytes): {:10d}\n"
-              .format(total_size['unpacked']))
-      f.write("  Total packed size (bytes):   {:10d}\n"
-              .format(total_size['packed']))
+      f.write("  %s: %d\n" % (_("Total unpacked size (bytes)"),
+                              total_size['unpacked']))
+      f.write("  %s: %d\n" % (_("Total packed size (bytes)"),
+                              total_size['packed']))
       f.write("\n")
 
       # Mention issues with the report
-      f.write("== Caveats ==\n")
-      f.write("=== Sizes ===\n")
-      f.write(textwrap.dedent("""
+      f.write("== %s ==\n" % _("Caveats"))
+      f.write("=== %s ===\n" % _("Sizes"))
+      f.write(textwrap.dedent(_("""
         Packed size represents what size your repository would be if no
         trees, commits, tags, or other metadata were included (though it may
         fail to represent de-duplication; see below).  It also represents the
@@ -2400,10 +2396,10 @@ class RepoAnalyze(object):
         ever reverted to a previous version's contents, the previous
         version's size will be counted multiple times in this analysis, even
         though git will only store it once.
-        """[1:]))
+        """)[1:]))
       f.write("\n")
-      f.write("=== Deletions ===\n")
-      f.write(textwrap.dedent("""
+      f.write("=== %s ===\n" % _("Deletions"))
+      f.write(textwrap.dedent(_("""
         Whether a file is deleted is not a binary quality, since it can be
         deleted on some branches but still exist in others.  Also, it might
         exist in an old tag, but have been deleted in versions newer than
@@ -2418,10 +2414,10 @@ class RepoAnalyze(object):
           stream that mentions the file lists it as deleted.
         This makes it dependent on topological ordering, but generally gives
         the "right" answer.
-        """[1:]))
+        """)[1:]))
       f.write("\n")
-      f.write("=== Renames ===\n")
-      f.write(textwrap.dedent("""
+      f.write("=== %s ===\n" % _("Renames"))
+      f.write(textwrap.dedent(_("""
         Renames share the same non-binary nature that deletions do, plus
         additional challenges:
           * If the renamed file is renamed again, instead of just two names for
@@ -2436,7 +2432,7 @@ class RepoAnalyze(object):
           * The ability for users to rename files differently in different
             branches means that our chains of renames will not necessarily be
             linear but may branch out.
-        """[1:]))
+        """)[1:]))
       f.write("\n")
 
     # Equivalence classes for names, so if folks only want to keep a
@@ -2455,8 +2451,8 @@ class RepoAnalyze(object):
 
     # List directories in reverse sorted order of unpacked size
     with open(os.path.join(reportdir, "directories-deleted-sizes.txt"), 'w') as f:
-      f.write("=== Deleted directories by reverse size ===\n")
-      f.write("Format: unpacked size, packed size, date deleted, directory name\n")
+      f.write("=== %s ===\n" % _("Deleted directories by reverse size"))
+      f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
       for dirname, size in sorted(dir_size['packed'].iteritems(),
                                   key=lambda x:x[1], reverse=True):
         if (dir_deleted_data[dirname]):
@@ -2464,23 +2460,23 @@ class RepoAnalyze(object):
                   .format(dir_size['unpacked'][dirname],
                           size,
                           datestr(dir_deleted_data[dirname]),
-                          dirname or '<toplevel>'))
+                          dirname or _('<toplevel>')))
 
     with open(os.path.join(reportdir, "directories-all-sizes.txt"), 'w') as f:
-      f.write("=== All directories by reverse size ===\n")
-      f.write("Format: unpacked size, packed size, date deleted, directory name\n")
+      f.write("=== %s ===\n" % _("All directories by reverse size"))
+      f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
       for dirname, size in sorted(dir_size['packed'].iteritems(),
                                   key=lambda x:x[1], reverse=True):
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(dir_size['unpacked'][dirname],
                         size,
                         datestr(dir_deleted_data[dirname]),
-                        dirname or '<toplevel>'))
+                        dirname or _("<toplevel>")))
 
     # List extensions in reverse sorted order of unpacked size
     with open(os.path.join(reportdir, "extensions-deleted-sizes.txt"), 'w') as f:
-      f.write("=== Deleted extensions by reverse size ===\n")
-      f.write("Format: unpacked size, packed size, date deleted, extension name\n")
+      f.write("=== %s ===\n" % _("Deleted extensions by reverse size"))
+      f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
       for extname, size in sorted(ext_size['packed'].iteritems(),
                                   key=lambda x:x[1], reverse=True):
         if (ext_deleted_data[extname]):
@@ -2488,23 +2484,23 @@ class RepoAnalyze(object):
                   .format(ext_size['unpacked'][extname],
                           size,
                           datestr(ext_deleted_data[extname]),
-                          extname or '<no extension>'))
+                          extname or _('<no extension>')))
 
     with open(os.path.join(reportdir, "extensions-all-sizes.txt"), 'w') as f:
-      f.write("=== All extensions by reverse size ===\n")
-      f.write("Format: unpacked size, packed size, date deleted, extension name\n")
+      f.write("=== %s ===\n" % _("All extensions by reverse size"))
+      f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
       for extname, size in sorted(ext_size['packed'].iteritems(),
                                   key=lambda x:x[1], reverse=True):
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(ext_size['unpacked'][extname],
                         size,
                         datestr(ext_deleted_data[extname]),
-                        extname or '<no extension>'))
+                        extname or _('<no extension>')))
 
     # List files in reverse sorted order of unpacked size
     with open(os.path.join(reportdir, "path-deleted-sizes.txt"), 'w') as f:
-      f.write("=== Deleted paths by reverse accumulated size ===\n")
-      f.write("Format: unpacked size, packed size, date deleted, path name(s)\n")
+      f.write("=== %s ===\n" % _("Deleted paths by reverse accumulated size"))
+      f.write(_("Format: unpacked size, packed size, date deleted, path name(s)\n"))
       for pathname, size in sorted(path_size['packed'].iteritems(),
                                    key=lambda x:x[1], reverse=True):
         when = stats['file_deletions'].get(pathname, None)
@@ -2516,8 +2512,8 @@ class RepoAnalyze(object):
                           pathname))
 
     with open(os.path.join(reportdir, "path-all-sizes.txt"), 'w') as f:
-      f.write("=== All paths by reverse accumulated size ===\n")
-      f.write("Format: unpacked size, packed size, date deleted, pathectory name\n")
+      f.write("=== %s ===\n" % _("All paths by reverse accumulated size"))
+      f.write(_("Format: unpacked size, packed size, date deleted, pathectory name\n"))
       for pathname, size in sorted(path_size['packed'].iteritems(),
                                    key=lambda x:x[1], reverse=True):
         when = stats['file_deletions'].get(pathname, None)
@@ -2529,8 +2525,8 @@ class RepoAnalyze(object):
 
     # List of filenames and sizes in descending order
     with open(os.path.join(reportdir, "blob-shas-and-paths.txt"), 'w') as f:
-      f.write("== Files by sha and associated pathnames in reverse size ==\n")
-      f.write("Format: sha, unpacked size, packed size, filename(s) object stored as\n")
+      f.write("=== %s ===\n" % _("Files by sha and associated pathnames in reverse size"))
+      f.write(_("Format: sha, unpacked size, packed size, filename(s) object stored as\n"))
       for sha, size in sorted(stats['packed_size'].iteritems(),
                               key=lambda x:x[1], reverse=True):
         if sha not in stats['names']:
@@ -2564,10 +2560,10 @@ class RepoAnalyze(object):
     stats = RepoAnalyze.gather_data(args)
 
     # Write the reports
-    sys.stdout.write("Writing reports to {}...".format(reportdir))
+    sys.stdout.write(_("Writing reports to %s...") % reportdir)
     sys.stdout.flush()
     RepoAnalyze.write_report(reportdir, stats)
-    sys.stdout.write("done.\n")
+    sys.stdout.write(_("done.\n"))
 
 class InputFileBackup:
   def __init__(self, input_file, output_file):
@@ -2659,13 +2655,13 @@ class RepoFilter(object):
       code_string = getattr(self._args, type+'_callback')
       if code_string:
         if getattr(self, callback_field):
-          raise SystemExit("Error: Cannot pass a {}_callback to RepoFilter "
-                           "AND pass --{}-callback"
-                           .format(type, type))
+          raise SystemExit(_("Error: Cannot pass a %s_callback to RepoFilter "
+                             "AND pass --%s-callback"
+                           % (type, type)))
         if 'return ' not in code_string and \
            type not in ('blob', 'commit', 'tag', 'reset'):
-          raise SystemExit("Error: --{}-callback should have a return statement"
-                           .format(type))
+          raise SystemExit(_("Error: --%s-callback should have a return statement")
+                           % type)
         setattr(self, callback_field, make_callback(type, code_string))
     handle('filename')
     handle('message')
@@ -2703,31 +2699,31 @@ class RepoFilter(object):
   def sanity_check(refs, is_bare):
     def abort(reason):
       raise SystemExit(
-        "Aborting: Refusing to overwrite repo history since this does not\n"
-        "look like a fresh clone.\n"
-        "  ("+reason+")\n"
-        "To override, use --force.")
+        _("Aborting: Refusing to overwrite repo history since this does not\n"
+          "look like a fresh clone.\n"
+          "  (%s)\n"
+          "To override, use --force.") % reason)
 
     # Make sure repo is fully packed, just like a fresh clone would be
     output = subprocess.check_output('git count-objects -v'.split())
     stats = dict(x.split(': ') for x in output.splitlines())
     num_packs = int(stats['packs'])
     if stats['count'] != '0' or num_packs > 1:
-      abort("expected freshly packed repo")
+      abort(_("expected freshly packed repo"))
 
     # Make sure there is precisely one remote, named "origin"...or that this
     # is a new bare repo with no packs and no remotes
     output = subprocess.check_output('git remote'.split()).strip()
     if not (output == "origin" or (num_packs == 0 and not output)):
-      abort("expected one remote, origin")
+      abort(_("expected one remote, origin"))
 
     # Avoid letting people running with weird setups and overwriting GIT_DIR
     # elsewhere
     git_dir = GitUtils.determine_git_dir('.')
     if is_bare and git_dir != '.':
-      abort("GIT_DIR must be .")
+      abort(_("GIT_DIR must be ."))
     elif not is_bare and git_dir != '.git':
-      abort("GIT_DIR must be .git")
+      abort(_("GIT_DIR must be .git"))
 
     # Make sure that all reflogs have precisely one entry
     reflog_dir=os.path.join(git_dir, 'logs')
@@ -2737,21 +2733,22 @@ class RepoFilter(object):
         with open(pathname) as f:
           if len(f.read().splitlines()) > 1:
             shortpath = pathname[len(reflog_dir)+1:]
-            abort("expected at most one entry in the reflog for " + shortpath)
+            abort(_("expected at most one entry in the reflog for %s") %
+                  shortpath)
 
     # Make sure there are no stashed changes
     if 'refs/stash' in refs:
-      abort("has stashed changes")
+      abort(_("has stashed changes"))
 
     # Do extra checks in non-bare repos
     if not is_bare:
       # Avoid uncommitted, unstaged, or untracked changes
       if subprocess.call('git diff --staged --quiet'.split()):
-        abort("you have uncommitted changes")
+        abort(_("you have uncommitted changes"))
       if subprocess.call('git diff --quiet'.split()):
-        abort("you have unstaged changes")
+        abort(_("you have unstaged changes"))
       if len(subprocess.check_output('git ls-files -o'.split())) > 0:
-        abort("you have untracked changes")
+        abort(_("you have untracked changes"))
 
       # Avoid unpushed changes
       for refname, rev in refs.iteritems():
@@ -2759,9 +2756,9 @@ class RepoFilter(object):
           continue
         origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
         if origin_ref not in refs:
-          abort('{} exists, but {} not found'.format(refname, origin_ref))
+          abort(_('%s exists, but %s not found') % (refname, origin_ref))
         if rev != refs[origin_ref]:
-          abort('{} does not match {}'.format(refname, origin_ref))
+          abort(_('%s does not match %s') % (refname, origin_ref))
 
   @staticmethod
   def tweak_blob(args, blob):
@@ -2872,9 +2869,9 @@ class RepoFilter(object):
           # The two are identical, so we can throw this one away and keep other
           continue
         elif new_file_changes[change.filename].type != 'D':
-          raise SystemExit("File renaming caused colliding pathnames!\n" +
-                           "  Commit: {}\n".format(commit.original_id) +
-                           "  Filename: {}".format(change.filename))
+          raise SystemExit(_("File renaming caused colliding pathnames!\n") +
+                           _("  Commit: {}\n").format(commit.original_id) +
+                           _("  Filename: {}").format(change.filename))
       new_file_changes[change.filename] = change
     commit.file_changes = new_file_changes.values()
 
@@ -3019,7 +3016,7 @@ class RepoFilter(object):
       del self._orig_refs[ref]
     p.stdin.close()
     if p.wait():
-      raise SystemExit("git update-ref failed; see above") # pragma: no cover
+      raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
     # Now remove
     if self._args.debug:
@@ -3076,7 +3073,7 @@ class RepoFilter(object):
 
       # Make sure fast-export completed successfully
       if not self._args.stdin and self._fep.wait():
-        raise SystemExit("Error: fast-export failed; see above.") # pragma: no cover
+        raise SystemExit(_("Error: fast-export failed; see above.")) # pragma: no cover
 
     # If we're not the manager of self._output, we should avoid post-run cleanup
     if not self._managed_output:
@@ -3085,7 +3082,7 @@ class RepoFilter(object):
     # Close the output and ensure fast-import successfully completes
     self._output.close()
     if not self._args.dry_run and self._fip.wait():
-      raise SystemExit("Error: fast-import failed; see above.") # pragma: no cover
+      raise SystemExit(_("Error: fast-import failed; see above.")) # pragma: no cover
 
     # Notify user how long it took, before doing a gc and such
     msg = "New history written in {:.2f} seconds; now repacking/cleaning..."
@@ -3093,12 +3090,12 @@ class RepoFilter(object):
 
     # Exit early, if requested
     if self._args.dry_run:
+      print(_("NOTE: Not running fast-import or cleaning up; --dry-run passed."))
       if self._fe_orig:
-        orig_str = "by comparing:\n        "+self._fe_orig
+        print(_("      Requested filtering can be seen by comparing:"))
+        print("        " + self._fe_orig)
       else:
-        orig_str = "at:"
-      print("NOTE: Not running fast-import or cleaning up; --dry-run passed.")
-      print("      Requested filtering can be seen {}".format(orig_str))
+        print(_("      Requested filtering can be seen at:"))
       print("        " + self._fe_filt)
       return
 
@@ -3117,7 +3114,7 @@ class RepoFilter(object):
                                for x in refs_to_nuke]))
         p.stdin.close()
         if p.wait():
-          raise SystemExit("git update-ref failed; see above") # pragma: no cover
+          raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
       # Write out data about run
       fef.record_metadata(self.results_tmp_dir(),
@@ -3126,7 +3123,7 @@ class RepoFilter(object):
 
     # Nuke the reflogs and repack
     if not self._args.quiet and not self._args.debug:
-      print("Repacking your repo and cleaning out old unneeded objects")
+      print(_("Repacking your repo and cleaning out old unneeded objects"))
     quiet_flags = '--quiet' if self._args.quiet else ''
     cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
                     'git gc {} --prune=now'.format(quiet_flags).split()]
@@ -3138,7 +3135,8 @@ class RepoFilter(object):
       subprocess.call(cmd, cwd=target_working_dir)
 
     # Let user know how long it took
-    print("Completely finished after {:.2f} seconds.".format(time.time()-start))
+    print(_("Completely finished after {:.2f} seconds.")
+          .format(time.time()-start))
 
 if __name__ == '__main__':
   setup_gettext()

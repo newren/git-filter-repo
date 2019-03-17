@@ -437,21 +437,21 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		test_cmp expect renames.txt &&
 
 		cat >expect <<-EOF &&
-		== Overal Statistics ==
-		  Number of commits:         9
-		  Number of filenames:       10
-		  Number of directories:     4
+		== Overall Statistics ==
+		  Number of commits: 9
+		  Number of filenames: 10
+		  Number of directories: 4
 		  Number of file extensions: 2
 
-		  Total unpacked size (bytes):        147
-		  Total packed size (bytes):          306
+		  Total unpacked size (bytes): 147
+		  Total packed size (bytes): 306
 
 		EOF
 		head -n 9 README >actual &&
 		test_cmp expect actual &&
 
 		cat | tr Q "\047" >expect <<-\EOF &&
-		== Files by sha and associated pathnames in reverse size ==
+		=== Files by sha and associated pathnames in reverse size ===
 		Format: sha, unpacked size, packed size, filename(s) object stored as
 		  a89c82a2d4b713a125a4323d25adda062cc0013d         44         48 numbers/medium.num
 		  f00c965d8307308469e537302baa73048488f162         21         37 numbers/small.num
