@@ -35,6 +35,7 @@ from __future__ import print_function
 import argparse
 import collections
 import fnmatch
+import gettext
 import os
 import re
 import shutil
@@ -51,6 +52,30 @@ __all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
            "string_to_date", "date_to_string",
            "record_id_rename", "GitUtils", "FilteringOptions", "RepoFilter"]
 
+def gettext_poison(msg):
+  if "GIT_TEST_GETTEXT_POISON" in os.environ: # pragma: no cover
+    return "# GETTEXT POISON #"
+  return gettext.gettext(msg)
+
+_ = gettext_poison
+
+def setup_gettext():
+  TEXTDOMAIN="git"
+  podir = os.environ.get("GIT_TEXTDOMAINDIR") or "@@LOCALEDIR@@"
+  if not os.path.isdir(podir): # pragma: no cover
+    podir = None  # Python has its own fallback; use that
+
+  ## This looks like the most straightforward translation of the relevant
+  ## code in git.git:gettext.c and git.git:perl/Git/I18n.pm:
+  #import locale
+  #locale.setlocale(locale.LC_MESSAGES, "");
+  #locale.setlocale(locale.LC_TIME, "");
+  #locale.textdomain(TEXTDOMAIN);
+  #locale.bindtextdomain(TEXTDOMAIN, podir);
+  ## but the python docs suggest using the gettext module (which doesn't
+  ## have setlocale()) instead, so:
+  gettext.textdomain(TEXTDOMAIN);
+  gettext.bindtextdomain(TEXTDOMAIN, podir);
 
 def _timedelta_to_seconds(delta):
   """
@@ -3116,6 +3141,7 @@ class RepoFilter(object):
     print("Completely finished after {:.2f} seconds.".format(time.time()-start))
 
 if __name__ == '__main__':
+  setup_gettext()
   args = FilteringOptions.parse_args(sys.argv[1:])
   if args.analyze:
     RepoAnalyze.run(args)

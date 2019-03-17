@@ -415,7 +415,7 @@ test_expect_success 'setup analyze_me' '
 	)
 '
 
-test_expect_success '--analyze' '
+test_expect_success C_LOCALE_OUTPUT '--analyze' '
 	(
 		cd analyze_me &&
 
