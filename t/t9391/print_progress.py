@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Please see the
@@ -21,8 +21,8 @@ commit_count = 0
 
 def print_progress():
   global object_count, commit_count, total_objects, total_commits
-  print "\rRewriting commits... %d/%d  (%d objects)" \
-        % (commit_count, total_commits, object_count),
+  print("\rRewriting commits... %d/%d  (%d objects)"
+        % (commit_count, total_commits, object_count), end='')
 
 def my_blob_callback(blob):
   global object_count

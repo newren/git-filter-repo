@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Please: DO NOT USE THIS AS AN EXAMPLE.
 #
@@ -14,7 +14,7 @@
 import collections
 import os
 import random
-import StringIO
+import io
 import sys
 import textwrap
 
@@ -71,7 +71,7 @@ print("Found {} blobs/commits and {} other objects"
       .format(total_objects['common'], total_objects['uncommon']))
 
 
-stream = StringIO.StringIO(textwrap.dedent('''
+stream = io.StringIO(textwrap.dedent('''
   blob
   mark :1
   data 5
