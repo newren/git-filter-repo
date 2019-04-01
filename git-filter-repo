@@ -2441,7 +2441,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "renames.txt"), 'w') as f:
       seen = set()
       for pathname,equiv_group in sorted(stats['equivalence'].iteritems(),
-                                         key=lambda x:x[1]):
+                                         key=lambda x:(x[1], x[0])):
         if equiv_group in seen:
           continue
         seen.add(equiv_group)
@@ -2454,7 +2454,7 @@ class RepoAnalyze(object):
       f.write("=== %s ===\n" % _("Deleted directories by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
       for dirname, size in sorted(dir_size['packed'].iteritems(),
-                                  key=lambda x:x[1], reverse=True):
+                                  key=lambda x:(x[1],x[0]), reverse=True):
         if (dir_deleted_data[dirname]):
           f.write("  {:10d} {:10d} {:10s} {}\n"
                   .format(dir_size['unpacked'][dirname],
@@ -2466,7 +2466,7 @@ class RepoAnalyze(object):
       f.write("=== %s ===\n" % _("All directories by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
       for dirname, size in sorted(dir_size['packed'].iteritems(),
-                                  key=lambda x:x[1], reverse=True):
+                                  key=lambda x:(x[1],x[0]), reverse=True):
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(dir_size['unpacked'][dirname],
                         size,
@@ -2478,7 +2478,7 @@ class RepoAnalyze(object):
       f.write("=== %s ===\n" % _("Deleted extensions by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
       for extname, size in sorted(ext_size['packed'].iteritems(),
-                                  key=lambda x:x[1], reverse=True):
+                                  key=lambda x:(x[1],x[0]), reverse=True):
         if (ext_deleted_data[extname]):
           f.write("  {:10d} {:10d} {:10s} {}\n"
                   .format(ext_size['unpacked'][extname],
@@ -2490,7 +2490,7 @@ class RepoAnalyze(object):
       f.write("=== %s ===\n" % _("All extensions by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
       for extname, size in sorted(ext_size['packed'].iteritems(),
-                                  key=lambda x:x[1], reverse=True):
+                                  key=lambda x:(x[1],x[0]), reverse=True):
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(ext_size['unpacked'][extname],
                         size,
@@ -2502,7 +2502,7 @@ class RepoAnalyze(object):
       f.write("=== %s ===\n" % _("Deleted paths by reverse accumulated size"))
       f.write(_("Format: unpacked size, packed size, date deleted, path name(s)\n"))
       for pathname, size in sorted(path_size['packed'].iteritems(),
-                                   key=lambda x:x[1], reverse=True):
+                                   key=lambda x:(x[1],x[0]), reverse=True):
         when = stats['file_deletions'].get(pathname, None)
         if when:
           f.write("  {:10d} {:10d} {:10s} {}\n"
@@ -2515,7 +2515,7 @@ class RepoAnalyze(object):
       f.write("=== %s ===\n" % _("All paths by reverse accumulated size"))
       f.write(_("Format: unpacked size, packed size, date deleted, pathectory name\n"))
       for pathname, size in sorted(path_size['packed'].iteritems(),
-                                   key=lambda x:x[1], reverse=True):
+                                   key=lambda x:(x[1],x[0]), reverse=True):
         when = stats['file_deletions'].get(pathname, None)
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(path_size['unpacked'][pathname],
@@ -2528,7 +2528,7 @@ class RepoAnalyze(object):
       f.write("=== %s ===\n" % _("Files by sha and associated pathnames in reverse size"))
       f.write(_("Format: sha, unpacked size, packed size, filename(s) object stored as\n"))
       for sha, size in sorted(stats['packed_size'].iteritems(),
-                              key=lambda x:x[1], reverse=True):
+                              key=lambda x:(x[1],x[0]), reverse=True):
         if sha not in stats['names']:
           # Some objects in the repository might not be referenced, or not
           # referenced by the branches/tags the user cares about; skip them.
