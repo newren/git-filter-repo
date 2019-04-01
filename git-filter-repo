@@ -268,7 +268,7 @@ class MailmapInfo(object):
     ''' Given a name and email, return the expected new name and email from the
         mailmap if there is a translation rule for it, otherwise just return
         the given name and email.'''
-    for old, new in self.changes.iteritems():
+    for old, new in self.changes.items():
       old_name, old_email = old
       new_name, new_email = new
       if (email == old_email or not old_email) and (
@@ -1585,7 +1585,7 @@ class FastExportFilter(object):
 
   def _handle_final_commands(self):
     self._finalize_handled = True
-    for ref, value in self._seen_refs.iteritems():
+    for ref, value in self._seen_refs.items():
       if value is not None:
         # Create a reset
         reset = Reset(ref, value)
@@ -1604,13 +1604,13 @@ class FastExportFilter(object):
     self._flush_renames()
     with open(os.path.join(metadata_dir, 'commit-map'), 'w') as f:
       f.write("%-40s %s\n" % (_("old"), _("new")))
-      for (old,new) in self._commit_renames.iteritems():
+      for (old,new) in self._commit_renames.items():
         f.write('{} {}\n'.format(old, new if new != None else deleted_hash))
 
     batch_check_process = None
     batch_check_output_re = re.compile('^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
     with open(os.path.join(metadata_dir, 'ref-map'), 'w') as f:
-      for refname, old_hash in orig_refs.iteritems():
+      for refname, old_hash in orig_refs.items():
         if refname in refs_nuked:
           new_hash = deleted_hash
         elif old_hash in self._commit_renames:
@@ -2412,7 +2412,7 @@ class RepoAnalyze(object):
     # too.
     with open(os.path.join(reportdir, "renames.txt"), 'w') as f:
       seen = set()
-      for pathname,equiv_group in sorted(stats['equivalence'].iteritems(),
+      for pathname,equiv_group in sorted(stats['equivalence'].items(),
                                          key=lambda x:(x[1], x[0])):
         if equiv_group in seen:
           continue
@@ -2425,7 +2425,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "directories-deleted-sizes.txt"), 'w') as f:
       f.write("=== %s ===\n" % _("Deleted directories by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
-      for dirname, size in sorted(dir_size['packed'].iteritems(),
+      for dirname, size in sorted(dir_size['packed'].items(),
                                   key=lambda x:(x[1],x[0]), reverse=True):
         if (dir_deleted_data[dirname]):
           f.write("  {:10d} {:10d} {:10s} {}\n"
@@ -2437,7 +2437,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "directories-all-sizes.txt"), 'w') as f:
       f.write("=== %s ===\n" % _("All directories by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
-      for dirname, size in sorted(dir_size['packed'].iteritems(),
+      for dirname, size in sorted(dir_size['packed'].items(),
                                   key=lambda x:(x[1],x[0]), reverse=True):
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(dir_size['unpacked'][dirname],
@@ -2449,7 +2449,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "extensions-deleted-sizes.txt"), 'w') as f:
       f.write("=== %s ===\n" % _("Deleted extensions by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
-      for extname, size in sorted(ext_size['packed'].iteritems(),
+      for extname, size in sorted(ext_size['packed'].items(),
                                   key=lambda x:(x[1],x[0]), reverse=True):
         if (ext_deleted_data[extname]):
           f.write("  {:10d} {:10d} {:10s} {}\n"
@@ -2461,7 +2461,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "extensions-all-sizes.txt"), 'w') as f:
       f.write("=== %s ===\n" % _("All extensions by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
-      for extname, size in sorted(ext_size['packed'].iteritems(),
+      for extname, size in sorted(ext_size['packed'].items(),
                                   key=lambda x:(x[1],x[0]), reverse=True):
         f.write("  {:10d} {:10d} {:10s} {}\n"
                 .format(ext_size['unpacked'][extname],
@@ -2473,7 +2473,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "path-deleted-sizes.txt"), 'w') as f:
       f.write("=== %s ===\n" % _("Deleted paths by reverse accumulated size"))
       f.write(_("Format: unpacked size, packed size, date deleted, path name(s)\n"))
-      for pathname, size in sorted(path_size['packed'].iteritems(),
+      for pathname, size in sorted(path_size['packed'].items(),
                                    key=lambda x:(x[1],x[0]), reverse=True):
         when = stats['file_deletions'].get(pathname, None)
         if when:
@@ -2486,7 +2486,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "path-all-sizes.txt"), 'w') as f:
       f.write("=== %s ===\n" % _("All paths by reverse accumulated size"))
       f.write(_("Format: unpacked size, packed size, date deleted, pathectory name\n"))
-      for pathname, size in sorted(path_size['packed'].iteritems(),
+      for pathname, size in sorted(path_size['packed'].items(),
                                    key=lambda x:(x[1],x[0]), reverse=True):
         when = stats['file_deletions'].get(pathname, None)
         f.write("  {:10d} {:10d} {:10s} {}\n"
@@ -2499,7 +2499,7 @@ class RepoAnalyze(object):
     with open(os.path.join(reportdir, "blob-shas-and-paths.txt"), 'w') as f:
       f.write("=== %s ===\n" % _("Files by sha and associated pathnames in reverse size"))
       f.write(_("Format: sha, unpacked size, packed size, filename(s) object stored as\n"))
-      for sha, size in sorted(stats['packed_size'].iteritems(),
+      for sha, size in sorted(stats['packed_size'].items(),
                               key=lambda x:(x[1],x[0]), reverse=True):
         if sha not in stats['names']:
           # Some objects in the repository might not be referenced, or not
@@ -2723,7 +2723,7 @@ class RepoFilter(object):
         abort(_("you have untracked changes"))
 
       # Avoid unpushed changes
-      for refname, rev in refs.iteritems():
+      for refname, rev in refs.items():
         if not refname.startswith('refs/heads/'):
           continue
         origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
