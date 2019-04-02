@@ -800,4 +800,73 @@ test_expect_success 'incremental import' '
 	)
 '
 
+test_expect_success 'setup handle funny characters' '
+	test_create_repo funny_chars &&
+	(
+		cd funny_chars &&
+
+		git symbolic-ref HEAD refs/heads/españa &&
+
+		printf "بتتكلم بالهندي؟\n" >señor &&
+		printf "Αυτά μου φαίνονται αλαμπουρνέζικα.\n" >>señor &&
+		printf "זה סינית בשבילי\n" >>señor &&
+		printf "ちんぷんかんぷん\n" >>señor &&
+		printf "За мене тоа е шпанско село\n" >>señor &&
+		printf "看起来像天书。\n" >>señor &&
+		printf "انگار ژاپنی حرف می زنه\n" >>señor &&
+		printf "Это для меня китайская грамота.\n" >>señor &&
+		printf "To mi je španska vas\n" >>señor &&
+		printf "Konuya Fransız kaldım\n" >>señor &&
+		printf "עס איז די שפּראַך פון גיבבעריש\n" >>señor &&
+		printf "Not even UTF-8:\xe0\x80\x80\x00\n" >>señor &&
+
+		cp señor señora &&
+		cp señor señorita &&
+		git add . &&
+
+		export GIT_AUTHOR_NAME="Nguyễn Arnfjörð Gábor" &&
+		export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME &&
+		export GIT_AUTHOR_EMAIL="emails@are.ascii" &&
+		export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL" &&
+		git commit -m "€$£₽₪" &&
+
+		git tag -a -m "₪₽£€$" סְפָרַד
+	)
+'
+
+test_expect_success 'handle funny characters' '
+	(
+		git clone file://"$(pwd)"/funny_chars funny_chars_checks &&
+		cd funny_chars_checks &&
+
+		file_sha=$(git rev-parse :0:señor) &&
+		git filter-repo --to-subdirectory-filter títulos &&
+
+		cat <<-EOF >expect &&
+		100644 $file_sha 0	"t\303\255tulos/se\303\261or"
+		100644 $file_sha 0	"t\303\255tulos/se\303\261ora"
+		100644 $file_sha 0	"t\303\255tulos/se\303\261orita"
+		EOF
+
+		git ls-files -s >actual &&
+		test_cmp expect actual &&
+
+		commit_sha=$(git rev-parse HEAD) &&
+		tag_sha=$(git rev-parse סְפָרַד) &&
+		cat <<-EOF >expect &&
+		$commit_sha refs/heads/españa
+		$tag_sha refs/tags/סְפָרַד
+		EOF
+
+		git show-ref >actual &&
+		test_cmp expect actual &&
+
+		echo "€$£₽₪" >expect &&
+		git cat-file -p HEAD | tail -n 1 >actual &&
+
+		echo "₪₽£€$" >expect &&
+		git cat-file -p סְפָרַד | tail -n 1 >actual
+        )
+'
+
 test_done
