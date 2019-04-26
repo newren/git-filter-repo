@@ -39,9 +39,9 @@ class InterleaveRepositories:
     # Splice in any extra commits needed
     if prev_letter in self.commit_map:
       new_commit = self.commit_map[prev_letter]
-      new_commit.from_commit = self.last_commit
+      new_commit.parents = [self.last_commit] if self.last_commit else []
       new_commit.dump(self.out._output)
-      commit.from_commit = new_commit.id
+      commit.parents = [new_commit.id]
 
     # Dump our commit now
     commit.dump(self.out._output)

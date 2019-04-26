@@ -569,8 +569,7 @@ class Commit(_GitElementWithId):
                committer_name, committer_email, committer_date,
                message,
                file_changes,
-               from_commit = None,
-               merge_commits = [],
+               parents,
                original_id = None,
                **kwargs):
     _GitElementWithId.__init__(self)
@@ -609,12 +608,7 @@ class Commit(_GitElementWithId):
     # are also represented as git elements
     self.file_changes = file_changes
 
-    # Record the commit to initialize this branch from. This revision will be
-    # the first parent of the new commit
-    self.from_commit = from_commit
-
-    # Record additional parent commits
-    self.merge_commits = merge_commits
+    self.parents = parents
 
   def dump(self, file_):
     """
@@ -625,7 +619,7 @@ class Commit(_GitElementWithId):
     # Make output to fast-import slightly easier for humans to read if the
     # message has no trailing newline of its own; cosmetic, but a nice touch...
     extra_newline = '\n'
-    if self.message.endswith('\n') or not (self.from_commit or self.file_changes):
+    if self.message.endswith('\n') or not (self.parents or self.file_changes):
       extra_newline = ''
 
     file_.write(('commit {}\n'
@@ -640,37 +634,24 @@ class Commit(_GitElementWithId):
                   len(self.message), self.message,
                   extra_newline)
                )
-    if self.from_commit:
-      mark = ':' if isinstance(self.from_commit, int) else ''
-      file_.write('from {}{}\n'.format(mark, self.from_commit))
-    for ref in self.merge_commits:
-      mark = ':' if isinstance(ref, int) else ''
-      file_.write('merge {}{}\n'.format(mark, ref))
+    for i, parent in enumerate(self.parents):
+      mark = ':' if isinstance(parent, int) else ''
+      file_.write('from ' if i==0 else 'merge ')
+      file_.write('{}{}\n'.format(mark, parent))
     for change in self.file_changes:
       change.dump(file_)
-    if not self.from_commit and not self.file_changes:
+    if not self.parents and not self.file_changes:
       # Workaround a bug in pre-git-2.22 versions of fast-import with
       # the get-mark directive.
       file_.write('\n')
     file_.write('\n')
 
-  def get_parents(self):
-    """
-    Return all parent commits
-    """
-    my_parents = []
-    if self.from_commit:
-      my_parents.append(self.from_commit)
-    my_parents += self.merge_commits
-    return my_parents
-
   def first_parent(self):
     """
     Return first parent commit
     """
-    my_parents = self.get_parents()
-    if my_parents:
-      return my_parents[0]
+    if self.parents:
+      return self.parents[0]
     return None
 
   def skip(self, new_id=None):
@@ -1209,11 +1190,8 @@ class FastExportFilter(object):
               [x in _SKIPPED_COMMITS for x in orig_parents])
     tmp2 = [x for x in tmp if x[0] is not None]
     if not tmp2:
-      # All ancestors have been pruned; we have no parents.  Note that the
-      # way fast-export/fast-import split parents into from_commit and
-      # merge_commits means we'd rather a parentless commit be represented
-      # as a list containing a single None entry.
-      return [None], None
+      # All ancestors have been pruned; we have no parents.
+      return [], None
     parents, orig_parents, is_rewritten = [list(x) for x in zip(*tmp2)]
 
     # We can't have redundant parents if we don't have at least 2 parents
@@ -1268,9 +1246,7 @@ class FastExportFilter(object):
     return parents, None
 
   def prunable(self, commit, new_1st_parent, had_file_changes, orig_parents):
-    parents = [commit.from_commit] + commit.merge_commits
-    if not commit.from_commit:
-      parents = []
+    parents = commit.parents
 
     # For merge commits, unless there are prunable (redundant) parents, we
     # do not want to prune
@@ -1334,8 +1310,7 @@ class FastExportFilter(object):
     # the rest.  But I'm worried about fast-import blocking on fi_output
     # buffers filling up so I instead read from it as I go.
     for change in commit.file_changes:
-      parent = new_1st_parent or commit.from_commit
-      assert parent # Should be good based on the checks above
+      parent = new_1st_parent or commit.parents[0] # exists due to above checks
       self._output.write("ls :{} {}\n".format(parent, change.filename))
       self._output.flush()
       parent_version = fi_output.readline().split()
@@ -1368,7 +1343,7 @@ class FastExportFilter(object):
       self._flush_renames(None, limit=40)
     # Also, record if this was a merge commit that turned into a non-merge
     # commit.
-    if len(orig_parents) >= 2 and not commit.merge_commits:
+    if len(orig_parents) >= 2 and len(commit.parents) < 2:
       self._commits_no_longer_merges.append((commit.original_id, new_id))
 
   def num_commits_parsed(self):
@@ -1413,12 +1388,15 @@ class FastExportFilter(object):
       pinfo.append(self._parse_optional_parent_ref('merge'))
     orig_parents, parents = [list(tmp) for tmp in zip(*pinfo)]
 
-    # Prune parents (due to pruning of empty commits) if relevant
-    parents, new_1st_parent = self.trim_extra_parents(orig_parents, parents)
-    from_commit = parents[0]
-    merge_commits = parents[1:]
+    # No parents is oddly represented as [None] instead of [], due to the
+    # special 'from' handling.  Convert it here to a more canonical form.
+    if parents == [None]:
+      parents = []
     if orig_parents == [None]:
       orig_parents = []
+
+    # Prune parents (due to pruning of empty commits) if relevant
+    parents, new_1st_parent = self.trim_extra_parents(orig_parents, parents)
 
     # Get the list of file changes
     file_changes = []
@@ -1437,8 +1415,7 @@ class FastExportFilter(object):
                     committer_name, committer_email, committer_date,
                     commit_msg,
                     file_changes,
-                    from_commit,
-                    merge_commits,
+                    parents,
                     original_id)
 
     # If fast-export text had a mark for this commit, need to make sure this
@@ -1448,11 +1425,11 @@ class FastExportFilter(object):
       _IDS.record_rename(id_, commit.id)
 
     # Record ancestry graph
-    external_parents = [p for p in commit.get_parents()
+    external_parents = [p for p in commit.parents
                         if not isinstance(p, int)]
     self._graph.record_external_commits(external_parents)
     self._orig_graph.record_external_commits(external_parents)
-    self._graph.add_commit_and_parents(commit.id, commit.get_parents())
+    self._graph.add_commit_and_parents(commit.id, commit.parents)
     self._orig_graph.add_commit_and_parents(id_, orig_parents)
 
     # Record the original list of file changes relative to first parent
@@ -1463,10 +1440,6 @@ class FastExportFilter(object):
       self._commit_callback(commit)
     if self._everything_callback:
       self._everything_callback(commit)
-
-    # Sanity check that user callbacks didn't violate assumption on parents
-    if commit.merge_commits:
-      assert commit.from_commit is not None
 
     # Find out which files were modified by the callbacks.  Such paths could
     # lead to sebsequent commits being empty (e.g. if removed a line containing

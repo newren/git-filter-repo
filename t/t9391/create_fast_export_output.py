@@ -43,8 +43,7 @@ commit1 = Commit("refs/heads/master",
                  "Com M. Iter", "comm@iter.email", when_string,
                  "My first commit!  Wooot!\n\nLonger description",
                  changes,
-                 from_commit = None,
-                 merge_commits = [])
+                 parents = [])
 commit1.dump(output)
 
 world = Blob("Hello\nHi")
@@ -61,8 +60,7 @@ commit2 = Commit("refs/heads/master",
                  "Com M. Iter", "comm@iter.email", when_string,
                  "Make a symlink to world called planet, modify world",
                  changes,
-                 from_commit = commit1.id,
-                 merge_commits = [])
+                 parents = [commit1.id])
 commit2.dump(output)
 
 script = Blob("#!/bin/sh\n\necho Hello")
@@ -75,8 +73,7 @@ commit3 = Commit("refs/heads/master",
                  "Com M. Iter", "comm@iter.email", when_string,
                  "Add runme script, remove bar",
                  changes,
-                 from_commit = commit2.id,
-                 merge_commits = [])
+                 parents = [commit2.id])
 commit3.dump(output)
 
 progress = Progress("Done with the master branch now...")
@@ -98,8 +95,7 @@ commit4 = Commit("refs/heads/devel",
                  "Com M. Iter", "comm@iter.email", when_string,
                  "Modify world",
                  changes,
-                 from_commit = commit1.id,
-                 merge_commits = [])
+                 parents = [commit1.id])
 commit4.dump(output)
 
 world = Blob("Hello\nHi\nGoodbye")
@@ -120,8 +116,7 @@ commit5 = Commit("refs/heads/devel",
                  "Com M. Iter", "comm@iter.email", when_string,
                  "Merge branch 'master'\n",
                  changes,
-                 from_commit = commit4.id,
-                 merge_commits = [commit3.id])
+                 parents = [commit4.id, commit3.id])
 commit5.dump(output)
 
 
