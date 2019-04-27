@@ -50,7 +50,7 @@ compare = "Blob:\n  blob\n  mark :1\n  data {}\n  {}".format(len(mystr), mystr)
 # debugging git-filter-repo; it is NOT something external folks should depend
 # upon.
 myblob = fr.Blob(mystr)
-assert str(myblob) == compare
+assert bytes(myblob) == compare
 # Everyone should be using RepoFilter objects, not FastExportFilter.  But for
 # testing purposes...
 filter = fr.FastExportFilter('.',
@@ -71,7 +71,7 @@ print("Found {} blobs/commits and {} other objects"
       .format(total_objects['common'], total_objects['uncommon']))
 
 
-stream = io.StringIO(textwrap.dedent('''
+stream = io.BytesIO(textwrap.dedent('''
   blob
   mark :1
   data 5
