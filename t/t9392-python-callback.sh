@@ -51,7 +51,7 @@ test_expect_success '--filename-callback' '
 	setup filename-callback &&
 	(
 		cd filename-callback &&
-		git filter-repo --filename-callback "return None if filename.endswith(\".doc\") else \"src/\"+filename" &&
+		git filter-repo --filename-callback "return None if filename.endswith(b\".doc\") else b\"src/\"+filename" &&
 		git log --format=%n --name-only | sort | uniq | grep -v ^$ > f &&
 		! grep file.doc f &&
 		COMPARE=$(wc -l <f) &&
@@ -64,7 +64,7 @@ test_expect_success '--message-callback' '
 	setup message-callback &&
 	(
 		cd message-callback &&
-		git filter-repo --message-callback "return \"TLDR: \"+message[0:5]" &&
+		git filter-repo --message-callback "return b\"TLDR: \"+message[0:5]" &&
 		git log --format=%s >log-messages &&
 		grep TLDR:...... log-messages >modified-messages &&
 		test_line_count = 6 modified-messages
@@ -75,7 +75,7 @@ test_expect_success '--name-callback' '
 	setup name-callback &&
 	(
 		cd name-callback &&
-		git filter-repo --name-callback "return name.replace(\"N.\", \"And\")" &&
+		git filter-repo --name-callback "return name.replace(b\"N.\", b\"And\")" &&
 		git log --format=%an >log-person-names &&
 		grep Copy.And.Paste log-person-names
 	)
@@ -85,7 +85,7 @@ test_expect_success '--email-callback' '
 	setup email-callback &&
 	(
 		cd email-callback &&
-		git filter-repo --email-callback "return email.replace(\".com\", \".org\")" &&
+		git filter-repo --email-callback "return email.replace(b\".com\", b\".org\")" &&
 		git log --format=%ae%n%ce >log-emails &&
 		! grep .com log-emails &&
 		grep .org log-emails
@@ -98,7 +98,7 @@ test_expect_success '--refname-callback' '
 		cd refname-callback &&
 		git filter-repo --refname-callback "
                     dir,path = os.path.split(refname)
-                    return dir+\"/prefix-\"+path" &&
+                    return dir+b\"/prefix-\"+path" &&
 		git show-ref | grep refs/heads/prefix-master &&
 		git show-ref | grep refs/tags/prefix-v1.0 &&
 		git show-ref | grep refs/tags/prefix-v2.0
@@ -110,7 +110,7 @@ test_expect_success '--refname-callback sanity check' '
 	(
 		cd refname-sanity-check &&
 
-		test_must_fail git filter-repo --refname-callback "return re.sub(\"tags\", \"other-tags\", refname)" 2>../err &&
+		test_must_fail git filter-repo --refname-callback "return re.sub(b\"tags\", b\"other-tags\", refname)" 2>../err &&
 		test_i18ngrep "fast-import requires tags to be in refs/tags/ namespace" ../err &&
 		rm ../err
 	)
@@ -138,7 +138,7 @@ test_expect_success '--commit-callback' '
                     commit.committer_email = commit.author_email
                     commit.committer_date  = commit.author_date
                     for change in commit.file_changes:
-                      change.mode = \"100755\"
+                      change.mode = b\"100755\"
                     " &&
 		git log --format=%ae%n%ce >log-emails &&
 		! grep committer@example.com log-emails &&
@@ -153,8 +153,8 @@ test_expect_success '--tag-callback' '
 	(
 		cd tag-callback &&
 		git filter-repo --tag-callback "
-                    tag.tagger_name = \"Dr. \"+tag.tagger_name
-                    tag.message = \"Awesome sauce \"+tag.message
+                    tag.tagger_name = b\"Dr. \"+tag.tagger_name
+                    tag.message = b\"Awesome sauce \"+tag.message
                     " &&
 		git cat-file -p v2.0 | grep ^tagger.Dr\\. &&
 		git cat-file -p v2.0 | grep ^Awesome.sauce.Super
@@ -175,7 +175,7 @@ test_expect_success 'callback has return statement sanity check' '
 	(
 		cd callback_return_sanity &&
 
-		test_must_fail git filter-repo --filename-callback "filename + \".txt\"" 2>../err&&
+		test_must_fail git filter-repo --filename-callback "filename + b\".txt\"" 2>../err&&
 		test_i18ngrep "Error: --filename-callback should have a return statement" ../err &&
 		rm ../err
 	)

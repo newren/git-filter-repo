@@ -21,7 +21,7 @@ import textwrap
 import git_filter_repo as fr
 
 def handle_progress(progress):
-  print("Decipher this: "+bytes(reversed(progress.message)))
+  print(b"Decipher this: "+bytes(reversed(progress.message)))
 
 def handle_checkpoint(checkpoint_object):
   # Flip a coin; see if we want to pass the checkpoint through.
@@ -44,8 +44,8 @@ def track_everything(obj):
     # projects, I'm just verifying an invariant of the current code.
     assert fr._IDS._reverse_translation[obj.id] == [obj.id - 1]
 
-mystr = 'This is the contents of the blob'
-compare = "Blob:\n  blob\n  mark :1\n  data {}\n  {}".format(len(mystr), mystr)
+mystr = b'This is the contents of the blob'
+compare = b"Blob:\n  blob\n  mark :1\n  data %d\n  %s" % (len(mystr), mystr)
 # Next line's only purpose is testing code coverage of something that helps
 # debugging git-filter-repo; it is NOT something external folks should depend
 # upon.
@@ -102,14 +102,14 @@ stream = io.BytesIO(textwrap.dedent('''
   from :3
   M 100644 :1 salutation
 
-  '''[1:]))
+  '''[1:]).encode())
 
 counts = collections.Counter()
 def look_for_reset(obj):
   print("Processing {}".format(obj))
   counts[type(obj)] += 1
   if type(obj) == fr.Reset:
-    assert obj.ref == 'refs/heads/B'
+    assert obj.ref == b'refs/heads/B'
 
 # Use all kinds of internals that external scripts should NOT use and which
 # are likely to break in the future, just to verify a few invariants...
