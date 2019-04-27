@@ -59,7 +59,7 @@ filter = fr.FastExportFilter('.',
                              everything_callback = track_everything)
 
 filter.run(input = sys.stdin.detach(),
-           output = open(os.devnull, 'wb'),
+           output = open(os.devnull, 'bw'),
            fast_import_pipes = None,
            quiet = True)
 # DO NOT depend upon or use _IDS directly you external script writers.  I'm

@@ -266,7 +266,7 @@ class MailmapInfo(object):
     comment_re = re.compile(r'\s*#.*')
     if not os.access(filename, os.R_OK):
       raise SystemExit(_("Cannot read %s") % filename)
-    with open(filename) as f:
+    with open(filename, 'br') as f:
       count = 0
       for line in f:
         count += 1
@@ -1633,14 +1633,14 @@ class FastExportFilter(object):
   def record_metadata(self, metadata_dir, orig_refs, refs_nuked):
     deleted_hash = '0'*40
     self._flush_renames()
-    with open(os.path.join(metadata_dir, 'commit-map'), 'w') as f:
+    with open(os.path.join(metadata_dir, 'commit-map'), 'bw') as f:
       f.write("%-40s %s\n" % (_("old"), _("new")))
       for (old,new) in self._commit_renames.items():
         f.write('{} {}\n'.format(old, new if new != None else deleted_hash))
 
     batch_check_process = None
     batch_check_output_re = re.compile('^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
-    with open(os.path.join(metadata_dir, 'ref-map'), 'w') as f:
+    with open(os.path.join(metadata_dir, 'ref-map'), 'bw') as f:
       for refname, old_hash in orig_refs.items():
         if refname in refs_nuked:
           new_hash = deleted_hash
@@ -1669,7 +1669,7 @@ class FastExportFilter(object):
       batch_check_process.stdin.close()
       batch_check_process.wait()
 
-    with open(os.path.join(metadata_dir, 'suboptimal-issues'), 'w') as f:
+    with open(os.path.join(metadata_dir, 'suboptimal-issues'), 'bw') as f:
       issues_found = False
       if self._commits_no_longer_merges:
         issues_found = True
@@ -1698,7 +1698,7 @@ class FastExportFilter(object):
       if not issues_found:
         f.write(_("No filtering problems encountered."))
 
-    with open(os.path.join(metadata_dir, 'already_ran'), 'w') as f:
+    with open(os.path.join(metadata_dir, 'already_ran'), 'bw') as f:
        f.write(_("This file exists to allow you to filter again without --force."))
 
   def get_seen_refs(self):
@@ -2054,7 +2054,7 @@ class FilteringOptions(object):
   def get_replace_text(filename):
     replace_literals = []
     replace_regexes = []
-    with open(filename) as f:
+    with open(filename, 'br') as f:
       for line in f:
         line = line.rstrip('\r\n')
 
@@ -2353,7 +2353,7 @@ class RepoAnalyze(object):
     for name in dir_size['packed']:
       dir_deleted_data[name] = stats['tree_deletions'].get(name, None)
 
-    with open(os.path.join(reportdir, "README"), 'w') as f:
+    with open(os.path.join(reportdir, "README"), 'bw') as f:
       # Give a basic overview of this file
       f.write("== %s ==\n" % _("Overall Statistics"))
       f.write("  %s: %d\n" % (_("Number of commits"),
@@ -2443,7 +2443,7 @@ class RepoAnalyze(object):
     # Equivalence classes for names, so if folks only want to keep a
     # certain set of paths, they know the old names they want to include
     # too.
-    with open(os.path.join(reportdir, "renames.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "renames.txt"), 'bw') as f:
       seen = set()
       for pathname,equiv_group in sorted(stats['equivalence'].items(),
                                          key=lambda x:(x[1], x[0])):
@@ -2455,7 +2455,7 @@ class RepoAnalyze(object):
                 "\n")
 
     # List directories in reverse sorted order of unpacked size
-    with open(os.path.join(reportdir, "directories-deleted-sizes.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "directories-deleted-sizes.txt"), 'bw') as f:
       f.write("=== %s ===\n" % _("Deleted directories by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
       for dirname, size in sorted(dir_size['packed'].items(),
@@ -2467,7 +2467,7 @@ class RepoAnalyze(object):
                           datestr(dir_deleted_data[dirname]),
                           dirname or _('<toplevel>')))
 
-    with open(os.path.join(reportdir, "directories-all-sizes.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "directories-all-sizes.txt"), 'bw') as f:
       f.write("=== %s ===\n" % _("All directories by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, directory name\n"))
       for dirname, size in sorted(dir_size['packed'].items(),
@@ -2479,7 +2479,7 @@ class RepoAnalyze(object):
                         dirname or _("<toplevel>")))
 
     # List extensions in reverse sorted order of unpacked size
-    with open(os.path.join(reportdir, "extensions-deleted-sizes.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "extensions-deleted-sizes.txt"), 'bw') as f:
       f.write("=== %s ===\n" % _("Deleted extensions by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
       for extname, size in sorted(ext_size['packed'].items(),
@@ -2491,7 +2491,7 @@ class RepoAnalyze(object):
                           datestr(ext_deleted_data[extname]),
                           extname or _('<no extension>')))
 
-    with open(os.path.join(reportdir, "extensions-all-sizes.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "extensions-all-sizes.txt"), 'bw') as f:
       f.write("=== %s ===\n" % _("All extensions by reverse size"))
       f.write(_("Format: unpacked size, packed size, date deleted, extension name\n"))
       for extname, size in sorted(ext_size['packed'].items(),
@@ -2503,7 +2503,7 @@ class RepoAnalyze(object):
                         extname or _('<no extension>')))
 
     # List files in reverse sorted order of unpacked size
-    with open(os.path.join(reportdir, "path-deleted-sizes.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "path-deleted-sizes.txt"), 'bw') as f:
       f.write("=== %s ===\n" % _("Deleted paths by reverse accumulated size"))
       f.write(_("Format: unpacked size, packed size, date deleted, path name(s)\n"))
       for pathname, size in sorted(path_size['packed'].items(),
@@ -2516,7 +2516,7 @@ class RepoAnalyze(object):
                           datestr(when),
                           pathname))
 
-    with open(os.path.join(reportdir, "path-all-sizes.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "path-all-sizes.txt"), 'bw') as f:
       f.write("=== %s ===\n" % _("All paths by reverse accumulated size"))
       f.write(_("Format: unpacked size, packed size, date deleted, pathectory name\n"))
       for pathname, size in sorted(path_size['packed'].items(),
@@ -2529,7 +2529,7 @@ class RepoAnalyze(object):
                         pathname))
 
     # List of filenames and sizes in descending order
-    with open(os.path.join(reportdir, "blob-shas-and-paths.txt"), 'w') as f:
+    with open(os.path.join(reportdir, "blob-shas-and-paths.txt"), 'bw') as f:
       f.write("=== %s ===\n" % _("Files by sha and associated pathnames in reverse size"))
       f.write(_("Format: sha, unpacked size, packed size, filename(s) object stored as\n"))
       for sha, size in sorted(stats['packed_size'].items(),
@@ -2735,7 +2735,7 @@ class RepoFilter(object):
     for root, dirs, files in os.walk(reflog_dir):
       for filename in files:
         pathname = os.path.join(root, filename)
-        with open(pathname) as f:
+        with open(pathname, 'br') as f:
           if len(f.read().splitlines()) > 1:
             shortpath = pathname[len(reflog_dir)+1:]
             abort(_("expected at most one entry in the reflog for %s") %
@@ -2970,7 +2970,7 @@ class RepoFilter(object):
       if self._args.dry_run or self._args.debug:
         self._fe_orig = os.path.join(self.results_tmp_dir(),
                                      'fast-export.original')
-        output = open(self._fe_orig, 'w')
+        output = open(self._fe_orig, 'bw')
         self._input = InputFileBackup(self._input, output)
         if self._args.debug:
           print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
@@ -2988,7 +2988,7 @@ class RepoFilter(object):
     if self._args.dry_run or self._args.debug:
       self._fe_filt = os.path.join(self.results_tmp_dir(),
                                    'fast-export.filtered')
-      self._output = open(self._fe_filt, 'w')
+      self._output = open(self._fe_filt, 'bw')
     else:
       self._output = self._fip.stdin
     if self._args.debug:
