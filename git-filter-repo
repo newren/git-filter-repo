@@ -1311,11 +1311,12 @@ class FastExportFilter(object):
     # buffers filling up so I instead read from it as I go.
     for change in commit.file_changes:
       parent = new_1st_parent or commit.parents[0] # exists due to above checks
-      self._output.write("ls :{} {}\n".format(parent, change.filename))
+      quoted_filename = PathQuoting.enquote(change.filename)
+      self._output.write("ls :{} {}\n".format(parent, quoted_filename))
       self._output.flush()
       parent_version = fi_output.readline().split()
       if change.type == 'D':
-        if parent_version != ['missing', change.filename]:
+        if parent_version != ['missing', quoted_filename]:
           return False
       else:
         blob_sha = change.blob_id
@@ -1323,7 +1324,7 @@ class FastExportFilter(object):
           self._output.write("get-mark :{}\n".format(change.blob_id))
           self._output.flush()
           blob_sha = fi_output.readline().rstrip()
-        if parent_version != [change.mode, 'blob', blob_sha, change.filename]:
+        if parent_version != [change.mode, 'blob', blob_sha, quoted_filename]:
           return False
 
     return True
