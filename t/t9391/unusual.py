@@ -58,8 +58,8 @@ filter = fr.FastExportFilter('.',
                              checkpoint_callback = handle_checkpoint,
                              everything_callback = track_everything)
 
-filter.run(input = sys.stdin,
-           output = open(os.devnull, 'w'),
+filter.run(input = sys.stdin.detach(),
+           output = open(os.devnull, 'wb'),
            fast_import_pipes = None,
            quiet = True)
 # DO NOT depend upon or use _IDS directly you external script writers.  I'm

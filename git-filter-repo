@@ -1897,16 +1897,17 @@ class FilteringOptions(object):
                "files matching none of those options."))
 
     path.add_argument('--path-match', '--path', metavar='DIR_OR_FILE',
+        type=os.fsencode,
         action=FilteringOptions.AppendFilter, dest='path_changes',
         help=_("Exact paths (files or directories) to include in filtered "
                "history.  Multiple --path options can be specified to get "
                "a union of paths."))
-    path.add_argument('--path-glob', metavar='GLOB',
+    path.add_argument('--path-glob', metavar='GLOB', type=os.fsencode,
         action=FilteringOptions.AppendFilter, dest='path_changes',
         help=_("Glob of paths to include in filtered history. Multiple "
                "--path-glob options can be specified to get a union of "
                "paths."))
-    path.add_argument('--path-regex', metavar='REGEX',
+    path.add_argument('--path-regex', metavar='REGEX', type=os.fsencode,
         action=FilteringOptions.AppendFilter, dest='path_changes',
         help=_("Regex of paths to include in filtered history. Multiple "
                "--path-regex options can be specified to get a union of "
@@ -1914,31 +1915,32 @@ class FilteringOptions(object):
 
     rename = parser.add_argument_group(title=_("Renaming based on paths"))
     rename.add_argument('--path-rename', '--path-rename-prefix',
-        metavar='OLD_NAME:NEW_NAME', dest='path_changes',
+        metavar='OLD_NAME:NEW_NAME', dest='path_changes', type=os.fsencode,
         action=FilteringOptions.AppendFilter,
         help=_("Prefix to rename; if filename starts with OLD_NAME, "
                "replace that with NEW_NAME.  Multiple --path-rename "
                "options can be specified."))
 
     refrename = parser.add_argument_group(title=_("Renaming of refs"))
-    refrename.add_argument('--tag-rename', metavar='OLD:NEW',
+    refrename.add_argument('--tag-rename', metavar='OLD:NEW', type=os.fsencode,
         help=_("Rename tags starting with OLD to start with NEW.  For "
                "example, --tag-rename foo:bar will rename tag foo-1.2.3 "
                "to bar-1.2.3; either OLD or NEW can be empty."))
 
     helpers = parser.add_argument_group(title=_("Shortcuts"))
     helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
-        action=FilteringOptions.HelperFilter,
+        action=FilteringOptions.HelperFilter, type=os.fsencode,
         help=_("Only look at history that touches the given subdirectory "
                "and treat that directory as the project root.  Equivalent "
                "to using '--path DIRECTORY/ --path-rename DIRECTORY/:'"))
     helpers.add_argument('--to-subdirectory-filter', metavar='DIRECTORY',
-        action=FilteringOptions.HelperFilter,
+        action=FilteringOptions.HelperFilter, type=os.fsencode,
         help=_("Treat the project root as instead being under DIRECTORY. "
                "Equivalent to using '--path-rename :DIRECTORY/'"))
 
     people = parser.add_argument_group(title=_("Filtering of names/emails"))
     people.add_argument('--mailmap', dest='mailmap', metavar='FILENAME',
+        type=os.fsencode,
         help=_("Use specified mailmap file (see git-shortlog(1) for "
                "details on the format) when rewriting author, committer, "
                "and tagger names and emails.  If the specified file is "
@@ -1988,8 +1990,9 @@ class FilteringOptions(object):
                "CALLBACKS section below."))
 
     location = parser.add_argument_group(title=_("Location to filter from/to"))
-    location.add_argument('--source', help=_("Git repository to read from"))
-    location.add_argument('--target',
+    location.add_argument('--source', type=os.fsencode,
+                          help=_("Git repository to read from"))
+    location.add_argument('--target', type=os.fsencode,
         help=_("Git repository to overwrite with filtered history"))
 
     misc = parser.add_argument_group(title=_("Miscellaneous options"))
@@ -2947,7 +2950,8 @@ class RepoFilter(object):
 
   def _setup_input(self, use_done_feature):
     if self._args.stdin:
-      self._input = sys.stdin
+      self._input = sys.stdin.detach()
+      sys.stdin = None # Make sure no one tries to accidentally use it
       self._fe_orig = None
     else:
       skip_blobs = (self._blob_callback is None and
