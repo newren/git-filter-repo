@@ -21,7 +21,7 @@ import textwrap
 import git_filter_repo as fr
 
 def handle_progress(progress):
-  print("Decipher this: "+''.join(reversed(progress.message)))
+  print("Decipher this: "+bytes(reversed(progress.message)))
 
 def handle_checkpoint(checkpoint_object):
   # Flip a coin; see if we want to pass the checkpoint through.

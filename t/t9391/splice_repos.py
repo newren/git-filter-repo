@@ -34,7 +34,7 @@ class InterleaveRepositories:
 
   def weave_commit(self, commit):
     letter = re.match('Commit (.)', commit.message).group(1)
-    prev_letter = chr(ord(letter)-1)
+    prev_letter = bytes([ord(letter)-1])
 
     # Splice in any extra commits needed
     if prev_letter in self.commit_map:

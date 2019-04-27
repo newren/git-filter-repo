@@ -157,7 +157,8 @@ class PathQuoting:
                '"': '"',
                '\\':'\\'}
   _unescape_re = re.compile(r'\\([a-z"\\]|[0-9]{3})')
-  _escape = [chr(x) for x in range(127)]+['\\'+oct(x)[2:] for x in range(127,256)]
+  _escape = [bytes([x]) for x in range(127)]+[
+             '\\'+bytes(ord(c) for c in oct(x)[2:]) for x in range(127,256)]
   _reverse = dict(map(reversed, _unescape.items()))
   for x in _reverse:
     _escape[ord(x)] = '\\'+_reverse[x]
@@ -166,7 +167,7 @@ class PathQuoting:
   @staticmethod
   def unescape_sequence(orig):
     seq = orig.group(1)
-    return PathQuoting._unescape[seq] if len(seq) == 1 else chr(int(seq, 8))
+    return PathQuoting._unescape[seq] if len(seq) == 1 else bytes([int(seq, 8)])
 
   @staticmethod
   def dequote(quoted_string):
