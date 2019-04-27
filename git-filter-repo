@@ -265,7 +265,7 @@ class MailmapInfo(object):
     name_and_email_re = re.compile(r'(.*?)\s*<([^>]+)>\s*')
     comment_re = re.compile(r'\s*#.*')
     if not os.access(filename, os.R_OK):
-      raise SystemExit(_("Cannot read %s") % filename)
+      raise SystemExit(_("Cannot read %s") % decode(filename))
     with open(filename, 'br') as f:
       count = 0
       for line in f:
@@ -2450,8 +2450,8 @@ class RepoAnalyze(object):
         if equiv_group in seen:
           continue
         seen.add(equiv_group)
-        f.write("{} ->\n    ".format(equiv_group[0]) +
-                     "\n    ".join(equiv_group[1:]) +
+        f.write("{} ->\n    ".format(decode(equiv_group[0])) +
+                     "\n    ".join(decode(x) for x in equiv_group[1:]) +
                 "\n")
 
     # List directories in reverse sorted order of unpacked size
@@ -2565,7 +2565,7 @@ class RepoAnalyze(object):
     stats = RepoAnalyze.gather_data(args)
 
     # Write the reports
-    sys.stdout.write(_("Writing reports to %s...") % reportdir)
+    sys.stdout.write(_("Writing reports to %s...") % decode(reportdir))
     sys.stdout.flush()
     RepoAnalyze.write_report(reportdir, stats)
     sys.stdout.write(_("done.\n"))
@@ -2739,7 +2739,7 @@ class RepoFilter(object):
           if len(f.read().splitlines()) > 1:
             shortpath = pathname[len(reflog_dir)+1:]
             abort(_("expected at most one entry in the reflog for %s") %
-                  shortpath)
+                  decode(shortpath))
 
     # Make sure there are no stashed changes
     if 'refs/stash' in refs:
@@ -2761,9 +2761,11 @@ class RepoFilter(object):
           continue
         origin_ref = refname.replace('refs/heads/', 'refs/remotes/origin/')
         if origin_ref not in refs:
-          abort(_('%s exists, but %s not found') % (refname, origin_ref))
+          abort(_('%s exists, but %s not found') % (decode(refname),
+                                                    decode(origin_ref)))
         if rev != refs[origin_ref]:
-          abort(_('%s does not match %s') % (refname, origin_ref))
+          abort(_('%s does not match %s') % (decode(refname),
+                                             decode(origin_ref)))
 
   @staticmethod
   def tweak_blob(args, blob):
@@ -2974,7 +2976,8 @@ class RepoFilter(object):
         self._input = InputFileBackup(self._input, output)
         if self._args.debug:
           print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
-          print("  (saving a copy of the output at {})".format(self._fe_orig))
+          print("  (saving a copy of the output at {})"
+                .format(decode(self._fe_orig)))
 
   def _setup_output(self):
     if not self._args.dry_run:
@@ -2994,7 +2997,8 @@ class RepoFilter(object):
     if self._args.debug:
       self._output = DualFileWriter(self._fip.stdin, self._output)
       print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
-      print("  (using the following file as input: {})".format(self._fe_filt))
+      print("  (using the following file as input: {})"
+            .format(decode(self._fe_filt)))
 
   def _migrate_origin_to_heads(self):
     if self._args.dry_run:
@@ -3099,10 +3103,10 @@ class RepoFilter(object):
       print(_("NOTE: Not running fast-import or cleaning up; --dry-run passed."))
       if self._fe_orig:
         print(_("      Requested filtering can be seen by comparing:"))
-        print("        " + self._fe_orig)
+        print("        " + decode(self._fe_orig))
       else:
         print(_("      Requested filtering can be seen at:"))
-      print("        " + self._fe_filt)
+      print("        " + decode(self._fe_filt))
       return
 
     target_working_dir = self._args.target or '.'
@@ -3112,7 +3116,7 @@ class RepoFilter(object):
       if refs_to_nuke:
         if self._args.debug:
           print("[DEBUG] Deleting the following refs:\n  "+
-                "\n  ".join(refs_to_nuke))
+                decode("\n  ".join(refs_to_nuke)))
         p = subprocess.Popen('git update-ref --stdin'.split(),
                              stdin=subprocess.PIPE,
                              cwd=target_working_dir)
