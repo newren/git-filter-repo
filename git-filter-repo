@@ -2244,25 +2244,23 @@ class RepoAnalyze(object):
            ' --date=short -M -t -c --raw --combined-all-paths')
     dtp = subprocess.Popen(cmd, shell=True, bufsize=-1, stdout=subprocess.PIPE)
     f = dtp.stdout
-    try:
-      line = f.next()
-    except StopIteration:
+    line = f.readline()
+    if not line:
       raise SystemExit(_("Nothing to analyze; repository is empty."))
     cont = bool(line)
     graph = AncestryGraph()
     while cont:
       commit = line.rstrip()
-      parents = f.next().split()
-      date = f.next().rstrip()
+      parents = f.readline().split()
+      date = f.readline().rstrip()
 
       # We expect a blank line next; if we get a non-blank line then
       # this commit modified no files and we need to move on to the next.
       # If there is no line, we've reached end-of-input.
-      try:
-        line = f.next().rstrip()
-        cont = True
-      except StopIteration:
+      line = f.readline()
+      if not line:
         cont = False
+      line = line.rstrip()
 
       # If we haven't reached end of input, and we got a blank line meaning
       # a commit that has modified files, then get the file changes associated
