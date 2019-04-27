@@ -181,11 +181,11 @@ class PathQuoting:
   def enquote(unquoted_string):
     # Option 1: Quoting when fast-export would:
     #    pqsc = PathQuoting._special_chars
-    #    if any(pqsc[ord(x)] for x in set(unquoted_string)):
+    #    if any(pqsc[x] for x in set(unquoted_string)):
     # Option 2, perf hack: do minimal amount of quoting required by fast-import
     if unquoted_string.startswith('"') or '\n' in unquoted_string:
       pqe = PathQuoting._escape
-      return '"' + ''.join(pqe[ord(x)] for x in unquoted_string) + '"'
+      return '"' + ''.join(pqe[x] for x in unquoted_string) + '"'
     return unquoted_string
 
 class AncestryGraph(object):
@@ -975,10 +975,10 @@ class FastExportFilter(object):
     of file-changes that fast-export will provide).
     """
     filechange = None
-    changetype = self._currentline[0]
+    changetype = self._currentline[0:1]
     if changetype == 'M':
       (changetype, mode, idnum, path) = self._currentline.split(None, 3)
-      if idnum[0] == ':':
+      if idnum[0:1] == ':':
         idnum = idnum[1:]
       path = path.rstrip('\n')
       # We translate the idnum to our id system
@@ -2136,7 +2136,7 @@ class RepoAnalyze(object):
   @staticmethod
   def handle_renames(stats, commit, change_types, filenames):
     for index, change_type in enumerate(change_types):
-      if change_type == 'R':
+      if change_type == ord(b'R'):
         oldname, newname = filenames[index], filenames[-1]
         RepoAnalyze.setup_equivalence_for_rename(stats, oldname, newname)
         RepoAnalyze.setup_or_update_rename_history(stats, commit,
@@ -2780,9 +2780,9 @@ class RepoFilter(object):
         return True
       n = len(path_expression)
       if (pathname.startswith(path_expression) and
-          (path_expression[n-1] == '/' or
+          (path_expression[n-1:n] == '/' or
            len(pathname) == n or
-           pathname[n] == '/')):
+           pathname[n:n+1] == '/')):
         return True
       return False
 
