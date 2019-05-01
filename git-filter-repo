@@ -2621,8 +2621,8 @@ class RepoFilter(object):
 
   def _handle_arg_callbacks(self):
     def make_callback(argname, str):
-      exec('def callback({}):\n'.format(argname)+
-           '  '+'\n  '.join(str.splitlines()), globals())
+      exec 'def callback({}):\n'.format(argname)+\
+           '  '+'\n  '.join(str.splitlines()) in globals()
       return callback #namespace['callback']
     def handle(type):
       callback_field = '_{}_callback'.format(type)
