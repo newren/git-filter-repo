@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Please see the
@@ -14,8 +14,8 @@ not try to handle any such special cases.
 import git_filter_repo as fr
 
 def my_commit_callback(commit):
-  if commit.branch == "refs/heads/master":
-    commit.branch = "refs/heads/develop"
+  if commit.branch == b"refs/heads/master":
+    commit.branch = b"refs/heads/develop"
 
 args = fr.FilteringOptions.default_options()
 args.force = True

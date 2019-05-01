@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Please see the
@@ -15,14 +15,14 @@ import sys
 import git_filter_repo as fr
 
 def drop_file_by_contents(blob):
-  bad_file_contents = 'The launch code is 1-2-3-4.'
+  bad_file_contents = b'The launch code is 1-2-3-4.'
   if blob.data == bad_file_contents:
     blob.skip()
 
 def drop_files_by_name(commit):
   new_file_changes = []
   for change in commit.file_changes:
-    if not change.filename.endswith('.doc'):
+    if not change.filename.endswith(b'.doc'):
       new_file_changes.append(change)
   commit.file_changes = new_file_changes
 

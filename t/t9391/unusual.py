@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Please: DO NOT USE THIS AS AN EXAMPLE.
 #
@@ -14,14 +14,14 @@
 import collections
 import os
 import random
-import StringIO
+import io
 import sys
 import textwrap
 
 import git_filter_repo as fr
 
 def handle_progress(progress):
-  print("Decipher this: "+''.join(reversed(progress.message)))
+  print(b"Decipher this: "+bytes(reversed(progress.message)))
 
 def handle_checkpoint(checkpoint_object):
   # Flip a coin; see if we want to pass the checkpoint through.
@@ -44,13 +44,13 @@ def track_everything(obj):
     # projects, I'm just verifying an invariant of the current code.
     assert fr._IDS._reverse_translation[obj.id] == [obj.id - 1]
 
-mystr = 'This is the contents of the blob'
-compare = "Blob:\n  blob\n  mark :1\n  data {}\n  {}".format(len(mystr), mystr)
+mystr = b'This is the contents of the blob'
+compare = b"Blob:\n  blob\n  mark :1\n  data %d\n  %s" % (len(mystr), mystr)
 # Next line's only purpose is testing code coverage of something that helps
 # debugging git-filter-repo; it is NOT something external folks should depend
 # upon.
 myblob = fr.Blob(mystr)
-assert str(myblob) == compare
+assert bytes(myblob) == compare
 # Everyone should be using RepoFilter objects, not FastExportFilter.  But for
 # testing purposes...
 filter = fr.FastExportFilter('.',
@@ -58,8 +58,8 @@ filter = fr.FastExportFilter('.',
                              checkpoint_callback = handle_checkpoint,
                              everything_callback = track_everything)
 
-filter.run(input = sys.stdin,
-           output = open(os.devnull, 'w'),
+filter.run(input = sys.stdin.detach(),
+           output = open(os.devnull, 'bw'),
            fast_import_pipes = None,
            quiet = True)
 # DO NOT depend upon or use _IDS directly you external script writers.  I'm
@@ -71,7 +71,7 @@ print("Found {} blobs/commits and {} other objects"
       .format(total_objects['common'], total_objects['uncommon']))
 
 
-stream = StringIO.StringIO(textwrap.dedent('''
+stream = io.BytesIO(textwrap.dedent('''
   blob
   mark :1
   data 5
@@ -102,14 +102,14 @@ stream = StringIO.StringIO(textwrap.dedent('''
   from :3
   M 100644 :1 salutation
 
-  '''[1:]))
+  '''[1:]).encode())
 
 counts = collections.Counter()
 def look_for_reset(obj):
   print("Processing {}".format(obj))
   counts[type(obj)] += 1
   if type(obj) == fr.Reset:
-    assert obj.ref == 'refs/heads/B'
+    assert obj.ref == b'refs/heads/B'
 
 # Use all kinds of internals that external scripts should NOT use and which
 # are likely to break in the future, just to verify a few invariants...

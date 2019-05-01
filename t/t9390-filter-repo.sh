@@ -450,15 +450,15 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		head -n 9 README >actual &&
 		test_cmp expect actual &&
 
-		cat | tr Q "\047" >expect <<-\EOF &&
+		cat >expect <<-\EOF &&
 		=== Files by sha and associated pathnames in reverse size ===
 		Format: sha, unpacked size, packed size, filename(s) object stored as
 		  a89c82a2d4b713a125a4323d25adda062cc0013d         44         48 numbers/medium.num
 		  f00c965d8307308469e537302baa73048488f162         21         37 numbers/small.num
 		  2aa69a2a708eed00cb390e30f6bcc3eed773f390         20         36 whatever
-		  51b95456de9274c9a95f756742808dfd480b9b35         13         29 [QcapriciousQ, QfickleQ, QmercurialQ]
-		  732c85a1b3d7ce40ec8f78fd9ffea32e9f45fae0          5         20 [Qsequence/knowQ, Qwords/knowQ]
-		  34b6a0c9d02cb6ef7f409f248c0c1224ce9dd373          5         20 [Qsequence/toQ, Qwords/toQ]
+		  51b95456de9274c9a95f756742808dfd480b9b35         13         29 [capricious, fickle, mercurial]
+		  732c85a1b3d7ce40ec8f78fd9ffea32e9f45fae0          5         20 [sequence/know, words/know]
+		  34b6a0c9d02cb6ef7f409f248c0c1224ce9dd373          5         20 [sequence/to, words/to]
 		  7ecb56eb3fa3fa6f19dd48bca9f971950b119ede          3         18 words/know
 		EOF
 		test_cmp expect blob-shas-and-paths.txt &&
@@ -795,7 +795,7 @@ test_expect_success 'incremental import' '
 
 		original=$(git rev-parse master) &&
 		git fast-export --reference-excluded-parents master~2..master \
-			| git filter-repo --stdin --refname-callback "return \"develop\"" &&
+			| git filter-repo --stdin --refname-callback "return b\"develop\"" &&
 		test "$(git rev-parse develop)" = "$original"
 	)
 '

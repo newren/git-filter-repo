@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Please see the
@@ -29,12 +29,12 @@ class InterleaveRepositories:
 
   def hold_commit(self, commit):
     commit.skip(new_id = commit.id)
-    letter = re.match('Commit (.)', commit.message).group(1)
+    letter = re.match(b'Commit (.)', commit.message).group(1)
     self.commit_map[letter] = commit
 
   def weave_commit(self, commit):
-    letter = re.match('Commit (.)', commit.message).group(1)
-    prev_letter = chr(ord(letter)-1)
+    letter = re.match(b'Commit (.)', commit.message).group(1)
+    prev_letter = bytes([ord(letter)-1])
 
     # Splice in any extra commits needed
     if prev_letter in self.commit_map:
@@ -53,10 +53,10 @@ class InterleaveRepositories:
       fr.record_id_rename(new_commit.id, commit.id)
 
   def run(self):
-    blob = fr.Blob('public gpg key contents')
-    tag = fr.Tag('gpg-pubkey', blob.id,
-                 'Ima Tagger', 'ima@tagg.er', '1136199845 +0300',
-                 'Very important explanation and stuff')
+    blob = fr.Blob(b'public gpg key contents')
+    tag = fr.Tag(b'gpg-pubkey', blob.id,
+                 b'Ima Tagger', b'ima@tagg.er', b'1136199845 +0300',
+                 b'Very important explanation and stuff')
 
     args = fr.FilteringOptions.parse_args(['--target', self.output_dir])
     out = fr.RepoFilter(args)
