@@ -703,6 +703,12 @@ test_expect_success 'startup sanity checks' '
 		test_i18ngrep "you have untracked changes" err &&
 		rm err &&
 
+		git worktree add ../other-worktree HEAD &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "you have multiple worktrees" ../err &&
+		rm -rf ../err &&
+		git worktree remove ../other-worktree &&
+
 		git update-ref -d refs/remotes/origin/master &&
 		test_must_fail git filter-repo --path numbers 2>../err &&
 		test_i18ngrep "refs/heads/master exists, but refs/remotes/origin/master not found" ../err &&
