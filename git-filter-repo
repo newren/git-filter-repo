@@ -1759,6 +1759,10 @@ class FastExportFilter(object):
   def get_seen_refs(self):
     return self._seen_refs.keys()
 
+  def get_commit_renames(self):
+    self._flush_renames()
+    return self._commit_renames
+
   def run(self, input, output, fast_import_pipes, quiet):
     """
     This method filters fast export output.
@@ -2016,6 +2020,20 @@ class FilteringOptions(object):
                "'***REMOVED***'. "))
 
     parents = parser.add_argument_group(title=_("Parent rewriting"))
+    parents.add_argument('--replace-refs', default=None,
+                         choices=['delete-no-add', 'delete-and-add',
+                                  'update-no-add', 'update-or-add',
+                                  'update-and-add'],
+        help=_("Replace refs (see git-replace(1)) are used to rewrite "
+               "parents (unless turned off by the usual git mechanism); this "
+               "flag specifies what do do with those refs afterward. "
+               "Replace refs can either be deleted or updated to point at new "
+               "commit hashes.  Also, new replace refs can be added for each "
+               "commit rewrite.  With 'update-or-add', new replace refs are "
+               "only added for commit rewrites that aren't used to update an "
+               "existing replace ref. default is 'update-and-add' if "
+               "$GIT_DIR/filter-repo/already_ran does not exist; "
+               "'update-or-add' otherwise."))
     parents.add_argument('--empty-pruning', default='auto',
                          choices=['always', 'auto', 'never'],
         help=_("Whether to prune empty commits.  'auto' (the default) means "
@@ -2758,6 +2776,10 @@ class RepoFilter(object):
   def _run_sanity_checks(self):
     self._sanity_checks_handled = True
     if not self._managed_output:
+      if not self._args.replace_refs:
+        # If not _managed_output we don't want to make extra changes to the
+        # repo, so set default to no-op 'update-no-add'
+        self._args.replace_refs = 'update-no-add'
       return
 
     if self._args.debug:
@@ -2768,10 +2790,17 @@ class RepoFilter(object):
     self._orig_refs = GitUtils.get_refs(target_working_dir)
     is_bare = GitUtils.is_repository_bare(target_working_dir)
 
-    # Do sanity checks from the correct directory
+    # Determine if this is second or later run of filter-repo
     tmp_dir = self.results_tmp_dir(create_if_missing=False)
-    if not self._args.force and \
-       not os.path.isfile(os.path.join(tmp_dir, b'already_ran')):
+    already_ran = os.path.isfile(os.path.join(tmp_dir, b'already_ran'))
+
+    # Default for --replace-refs
+    if not self._args.replace_refs:
+        self._args.replace_refs = ('update-or-add' if already_ran
+                                   else 'update-and-add')
+
+    # Do sanity checks from the correct directory
+    if not self._args.force and not already_ran:
       cwd = os.getcwd()
       os.chdir(target_working_dir)
       RepoFilter.sanity_check(self._orig_refs, is_bare)
@@ -3116,22 +3145,58 @@ class RepoFilter(object):
       print("        longer be related; consider re-pushing it elsewhere.")
     subprocess.call('git remote rm origin'.split(), cwd=target_working_dir)
 
-  def _ref_update(self, target_working_dir, seen_refs):
+  def _ref_update(self, target_working_dir, seen_refs, commit_renames):
+    # Start the update-ref process
+    p = subprocess.Popen('git update-ref --no-deref --stdin'.split(),
+                         stdin=subprocess.PIPE,
+                         cwd=target_working_dir)
+
+    # Remove replace_refs from _orig_refs
+    replace_refs = {k:v for k, v in self._orig_refs.items()
+                    if k.startswith(b'refs/replace/')}
+    reverse_replace_refs = collections.defaultdict(list)
+    for k,v in replace_refs.items():
+      reverse_replace_refs[v].append(k)
+    all(map(self._orig_refs.pop, replace_refs))
+
     # Remove unused refs
     refs_to_nuke = set(self._orig_refs) - set(seen_refs)
-    if refs_to_nuke:
-      if self._args.debug:
-        print("[DEBUG] Deleting the following refs:\n  "+
-              decode(b"\n  ".join(refs_to_nuke)))
-      p = subprocess.Popen('git update-ref --stdin'.split(),
-                           stdin=subprocess.PIPE,
-                           cwd=target_working_dir)
-      p.stdin.write(b''.join([b"option no-deref\ndelete %s\n" % x
-                             for x in refs_to_nuke]))
-      p.stdin.close()
-      if p.wait():
-        raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
+    if refs_to_nuke and self._args.debug:
+      print("[DEBUG] Deleting the following refs:\n  "+
+            decode(b"\n  ".join(refs_to_nuke)))
+    p.stdin.write(b''.join([b"delete %s\n" % x
+                           for x in refs_to_nuke]))
 
+    # Delete or update and add replace_refs; note that fast-export automatically
+    # handles 'update-no-add', we only need to take action for the other four
+    # choices for replace_refs.
+    actual_renames = {k:v for k,v in commit_renames.items() if k != v}
+    if self._args.replace_refs in ['delete-no-add', 'delete-and-add']:
+      # Delete old replace refs, if unwanted
+      replace_refs_to_nuke = set(replace_refs)
+      if self._args.replace_refs == 'delete-and-add':
+        # git-update-ref won't allow us to update a ref twice, so be careful
+        # to avoid deleting refs we'll later update
+        replace_refs_to_nuke = replace_refs_to_nuke.difference(
+                                 [b'refs/replace/'+x for x in actual_renames])
+      p.stdin.write(b''.join([b"delete %s\n" % x
+                             for x in replace_refs_to_nuke]))
+    if self._args.replace_refs in ['delete-and-add', 'update-or-add',
+                                   'update-and-add']:
+      # Add new replace refs
+      update_only = (self._args.replace_refs == 'update-or-add')
+      p.stdin.write(b''.join([b"update refs/replace/%s %s\n" % (old, new)
+                              for old,new in actual_renames.items()
+                              if new and not (update_only and
+                                              old in reverse_replace_refs)]))
+
+    # Complete the update-ref process
+    p.stdin.close()
+    if p.wait():
+      raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
+
+    # Return what we removed due to being filtered out (not being one of the
+    # seen refs means it was filtered out).
     return refs_to_nuke
 
   def finish(self):
@@ -3213,7 +3278,9 @@ class RepoFilter(object):
 
     target_working_dir = self._args.target or '.'
     if self._input:
-      refs_nuked = self._ref_update(target_working_dir, fef.get_seen_refs())
+      refs_nuked = self._ref_update(target_working_dir,
+                                    fef.get_seen_refs(),
+                                    fef.get_commit_renames())
 
       # Write out data about run
       fef.record_metadata(self.results_tmp_dir(),

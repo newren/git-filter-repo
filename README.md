@@ -120,7 +120,7 @@ new and old history before pushing somewhere.  Other caveats:
 
 None of the existing repository filtering tools do what I want.  They're
 all good in their own way, but come up short for my needs.  No tool
-provided any of the first seven traits below I wanted, and all failed to
+provided any of the first eight traits below I wanted, and all failed to
 provide at least one of the last four traits as well:
 
   1. [Starting report] Provide user an analysis of their repo to help
@@ -185,6 +185,10 @@ provide at least one of the last four traits as well:
      lists, and arrays are prohibitively difficult in shell) and (d)
      provides reasonable string manipulation capabilities (which are
      sorely lacking in shell).
+
+  1. [Old commit references] Provide a way for users to use old commit
+     IDs with the new repository (in particular via mapping from old to
+     new hashes with refs/replace/ references).
 
   1. [Commit message consistency] If commit messages refer to other
      commits by ID (e.g. "this reverts commit 01234567890abcdef", "In

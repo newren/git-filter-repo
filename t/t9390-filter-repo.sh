@@ -22,7 +22,7 @@ filter_testcase() {
 		rm .git/packed-refs &&
 
 		# Run the example
-		cat $DATA/$INPUT | git filter-repo --stdin --quiet --force "${REST[@]}" &&
+		cat $DATA/$INPUT | git filter-repo --stdin --quiet --force --replace-refs delete-no-add "${REST[@]}" &&
 
 		# Compare the resulting repo to expected value
 		git fast-export --use-done-feature --all >compare &&
@@ -145,7 +145,7 @@ test_expect_success '--path-rename inability to squash' '
 	)
 '
 
-test_expect_success 'more setup' '
+test_expect_success 'setup metasyntactic repo' '
 	test_create_repo metasyntactic &&
 	(
 		cd metasyntactic &&
@@ -240,7 +240,7 @@ test_expect_success 'refs/replace/ to skip a parent' '
 		git tag -d v2.0 &&
 		git replace HEAD~1 HEAD~2 &&
 
-		git filter-repo --path "" --force &&
+		git filter-repo --replace-refs delete-no-add --path "" --force &&
 		test $(git rev-list --count HEAD) = 2 &&
 		git cat-file --batch-check --batch-all-objects >all-objs &&
 		test_line_count = 16 all-objs &&
@@ -270,7 +270,7 @@ test_expect_success 'refs/replace/ to add more initial history' '
 		git --no-replace-objects cat-file -p master~2 >grandparent &&
 		! grep parent grandparent &&
 
-		git filter-repo --path "" --force &&
+		git filter-repo --replace-refs delete-no-add --path "" --force &&
 
 		git --no-replace-objects cat-file -p master~2 >new-grandparent &&
 		grep parent new-grandparent &&
@@ -284,6 +284,64 @@ test_expect_success 'refs/replace/ to add more initial history' '
 		test $(git cat-file -t v1.1) = tag &&
 		test $(git cat-file -t v2.0) = commit &&
 		test $(git cat-file -t v3.0) = tag
+	)
+'
+
+test_expect_success 'creation/deletion/updating of replace refs' '
+	(
+		git clone file://"$(pwd)"/metasyntactic replace_handling &&
+
+		# Same setup as "refs/replace/ to skip a parent", so we
+		# do not have to check that replacement refs were used
+		# correctly in the rewrite, just that replacement refs were
+		# deleted, added, or updated correctly.
+		cd replace_handling &&
+		git tag -d v2.0 &&
+		master=$(git rev-parse master) &&
+		master_1=$(git rev-parse master~1) &&
+		master_2=$(git rev-parse master~2) &&
+		git replace HEAD~1 HEAD~2 &&
+		cd .. &&
+
+		mkdir -p test_replace_refs &&
+		cd test_replace_refs &&
+
+		rsync -a --delete ../replace_handling/ ./ &&
+		git filter-repo --replace-refs delete-no-add --path-rename numbers:counting &&
+		git show-ref >output &&
+		! grep refs/replace/ output &&
+
+		rsync -a --delete ../replace_handling/ ./ &&
+		git filter-repo --replace-refs delete-and-add --path-rename numbers:counting &&
+		echo "$(git rev-parse master) refs/replace/$master" >out &&
+		echo "$(git rev-parse master~1) refs/replace/$master_1" >>out &&
+		echo "$(git rev-parse master~1) refs/replace/$master_2" >>out &&
+		sort -k 2 out >expect &&
+		git show-ref | grep refs/replace/ >output &&
+		test_cmp output expect &&
+
+		rsync -a --delete ../replace_handling/ ./ &&
+		git filter-repo --replace-refs update-no-add --path-rename numbers:counting &&
+		echo "$(git rev-parse master~1) refs/replace/$master_1" >expect &&
+		git show-ref | grep refs/replace/ >output &&
+		test_cmp output expect &&
+
+		rsync -a --delete ../replace_handling/ ./ &&
+		git filter-repo --replace-refs update-or-add --path-rename numbers:counting &&
+		echo "$(git rev-parse master) refs/replace/$master" >>out &&
+		echo "$(git rev-parse master~1) refs/replace/$master_1" >>out &&
+		sort -k 2 out >expect &&
+		git show-ref | grep refs/replace/ >output &&
+		test_cmp output expect &&
+
+		rsync -a --delete ../replace_handling/ ./ &&
+		git filter-repo --replace-refs update-and-add --path-rename numbers:counting &&
+		echo "$(git rev-parse master) refs/replace/$master" >>out &&
+		echo "$(git rev-parse master~1) refs/replace/$master_1" >>out &&
+		echo "$(git rev-parse master~1) refs/replace/$master_2" >>out &&
+		sort -k 2 out >expect &&
+		git show-ref | grep refs/replace/ >output &&
+		test_cmp output expect
 	)
 '
 
@@ -850,6 +908,7 @@ test_expect_success 'handle funny characters' '
 		cd funny_chars_checks &&
 
 		file_sha=$(git rev-parse :0:señor) &&
+		former_head_sha=$(git rev-parse HEAD) &&
 		git filter-repo --to-subdirectory-filter títulos &&
 
 		cat <<-EOF >expect &&
@@ -865,6 +924,7 @@ test_expect_success 'handle funny characters' '
 		tag_sha=$(git rev-parse סְפָרַד) &&
 		cat <<-EOF >expect &&
 		$commit_sha refs/heads/españa
+		$commit_sha refs/replace/$former_head_sha
 		$tag_sha refs/tags/סְפָרַד
 		EOF
 
