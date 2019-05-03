@@ -3116,6 +3116,24 @@ class RepoFilter(object):
       print("        longer be related; consider re-pushing it elsewhere.")
     subprocess.call('git remote rm origin'.split(), cwd=target_working_dir)
 
+  def _ref_update(self, target_working_dir, seen_refs):
+    # Remove unused refs
+    refs_to_nuke = set(self._orig_refs) - set(seen_refs)
+    if refs_to_nuke:
+      if self._args.debug:
+        print("[DEBUG] Deleting the following refs:\n  "+
+              decode(b"\n  ".join(refs_to_nuke)))
+      p = subprocess.Popen('git update-ref --stdin'.split(),
+                           stdin=subprocess.PIPE,
+                           cwd=target_working_dir)
+      p.stdin.write(b''.join([b"option no-deref\ndelete %s\n" % x
+                             for x in refs_to_nuke]))
+      p.stdin.close()
+      if p.wait():
+        raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
+
+    return refs_to_nuke
+
   def finish(self):
     ''' Alternative to run() when there is no input of our own to parse,
         meaning that run only really needs to close the handle to fast-import
@@ -3195,25 +3213,12 @@ class RepoFilter(object):
 
     target_working_dir = self._args.target or '.'
     if self._input:
-      # Remove unused refs
-      refs_to_nuke = set(self._orig_refs) - set(fef.get_seen_refs())
-      if refs_to_nuke:
-        if self._args.debug:
-          print("[DEBUG] Deleting the following refs:\n  "+
-                decode(b"\n  ".join(refs_to_nuke)))
-        p = subprocess.Popen('git update-ref --stdin'.split(),
-                             stdin=subprocess.PIPE,
-                             cwd=target_working_dir)
-        p.stdin.write(b''.join([b"option no-deref\ndelete %s\n" % x
-                               for x in refs_to_nuke]))
-        p.stdin.close()
-        if p.wait():
-          raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
+      refs_nuked = self._ref_update(target_working_dir, fef.get_seen_refs())
 
       # Write out data about run
       fef.record_metadata(self.results_tmp_dir(),
                           self._orig_refs,
-                          refs_to_nuke)
+                          refs_nuked)
 
     # Nuke the reflogs and repack
     if not self._args.quiet and not self._args.debug:
