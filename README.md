@@ -1,17 +1,22 @@
-git filter-repo is a tool for rewriting history, which includes [some
-capabilities I have not found anywhere
-else](#design-rationale-behind-filter-repo-why-create-a-new-tool).  It is
-most similar to [git
-filter-branch](https://git-scm.com/docs/git-filter-branch), though it fixes
-what I perceive to be some glaring deficiencies in that tool and brings a
-much different taste in usability.  Also, being based on
-fast-export/fast-import, it is [orders of magnitude
-faster](https://public-inbox.org/git/CABPp-BGOz8nks0+Tdw5GyGqxeYR-3FF6FT5JcgVqZDYVRQ6qog@mail.gmail.com/).
+git filter-repo is a versatile tool for rewriting history, which includes
+[capabilities I have not found anywhere
+else](#design-rationale-behind-filter-repo-why-create-a-new-tool).  It
+roughly falls into the same space of tool as [git
+filter-branch](https://git-scm.com/docs/git-filter-branch) but without the
+[capitulation-inducing poor
+performance](https://public-inbox.org/git/CABPp-BGOz8nks0+Tdw5GyGqxeYR-3FF6FT5JcgVqZDYVRQ6qog@mail.gmail.com/),
+and with a design that scales usability-wise beyond trivial rewriting
+cases.
 
-filter-repo is a single-file python script, depending only on the
-python standard library (and execution of git commands), all of which
-is designed to make build/installation trivial: just copy it into your
-$PATH.
+While most users will probably just use filter-repo as a simple command
+line tool (and likely only use a few of its flags), at its core filter-repo
+contains a library for creating history rewriting tools.  As such, users
+with specialized needs can leverage it to quickly create entirely new
+history rewriting tools.
+
+filter-repo is a single-file python script, depending only on the python
+standard library (and execution of git commands), all of which is designed
+to make build/installation trivial: just copy it into your $PATH.
 
 # Table of Contents
 
@@ -43,9 +48,8 @@ and cannot be backward-compatibly fixed.
 ## Example usage, comparing to filter-branch
 
 Let's say that we want to extract a piece of a repository, with the intent
-on merging just that piece into some other bigger repo.  We also want to know
-how much smaller this extracted repo is without the binary-blobs/ directory
-in it.  For extraction, we want to:
+on merging just that piece into some other bigger repo.  For extraction, we
+want to:
 
   * extract the history of a single directory, src/.  This means that only
     paths under src/ remain in the repo, and any commits that only touched
@@ -95,10 +99,10 @@ gc are still required to clean out the old objects and avoid mixing
 new and old history before pushing somewhere.  Other caveats:
   * Commit messages are not rewritten; so if some of your commit
     messages refer to prior commits by (abbreviated) sha1, after the
-    rewrite those messages will no refer to commits that are no longer
+    rewrite those messages will now refer to commits that are no longer
     part of the history.  It would be better to rewrite those
     (abbreviated) sha1 references to refer to the new commit ids.
-  * The --prune-empty flag sometimes missing commits that should be
+  * The --prune-empty flag sometimes misses commits that should be
     pruned, and it will also prune commits that *started* empty rather
     than just ended empty due to filtering.  For repositories that
     intentionally use empty commits for versioning and publishing
@@ -147,8 +151,9 @@ provide at least one of the last four traits as well:
      generally allow files and directories to be easily renamed.
      Provide sanity checks if renaming causes multiple files to exist
      at the same path.  (And add special handling so that if a commit
-     merely renamed oldname->newname, then filtering oldname->newname
-     doesn't trigger the sanity check and die on that commit.)
+     merely copied oldname->newname without modification, then
+     filtering oldname->newname doesn't trigger the sanity check and
+     die on that commit.)
 
   1. [More intelligent safety] Writing copies of the original refs to
      a special namespace within the repo does not provide a
@@ -158,8 +163,7 @@ provide at least one of the last four traits as well:
      wiping out the clone in case of error is a vastly easier recovery
      mechanism.  Strongly encourage that workflow by detecting and
      bailing if we're not in a fresh clone, unless the user overrides
-     with --force.  (Allow the old filter-branch workflow if a special
-     --store-backup flag is provided.)
+     with --force.
 
   1. [Auto shrink] Automatically remove old cruft and repack the
      repository for the user after filtering (unless overridden); this
