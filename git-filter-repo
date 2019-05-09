@@ -832,6 +832,8 @@ class FastExportFilter(object):
   """
 
   def __init__(self, repo_working_dir,
+               empty_pruning = 'auto',
+               degenerate_pruning = 'auto',
                tag_callback = None,   commit_callback = None,
                blob_callback = None,  progress_callback = None,
                reset_callback = None, checkpoint_callback = None,
@@ -927,6 +929,12 @@ class FastExportFilter(object):
     # Names of files that were tweaked in any commit; such paths could lead
     # to subsequent commits being empty
     self._files_tweaked = set()
+
+    # Whether to do empty or degenerate pruning
+    assert(empty_pruning in ['always', 'auto', 'never'])
+    self._empty_pruning = empty_pruning
+    assert(degenerate_pruning in ['always', 'auto', 'never'])
+    self._degenerate_pruning = degenerate_pruning
 
     # Compile some regexes and cache those
     self._mark_re = re.compile(br'mark :(\d+)\n$')
@@ -1231,6 +1239,10 @@ class FastExportFilter(object):
        Returns a tuple:
          (parents, new_first_parent_if_would_become_non_merge)'''
 
+    if self._degenerate_pruning == 'never':
+      return parents, None
+    always_prune = (self._degenerate_pruning == 'always')
+
     # Pruning of empty commits means multiple things:
     #   * An original parent of this commit may have been pruned causing the
     #     need to rewrite the reported parent to the nearest ancestor.  We
@@ -1242,7 +1254,7 @@ class FastExportFilter(object):
     # were rewritten to an ancestor.
     tmp = zip(parents,
               orig_parents,
-              [x in _SKIPPED_COMMITS for x in orig_parents])
+              [(x in _SKIPPED_COMMITS or always_prune) for x in orig_parents])
     tmp2 = [x for x in tmp if x[0] is not None]
     if not tmp2:
       # All ancestors have been pruned; we have no parents.
@@ -1285,7 +1297,8 @@ class FastExportFilter(object):
         # parents[cur] is an ancestor of parents[other], so parents[cur]
         # seems redundant.  However, if it was intentionally redundant
         # (e.g. a no-ff merge) in the original, then we want to keep it.
-        if self._orig_graph.is_ancestor(orig_parents[cur],
+        if not always_prune and \
+           self._orig_graph.is_ancestor(orig_parents[cur],
                                         orig_parents[other]):
           continue
         # Okay so the cur-th parent is an ancestor of the other-th parent,
@@ -1303,6 +1316,10 @@ class FastExportFilter(object):
   def prunable(self, commit, new_1st_parent, had_file_changes, orig_parents):
     parents = commit.parents
 
+    if self._empty_pruning == 'never':
+      return False
+    always_prune = (self._empty_pruning == 'always')
+
     # For merge commits, unless there are prunable (redundant) parents, we
     # do not want to prune
     if len(parents) >= 2 and not new_1st_parent:
@@ -1310,7 +1327,7 @@ class FastExportFilter(object):
 
     if len(parents) < 2:
       # Special logic for commits that started empty...
-      if not had_file_changes:
+      if not had_file_changes and not always_prune:
         had_parents_pruned = (len(parents) < len(orig_parents) or
                               (len(orig_parents) == 1 and
                                orig_parents[0] in _SKIPPED_COMMITS))
@@ -1997,6 +2014,25 @@ class FilteringOptions(object):
                "end the line with '==>' and some replacement text to "
                "choose a replacement choice other than the default of "
                "'***REMOVED***'. "))
+
+    parents = parser.add_argument_group(title=_("Parent rewriting"))
+    parents.add_argument('--empty-pruning', default='auto',
+                         choices=['always', 'auto', 'never'],
+        help=_("Whether to prune empty commits.  'auto' (the default) means "
+               "only prune commits which become empty (not commits which were "
+               "empty in the original repo, unless their parent was pruned). "
+               "When the parent of a commit is pruned, the first non-pruned "
+               "ancestor becomes the new parent."))
+    parents.add_argument('--degenerate-pruning', default='auto',
+                         choices=['always', 'auto', 'never'],
+        help=_("Since merge commits are needed for history topology, they "
+               "are typically exempt from pruning.  However, they can become "
+               "degenerate with the pruning of other commits (having fewer "
+               "than two parents, having one commit serve as both parents, or "
+               "having one parent as the ancestor of the other.)  If such "
+               "merge commits have no file changes, they can be pruned.  The "
+               "default ('auto') is to only prune empty merge commits which "
+               "become degenerate (not which started as such)."))
 
     callback = parser.add_argument_group(title=_("Generic callback code snippets"))
     callback.add_argument('--filename-callback', metavar="FUNCTION_BODY",
@@ -3117,6 +3153,8 @@ class RepoFilter(object):
 
       # Create and run the filter
       fef = FastExportFilter(self._args.source or '.',
+                             empty_pruning = self._args.empty_pruning,
+                             degenerate_pruning = self._args.degenerate_pruning,
                              blob_callback       = actual_blob_callback,
                              commit_callback     = actual_commit_callback,
                              tag_callback        = actual_tag_callback,
