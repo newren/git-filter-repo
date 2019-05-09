@@ -1950,7 +1950,8 @@ class FilteringOptions(object):
     refs.add_argument('--refs', action='store_const', const=['--all'],
                       default=['--all'], help=argparse.SUPPRESS)
 
-    path = parser.add_argument_group(title=_("Filtering based on paths"))
+    path = parser.add_argument_group(title=_("Filtering based on paths "
+                                             "(see also --filename-callback)"))
     path.add_argument('--invert-paths', action='store_false', dest='inclusive',
         help=_("Invert the selection of files from the specified "
                "--path-{match,glob,regex} options below, i.e. only select "
@@ -1973,7 +1974,8 @@ class FilteringOptions(object):
                "--path-regex options can be specified to get a union of "
                "paths"))
 
-    rename = parser.add_argument_group(title=_("Renaming based on paths"))
+    rename = parser.add_argument_group(title=_("Renaming based on paths "
+                                             "(see also --filename-callback)"))
     rename.add_argument('--path-rename', '--path-rename-prefix',
         metavar='OLD_NAME:NEW_NAME', dest='path_changes', type=os.fsencode,
         action=FilteringOptions.AppendFilter,
@@ -1981,13 +1983,7 @@ class FilteringOptions(object):
                "replace that with NEW_NAME.  Multiple --path-rename "
                "options can be specified."))
 
-    refrename = parser.add_argument_group(title=_("Renaming of refs"))
-    refrename.add_argument('--tag-rename', metavar='OLD:NEW', type=os.fsencode,
-        help=_("Rename tags starting with OLD to start with NEW.  For "
-               "example, --tag-rename foo:bar will rename tag foo-1.2.3 "
-               "to bar-1.2.3; either OLD or NEW can be empty."))
-
-    helpers = parser.add_argument_group(title=_("Shortcuts"))
+    helpers = parser.add_argument_group(title=_("Path shortcuts"))
     helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
         action=FilteringOptions.HelperFilter, type=os.fsencode,
         help=_("Only look at history that touches the given subdirectory "
@@ -1998,7 +1994,26 @@ class FilteringOptions(object):
         help=_("Treat the project root as instead being under DIRECTORY. "
                "Equivalent to using '--path-rename :DIRECTORY/'"))
 
-    people = parser.add_argument_group(title=_("Filtering of names/emails"))
+    contents = parser.add_argument_group(title=_("Content editing filters "
+                                                 "(see also --blob-callback)"))
+    contents.add_argument('--replace-text', metavar='EXPRESSIONS_FILE',
+        help=_("A file with expressions that, if found, will be replaced. "
+               "By default, each expression is treated as literal text, "
+               "but 'regex:' and 'glob:' prefixes are supported.  You can "
+               "end the line with '==>' and some replacement text to "
+               "choose a replacement choice other than the default of "
+               "'***REMOVED***'. "))
+
+    refrename = parser.add_argument_group(title=_("Renaming of refs "
+                                              "(see also --refname-callback)"))
+    refrename.add_argument('--tag-rename', metavar='OLD:NEW', type=os.fsencode,
+        help=_("Rename tags starting with OLD to start with NEW.  For "
+               "example, --tag-rename foo:bar will rename tag foo-1.2.3 "
+               "to bar-1.2.3; either OLD or NEW can be empty."))
+
+    people = parser.add_argument_group(title=_("Filtering of names & emails "
+                                               "(see also --name-callback "
+                                               "and --email-callback)"))
     people.add_argument('--mailmap', dest='mailmap', metavar='FILENAME',
         type=os.fsencode,
         help=_("Use specified mailmap file (see git-shortlog(1) for "
@@ -2009,15 +2024,6 @@ class FilteringOptions(object):
     people.add_argument('--use-mailmap', dest='mailmap',
         action='store_const', const='.mailmap',
         help=_("Same as: '--mailmap .mailmap' "))
-
-    contents = parser.add_argument_group(title=_("Content editing filters"))
-    contents.add_argument('--replace-text', metavar='EXPRESSIONS_FILE',
-        help=_("A file with expressions that, if found, will be replaced. "
-               "By default, each expression is treated as literal text, "
-               "but 'regex:' and 'glob:' prefixes are supported.  You can "
-               "end the line with '==>' and some replacement text to "
-               "choose a replacement choice other than the default of "
-               "'***REMOVED***'. "))
 
     parents = parser.add_argument_group(title=_("Parent rewriting"))
     parents.add_argument('--replace-refs', default=None,
