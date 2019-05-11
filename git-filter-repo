@@ -657,6 +657,8 @@ class Commit(_GitElementWithId):
     if self.message.endswith(b'\n') or not (self.parents or self.file_changes):
       extra_newline = b''
 
+    if not self.parents:
+      file_.write(b'reset %s\n' % self.branch)
     file_.write((b'commit %s\n'
                  b'mark :%d\n'
                  b'author %s <%s> %s\n'
@@ -850,6 +852,16 @@ class FastExportFilter(object):
     # A list of all the refs we've seen, plus any mark we need to set them
     # to if the last (or even only) commit on that branch was pruned
     self._seen_refs = {}
+
+    # A list of the branches we've seen, plus the last known commit they
+    # pointed to.  Similar to _seen_refs, except that we actually track the
+    # commit it points to (instead of None) in most cases, and an entry in
+    # latest_*commit can be deleted if we get a reset for a branch despite
+    # having seen it.  These are used because of fast-import's weird decision
+    # to allow having an implicit parent via naming the branch instead of
+    # requiring branches to be specified via 'from' directives.
+    self._latest_commit = {}
+    self._latest_orig_commit = {}
 
     # A tuple of (depth, list-of-ancestors).  Commits and ancestors are
     # identified by their id (their 'mark' in fast-export or fast-import
@@ -1134,6 +1146,8 @@ class FastExportFilter(object):
     # resources.  Also, we want to avoid recording that this ref was
     # seen in such cases, since this ref could be rewritten to nothing.
     if not from_ref:
+      self._latest_commit.pop(ref, None)
+      self._latest_orig_commit.pop(ref, None)
       return
 
     # Create the reset
@@ -1145,8 +1159,12 @@ class FastExportFilter(object):
     if self._everything_callback:
       self._everything_callback(reset)
 
-    # Now print the resulting reset
+    # Update metadata
     self._seen_refs[reset.ref] = None
+    self._latest_commit[reset.ref] = reset.from_ref
+    self._latest_orig_commit[reset.ref] = reset.from_ref
+
+    # Now print the resulting reset
     if not reset.dumped:
       reset.dump(self._output)
 
@@ -1433,6 +1451,15 @@ class FastExportFilter(object):
     if orig_parents == [None]:
       orig_parents = []
 
+    # fast-import format is kinda stupid in that it allows implicit parents
+    # based on the branch name instead of requiring them to be specified by
+    # 'from' directives.  The only way to get no parent is by using a reset
+    # directive first, which clears the latest_commit_for_this_branch tracking.
+    if not orig_parents and self._latest_commit.get(branch):
+      parents = [self._latest_commit[branch]]
+    if not orig_parents and self._latest_orig_commit.get(branch):
+      orig_parents = [self._latest_orig_commit[branch]]
+
     # Prune parents (due to pruning of empty commits) if relevant
     parents, new_1st_parent = self.trim_extra_parents(orig_parents, parents)
 
@@ -1489,8 +1516,10 @@ class FastExportFilter(object):
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
+      self._latest_orig_commit[branch] = commit.id
       if not self.prunable(commit, new_1st_parent, had_file_changes,
                            orig_parents):
+        self._latest_commit[branch] = commit.id
         self._seen_refs[commit.branch] = None # was seen, doesn't need reset
         commit.dump(self._output)
         self.record_remapping(commit, orig_parents)
