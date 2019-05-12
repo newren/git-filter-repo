@@ -3094,7 +3094,8 @@ class RepoFilter(object):
       done_feature = ['--use-done-feature'] if use_done_feature else []
       location = ['-C', self._args.source] if self._args.source else []
       fep_cmd = ['git'] + location + ['fast-export', '--show-original-ids',
-                 '--signed-tags=strip', '--tag-of-filtered-object=rewrite'
+                 '--signed-tags=strip', '--tag-of-filtered-object=rewrite',
+                 '--fake-missing-tagger'
                  ] + done_feature + extra_flags + self._args.refs
       self._fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
       self._input = self._fep.stdout
