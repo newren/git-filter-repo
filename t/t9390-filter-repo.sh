@@ -650,14 +650,36 @@ test_expect_success 'commit message rewrite' '
 		git log --oneline >changes &&
 		test_line_count = 204 changes &&
 
+		# If a commit we reference is rewritten, we expect the
+		# reference to be rewritten.
 		name=$(git rev-parse HEAD~203) &&
 		echo "Commit referencing ${name:0:8}" >expect &&
 		git log --no-walk --format=%s HEAD~202 >actual &&
 		test_cmp expect actual &&
 
+		# If a commit we reference was pruned, then the reference
+		# has nothing to be rewritten to.  Verify that the commit
+		# ID it points to does not exist.
 		latest=$(git log --no-walk | grep reverts | awk "{print \$4}" | tr -d '.') &&
 		test -n "$latest" &&
 		test_must_fail git cat-file -e "$latest"
+	)
+'
+
+test_expect_success 'commit hash unchanged if requested' '
+	(
+		git clone file://"$(pwd)"/commit_msg commit_msg_clone_2 &&
+		cd commit_msg_clone_2 &&
+
+		name=$(git rev-parse HEAD~204) &&
+		git filter-repo --invert-paths --path bar --preserve-commit-hashes &&
+
+		git log --oneline >changes &&
+		test_line_count = 204 changes &&
+
+		echo "Commit referencing ${name:0:8}" >expect &&
+		git log --no-walk --format=%s HEAD~202 >actual &&
+		test_cmp expect actual
 	)
 '
 

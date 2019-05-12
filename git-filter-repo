@@ -834,12 +834,20 @@ class FastExportFilter(object):
   def __init__(self, repo_working_dir,
                empty_pruning = 'auto',
                degenerate_pruning = 'auto',
+               preserve_commit_hashes = False,
                tag_callback = None,   commit_callback = None,
                blob_callback = None,  progress_callback = None,
                reset_callback = None, checkpoint_callback = None,
                everything_callback = None):
     # Repo we are exporting
     self._repo_working_dir = repo_working_dir
+
+    # Record other preferences about operation from passed-in args
+    assert(empty_pruning in ['always', 'auto', 'never'])
+    self._empty_pruning = empty_pruning
+    assert(degenerate_pruning in ['always', 'auto', 'never'])
+    self._degenerate_pruning = degenerate_pruning
+    self._preserve_commit_hashes = preserve_commit_hashes
 
     # Members below simply store callback functions for the various git
     # elements
@@ -929,12 +937,6 @@ class FastExportFilter(object):
     # Names of files that were tweaked in any commit; such paths could lead
     # to subsequent commits being empty
     self._files_tweaked = set()
-
-    # Whether to do empty or degenerate pruning
-    assert(empty_pruning in ['always', 'auto', 'never'])
-    self._empty_pruning = empty_pruning
-    assert(degenerate_pruning in ['always', 'auto', 'never'])
-    self._degenerate_pruning = degenerate_pruning
 
     # Compile some regexes and cache those
     self._mark_re = re.compile(br'mark :(\d+)\n$')
@@ -1451,7 +1453,8 @@ class FastExportFilter(object):
         (committer_name, committer_email, committer_date)
 
     commit_msg = self._parse_data()
-    commit_msg = self._hash_re.sub(self._translate_commit_hash, commit_msg)
+    if not self._preserve_commit_hashes:
+      commit_msg = self._hash_re.sub(self._translate_commit_hash, commit_msg)
 
     pinfo = [self._parse_optional_parent_ref(b'from')]
     # Due to empty pruning, we can have real 'from' and 'merge' lines that
@@ -2010,6 +2013,15 @@ class FilteringOptions(object):
         help=_("Rename tags starting with OLD to start with NEW.  For "
                "example, --tag-rename foo:bar will rename tag foo-1.2.3 "
                "to bar-1.2.3; either OLD or NEW can be empty."))
+
+    messages = parser.add_argument_group(title=_("Filtering of commit messages "
+                                               "(see also --message-callback)"))
+    messages.add_argument('--preserve-commit-hashes', action='store_true',
+        help=_("By default, since commits are rewritten and thus gain new "
+               "hashes, references to old commit hashes in commit messages "
+               "are replaced with new commit hashes (abbreviated to the same "
+               "length as the old reference).  Use this flag to turn off "
+               "updating commit hashes in commit messages."))
 
     people = parser.add_argument_group(title=_("Filtering of names & emails "
                                                "(see also --name-callback "
@@ -3244,6 +3256,7 @@ class RepoFilter(object):
       fef = FastExportFilter(self._args.source or '.',
                              empty_pruning = self._args.empty_pruning,
                              degenerate_pruning = self._args.degenerate_pruning,
+                             preserve_commit_hashes = self._args.preserve_commit_hashes,
                              blob_callback       = actual_blob_callback,
                              commit_callback     = actual_commit_callback,
                              tag_callback        = actual_tag_callback,
