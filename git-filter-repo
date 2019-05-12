@@ -2022,6 +2022,10 @@ class FilteringOptions(object):
                "are replaced with new commit hashes (abbreviated to the same "
                "length as the old reference).  Use this flag to turn off "
                "updating commit hashes in commit messages."))
+    messages.add_argument('--preserve-commit-encoding', action='store_true',
+        help=_("Do not reencode commit messages into UTF-8.  By default, if "
+               "the commit object specifies an encoding for the commit "
+               "message, the message is re-encoded into UTF-8."))
 
     people = parser.add_argument_group(title=_("Filtering of names & emails "
                                                "(see also --name-callback "
@@ -3090,13 +3094,18 @@ class RepoFilter(object):
                     self._args.replace_text is None and
                     self._args.source is None and
                     self._args.target is None)
-      extra_flags = ['--no-data'] if skip_blobs else []
-      done_feature = ['--use-done-feature'] if use_done_feature else []
+      extra_flags = []
+      if skip_blobs:
+        extra_flags.append('--no-data')
+      if use_done_feature:
+        extra_flags.append('--use-done-feature')
+      reencode = 'no' if self._args.preserve_commit_encoding else 'yes'
+      extra_flags.append('--reencode='+reencode)
       location = ['-C', self._args.source] if self._args.source else []
       fep_cmd = ['git'] + location + ['fast-export', '--show-original-ids',
                  '--signed-tags=strip', '--tag-of-filtered-object=rewrite',
                  '--fake-missing-tagger'
-                 ] + done_feature + extra_flags + self._args.refs
+                 ] + extra_flags + self._args.refs
       self._fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
       self._input = self._fep.stdout
       if self._args.dry_run or self._args.debug:
