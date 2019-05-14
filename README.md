@@ -25,6 +25,8 @@ to make build/installation trivial: just copy it into your $PATH.
     * [Example usage, comparing to filter-branch](#example-usage-comparing-to-filter-branch)
     * [Design rationale behind filter-repo](#design-rationale-behind-filter-repo-why-create-a-new-tool)
   * [Usage](#usage)
+    * [The bigger picture](#the-bigger-picture)
+    * [Examples](#examples)
 
 # Background
 
@@ -239,4 +241,103 @@ provide at least one of the last four traits as well:
 
 # Usage
 
-Run `git filter-repo -h`; more detailed docs will be added soon...
+## The bigger picture
+
+Using filter-repo is relatively simple, but rewriting history is part of a
+larger discussion in terms of collaboration.  When you rewrite history, the
+old and new histories are no longer compatible; if you push this history
+somewhere for others to view, it will look as though you've done a rebase
+of all branches and tags.  Make sure you are familiar with the ["Recovering
+from upstream rebase" section of
+git-rebase(1)](https://git-scm.com/docs/git-rebase#_recovering_from_upstream_rebase)
+(and in particular, "The hard case") before proceeding, in addition to this
+section.
+
+Steps to use filter-repo as part of the bigger picture of doing a history
+rewrite are roughly as follows:
+
+  1. Create a clone of your repository (if you created special refs outside
+     of refs/heads/ or refs/tags/, make sure to fetch those too).  Note
+     that `--bare` and `--mirror` clones are supported too, if you prefer.
+
+  1. (Optional) Run `git filter-repo --analyze`.  This will create a
+     directory of reports mentioning renames that have occurred in your
+     repo and also listing sizes of objects aggregated by
+     path/directory/extension/blob-id; this information may be useful in
+     choosing how to filter your repo.  It can also be useful to re-run
+     --analyze after filtering to verify the changes look correct.
+
+  1. Run filter-repo with your desired filtering options.  Many examples
+     are given below.  For more complex cases, note that doing the
+     filtering in multiple steps (by running multiple filter-repo
+     invocations in a sequence) is supported.  If anything goes wrong here,
+     simply delete your clone and restart.
+
+  1. Push your new repository to its new home (note that
+     refs/remotes/origin/* will have been moved to refs/heads/* as the
+     first part of filter-repo, so you can just deal with normal branches
+     instead of remote tracking branches).  While you can force push this
+     to the same URL you cloned from, there are good reasons to consider
+     pushing to a different location instead:
+
+     1. People who cloned from the original repo will have old history.
+        When they fetch the new history you force pushed up, unless they do
+        a `git reset --hard @{u}` on their branches or rebase their local
+        work, git will think they have hundreds or thousands of commits
+        with very similar commit messages as what exist upstream (but which
+        include files you wanted excised from history), and allow the user
+        to merge the two histories, resulting in what looks like two copies
+        of each commit.  If they then push this history back up, then
+        everyone now has history with two copies of each commit and the bad
+        files have returned.  You're more likely to succeed in forcing
+        people to get rid of the old history if they have to clone a new
+        URL.
+
+     1. Rewriting history will rewrite tags; those who have already
+        downloaded tags will not get the updated tags by default (see the
+        ["On Re-tagging" section of the
+        git-tag(1)](https://git-scm.com/docs/git-tag#_on_re_tagging)
+        manpage).  Every user trying to use an existing clone will have to
+	forcibly delete all tags and re-fetch them; it may be easier for
+	them to just re-clone, which they are more likely to do with a new
+	clone URL.
+
+     1. Rewriting history may delete some refs (e.g. branches that only had
+        files that you wanted excised from history); unless you run git
+        push with the `--mirror` or `--prune` options, those refs will
+        continue to exist on the server.  If folks then merge these
+        branches into others, then people have started mixing old and new
+        history.  If users had already cloned these branches, removing them
+        from the server isn't enough; you need all users to delete any
+        local branches based on these refs and run fetch with the `--prune`
+        option as well.  Simply re-cloning from a new URL is easier.
+
+     1. The server may not allow you to force push over some refs.  For
+        example, code review systems may have special ref namespaces
+        (e.g. refs/changes/, refs/pull/, refs/merge-requests/) that they
+        have locked down.
+
+  1. (Optional) Some additional considerations
+
+     1. filter-repo by default creates replace refs (see
+        [git-replace(1)](https://git-scm.com/docs/git-replace)) for each
+        rewritten commit ID, allowing you to use old (unabbreviated) commit
+        hashes to refer to the newly rewritten commits.  If you want to use
+        these replace refs, push them to the relevant clone URL and tell
+        users to adjust their fetch refspec (e.g. `git config --add
+        remote.origin.fetch +refs/replace/*:refs/replace/*`) Sadly, some
+        existing git servers (e.g. Gerrit, GitHub) do not yet understand
+        replace refs, and thus one can't use old commit hashes within their
+        UI; this may change in the future.  But replace refs at least help
+        users locally within the git CLI.
+
+     1. If you have a central repo, you may want to prevent people from
+        pushing old commit IDs, in order to avoid mixing old and new
+        history.  Every repository manager does this differently, some
+        provide [specialized
+        commands](https://gerrit-review.googlesource.com/Documentation/cmd-ban-commit.html),
+        others require you to write hooks.
+
+## Examples
+
+  git clone URL Run `git filter-repo -h`; more detailed docs will be added soon...
