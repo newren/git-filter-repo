@@ -20,9 +20,10 @@ to make build/installation trivial: just copy it into your $PATH.
 
 # Table of Contents
 
-  * [Why filter-repo instead of filter-branch?](#why-filter-repo-instead-of-filter-branch)
-  * [Example usage, comparing to filter-branch](#example-usage-comparing-to-filter-branch)
-  * [Design rationale behind filter-repo](#design-rationale-behind-filter-repo-why-create-a-new-tool)
+  * [Background](#background)
+    * [Why filter-repo instead of filter-branch?](#why-filter-repo-instead-of-filter-branch)
+    * [Example usage, comparing to filter-branch](#example-usage-comparing-to-filter-branch)
+    * [Design rationale behind filter-repo](#design-rationale-behind-filter-repo-why-create-a-new-tool)
   * [Usage](#usage)
 
 # Background
