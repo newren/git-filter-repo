@@ -27,6 +27,11 @@ to make build/installation trivial: just copy it into your $PATH.
   * [Usage](#usage)
     * [The bigger picture](#the-bigger-picture)
     * [Examples](#examples)
+      * [Path based filtering](#path-based-filtering)
+      * [Content based filtering](#content-based-filtering)
+      * [Refname based filtering](#refname-based-filtering)
+      * [User and email based filtering](#user-and-email-based-filtering)
+      * [Callbacks](#callbacks)
 
 # Background
 
@@ -340,4 +345,146 @@ rewrite are roughly as follows:
 
 ## Examples
 
-  git clone URL Run `git filter-repo -h`; more detailed docs will be added soon...
+### Path based filtering
+
+To only keep the 'README.md' file plus the directories 'guides' and
+'tools/releases/':
+
+```shell
+  git filter-repo --path README.md --path guides/ --path tools/releases
+```
+
+Directory names can be given with or without a trailing slash, and all
+filenames are relative to the toplevel of the repo.  To keep all files
+except these paths, just add `--invert-paths`:
+
+```shell
+  git filter-repo --path README.md --path guides/ --path tools/releases --invert-paths
+```
+
+If you want to have both an inclusion filter and an exclusion filter, just
+run filter-repo multiple times.  For example, to keep the src/main
+subdirectory but exclude files under src/main named 'data', run:
+
+```shell
+  git filter-repo --path src/main/
+  git filter-repo --path-glob 'src/*/data' --invert-paths
+```
+
+Note that the asterisk ('*') will match across multiple directories, so the
+second command would remove e.g. src/main/org/whatever/data.  Also, the
+second command by itself would also remove e.g. src/not-main/foo/data, but
+since src/not-main/ was removed by the first command, that's not an issue.
+Also, the use of quotes around the asterisk is sometimes important to avoid
+glob expansion by the shell.
+
+You can also select paths by [regular
+expression](https://docs.python.org/3/library/re.html#regular-expression-syntax).
+For example, to only include files from the repo whose name is in the
+format YYYY-MM-DD.txt and is found at least two subdirectories deep:
+
+```shell
+  git filter-repo --path-regex '^.*/.*/[0-9]{4}-[0-9]{2}-[0-9]{2}.txt$'
+```
+
+If you want two directories to be renamed (and maybe merged if both are
+renamed to the same location), use --path-rename; for example, to rename
+both 'cmds/' and 'src/scripts/' to 'tools/':
+
+```shell
+  git filter-repo --path-rename cmds/:tools/ --path-rename src/scripts/:tools/
+```
+
+It is preferable with `--path-rename` to using trailing slashes on
+directories since it matches on a prefix; without the trailing slash, a
+path named 'cmdstuff.txt' would be renamed to 'tools/tuff.txt'.
+
+If you do a `--path-rename` to something that was already in use, it will
+be silently overwritten.  However, if you try to rename multiple files to
+the same location (e.g. src/scripts/run_release.sh and cmds/run_release.sh
+both existed and had different content with the renames above), then you
+will be given an error.  If you have such a case, you may want to add
+another rename command to move one of the paths somewhere else where it
+won't collide:
+
+```shell
+  git filter-repo --path-rename cmds/run_release.sh:tools/do_release.sh \
+                  --path-rename cmds/:tools/ \
+                  --path-rename src/scripts/:tools/
+```
+
+Also, `--path-rename` brings up ordering issues; all path arguments are
+applied in order.  Thus, a command like
+
+```shell
+  git filter-repo --path-rename sources/:src/main/ --path src/main/
+```
+
+would make sense but reversing the two arguments would not (src/main/ is
+created by the rename so reversing the two would give you an empty repo).
+Also, note that the rename of cmds/run_release.sh a couple examples ago was
+done before the other renames.
+
+If you prefer to filter based solely on basename, use the `--use-base-name`
+flag (though this is incompatible with --path-rename).  For example, to
+only include README.md and Makefile files from any directory:
+
+```shell
+  git filter-repo --use-base-name --path README.md --path Makefile
+```
+
+If you wanted to delete all .DS_Store files in any directory, you could
+either use:
+
+```shell
+  git filter-repo --invert-paths --path '.DS_Store' --use-base-name
+```
+
+or
+
+```shell
+  git filter-repo --invert-paths --path-glob '*/.DS_Store' --path '.DS_Store'
+```
+
+(the `--path-glob` isn't sufficient by itself as it might miss a toplevel
+.DS_Store file; further while something like `--path-glob '*.DS_Store'`
+would workaround that problem it would also grab files named 'foo.DS_Store'
+or 'bar/baz.DS_Store')
+
+If you have a long list of files, directories, globs, or regular
+expressions to filter on, you can stick them in a file and use
+`--paths-from-file`; for example, with a file named stuff-i-want.txt with
+contents of
+
+```
+README.md
+guides/
+tools/releases
+glob:*.py
+regex:^.*/.*/[0-9]{4}-[0-9]{2}-[0-9]{2}.txt$
+tools/==>scripts/
+regex:(.*)/([^/]*)/([^/]*)\.text$==>\2/\1/\3.txt
+```
+
+then you could run
+```shell
+  git filter-repo --paths-from-file stuff-i-want.txt
+```
+
+to get a repo containing only the toplevel README.md file, the guides/ and
+tools/releases/ directories, all python files, files whose name was of the
+form YYYY.MM-DD.txt at least two subdirectories deep, and would rename
+tools/ to scripts/ and rename files like foo/bar/baz/bleh.text to
+baz/foo/bar/bleh.txt.  Note the special line prefixes of `glob:` and
+`regex:` and the special string `==>` denoting renames.
+
+Finally, see also the `--filename-callback` from the [callbacks
+section](#callbacks).
+
+### Content based filtering
+
+### Refname based filtering
+
+### User and email based filtering
+
+### Callbacks
