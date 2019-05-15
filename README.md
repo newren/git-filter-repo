@@ -483,6 +483,59 @@ section](#callbacks).
 
 ### Content based filtering
 
+If you want to filter out all files bigger than a certain size, you can use
+`--strip-blobs-bigger-than` with some size (K, M, and G suffixes are
+recognized), e.g.:
+
+```shell
+  git filter-repo --strip-blobs-bigger-than 10M
+```
+
+If you want to strip out all files with specified git object ids (hashes),
+list the hashes in a file and run
+
+```shell
+  git filter-repo --strip-blobs-with-ids FILE_WITH_GIT_BLOB_IDS
+```
+
+If you want to modify file contents, you can do so based on a list of
+expressions in a file, one per line.  For example, with a file named
+expressions.txt containing
+```
+p455w0rd
+foo==>bar
+glob:*666*==>
+regex:\bdriver\b==>pilot
+literal:MM/DD/YYYY=>YYYY-MM-DD
+regex:([0-9]{2})/([0-9]{2})/([0-9]{4})==>\3-\1-\2
+```
+
+then running
+```shell
+  git filter-repo --replace-text expressions.txt
+```
+
+will go through and replace `p455w0rd` with `***REMOVED***`, `foo` with
+`bar`, any line containing `666` with a blank line, the word `driver` with
+`pilot` (but not if it has letters before or after; e.g. `drivers` will be
+unmodified), replace the exact text `MM/DD/YYYY` with `YYYY-MM-DD` and
+replace date strings of the form MM/DD/YYYY with ones of the form
+YYYY-MM-DD.  In the expressions file, there are a few things to note:
+
+  * Every line has a replacement, given by whatever is on the right of
+    `==>`.  If `==>` does not appear on the line, the default replacement
+    is `***REMOVED***`.
+  * Lines can start with `literal:`, `glob:`, or `regex:` to specify
+    whether to do literal string matches,
+    [globs](https://docs.python.org/3/library/fnmatch.html), or [regular
+    expressions](https://docs.python.org/3/library/re.html#regular-expression-syntax).
+    If none of these are specified, `literal:` is assumed.
+  * globs and regexes are applied to each line of the file; it is not
+    possible with --replace-text to match a multi-line string.
+  * If multiple matches are found on a line, all are replaced.
+
+See also the `--blob-callback` from the [callbacks section](#callbacks).
+
 ### Refname based filtering
 
 ### User and email based filtering
