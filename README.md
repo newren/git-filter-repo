@@ -32,6 +32,7 @@ to make build/installation trivial: just copy it into your $PATH.
       * [Refname based filtering](#refname-based-filtering)
       * [User and email based filtering](#user-and-email-based-filtering)
       * [Callbacks](#callbacks)
+      * [Using filter-repo as a library](#using-filter-repo-as-a-library)
 
 # Background
 
@@ -753,3 +754,14 @@ An example of each:
         change.mode = b"100755"
     '
 ```
+
+### Using filter-repo as a library
+
+git-filter-repo can also be imported as a library in Python, allowing
+for further flexibility.  Some [simple
+examples](https://github.com/newren/git-filter-repo/tree/master/t/t9391)
+exist in the testsuite.  For this to work, the symlink to
+git-filter-repo named git_filter_repo.py either needs to have been
+installed in your $PYTHONPATH, or you need to create a symlink to (or
+a copy of) git-filter-repo named git_filter_repo.py and stick it in
+your $PYTHONPATH.
