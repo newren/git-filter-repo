@@ -584,3 +584,172 @@ See also the `--name-callback` and `--email-callback` from the
 [callbacks section](#callbacks).
 
 ### Callbacks
+
+For flexibility, filter-repo allows you to specify functions on the
+command line to further filter all changes.  Please note that there
+are some [API compatibility
+caveats](https://github.com/newren/git-filter-repo/blob/develop/git-filter-repo#L13-L30)
+associated with these callbacks that you should be aware of before
+using them.
+
+All callback functions are of the same general format.  For a command line
+argument like
+```shell
+  --foo-callback 'BODY'
+```
+
+the following code will be compiled and called:
+```python
+  def foo_callback(foo):
+    BODY
+```
+
+Thus, you just need to make sure your _BODY_ modifies and returns
+_foo_ appropriately.  One important thing to note for all callbacks is
+that filter-repo uses
+[bytestrings](https://docs.python.org/3/library/stdtypes.html#bytes)
+everywhere instead of strings.
+
+There are three callbacks that allow you to operate directly on raw
+objects that contain data that's easy to write in [fast-import(1)
+format](https://git-scm.com/docs/git-fast-import#_input_format):
+```
+  --blob-callback
+  --commit-callback
+  --tag-callback
+  --reset-callback
+```
+
+We'll come back to these later because it is often the case that the
+other callbacks are more convenient.  The other callbacks operate on a
+small piece of the raw objects or operate on pieces across multiple
+types of raw object (e.g. author names and committer names and tagger
+names across commits and tags, or refnames across commits, tags, and
+resets, or messages across commits and tags).  The convenience
+callbacks are:
+```
+  --filename-callback
+  --message-callback
+  --name-callback
+  --email-callback
+  --refname-callback
+```
+in each you are expected to simply return a new value based on the one
+passed in.  For example,
+
+```shell
+  git-filter-repo --name-callback 'return name.replace(b"Wiliam", b"William")'
+```
+would result in the following function being called:
+```python
+  def name_callback(name):
+    return name.replace(b"Wiliam", b"William")
+```
+
+The email callback is quite similar:
+```shell
+  git-filter-repo --email-callback 'return email.replace(b".cm", b".com")'
+```
+
+The refname callback is also similar, but note that the refname passed in
+and returned are expected to be fully qualified (e.g. b"refs/heads/master"
+instead of just b"master" and b"refs/tags/v1.0.7" instead of b"1.0.7"):
+```shell
+  git-filter-repo --refname-callback '
+    # Change e.g. refs/heads/master to refs/heads/prefix-master
+    rdir,rpath = os.path.split(refname)
+    return rdir + b"/prefix-" + rpath'
+```
+
+The message callback is quite similar to the previous three callbacks,
+though it operates on a bytestring that is likely more than one line:
+```shell
+  git-filter-repo --message-callback '
+    if b"Signed-off-by:" not in message:
+      message += b"\nSigned-off-by: Me My <self@and.eye>"
+    return re.sub(b"[Ee]-?[Mm][Aa][Ii][Ll]", b"email", message)'
+```
+
+The filename callback is slightly more interesting.  Returning None means
+the file should be removed from all commits, returning the filename
+unmodified marks the file to be kept, and returning a different name means
+the file should be renamed.  An example:
+
+```shell
+  git-filter-repo --filename-callback '
+    if b"/src/" in filename:
+      # Remove all files with a directory named "src" in their path
+      # (except when "src" appears at the toplevel).
+      return None
+    elif filename.startswith(b"tools/"):
+      # Rename tools/ -> scripts/misc/
+      return b"scripts/misc/" + filename[6:]
+    else:
+      # Keep the filename and do not rename it
+      return filename
+    '
+```
+
+In contrast, the blob, reset, tag, and commit callbacks are not
+expected to return a value, but are instead expected to modify the
+object passed in.  Major fields for these objects are (subject to [API
+backward compatibility
+caveats](https://github.com/newren/git-filter-repo/blob/develop/git-filter-repo#L13-L30)
+mentioned previously):
+
+  * Blob: `original_id` (original hash) and `data`
+  * Reset: `ref` (name of reference) and `from_ref` (hash or integer mark)
+  * Tag: `ref`, `from_ref`, `original_id`, `tagger_name`, `tagger_email`,
+         `tagger_date`, `message`
+  * Commit: `branch`, `original_id`, `author_name`, `author_email`,
+            `author_date`, `committer_name`, `committer_email`,
+            `committer_date `, `message`, `file_changes` (list of
+            FileChange objects, each containing a `type`, `filename`,
+            `mode`, and `blob_id`), `parents` (list of hashes or integer
+            marks)
+
+An example of each:
+
+```shell
+  git filter-repo --blob-callback '
+    if len(blob.data) > 25:
+      # Mark this blob for removal from all commits
+      blob.skip()
+    else:
+      blob.data = blob.data.sub(b"Hello", b"Goodbye")
+    '
+```
+
+```shell
+  git filter-repo --reset-callback 'reset.ref = reset.ref.replace(b"master", b"dev")'
+```
+
+```shell
+  git filter-repo --tag-callback '
+    if tag.tagger_name == "Jim Williams":
+      # Omit this tag
+      tag.skip()
+    else:
+      tag.message = tag.message + b"\n\nTag of %s by %s on %s" % (tag.ref, tag.tagger_email, tag.tagger_date)'
+```
+
+```shell
+  git filter-repo --commit-callback '
+    # Remove executable files with three 6s in their name (including
+    # from leading directories).
+    # Also, undo deletion of sources/foo/bar.txt (change types are either
+    # b"D" (deletion) or b"M" (add or modify); renames are handled by deleting
+    # the old file and adding a new one)
+    commit.file_changes = [change for change in commit.file_changes
+                           if not (change.mode == b"100755" and
+			           change.filename.count(b"6") == 3) and
+			      not (change.type == b"D" and
+			           change.filename == b"sources/foo/bar.txt")]
+    # Mark all .sh files as executable; modes in git are always one of
+    # 100644 (normal file), 100755 (executable), 120000 (symlink), or
+    # 160000 (submodule)
+    for change in commit.file_changes:
+      if change.filename.endswith(b".sh"):
+        change.mode = b"100755"
+    '
+```
