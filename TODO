@@ -1,18 +1,33 @@
 Crazy ideas, showing filter-repo flexibility:
-  - show modifying mode (e.g. mark executable)
   - delete commits older than certain date (simple commit.skip())
   - alternative path filtering
     - doing case-insensitive path deletion
     - clean via (current) .gitignore files [see git-check-ignore]
   - removing/inserting files
     - removing symlinks?
-    - adding a new file (LICENSE/COPYING) to the beginning of history
+    - adding a new file (LICENSE/COPYING) to the beginning of history (or
+      more accurately, each beginning of history)
     - remove a submodule (copy contents into tree for each submodule commit)
     - extract to submodule (where to put submodule history though?)
     - convert to git lfs
   - reformatting (lint) files in history [maybe only via git-very-bad-idea??]
   - extend argument parser and use extended version
   - git-bfgish (bfg) and git-very-bad-idea (filter-branch, on changed-only tree)
+  - more thorough repo splicing
+     - given list of (newbranch name, repo1_branchA, repo2_branchB) tuples,
+       walk through first parent histories and insert according to
+       monotonicized committer date.  Note that multiple branches in different
+       repos and obvious sharing of commits between branches may result in
+       some kind of constraint problem.  Also, allow for a list of
+       (other branches and tags) to be given that aren't part of the weaving
+       but will point at the rewritten commits from the splicing.  By default,
+       the tuples can just be given via common refnames
+     - pay attention to commits getting inserted into what becomes second or
+       third parent history; such changes will need to be manually added to
+       the merge commits as well
+     - we should probably ask the user for prefixes for each repo to put in
+       front of filepaths to avoid collision, though we can allow them to be
+       empty and just tell the user they'll have random overwriting.
 
 Repository diffing
   - New ideas:
@@ -51,22 +66,19 @@ Handle tags of trees:
 Document or start conversation around interaction with external systems:
   - May not be able to force push over e.g. refs/changes/, refs/pulls/, etc.
   - People need a way to do "update project", and get GitHub/Gerrit/Gitlab fixed
+  - Is supporting replace refs sufficient?  (refs/changes/ & refs/pulls/ may
+    be able to continue operating pointing to old IDs which have gone away?)
 
 Other feature ideas:
   - Compatibility:
-    - Handle grafts and replace files
     - Is any work needed to handle submodules?
   - Options:
     - paths-from-file (similar to --replace-text, maybe also invert or basename?)
     - include-old-names-of-specified-files (auto get rename data from --analyze?)
-    - Write git notes mapping old ids to new ids (or make special references?)
     - add --skip-cleanup (pruning, gc, etc.; keep reset --hard) for speed compare
     - Old list:
       - --keep-excluded-revisions
       - --keep-excluded-refs
-      - --store-backup
-      - --empty-pruning={no/off,auto,always/on}
-      - --no-ff-pruning={no/off,auto,always/on}
       - --negative-refs={drop,reference}
 
 Cleanups and left-over bits:
@@ -103,7 +115,6 @@ More thorough testing
     - coalescing common commits of a merge
 
 Performance:
-  - Smarter record_remapping -- do it lazily
   - Pathquoting memoization; or full result? (dequote -> do mods -> requote)
   - Smarter become-empty checks; only do more expensive checks if:
     - First parent is no longer original first parent or ancestor thereof
@@ -115,20 +126,6 @@ Performance:
 
 Argument parsing stuff:
   # NOT YET IMPLEMENTED OPTIONS BELOW
-                    '--degenerate-handling'
-  misc.add_argument('--empty-pruning', choices=['always', 'auto', 'never'],
-                    default='auto',
-                    help='''The default, auto, will check if filtering
-                            causes commits to become empty (have no file
-                            changes and only have one parent) and prune them
-                            if so.  This pruning can also cause merge
-                            commits to have fewer parents and possibly
-                            become empty themselves, and thus be pruned.
-                            Further, any branch or tag whose entire history
-                            is pruned due to becoming empty will be pruned.
-                            However, auto will not prune commits which
-                            started out empty in the original repo and have
-                            a non-pruned parent.''')
   misc.add_argument('--store-backup', default=None,
                     metavar='NAMESPACE', dest='backup',
                     help='Store a copy of original refs under refs/NAMESPACE/')
