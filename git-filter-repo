@@ -45,7 +45,7 @@ import textwrap
 
 from datetime import tzinfo, timedelta, datetime
 
-__all__ = ["Blob", "Reset", "FileChanges", "Commit", "Tag", "Progress",
+__all__ = ["Blob", "Reset", "FileChange", "Commit", "Tag", "Progress",
            "Checkpoint", "FastExportFilter", "ProgressWriter",
            "string_to_date", "date_to_string",
            "record_id_rename", "GitUtils", "FilteringOptions", "RepoFilter"]
@@ -537,7 +537,7 @@ class Reset(_GitElement):
       file_.write(b'from :%d\n' % self.from_ref)
       file_.write(b'\n')
 
-class FileChanges(_GitElement):
+class FileChange(_GitElement):
   """
   This class defines our representation of file change elements. File change
   elements are components within a Commit element.
@@ -1016,7 +1016,7 @@ class FastExportFilter(object):
       if idnum is not None:
         if path.startswith(b'"'):
           path = PathQuoting.dequote(path)
-        filechange = FileChanges(b'M', path, idnum, mode)
+        filechange = FileChange(b'M', path, idnum, mode)
       else:
         filechange = b'skipped'
       self._advance_currentline()
@@ -1025,7 +1025,7 @@ class FastExportFilter(object):
       path = path.rstrip(b'\n')
       if path.startswith(b'"'):
         path = PathQuoting.dequote(path)
-      filechange = FileChanges(b'D', path)
+      filechange = FileChange(b'D', path)
       self._advance_currentline()
     elif changetype == b'R':  # pragma: no cover (now avoid fast-export renames)
       rest = self._currentline[2:-1]
@@ -1039,7 +1039,7 @@ class FastExportFilter(object):
         orig, new = rest.split(b' ', 1)
       if new.startswith(b'"'):
         new = PathQuoting.dequote(new)
-      filechange = FileChanges(b'R', orig, new)
+      filechange = FileChange(b'R', orig, new)
       self._advance_currentline()
     return filechange
 
@@ -2970,7 +2970,7 @@ class RepoFilter(object):
       # NEEDSWORK: _If_ we ever want to pass `--full-tree` to fast-export and
       # parse that output, we'll need to modify this block; `--full-tree`
       # issues a deleteall directive which has no filename, and thus this
-      # block would normally strip it.  Of course, FileChanges() and
+      # block would normally strip it.  Of course, FileChange() and
       # _parse_optional_filechange() would need updates too.
       if change.filename in self._newnames:
         change.filename = self._newnames[change.filename]

@@ -12,7 +12,7 @@ not try to handle any such special cases.
 """
 
 import git_filter_repo as fr
-from git_filter_repo import Blob, Reset, FileChanges, Commit, Tag, FixedTimeZone
+from git_filter_repo import Blob, Reset, FileChange, Commit, Tag, FixedTimeZone
 from git_filter_repo import Progress, Checkpoint
 
 from datetime import datetime, timedelta
@@ -32,8 +32,8 @@ bar.dump(output)
 master = Reset(b"refs/heads/master")
 master.dump(output)
 
-changes = [FileChanges(b'M', b'world', world.id, mode=b"100644"),
-           FileChanges(b'M', b'bar',   bar.id,   mode=b"100644")]
+changes = [FileChange(b'M', b'world', world.id, mode=b"100644"),
+           FileChange(b'M', b'bar',   bar.id,   mode=b"100644")]
 when = datetime(year=2005, month=4, day=7,
                 hour=15, minute=16, second=10,
                 tzinfo=FixedTimeZone(b"-0700"))
@@ -51,8 +51,8 @@ world.dump(output)
 world_link = Blob(b"world")
 world_link.dump(output)
 
-changes = [FileChanges(b'M', b'world',  world.id,      mode=b"100644"),
-           FileChanges(b'M', b'planet', world_link.id, mode=b"120000")]
+changes = [FileChange(b'M', b'world',  world.id,      mode=b"100644"),
+           FileChange(b'M', b'planet', world_link.id, mode=b"120000")]
 when += timedelta(days=3, hours=4, minutes=6)
 when_string = fr.date_to_string(when)
 commit2 = Commit(b"refs/heads/master",
@@ -65,8 +65,8 @@ commit2.dump(output)
 
 script = Blob(b"#!/bin/sh\n\necho Hello")
 script.dump(output)
-changes = [FileChanges(b'M', b'runme', script.id, mode=b"100755"),
-           FileChanges(b'D', b'bar')]
+changes = [FileChange(b'M', b'runme', script.id, mode=b"100755"),
+           FileChange(b'D', b'bar')]
 when_string = b"1234567890 -0700"
 commit3 = Commit(b"refs/heads/master",
                  b"A U Thor", b"au@thor.email", when_string,
@@ -87,7 +87,7 @@ devel.dump(output)
 world = Blob(b"Hello\nGoodbye")
 world.dump(output)
 
-changes = [FileChanges(b'M', b'world', world.id, mode=b"100644")]
+changes = [FileChange(b'M', b'world', world.id, mode=b"100644")]
 when = datetime(2006, 8, 17, tzinfo=FixedTimeZone(b"+0200"))
 when_string = fr.date_to_string(when)
 commit4 = Commit(b"refs/heads/devel",
@@ -106,10 +106,10 @@ when_string = fr.date_to_string(when)
 # to the first parent.  Thus, despite the fact that runme and planet have
 # not changed and bar was not modified in the devel side, we have to list them
 # all anyway.
-changes = [FileChanges(b'M', b'world', world.id, mode=b"100644"),
-           FileChanges(b'D', b'bar'),
-           FileChanges(b'M', b'runme', script.id, mode=b"100755"),
-           FileChanges(b'M', b'planet', world_link.id, mode=b"120000")]
+changes = [FileChange(b'M', b'world', world.id, mode=b"100644"),
+           FileChange(b'D', b'bar'),
+           FileChange(b'M', b'runme', script.id, mode=b"100755"),
+           FileChange(b'M', b'planet', world_link.id, mode=b"120000")]
 
 commit5 = Commit(b"refs/heads/devel",
                  b"A U Thor", b"au@thor.email", when_string,
