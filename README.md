@@ -33,6 +33,8 @@ to make build/installation trivial: just copy it into your $PATH.
       * [User and email based filtering](#user-and-email-based-filtering)
       * [Callbacks](#callbacks)
       * [Using filter-repo as a library](#using-filter-repo-as-a-library)
+  * [Internals](#internals)
+    * [How filter-repo works](#how-filter-repo-works)
 
 # Background
 
@@ -765,3 +767,67 @@ git-filter-repo named git_filter_repo.py either needs to have been
 installed in your $PYTHONPATH, or you need to create a symlink to (or
 a copy of) git-filter-repo named git_filter_repo.py and stick it in
 your $PYTHONPATH.
+
+
+# Internals
+
+You probably don't need to read this section unless you are just very
+curious or you are trying to do a very complex history rewrite.
+
+## How filter-repo works
+
+Roughly, filter-repo works by running
+```shell
+   git fast-export <options> | filter | git fast-import <options>
+```
+where filter-repo not only launches the whole pipeline but also serves as
+the _filter_ in the middle.  However, filter-repo does a few additional
+things on top in order to make it into a well-rounded filtering tool.  A
+sequence that more accurately reflects what filter-repo runs is:
+  1. Verify we're in a fresh clone
+  1. `git fetch -u . refs/remotes/origin/*:refs/heads/*`
+  1. `git remote rm origin`
+  1. `git fast-export --show-original-ids --fake-missing-tagger --signed-tags=strip --tag-of-filtered-object=rewrite --use-done-feature --no-data --reencode=yes --all | filter | git fast-import --force --quiet`
+  1. `git update-ref --no-deref --stdin`, fed with a list of refs to nuke, and a list of [replace refs](https://git-scm.com/docs/git-replace) to delete, create, or update.
+  1. `git reset --hard`
+  1. `git reflog expire --expire=now --all`
+  1. `git gc --prune=now`
+
+Some notes or exceptions on each of the above:
+  1. If we're not in a fresh clone, users will not be able to recover if
+     they used the wrong command or ran in the wrong repo.  (Though
+     `--force` overrides this check, and it's also off if you've already
+     ran filter-repo once in this repo.)
+  1. Technically, we actually use a `git update-ref` command fed with a lot
+     of input due to the fact that users can use `--force` when local
+     branches might not match remote branches.  But this fetch command
+     catches the intent rather succinctly.
+  1. We don't want users accidentally pushing back to the original repo, as
+     discussed in the section on [the bigger picture](#the-bigger-picture).
+     It also reminds users that since history has been rewritten, this repo
+     is no longer compatible with the original.  Finally, another minor
+     benefit is this allows users to push with the `--mirror` option to
+     their new home without accidentally sending remote tracking branches.
+  1. Some of these flags are always used but others are actually
+     conditional.  For example, filter-repo's `--replace-text` and
+     `--blob-callback` options need to work on blobs so `--no-data` cannot
+     be passed to fast-export.  But when we don't need to work on blobs,
+     passing `--no-data` speeds things up.  Also, other flags may change
+     the structure of the pipeline as well (e.g. `--dry-run` and `--debug`)
+  1. Selection of files based on paths could cause every commit in the
+     history of a branch or tag to be pruned, resulting in the branch or
+     tag needing to be pruned.  However, filter-repo just works by
+     stripping out the 'commit' and 'tag' directives for each one that's
+     not needed, meaning fast-import won't do the branch or tag deletion
+     for us.  So we do it in a post-processing step to ensure we avoid
+     mixing old and new history.  Also, we use this step to write replace
+     refs for accessing the newly written commit hashes using their
+     previous names.
+  1. Users also have old versions of files in their working tree and index;
+     we want those cleaned up to match the rewritten history as well.  Note
+     that this step is skipped in bare repos.
+  1. Reflogs will hold on to old history, so we need to expire them.
+  1. We need to gc to avoid mixing new and old history.  Also, it shrinks
+     the repository for users, so they don't have to do extra work.  (Odds
+     are that they've only rewritten trees and commits and maybe a few
+     blobs, so `--aggressive` isn't needed and would be too slow.)
