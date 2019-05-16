@@ -556,4 +556,31 @@ the [callbacks section](#callbacks).
 
 ### User and email based filtering
 
+To modify username and emails of commits, you can create a [mailmap
+file](https://git-scm.com/docs/git-shortlog#_mapping_authors) in the
+format accepted by
+[git-shortlog(1)](https://git-scm.com/docs/git-shortlog).  For example,
+if you have a file named my-mailmap you can run
+
+```shell
+  git filter-repo --mailmap my-mailmap
+```
+
+and if the current contents of that file are as follows (if the
+specified mailmap file is version controlled, historical versions of
+the file are ignored):
+
+```
+Name For User <email@addre.ss>
+<new@ema.il> <old1@ema.il>
+New Name And <new@ema.il> <old2@ema.il>
+New Name And <new@ema.il> Old Name And <old3@ema.il>
+```
+
+then we can update username and/or emails based on the specified
+mapping.
+
+See also the `--name-callback` and `--email-callback` from the
+[callbacks section](#callbacks).
+
 ### Callbacks
