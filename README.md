@@ -538,6 +538,22 @@ See also the `--blob-callback` from the [callbacks section](#callbacks).
 
 ### Refname based filtering
 
+To rename tags, use `--tag-rename`, e.g.:
+
+```shell
+  git filter-repo --tag-rename foo:bar
+```
+
+This will rename any tags starting with `foo` to now start with `bar`.
+Either side of the colon could be blank, e.g.
+
+```shell
+  git filter-repo --tag-rename '':'my-module-'
+```
+
+For more general refname modification, see `--refname-callback` from
+the [callbacks section](#callbacks).
+
 ### User and email based filtering
 
 ### Callbacks
