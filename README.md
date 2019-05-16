@@ -35,6 +35,11 @@ to make build/installation trivial: just copy it into your $PATH.
       * [Using filter-repo as a library](#using-filter-repo-as-a-library)
   * [Internals](#internals)
     * [How filter-repo works](#how-filter-repo-works)
+    * [Limitations](#limitations)
+      * [Inherited limitations](#inherited-limitations)
+      * [Intrinsic limitations](#intrinsic-limitations)
+      * [Issues specific to filter-repo](#issues-specific-to-filter-repo)
+      * [Comments on reversibility](#comments-on-reversibility)
 
 # Background
 
@@ -831,3 +836,118 @@ Some notes or exceptions on each of the above:
      the repository for users, so they don't have to do extra work.  (Odds
      are that they've only rewritten trees and commits and maybe a few
      blobs, so `--aggressive` isn't needed and would be too slow.)
+
+Information about these steps is printed out when `--debug` is passed to
+filter-repo.
+
+## Limitations
+
+### Inherited limitations
+
+Since git filter-repo calls fast-export and fast-import to do a lot of the
+heavy lifting, it inherits limitations from those systems:
+
+  * extended commit headers, if any, are stripped
+  * commits get rewritten meaning they will have new hashes; therefore,
+    signatures on commits and tags cannot continue to work and instead are
+    just removed (thus signed tags become annotated tags)
+  * tags of commits are supported; tags of anything else (blobs, trees, or
+    tags) are not.  (fast-export aborts on tags of blobs and tags of tags,
+    and simply ignores tags of trees with a warning.)
+  * annotated and signed tags outside of the refs/tags/ namespace are not
+    supported (their location will be mangled in weird ways)
+  * fast-import will die on various forms of invalid input, such as a
+    timezone with more than four digits
+  * fast-export cannot reencode commit messages into UTF-8 if the commit
+    message is not valid in its specified encoding (in such cases, it'll
+    leave the commit message and the encoding header alone).
+  * commits without an author will be given one matching the committer
+  * tags without a tagger will be given a fake tagger
+
+There are also some limitations due to the design of these systems:
+
+  * Trying to insert additional files into the stream can be tricky; since
+    fast-export only lists file changes in a merge relative to its first
+    parent, if you insert additional files into a commit that is in the
+    second (or third or fourth) parent history of a merge, then you also
+    need to add it to the merge manually.
+
+  * fast-export and fast-import work with exact file contents, not patches.
+    (e.g. "Whatever the current contents of this file, update them to now
+    have these contents") Because of this, removing the changes made in a
+    single commit or inserting additional changes to a file in some commit
+    and expecting them to propagate forward is not something that can be
+    done with these tools.  Use
+    [git-rebase(1)](https://git-scm.com/docs/git-rebase) for that.
+
+### Intrinsic limitations
+
+Some types of filtering have limitations that would affect any tool
+attempting to perform them; the most any tool can do is attempt to notify
+the user when it detects an issue:
+
+  * When rewriting commit hashes in commit messages, there are a variety
+    of cases when the hash will not be updated (whenever this happens, a
+    note is written to `.git/filter-repo/suboptimal-issues`):
+    * if a commit hash does not correspond to a commit in the old repo
+    * if a commit hash corresponds to a commit that gets pruned
+    * if an abbreviated hash is not unique
+
+  * Pruning of empty commits can cause a merge commit to lose an entire
+    ancestry line and become a non-merge.  If the merge commit had no
+    changes then it can be pruned too, but if it still has changes it needs
+    to be kept.  This might cause minor confusion since the commit will
+    likely have a commit message that makes it sound like a merge commit
+    even though it's not.  (Whenever a merge commit becomes a non-merge
+    commit, a note is written to `.git/filter-repo/suboptimal-issues`)
+
+### Issues specific to filter-repo
+
+  * Multiple repositories in the wild have been observed which use a bogus
+    timezone (`+051800`); google will find you some reports.  The intended
+    timezone wasn't clear or wasn't always the same.  Replace with a
+    different bogus timezone that fast-import will accept (`+0261`).
+
+  * `--path-rename` can result in pathname collisions; to avoid excessive
+    memory requirements of tracking which files are in all commits or
+    looking up what files exist with either every commit or every usage of
+    --path-rename, we just tell the user that they might clobber other
+    changes if they aren't careful.  We can check if the clobbering comes
+    from another --path-rename without much overhead.  (Perhaps in the
+    future it's worth adding a slow mode to --path-rename that will do the
+    more exhaustive checks?)
+
+  * There is no mechanism for directly controlling which flags are passed
+    to fast-export (or fast-import); only pre-defined flags can be turned
+    on or off as a side-effect of other options.  Direct control would make
+    little sense because some options like `--full-tree` would require
+    additional code in filter-repo (to parse new directives), and others
+    such as `-M` or `-C` would break assumptions used in other places of
+    filter-repo.
+
+### Comments on reversibility
+
+Some people are interested in reversibility of of a rewrite; e.g. rewrite
+history, possibly add some commits, then unrewrite and get the original
+history back plus a few new "unrewritten" commits.  Obviously this is
+impossible if your rewrite involves throwing away information
+(e.g. filtering out files or replacing several different strings with
+`***REMOVED***`), but may be possible with some rewrites.  filter-repo is
+likely to be a poor fit for this type of workflow for a few reasons:
+
+  * most of the limitations inherited from fast-export and fast-import
+    are of a type that cause reversibility issues
+  * grafts and replace refs, if present, are used in the rewrite and made
+    permanent
+  * rewriting of commit hashes will probably be reversible, but it is
+    possible for rewritten abbreviated hashes to not be unique even if the
+    original abbreviated hashes were.
+  * filter-repo defaults to several forms of unreversible rewriting that
+    you may need to turn off (e.g. the last two bullet points above or
+    reencoding commit messages into UTF-8); it's possible that additional
+    forms of unreversible rewrites will be added in the future.
+  * I assume that people use filter-repo for one-shot conversions, not
+    ongoing data transfers.  I explicitly reserve the right to [change any
+    API in
+    filter-repo](https://github.com/newren/git-filter-repo/blob/develop/git-filter-repo#L13-L30)
+    based on this presumption.  You have been warned.
