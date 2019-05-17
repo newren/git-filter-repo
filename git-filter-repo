@@ -2147,13 +2147,11 @@ class FilteringOptions(object):
     if args.path_changes == None:
       args.path_changes = []
       args.inclusive = False
-    # Similarly, if we only have renames, all paths should match
     else:
-      has_filter = False
-      for (mod_type, match_type, path_expression) in args.path_changes:
-        if mod_type == 'filter':
-          has_filter = True
-      if not has_filter:
+      # Similarly, if we have no filtering paths, then no path should be
+      # filtered out.  Based on how newname() works, the easiest way to
+      # achieve that is setting args.inclusive to False.
+      if not any(x[0] == 'filter' for x in args.path_changes):
         args.inclusive = False
     # Also throw in a sanity check on git version here;
     # PERF: remove this check once new enough git versions are common
