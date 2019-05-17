@@ -1976,6 +1976,9 @@ class FilteringOptions(object):
         help=_("Regex of paths to include in filtered history. Multiple "
                "--path-regex options can be specified to get a union of "
                "paths"))
+    path.add_argument('--use-base-name', action='store_true',
+        help=_("Match on file base name instead of full path from the top "
+               "of the repo.  Incompatible with --path-rename."))
 
     rename = parser.add_argument_group(title=_("Renaming based on paths "
                                              "(see also --filename-callback)"))
@@ -2153,6 +2156,11 @@ class FilteringOptions(object):
       # achieve that is setting args.inclusive to False.
       if not any(x[0] == 'filter' for x in args.path_changes):
         args.inclusive = False
+      # Also check for incompatible --use-base-name and --path-rename flags.
+      if args.use_base_name:
+        if any(x[0] == 'rename' for x in args.path_changes):
+          raise SystemExit(_("Error: --use-base-name and --path-rename are "
+                             "incompatible."))
     # Also throw in a sanity check on git version here;
     # PERF: remove this check once new enough git versions are common
     p = subprocess.Popen('git diff-tree -h'.split(),
@@ -2918,8 +2926,11 @@ class RepoFilter(object):
         return True
       return False
 
-    def newname(path_changes, pathname, filtering_is_inclusive):
+    def newname(path_changes, pathname, use_base_name, filtering_is_inclusive):
       wanted = False
+      full_pathname = pathname
+      if use_base_name:
+        pathname = os.path.basename(pathname)
       for (mod_type, match_type, path_exp) in path_changes:
         if mod_type == 'filter' and not wanted:
           assert match_type in ('match', 'glob', 'regex')
@@ -2932,9 +2943,9 @@ class RepoFilter(object):
         elif mod_type == 'rename':
           old_exp, new_exp = path_exp.split(b':')
           assert match_type in ('prefix',)
-          if match_type == 'prefix' and pathname.startswith(old_exp):
-            pathname = pathname.replace(old_exp, new_exp, 1)
-      return pathname if (wanted == filtering_is_inclusive) else None
+          if match_type == 'prefix' and full_pathname.startswith(old_exp):
+            full_pathname = full_pathname.replace(old_exp, new_exp, 1)
+      return full_pathname if (wanted == filtering_is_inclusive) else None
 
     # Change the commit message according to callback
     if self._message_callback:
@@ -2974,7 +2985,7 @@ class RepoFilter(object):
         change.filename = self._newnames[change.filename]
       else:
         change.filename = newname(args.path_changes, change.filename,
-                                  args.inclusive)
+                                  args.use_base_name, args.inclusive)
         if self._filename_callback:
           change.filename = self._filename_callback(change.filename)
         self._newnames[change.filename] = change.filename

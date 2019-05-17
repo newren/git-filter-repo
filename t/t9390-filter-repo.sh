@@ -232,6 +232,24 @@ test_expect_success '--to-subdirectory-filter' '
 	)
 '
 
+test_expect_success '--use-base-name' '
+	(
+		git clone file://"$(pwd)"/metasyntactic use_base_name &&
+		cd use_base_name &&
+		git filter-repo --path small --path important --use-base-name &&
+		git cat-file --batch-check --batch-all-objects >all-objs &&
+		test_line_count = 10 all-objs &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		test_line_count = 3 filenames &&
+		grep ^numbers/small$ filenames &&
+		grep ^words/important$ filenames &&
+		test $(git cat-file -t v1.0) = commit &&
+		test $(git cat-file -t v1.1) = tag &&
+		test $(git cat-file -t v2.0) = commit &&
+		test $(git cat-file -t v3.0) = tag
+	)
+'
+
 test_expect_success 'refs/replace/ to skip a parent' '
 	(
 		git clone file://"$(pwd)"/metasyntactic replace_skip_ref &&
@@ -837,7 +855,10 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_i18ngrep ": --analyze is incompatible with --path" err &&
 
 		test_must_fail git filter-repo --analyze --stdin 2>err &&
-		test_i18ngrep ": --analyze is incompatible with --stdin" err
+		test_i18ngrep ": --analyze is incompatible with --stdin" err &&
+
+		test_must_fail git filter-repo --path-rename foo:bar --use-base-name 2>err &&
+		test_i18ngrep ": --use-base-name and --path-rename are incompatible" err
 	)
 '
 
