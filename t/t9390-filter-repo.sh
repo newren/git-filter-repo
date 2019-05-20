@@ -858,7 +858,10 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_i18ngrep ": --analyze is incompatible with --stdin" err &&
 
 		test_must_fail git filter-repo --path-rename foo:bar --use-base-name 2>err &&
-		test_i18ngrep ": --use-base-name and --path-rename are incompatible" err
+		test_i18ngrep ": --use-base-name and --path-rename are incompatible" err &&
+
+		test_must_fail git filter-repo --path-rename foo:bar/ 2>err &&
+		test_i18ngrep "either ends with a slash then both must." err
 	)
 '
 

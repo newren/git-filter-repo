@@ -400,12 +400,11 @@ renamed to the same location), use --path-rename; for example, to rename
 both 'cmds/' and 'src/scripts/' to 'tools/':
 
 ```shell
-  git filter-repo --path-rename cmds/:tools/ --path-rename src/scripts/:tools/
+  git filter-repo --path-rename cmds:tools --path-rename src/scripts/:tools/
 ```
 
-It is preferable with `--path-rename` to using trailing slashes on
-directories since it matches on a prefix; without the trailing slash, a
-path named 'cmdstuff.txt' would be renamed to 'tools/tuff.txt'.
+As with `--path`, directories can be specified with or without a
+trailing slash for `--path-rename`.
 
 If you do a `--path-rename` to something that was already in use, it will
 be silently overwritten.  However, if you try to rename multiple files to

@@ -1886,9 +1886,15 @@ class FilteringOptions(object):
   class AppendFilter(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
       suffix = option_string[len('--path-'):] or 'match'
-      if suffix == 'rename':
+      if suffix.startswith('rename'):
         mod_type = 'rename'
-        match_type = 'prefix'
+        match_type = option_string[len('--path-rename-'):] or 'match'
+        values = values.split(b':', 1)
+        if values[0] and values[1] and not (
+           values[0].endswith(b'/') == values[1].endswith(b'/')):
+          raise SystemExit(_("Error: With --path-rename, if OLD_NAME and "
+                             "NEW_NAME are both non-empty and either ends "
+                             "with a slash then both must."))
       else:
         mod_type = 'filter'
         match_type = suffix
@@ -1982,12 +1988,12 @@ class FilteringOptions(object):
 
     rename = parser.add_argument_group(title=_("Renaming based on paths "
                                              "(see also --filename-callback)"))
-    rename.add_argument('--path-rename', '--path-rename-prefix',
+    rename.add_argument('--path-rename', '--path-rename-match',
         metavar='OLD_NAME:NEW_NAME', dest='path_changes', type=os.fsencode,
         action=FilteringOptions.AppendFilter,
-        help=_("Prefix to rename; if filename starts with OLD_NAME, "
-               "replace that with NEW_NAME.  Multiple --path-rename "
-               "options can be specified."))
+        help=_("Path to rename; if filename or directory matches OLD_NAME "
+               "rename to NEW_NAME.  Multiple --path-rename options can be "
+               "specified."))
 
     helpers = parser.add_argument_group(title=_("Path shortcuts"))
     helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
@@ -2941,10 +2947,10 @@ class RepoFilter(object):
           if match_type == 'regex' and path_exp.search(pathname):
             wanted = True
         elif mod_type == 'rename':
-          old_exp, new_exp = path_exp.split(b':')
-          assert match_type in ('prefix',)
-          if match_type == 'prefix' and full_pathname.startswith(old_exp):
-            full_pathname = full_pathname.replace(old_exp, new_exp, 1)
+          match, repl = path_exp
+          assert match_type in ('match',)
+          if match_type == 'match' and filename_matches(match, full_pathname):
+            full_pathname = full_pathname.replace(match, repl, 1)
       return full_pathname if (wanted == filtering_is_inclusive) else None
 
     # Change the commit message according to callback
