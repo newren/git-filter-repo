@@ -2183,15 +2183,31 @@ class FilteringOptions(object):
         if any(x[0] == 'rename' for x in args.path_changes):
           raise SystemExit(_("Error: --use-base-name and --path-rename are "
                              "incompatible."))
-    # Also throw in a sanity check on git version here;
-    # PERF: remove this check once new enough git versions are common
-    p = subprocess.Popen('git diff-tree -h'.split(),
+    # Also throw some sanity checks on git version here;
+    # PERF: remove these checks once new enough git versions are common
+    p = subprocess.Popen('git fast-export -h'.split(),
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     p.wait()
     output = p.stdout.read()
-    if b'--combined-all-paths' not in output:
-      raise SystemExit(_("Error: need a version of git whose diff-tree command "
-                         "has the --combined-all-paths option")) # pragma: no cover
+    if b'--reencode' not in output: # pragma: no cover
+      if args.preserve_commit_encoding:
+        raise SystemExit(_("Error: need a version of git whose fast-export "
+                           "command has the --reencode option"))
+      else:
+        # Set args.preserve_commit_encoding to None which we'll check for later
+        # to avoid passing --reencode=yes to fast-export (that option was the
+        # default prior to git-2.23)
+        args.preserve_commit_encoding = None
+      # If we don't have fast-exoprt --reencode, we may also be missing
+      # diff-tree --combined-all-paths, which is even more important...
+      p = subprocess.Popen('git diff-tree -h'.split(),
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      p.wait()
+      output = p.stdout.read()
+      if b'--combined-all-paths' not in output:
+        raise SystemExit(_("Error: need a version of git whose diff-tree "
+                           "command has the --combined-all-paths option"))
+    # End of sanity checks on git version
 
   @staticmethod
   def get_replace_text(filename):
@@ -3176,8 +3192,9 @@ class RepoFilter(object):
         extra_flags.append('--no-data')
       if use_done_feature:
         extra_flags.append('--use-done-feature')
-      reencode = 'no' if self._args.preserve_commit_encoding else 'yes'
-      extra_flags.append('--reencode='+reencode)
+      if self._args.preserve_commit_encoding is not None: # pragma: no cover
+        reencode = 'no' if self._args.preserve_commit_encoding else 'yes'
+        extra_flags.append('--reencode='+reencode)
       location = ['-C', self._args.source] if self._args.source else []
       fep_cmd = ['git'] + location + ['fast-export', '--show-original-ids',
                  '--signed-tags=strip', '--tag-of-filtered-object=rewrite',
