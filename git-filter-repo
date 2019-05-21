@@ -1918,6 +1918,12 @@ class FilteringOptions(object):
         raise SystemExit(_("Error: HelperFilter given invalid option_string: %s")
                          % option_string) # pragma: no cover
 
+  class FileWithPathsFilter(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+      if not namespace.path_changes:
+        namespace.path_changes = []
+      namespace.path_changes += FilteringOptions.get_paths_from_file(values)
+
   @staticmethod
   def create_arg_parser():
     # Include usage in the summary, so we can put the description first
@@ -1996,6 +2002,13 @@ class FilteringOptions(object):
                "specified."))
 
     helpers = parser.add_argument_group(title=_("Path shortcuts"))
+    helpers.add_argument('--paths-from-file', metavar='FILENAME',
+        type=os.fsencode,
+        action=FilteringOptions.FileWithPathsFilter, dest='path_changes',
+        help=_("Specify several path filtering and renaming directives, one "
+               "per line.  Lines with '==>' in them specify path renames, "
+               "and lines can begin with 'literal:' (the default), 'glob:', "
+               "or 'regex: ' to specify different matching styles"))
     helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
         action=FilteringOptions.HelperFilter, type=os.fsencode,
         help=_("Only look at history that touches the given subdirectory "
@@ -2206,6 +2219,50 @@ class FilteringOptions(object):
             continue
           replace_literals.append((line, replacement))
     return {'literals': replace_literals, 'regexes':  replace_regexes}
+
+  @staticmethod
+  def get_paths_from_file(filename):
+    new_path_changes = []
+    with open(filename, 'br') as f:
+      for line in f:
+        line = line.rstrip(b'\r\n')
+
+        # Skip blank lines
+        if not line:
+          continue
+
+        # Determine the replacement
+        match_type, repl = 'literal', None
+        if b'==>' in line:
+          line, repl = line.rsplit(b'==>', 1)
+
+        # See if we need to match via regex
+        match_type = 'match' # a.k.a. 'literal'
+        if line.startswith(b'regex:'):
+          match_type = 'regex'
+          match = re.compile(line[6:])
+        elif line.startswith(b'glob:'):
+          match_type = 'glob'
+          match = line[5:]
+          if repl:
+            raise SystemExit(_("Error: In %s, 'glob:' and '==>' are incompatible (renaming globs makes no sense)" % decode(filename)))
+        else:
+          if line.startswith(b'literal:'):
+            match = line[8:]
+          else:
+            match = line
+          if repl is not None:
+            if match and repl and match.endswith(b'/') != repl.endswith(b'/'):
+              raise SystemExit(_("Error: When rename directories, if OLDNAME "
+                                 "and NEW_NAME are both non-empty and either "
+                                 "ends with a slash then both must."))
+
+        # Record the filter or rename
+        if repl is not None:
+          new_path_changes.append(['rename', match_type, (match, repl)])
+        else:
+          new_path_changes.append(['filter', match_type, match])
+      return new_path_changes
 
   @staticmethod
   def default_options():
@@ -2948,9 +3005,11 @@ class RepoFilter(object):
             wanted = True
         elif mod_type == 'rename':
           match, repl = path_exp
-          assert match_type in ('match',)
+          assert match_type in ('match','regex') # glob was translated to regex
           if match_type == 'match' and filename_matches(match, full_pathname):
             full_pathname = full_pathname.replace(match, repl, 1)
+          if match_type == 'regex':
+            full_pathname = match.sub(repl, full_pathname)
       return full_pathname if (wanted == filtering_is_inclusive) else None
 
     # Change the commit message according to callback

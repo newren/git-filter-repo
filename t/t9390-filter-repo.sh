@@ -145,6 +145,36 @@ test_expect_success '--path-rename inability to squash' '
 	)
 '
 
+test_expect_success '--paths-from-file' '
+	(
+		git clone file://"$(pwd)"/path_rename paths_from_file &&
+		cd paths_from_file &&
+
+		cat >../path_changes <<-EOF &&
+		literal:values/huge
+		values/huge==>values/gargantuan
+		glob:*rge
+
+		regex:.*med.*
+		regex:^([^/]*)/(.*)ge$==>\2/\1/ge
+		EOF
+
+		git filter-repo --paths-from-file ../path_changes &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		# intermediate, medium, two larges, gargantuan, and a blank line
+		test_line_count = 6 filenames &&
+		! grep sequences/tiny filenames &&
+		grep sequences/intermediate filenames &&
+		grep lar/sequences/ge filenames &&
+		grep lar/values/ge filenames &&
+		grep values/gargantuan filenames &&
+		! grep sequences/small filenames &&
+		grep sequences/medium filenames &&
+
+		rm ../path_changes
+	)
+'
+
 test_expect_success 'setup metasyntactic repo' '
 	test_create_repo metasyntactic &&
 	(
@@ -861,7 +891,13 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_i18ngrep ": --use-base-name and --path-rename are incompatible" err &&
 
 		test_must_fail git filter-repo --path-rename foo:bar/ 2>err &&
-		test_i18ngrep "either ends with a slash then both must." err
+		test_i18ngrep "either ends with a slash then both must." err &&
+
+		test_must_fail git filter-repo --paths-from-file <(echo "foo==>bar/") 2>err &&
+		test_i18ngrep "either ends with a slash then both must." err &&
+
+		test_must_fail git filter-repo --paths-from-file <(echo "glob:*.py==>newname") 2>err &&
+		test_i18ngrep "renaming globs makes no sense" err
 	)
 '
 
