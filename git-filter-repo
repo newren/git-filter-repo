@@ -938,6 +938,9 @@ class FastExportFilter(object):
     # to subsequent commits being empty
     self._files_tweaked = set()
 
+    # Cache a few message translations for performance reasons
+    self._parsed_message = _("Parsed %d commits")
+
     # Compile some regexes and cache those
     self._mark_re = re.compile(br'mark :(\d+)\n$')
     self._parent_regexes = {}
@@ -1555,7 +1558,7 @@ class FastExportFilter(object):
     # Show progress
     self._num_commits += 1
     if not self._quiet:
-      self._progress_writer.show(_("Parsed %d commits") % self._num_commits)
+      self._progress_writer.show(self._parsed_message % self._num_commits)
 
   def _parse_tag(self):
     """
