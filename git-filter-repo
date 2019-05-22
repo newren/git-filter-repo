@@ -2985,6 +2985,9 @@ class RepoFilter(object):
 
   def tweak_commit(self, commit):
     def filename_matches(path_expression, pathname):
+      ''' Returns whether path_expression matches pathname or a leading
+          directory thereof, allowing path_expression to not have a trailing
+          slash even if it is meant to match a leading directory. '''
       if path_expression == b'':
         return True
       n = len(path_expression)
@@ -2996,6 +2999,9 @@ class RepoFilter(object):
       return False
 
     def newname(path_changes, pathname, use_base_name, filtering_is_inclusive):
+      ''' Applies filtering and rename changes from path_changes to pathname,
+          returning any of None (file isn't wanted), original filename (file
+          is wanted with original name), or new filename. '''
       wanted = False
       full_pathname = pathname
       if use_base_name:
