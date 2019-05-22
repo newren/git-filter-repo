@@ -2991,13 +2991,15 @@ class RepoFilter(object):
       if len(output.splitlines()) > 1:
         abort(_('you have multiple worktrees'))
 
-  @staticmethod
-  def tweak_blob(args, blob):
-    if args.replace_text:
-      for literal, replacement in args.replace_text['literals']:
+  def tweak_blob(self, blob):
+    if self._args.replace_text:
+      for literal, replacement in self._args.replace_text['literals']:
         blob.data = blob.data.replace(literal, replacement)
-      for regex,   replacement in args.replace_text['regexes']:
+      for regex,   replacement in self._args.replace_text['regexes']:
         blob.data = regex.sub(replacement, blob.data)
+
+    if self._blob_callback:
+      self._blob_callback(blob)
 
   def tweak_commit(self, commit):
     def filename_matches(path_expression, pathname):
@@ -3111,6 +3113,10 @@ class RepoFilter(object):
       new_file_changes[change.filename] = change
     commit.file_changes = new_file_changes.values()
 
+    # Call user-defined commit callback, if any
+    if self._commit_callback:
+      self._commit_callback(commit)
+
   @staticmethod
   def do_tag_rename(rename_pair, tagname):
     old, new = rename_pair.split(b':', 1)
@@ -3146,11 +3152,17 @@ class RepoFilter(object):
     if self._email_callback:
       tag.tagger_email = self._email_callback(tag.tagger_email)
 
+    # Tweak all aspects of the tag according to callback
+    if self._tag_callback:
+      self._tag_callback(tag)
+
   def handle_reset(self, reset):
     if self._args.tag_rename:
       reset.ref = RepoFilter.do_tag_rename(self._args.tag_rename, reset.ref)
     if self._refname_callback:
       reset.ref = self._refname_callback(reset.ref)
+    if self._reset_callback:
+      self._reset_callback(reset)
 
   def results_tmp_dir(self, create_if_missing=True):
     working_dir = self._args.target or self._args.source or b'.'
@@ -3342,32 +3354,15 @@ class RepoFilter(object):
     assert self._sanity_checks_handled
 
     if self._input:
-      # Set up the callbacks
-      def combined_blob_callback(b):
-        RepoFilter.tweak_blob(self._args, b)
-        self._blob_callback and self._blob_callback(b)
-      def actual_commit_callback(c):
-        self.tweak_commit(c)
-        self._commit_callback and self._commit_callback(c)
-      def actual_tag_callback(t):
-        self.handle_tag(t)
-        self._tag_callback and self._tag_callback(t)
-      def actual_reset_callback(r):
-        self.handle_reset(r)
-        self._reset_callback and self._reset_callback(r)
-      actual_blob_callback = self._blob_callback
-      if self._args.replace_text:
-        actual_blob_callback = combined_blob_callback
-
       # Create and run the filter
       fef = FastExportFilter(self._args.source or '.',
                              empty_pruning = self._args.empty_pruning,
                              degenerate_pruning = self._args.degenerate_pruning,
                              preserve_commit_hashes = self._args.preserve_commit_hashes,
-                             blob_callback       = actual_blob_callback,
-                             commit_callback     = actual_commit_callback,
-                             tag_callback        = actual_tag_callback,
-                             reset_callback      = actual_reset_callback,
+                             blob_callback       = self.tweak_blob,
+                             commit_callback     = self.tweak_commit,
+                             tag_callback        = self.handle_tag,
+                             reset_callback      = self.handle_reset,
                              everything_callback = self._everything_callback)
       fef.run(self._input,
               self._output,
