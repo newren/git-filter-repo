@@ -21,7 +21,7 @@ import textwrap
 import git_filter_repo as fr
 
 total_objects = {'common': 0, 'uncommon': 0}
-def track_everything(obj):
+def track_everything(obj, *_ignored):
   if type(obj) == fr.Blob or type(obj) == fr.Commit:
     total_objects['common'] += 1
   else:
@@ -43,7 +43,7 @@ def handle_progress(progress):
 def handle_checkpoint(checkpoint_object):
   # Flip a coin; see if we want to pass the checkpoint through.
   if random.randint(0,1) == 0:
-    checkpoint_object.dump(filter._output)
+    checkpoint_object.dump(parser._output)
   track_everything(checkpoint_object)
 
 mystr = b'This is the contents of the blob'
@@ -53,25 +53,21 @@ compare = b"Blob:\n  blob\n  mark :1\n  data %d\n  %s" % (len(mystr), mystr)
 # upon.
 myblob = fr.Blob(mystr)
 assert bytes(myblob) == compare
-# Everyone should be using RepoFilter objects, not FastExportFilter.  But for
+# Everyone should be using RepoFilter objects, not FastExportParser.  But for
 # testing purposes...
-filter = fr.FastExportFilter('.',
-                             blob_callback   = track_everything,
+parser = fr.FastExportParser(blob_callback   = track_everything,
                              reset_callback  = track_everything,
                              commit_callback = track_everything,
                              tag_callback    = track_everything,
                              progress_callback = handle_progress,
                              checkpoint_callback = handle_checkpoint)
 
-filter.run(input = sys.stdin.detach(),
-           output = open(os.devnull, 'bw'),
-           fast_import_pipes = None,
-           quiet = True)
+parser.run(input = sys.stdin.detach(),
+           output = open(os.devnull, 'bw'))
 # DO NOT depend upon or use _IDS directly you external script writers.  I'm
 # only testing here for code coverage; the capacity exists to help debug
 # git-filter-repo itself, not for external folks to use.
 assert str(fr._IDS).startswith("Current count: 4")
-assert filter.num_commits_parsed() == 1
 print("Found {} blobs/commits and {} other objects"
       .format(total_objects['common'], total_objects['uncommon']))
 
