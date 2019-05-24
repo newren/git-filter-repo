@@ -1801,6 +1801,9 @@ class FastExportFilter(object):
       elif self._currentline.startswith(b'done'):
         self._handle_final_commands()
         self._parse_literal_command()
+        # Prevent confusion from others writing additional stuff that'll just
+        # be ignored
+        self._output.close()
       elif self._currentline.startswith(b'#'):
         self._parse_literal_command()
       elif self._currentline.startswith(b'get-mark') or \
