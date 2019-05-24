@@ -20,14 +20,6 @@ import textwrap
 
 import git_filter_repo as fr
 
-def handle_progress(progress):
-  print(b"Decipher this: "+bytes(reversed(progress.message)))
-
-def handle_checkpoint(checkpoint_object):
-  # Flip a coin; see if we want to pass the checkpoint through.
-  if random.randint(0,1) == 0:
-    checkpoint_object.dump(filter._output)
-
 total_objects = {'common': 0, 'uncommon': 0}
 def track_everything(obj):
   if type(obj) == fr.Blob or type(obj) == fr.Commit:
@@ -44,6 +36,16 @@ def track_everything(obj):
     # projects, I'm just verifying an invariant of the current code.
     assert fr._IDS._reverse_translation[obj.id] == [obj.id - 1]
 
+def handle_progress(progress):
+  print(b"Decipher this: "+bytes(reversed(progress.message)))
+  track_everything(progress)
+
+def handle_checkpoint(checkpoint_object):
+  # Flip a coin; see if we want to pass the checkpoint through.
+  if random.randint(0,1) == 0:
+    checkpoint_object.dump(filter._output)
+  track_everything(checkpoint_object)
+
 mystr = b'This is the contents of the blob'
 compare = b"Blob:\n  blob\n  mark :1\n  data %d\n  %s" % (len(mystr), mystr)
 # Next line's only purpose is testing code coverage of something that helps
@@ -54,9 +56,12 @@ assert bytes(myblob) == compare
 # Everyone should be using RepoFilter objects, not FastExportFilter.  But for
 # testing purposes...
 filter = fr.FastExportFilter('.',
+                             blob_callback   = track_everything,
+                             reset_callback  = track_everything,
+                             commit_callback = track_everything,
+                             tag_callback    = track_everything,
                              progress_callback = handle_progress,
-                             checkpoint_callback = handle_checkpoint,
-                             everything_callback = track_everything)
+                             checkpoint_callback = handle_checkpoint)
 
 filter.run(input = sys.stdin.detach(),
            output = open(os.devnull, 'bw'),
@@ -115,7 +120,11 @@ def look_for_reset(obj):
 # are likely to break in the future, just to verify a few invariants...
 args = fr.FilteringOptions.parse_args(['--stdin', '--dry-run',
                                        '--path', 'salutation'])
-filter = fr.RepoFilter(args, everything_callback = look_for_reset)
+filter = fr.RepoFilter(args,
+                       blob_callback   = look_for_reset,
+                       reset_callback  = look_for_reset,
+                       commit_callback = look_for_reset,
+                       tag_callback    = look_for_reset)
 filter._input = stream
 filter._setup_output()
 filter._sanity_checks_handled = True

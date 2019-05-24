@@ -837,8 +837,7 @@ class FastExportFilter(object):
                preserve_commit_hashes = False,
                tag_callback = None,   commit_callback = None,
                blob_callback = None,  progress_callback = None,
-               reset_callback = None, checkpoint_callback = None,
-               everything_callback = None):
+               reset_callback = None, checkpoint_callback = None):
     # Repo we are exporting
     self._repo_working_dir = repo_working_dir
 
@@ -857,7 +856,6 @@ class FastExportFilter(object):
     self._commit_callback     = commit_callback
     self._progress_callback   = progress_callback
     self._checkpoint_callback = checkpoint_callback
-    self._everything_callback = everything_callback
 
     # A list of all the refs we've seen, plus any mark we need to set them
     # to if the last (or even only) commit on that branch was pruned
@@ -1133,8 +1131,6 @@ class FastExportFilter(object):
     # Call any user callback to allow them to use/modify the blob
     if self._blob_callback:
       self._blob_callback(blob)
-    if self._everything_callback:
-      self._everything_callback(blob)
 
     # Now print the resulting blob
     if not blob.dumped:
@@ -1169,8 +1165,6 @@ class FastExportFilter(object):
     # Call any user callback to allow them to modify the reset
     if self._reset_callback:
       self._reset_callback(reset)
-    if self._everything_callback:
-      self._everything_callback(reset)
 
     # Update metadata
     self._seen_refs[reset.ref] = None
@@ -1526,8 +1520,6 @@ class FastExportFilter(object):
     # Call any user callback to allow them to modify the commit
     if self._commit_callback:
       self._commit_callback(commit)
-    if self._everything_callback:
-      self._everything_callback(commit)
 
     # Find out which files were modified by the callbacks.  Such paths could
     # lead to sebsequent commits being empty (e.g. if removed a line containing
@@ -1591,8 +1583,6 @@ class FastExportFilter(object):
     # Call any user callback to allow them to modify the tag
     if self._tag_callback:
       self._tag_callback(tag)
-    if self._everything_callback:
-      self._everything_callback(tag)
 
     # The tag might not point at anything that still exists (self.from_ref
     # will be None if the commit it pointed to and all its ancestors were
@@ -1625,8 +1615,6 @@ class FastExportFilter(object):
     # Call any user callback to allow them to modify the progress messsage
     if self._progress_callback:
       self._progress_callback(progress)
-    if self._everything_callback:
-      self._everything_callback(progress)
 
     # NOTE: By default, we do NOT print the progress message; git
     # fast-import would write it to fast_import_pipes which could mess with
@@ -1653,8 +1641,6 @@ class FastExportFilter(object):
     # Call any user callback to allow them to drop the checkpoint
     if self._checkpoint_callback:
       self._checkpoint_callback(checkpoint)
-    if self._everything_callback:
-      self._everything_callback(checkpoint)
 
     # NOTE: By default, we do NOT print the checkpoint message; although it
     # we would only realistically get them with --stdin, the fact that we
@@ -1684,8 +1670,6 @@ class FastExportFilter(object):
         # Call any user callback to allow them to modify the reset
         if self._reset_callback:
           self._reset_callback(reset)
-        if self._everything_callback:
-          self._everything_callback(reset)
 
         # Now print the resulting reset
         reset.dump(self._output)
@@ -2821,8 +2805,7 @@ class RepoFilter(object):
                blob_callback = None,
                commit_callback = None,
                tag_callback = None,
-               reset_callback = None,
-               everything_callback = None):
+               reset_callback = None):
 
     self._args = args
 
@@ -2831,7 +2814,6 @@ class RepoFilter(object):
     self._commit_callback      = commit_callback
     self._tag_callback         = tag_callback
     self._reset_callback       = reset_callback
-    self._everything_callback  = everything_callback  # {blob,commit,tag,reset}
 
     # Store callbacks for acting on slices of FastExport objects
     self._filename_callback    = filename_callback  # filenames from commits
@@ -3198,7 +3180,6 @@ class RepoFilter(object):
       self._fe_orig = None
     else:
       skip_blobs = (self._blob_callback is None and
-                    self._everything_callback is None and
                     self._args.replace_text is None and
                     self._args.source is None and
                     self._args.target is None)
@@ -3362,8 +3343,7 @@ class RepoFilter(object):
                              blob_callback       = self.tweak_blob,
                              commit_callback     = self.tweak_commit,
                              tag_callback        = self.handle_tag,
-                             reset_callback      = self.handle_reset,
-                             everything_callback = self._everything_callback)
+                             reset_callback      = self.handle_reset)
       fef.run(self._input,
               self._output,
               fast_import_pipes = self._import_pipes,
