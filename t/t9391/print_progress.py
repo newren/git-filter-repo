@@ -24,12 +24,12 @@ def print_progress():
   print("\rRewriting commits... %d/%d  (%d objects)"
         % (commit_count, total_commits, object_count), end='')
 
-def my_blob_callback(blob):
+def my_blob_callback(blob, metadata):
   global object_count
   object_count += 1
   print_progress()
 
-def my_commit_callback(commit):
+def my_commit_callback(commit, metadata):
   global commit_count
   commit_count += 1
   print_progress()

@@ -14,7 +14,7 @@ not try to handle any such special cases.
 import re
 import git_filter_repo as fr
 
-def strip_cvs_keywords(blob):
+def strip_cvs_keywords(blob, metadata):
   # FIXME: Should first check if blob is a text file to avoid ruining
   # binaries.  Could use python.magic here, or just output blob.data to
   # the unix 'file' command

@@ -11,7 +11,7 @@ import datetime
 
 import git_filter_repo as fr
 
-def change_up_them_commits(commit):
+def change_up_them_commits(commit, metadata):
   # Change the commit author
   if commit.author_name == b"Copy N. Paste":
     commit.author_name = b"Ima L. Oser"

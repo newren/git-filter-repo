@@ -13,7 +13,7 @@ not try to handle any such special cases.
 
 import git_filter_repo as fr
 
-def my_commit_callback(commit):
+def my_commit_callback(commit, metadata):
   if commit.branch == b"refs/heads/master":
     commit.branch = b"refs/heads/develop"
 

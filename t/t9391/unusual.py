@@ -106,7 +106,7 @@ stream = io.BytesIO(textwrap.dedent('''
   '''[1:]).encode())
 
 counts = collections.Counter()
-def look_for_reset(obj):
+def look_for_reset(obj, metadata):
   print("Processing {}".format(obj))
   counts[type(obj)] += 1
   if type(obj) == fr.Reset:

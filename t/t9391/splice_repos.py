@@ -24,15 +24,15 @@ class InterleaveRepositories:
     self.commit_map = {}
     self.last_commit = None
 
-  def skip_reset(self, reset):
+  def skip_reset(self, reset, metadata):
     reset.skip()
 
-  def hold_commit(self, commit):
+  def hold_commit(self, commit, metadata):
     commit.skip(new_id = commit.id)
     letter = re.match(b'Commit (.)', commit.message).group(1)
     self.commit_map[letter] = commit
 
-  def weave_commit(self, commit):
+  def weave_commit(self, commit, metadata):
     letter = re.match(b'Commit (.)', commit.message).group(1)
     prev_letter = bytes([ord(letter)-1])
 
@@ -65,14 +65,14 @@ class InterleaveRepositories:
 
     i1args = fr.FilteringOptions.parse_args(['--source', self.repo1])
     i1 = fr.RepoFilter(i1args,
-                                reset_callback  = lambda r: self.skip_reset(r),
-                                commit_callback = lambda c: self.hold_commit(c))
+                       reset_callback  = self.skip_reset,
+                       commit_callback = self.hold_commit)
     i1.set_output(out)
     i1.run()
 
     i2args = fr.FilteringOptions.parse_args(['--source', self.repo2])
     i2 = fr.RepoFilter(i2args,
-                                commit_callback = lambda c: self.weave_commit(c))
+                       commit_callback = self.weave_commit)
     i2.set_output(out)
     i2.run()
 

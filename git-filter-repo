@@ -2454,7 +2454,7 @@ class RepoFilter(object):
 
   def _handle_arg_callbacks(self):
     def make_callback(argname, str):
-      exec('def callback({}):\n'.format(argname)+
+      exec('def callback({}, _do_not_use_this_var = None):\n'.format(argname)+
            '  '+'\n  '.join(str.splitlines()), globals())
       return callback #namespace['callback']
     def handle(type):
@@ -2828,6 +2828,12 @@ class RepoFilter(object):
     if len(orig_parents) >= 2 and len(commit.parents) < 2:
       self._commits_no_longer_merges.append((commit.original_id, new_id))
 
+  def callback_metadata(self, extra_items = dict()):
+    return {'commit_rename_func': self._get_rename,
+            'ancestry_graph': self._graph,
+            'original_ancestry_graph': self._orig_graph,
+            **extra_items}
+
   def _tweak_blob(self, blob):
     if self._args.replace_text:
       for literal, replacement in self._args.replace_text['literals']:
@@ -2836,7 +2842,7 @@ class RepoFilter(object):
         blob.data = regex.sub(replacement, blob.data)
 
     if self._blob_callback:
-      self._blob_callback(blob)
+      self._blob_callback(blob, self.callback_metadata())
 
   def _tweak_commit(self, commit, aux_info):
     def filename_matches(path_expression, pathname):
@@ -2982,7 +2988,7 @@ class RepoFilter(object):
 
     # Call the user-defined callback, if any
     if self._commit_callback:
-      self._commit_callback(commit)
+      self._commit_callback(commit, self.callback_metadata(aux_info))
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
@@ -3047,7 +3053,7 @@ class RepoFilter(object):
 
     # Call general purpose tag callback
     if self._tag_callback:
-      self._tag_callback(tag)
+      self._tag_callback(tag, self.callback_metadata())
 
   def _tweak_reset(self, reset):
     if self._args.tag_rename:
@@ -3055,7 +3061,7 @@ class RepoFilter(object):
     if self._refname_callback:
       reset.ref = self._refname_callback(reset.ref)
     if self._reset_callback:
-      self._reset_callback(reset)
+      self._reset_callback(reset, self.callback_metadata())
 
     # Record we've seen this ref and don't need to force a manual update
     # for it.
@@ -3187,7 +3193,7 @@ class RepoFilter(object):
 
         # Call any user callback to allow them to modify the reset
         if self._reset_callback:
-          self._reset_callback(reset)
+          self._reset_callback(reset, self.callback_metadata())
 
         # Now print the resulting reset
         reset.dump(self._output)
