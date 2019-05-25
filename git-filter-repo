@@ -2639,7 +2639,7 @@ class RepoFilter(object):
     assert new_hash is not None
     return new_hash[0:orig_len]
 
-  def trim_extra_parents(self, orig_parents, parents):
+  def _trim_extra_parents(self, orig_parents, parents):
     '''Due to pruning of empty commits, some parents could be non-existent
        (None) or otherwise redundant.  Remove the non-existent parents, and
        remove redundant parents so long as that doesn't transform a merge
@@ -2722,7 +2722,7 @@ class RepoFilter(object):
 
     return parents, None
 
-  def prunable(self, commit, new_1st_parent, had_file_changes, orig_parents):
+  def _prunable(self, commit, new_1st_parent, had_file_changes, orig_parents):
     parents = commit.parents
 
     if self._args.empty_pruning == 'never':
@@ -2810,7 +2810,7 @@ class RepoFilter(object):
 
     return True
 
-  def record_remapping(self, commit, orig_parents):
+  def _record_remapping(self, commit, orig_parents):
     new_id = None
     # Record the mapping of old commit hash to new one
     if commit.original_id and self._import_pipes:
@@ -2828,7 +2828,7 @@ class RepoFilter(object):
     if len(orig_parents) >= 2 and len(commit.parents) < 2:
       self._commits_no_longer_merges.append((commit.original_id, new_id))
 
-  def tweak_blob(self, blob):
+  def _tweak_blob(self, blob):
     if self._args.replace_text:
       for literal, replacement in self._args.replace_text['literals']:
         blob.data = blob.data.replace(literal, replacement)
@@ -2838,7 +2838,7 @@ class RepoFilter(object):
     if self._blob_callback:
       self._blob_callback(blob)
 
-  def tweak_commit(self, commit, aux_info):
+  def _tweak_commit(self, commit, aux_info):
     def filename_matches(path_expression, pathname):
       ''' Returns whether path_expression matches pathname or a leading
           directory thereof, allowing path_expression to not have a trailing
@@ -2904,7 +2904,7 @@ class RepoFilter(object):
     # Sometimes the 'branch' given is a tag; if so, rename it as requested so
     # we don't get any old tagnames
     if self._args.tag_rename:
-      commit.branch = RepoFilter.do_tag_rename(args.tag_rename, commit.branch)
+      commit.branch = RepoFilter._do_tag_rename(args.tag_rename, commit.branch)
     if self._refname_callback:
       commit.branch = self._refname_callback(commit.branch)
 
@@ -2977,7 +2977,7 @@ class RepoFilter(object):
     self._orig_graph.add_commit_and_parents(commit.old_id, orig_parents)
 
     # Prune parents (due to pruning of empty commits) if relevant
-    parents, new_1st_parent = self.trim_extra_parents(orig_parents, parents)
+    parents, new_1st_parent = self._trim_extra_parents(orig_parents, parents)
     commit.parents = parents
 
     # Call the user-defined callback, if any
@@ -2986,11 +2986,11 @@ class RepoFilter(object):
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
-      if not self.prunable(commit, new_1st_parent, aux_info['had_file_changes'],
-                           orig_parents):
+      if not self._prunable(commit, new_1st_parent,
+                            aux_info['had_file_changes'], orig_parents):
         self._seen_refs[commit.branch] = None # was seen, doesn't need reset
         commit.dump(self._output)
-        self.record_remapping(commit, orig_parents)
+        self._record_remapping(commit, orig_parents)
       else:
         rewrite_to = new_1st_parent or commit.first_parent()
         # We skip empty commits, but want to keep track to make sure our branch
@@ -3006,23 +3006,23 @@ class RepoFilter(object):
       self._progress_writer.show(self._parsed_message % self._num_commits)
 
   @staticmethod
-  def do_tag_rename(rename_pair, tagname):
+  def _do_tag_rename(rename_pair, tagname):
     old, new = rename_pair.split(b':', 1)
     old, new = b'refs/tags/'+old, b'refs/tags/'+new
     if tagname.startswith(old):
       return tagname.replace(old, new, 1)
     return tagname
 
-  def handle_tag(self, tag):
+  def _tweak_tag(self, tag):
     # Tweak the tag message according to callbacks
     if self._message_callback:
       tag.message = self._message_callback(tag.message)
 
-    # Tweak the tag name according to callbacks
+    # Tweak the tag name according to tag-name-related callbacks
     tag_prefix = b'refs/tags/'
     fullref = tag_prefix+tag.ref
     if self._args.tag_rename:
-      fullref = RepoFilter.do_tag_rename(self._args.tag_rename, fullref)
+      fullref = RepoFilter._do_tag_rename(self._args.tag_rename, fullref)
     if self._refname_callback:
       fullref = self._refname_callback(fullref)
       if not fullref.startswith(tag_prefix):
@@ -3045,13 +3045,13 @@ class RepoFilter(object):
     if tag.from_ref:
       self._seen_refs[fullref] = None
 
-    # Tweak all aspects of the tag according to callback
+    # Call general purpose tag callback
     if self._tag_callback:
       self._tag_callback(tag)
 
-  def handle_reset(self, reset):
+  def _tweak_reset(self, reset):
     if self._args.tag_rename:
-      reset.ref = RepoFilter.do_tag_rename(self._args.tag_rename, reset.ref)
+      reset.ref = RepoFilter._do_tag_rename(self._args.tag_rename, reset.ref)
     if self._refname_callback:
       reset.ref = self._refname_callback(reset.ref)
     if self._reset_callback:
@@ -3344,10 +3344,10 @@ class RepoFilter(object):
     if self._input:
       # Create and run the filter
       self._repo_working_dir = self._args.source or b'.'
-      fef = FastExportParser(blob_callback       = self.tweak_blob,
-                             commit_callback     = self.tweak_commit,
-                             tag_callback        = self.handle_tag,
-                             reset_callback      = self.handle_reset,
+      fef = FastExportParser(blob_callback       = self._tweak_blob,
+                             commit_callback     = self._tweak_commit,
+                             tag_callback        = self._tweak_tag,
+                             reset_callback      = self._tweak_reset,
                              done_callback       = self._handle_final_commands)
       fef.run(self._input, self._output)
       if not self._finalize_handled:
