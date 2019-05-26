@@ -31,6 +31,7 @@ to make build/installation trivial: just copy it into your $PATH.
       * [Content based filtering](#content-based-filtering)
       * [Refname based filtering](#refname-based-filtering)
       * [User and email based filtering](#user-and-email-based-filtering)
+      * [Parent rewriting](#parent-rewriting)
       * [Callbacks](#callbacks)
       * [Using filter-repo as a library](#using-filter-repo-as-a-library)
   * [Internals](#internals)
@@ -590,6 +591,30 @@ mapping.
 See also the `--name-callback` and `--email-callback` from the
 [callbacks section](#callbacks).
 
+### Parent rewriting
+
+To replace $commit_A with $commit_B (e.g. make all commits which had
+$commit_A as a parent instead have $commit_B for that parent), and
+rewrite history to make it permanent:
+
+```shell
+  git replace $commit_A $commit_B
+  git filter-repo --force
+```
+
+To create a new commit with the same contents as $commit_A except with
+different parent(s) and then replace $commit_A with the new commit,
+and rewrite history to make it permanent:
+
+```shell
+  git replace --graft $commit_A $new_parent_or_parents
+  git filter-repo --force
+```
+
+The reason to specify --force is two-fold: filter-repo will error out
+if no arguments are specified, and the new graft commit would
+otherwise trigger the not-a-fresh-clone check.
+
 ### Callbacks
 
 For flexibility, filter-repo allows you to specify functions on the
@@ -862,6 +887,10 @@ heavy lifting, it inherits limitations from those systems:
     leave the commit message and the encoding header alone).
   * commits without an author will be given one matching the committer
   * tags without a tagger will be given a fake tagger
+  * references that include commit cycles in their history (which can be
+    created with git-replace(1)) will not be flagged to the user as an
+    error but will be silently deleted by fast-export as though the branch
+    or tag contained no interesting files
 
 There are also some limitations due to the design of these systems:
 
