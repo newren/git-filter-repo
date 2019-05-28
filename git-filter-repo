@@ -1414,6 +1414,33 @@ class GitUtils(object):
       output = ''
     return dict(reversed(x.split()) for x in output.splitlines())
 
+  @staticmethod
+  def get_blob_sizes(quiet = False):
+    blob_size_progress = ProgressWriter()
+    num_blobs = 0
+
+    # Get sizes of blobs by sha1
+    cmd = '--batch-check=%(objectname) %(objecttype) ' + \
+          '%(objectsize) %(objectsize:disk)'
+    cf = subprocess.Popen(['git', 'cat-file', '--batch-all-objects', cmd],
+                          bufsize = -1,
+                          stdout = subprocess.PIPE)
+    unpacked_size = {}
+    packed_size = {}
+    for line in cf.stdout:
+      sha, objtype, objsize, objdisksize = line.split()
+      objsize, objdisksize = int(objsize), int(objdisksize)
+      if objtype == b'blob':
+        unpacked_size[sha] = objsize
+        packed_size[sha] = objdisksize
+      num_blobs += 1
+      if not quiet:
+        blob_size_progress.show(_("Processed %d blob sizes") % num_blobs)
+    cf.wait()
+    if not quiet:
+      blob_size_progress.finish()
+    return unpacked_size, packed_size
+
 class FilteringOptions(object):
   class AppendFilter(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -1936,27 +1963,7 @@ class RepoAnalyze(object):
 
   @staticmethod
   def gather_data(args):
-    blob_size_progress = ProgressWriter()
-    num_blobs = 0
-
-    # Get sizes of blobs by sha1
-    cmd = '--batch-check=%(objectname) %(objecttype) ' + \
-          '%(objectsize) %(objectsize:disk)'
-    cf = subprocess.Popen(['git', 'cat-file', '--batch-all-objects', cmd],
-                          bufsize = -1,
-                          stdout = subprocess.PIPE)
-    unpacked_size = {}
-    packed_size = {}
-    for line in cf.stdout:
-      sha, objtype, objsize, objdisksize = line.split()
-      objsize, objdisksize = int(objsize), int(objdisksize)
-      if objtype == b'blob':
-        unpacked_size[sha] = objsize
-        packed_size[sha] = objdisksize
-      num_blobs += 1
-      blob_size_progress.show(_("Processed %d blob sizes") % num_blobs)
-    cf.wait()
-    blob_size_progress.finish()
+    unpacked_size, packed_size = GitUtils.get_blob_sizes()
     stats = {'names': collections.defaultdict(set),
              'allnames' : set(),
              'file_deletions': {},
