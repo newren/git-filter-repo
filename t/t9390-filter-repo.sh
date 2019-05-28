@@ -950,6 +950,29 @@ test_expect_success 'incremental import' '
 	)
 '
 
+test_expect_success 'reset to specific refs' '
+	test_create_repo reset_to_specific_refs &&
+	(
+		cd reset_to_specific_refs &&
+
+		git commit --allow-empty -m initial &&
+		INITIAL=$(git rev-parse HEAD) &&
+		echo "$INITIAL refs/heads/develop" >expect &&
+
+		cat >input <<-INPUT_END &&
+		reset refs/heads/develop
+		from $INITIAL
+
+		reset refs/heads/master
+		from 0000000000000000000000000000000000000000
+		INPUT_END
+
+		cat input | git filter-repo --force --stdin &&
+		git show-ref >actual &&
+		test_cmp expect actual
+	)
+'
+
 test_expect_success 'setup handle funny characters' '
 	test_create_repo funny_chars &&
 	(
