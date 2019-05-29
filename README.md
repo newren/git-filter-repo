@@ -953,6 +953,18 @@ the user when it detects an issue:
     such as `-M` or `-C` would break assumptions used in other places of
     filter-repo.
 
+  * Partial-repo filtering does not mesh well with filter-repo's "avoid
+    mixing old and new history" design.  filter-repo has some capability in
+    this area but it is undocumented, mostly untested, and may require
+    multiple non-obvious flags to be set to make sane use of it.  While
+    there might be valid usecases for partial-repo filtering, the only ones
+    I've run into in the wild are sidestepping filter-branch's insanely
+    slow execution on commits that would not be changed by the filters in
+    question anyway (which is largely irrelevant since filter-repo is
+    multiple orders of magnitude faster), or to do operations better suited
+    to git-rebase(1) and which rebase grew special options for years ago
+    (e.g. the `--signoff` option).
+
 ### Comments on reversibility
 
 Some people are interested in reversibility of of a rewrite; e.g. rewrite

@@ -1521,8 +1521,8 @@ class FilteringOptions(object):
                "Will not modify your repo."))
 
     refs = parser.add_argument_group(title=_("Git References"))
-    refs.add_argument('--refs', action='store_const', const=['--all'],
-                      default=['--all'], help=argparse.SUPPRESS)
+    refs.add_argument('--refs', nargs='*', default=['--all'],
+                      help=argparse.SUPPRESS)
 
     path = parser.add_argument_group(title=_("Filtering based on paths "
                                              "(see also --filename-callback)"))
@@ -3159,7 +3159,7 @@ class RepoFilter(object):
       location = ['-C', self._args.source] if self._args.source else []
       fep_cmd = ['git'] + location + ['fast-export', '--show-original-ids',
                  '--signed-tags=strip', '--tag-of-filtered-object=rewrite',
-                 '--fake-missing-tagger'
+                 '--fake-missing-tagger', '--reference-excluded-parents'
                  ] + extra_flags + self._args.refs
       self._fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
       self._input = self._fep.stdout

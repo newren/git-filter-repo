@@ -1025,6 +1025,23 @@ test_expect_success '--target' '
 	test 2 = $(git -C target rev-list --count master)
 '
 
+test_expect_success '--refs' '
+	git init refs &&
+	(
+		cd refs &&
+		git checkout -b other &&
+		echo hello >world &&
+		git add world &&
+		git commit -m init
+	) &&
+	git -C refs rev-parse other >refs/expect &&
+	git -C analyze_me rev-parse master >refs/expect &&
+	git filter-repo --source analyze_me --target refs --refs master --force &&
+	git -C refs rev-parse other >refs/actual &&
+	git -C refs rev-parse master >refs/actual &&
+	test_cmp refs/expect refs/actual
+'
+
 test_expect_success 'reset to specific refs' '
 	test_create_repo reset_to_specific_refs &&
 	(
