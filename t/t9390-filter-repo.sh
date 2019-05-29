@@ -655,6 +655,61 @@ test_expect_success '--replace-text all options' '
 	)
 '
 
+test_expect_success '--strip-blobs-bigger-than' '
+	(
+		git clone file://"$(pwd)"/analyze_me strip_big_blobs &&
+		cd strip_big_blobs &&
+
+		# Verify certain files are present initially
+		git log --format=%n --name-only | sort | uniq >../filenames &&
+		test_line_count = 11 ../filenames &&
+		git rev-parse HEAD~7:numbers/medium.num &&
+		git rev-parse HEAD~7:numbers/small.num &&
+		git rev-parse HEAD~4:mercurial &&
+		test -f mercurial &&
+
+		# Make one of the current files be "really big"
+		test_seq 1 1000 >mercurial &&
+		git add mercurial &&
+		git commit --amend &&
+
+		# Strip "really big" files
+		git filter-repo --force --strip-blobs-bigger-than 3K --prune-empty never &&
+
+		git log --format=%n --name-only | sort | uniq >../filenames &&
+		test_line_count = 11 ../filenames &&
+		# The "mercurial" file should still be around...
+		git rev-parse HEAD~4:mercurial &&
+		git rev-parse HEAD:mercurial &&
+		# ...but only with its old, smaller contents
+		test_line_count = 1 mercurial &&
+
+		# Strip files that are too big, verify they are gone
+		git filter-repo --strip-blobs-bigger-than 40 &&
+
+		git log --format=%n --name-only | sort | uniq >../filenames &&
+		test_line_count = 10 ../filenames &&
+		test_must_fail git rev-parse HEAD~7:numbers/medium.num &&
+
+		# Do it again, this time with --replace-text since that means
+		# we are operating without --no-data and have to go through
+		# a different codepath.  (The search/replace terms are bogus)
+		cat >../replace-rules <<-\EOF &&
+		not found==>was found
+		EOF
+		git filter-repo --strip-blobs-bigger-than 20 --replace-text ../replace-rules &&
+
+		git log --format=%n --name-only | sort | uniq >../filenames &&
+		test_line_count = 9 ../filenames &&
+		test_must_fail git rev-parse HEAD~7:numbers/medium.num &&
+		test_must_fail git rev-parse HEAD~7:numbers/small.num &&
+
+		# Remove the temporary auxiliary files
+		rm ../replace-rules &&
+		rm ../filenames
+	)
+'
+
 test_expect_success 'setup commit message rewriting' '
 	test_create_repo commit_msg &&
 	(
@@ -897,7 +952,11 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_i18ngrep "either ends with a slash then both must." err &&
 
 		test_must_fail git filter-repo --paths-from-file <(echo "glob:*.py==>newname") 2>err &&
-		test_i18ngrep "renaming globs makes no sense" err
+		test_i18ngrep "renaming globs makes no sense" err &&
+
+		test_must_fail git filter-repo --strip-blobs-bigger-than 3GiB 2>err &&
+		test_i18ngrep "could not parse.*3GiB" err
+
 	)
 '
 

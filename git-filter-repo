@@ -1587,6 +1587,10 @@ class FilteringOptions(object):
                "end the line with '==>' and some replacement text to "
                "choose a replacement choice other than the default of "
                "'***REMOVED***'. "))
+    contents.add_argument('--strip-blobs-bigger-than', metavar='SIZE',
+                          dest='max_blob_size', default=0,
+        help=_("Strip blobs (files) bigger than specified size (e.g. '5M', "
+               "'2G', etc)"))
 
     refrename = parser.add_argument_group(title=_("Renaming of refs "
                                               "(see also --refname-callback)"))
@@ -1764,6 +1768,17 @@ class FilteringOptions(object):
         raise SystemExit(_("Error: need a version of git whose diff-tree "
                            "command has the --combined-all-paths option"))
     # End of sanity checks on git version
+    if args.max_blob_size:
+      suffix = args.max_blob_size[-1]
+      if suffix not in '1234567890':
+        mult = {'K': 1024, 'M': 1024**2, 'G': 1024**3}
+        if suffix not in mult:
+          raise SystemExit(_("Error: could not parse --strip-blobs-bigger-than"
+                             " argument %s")
+                           % args.max_blob_size)
+        args.max_blob_size = int(args.max_blob_size[0:-1]) * mult[suffix]
+      else:
+        args.max_blob_size = int(args.max_blob_size)
 
   @staticmethod
   def get_replace_text(filename):
@@ -2450,6 +2465,9 @@ class RepoFilter(object):
     self._progress_writer = ProgressWriter()
     self._num_commits = 0
 
+    # Size of blobs in the repo
+    self._unpacked_size = {}
+
     # Other vars
     self._sanity_checks_handled = False
     self._finalize_handled = False
@@ -2845,6 +2863,9 @@ class RepoFilter(object):
             **extra_items}
 
   def _tweak_blob(self, blob):
+    if self._args.max_blob_size and len(blob.data) > self._args.max_blob_size:
+      blob.skip()
+
     if self._args.replace_text:
       for literal, replacement in self._args.replace_text['literals']:
         blob.data = blob.data.replace(literal, replacement)
@@ -2973,6 +2994,10 @@ class RepoFilter(object):
           raise SystemExit(_("File renaming caused colliding pathnames!\n") +
                            _("  Commit: {}\n").format(commit.original_id) +
                            _("  Filename: {}").format(change.filename))
+      # Strip files that are too large
+      if self._args.max_blob_size and \
+         self._unpacked_size.get(change.blob_id, 0) > self._args.max_blob_size:
+        continue
       new_file_changes[change.filename] = change
     commit.file_changes = [v for k,v in sorted(new_file_changes.items())]
 
@@ -3119,6 +3144,8 @@ class RepoFilter(object):
       extra_flags = []
       if skip_blobs:
         extra_flags.append('--no-data')
+        if self._args.max_blob_size:
+          self._unpacked_size, packed_size = GitUtils.get_blob_sizes()
       if use_done_feature:
         extra_flags.append('--use-done-feature')
       if self._args.preserve_commit_encoding is not None: # pragma: no cover
