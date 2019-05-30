@@ -1610,14 +1610,14 @@ class FilteringOptions(object):
                "existing replace ref. default is 'update-and-add' if "
                "$GIT_DIR/filter-repo/already_ran does not exist; "
                "'update-or-add' otherwise."))
-    parents.add_argument('--empty-pruning', default='auto',
+    parents.add_argument('--prune-empty', default='auto',
                          choices=['always', 'auto', 'never'],
         help=_("Whether to prune empty commits.  'auto' (the default) means "
                "only prune commits which become empty (not commits which were "
                "empty in the original repo, unless their parent was pruned). "
                "When the parent of a commit is pruned, the first non-pruned "
                "ancestor becomes the new parent."))
-    parents.add_argument('--degenerate-pruning', default='auto',
+    parents.add_argument('--prune-degenerate', default='auto',
                          choices=['always', 'auto', 'never'],
         help=_("Since merge commits are needed for history topology, they "
                "are typically exempt from pruning.  However, they can become "
@@ -2651,9 +2651,9 @@ class RepoFilter(object):
        Returns a tuple:
          (parents, new_first_parent_if_would_become_non_merge)'''
 
-    if self._args.degenerate_pruning == 'never':
+    if self._args.prune_degenerate == 'never':
       return parents, None
-    always_prune = (self._args.degenerate_pruning == 'always')
+    always_prune = (self._args.prune_degenerate == 'always')
 
     # Pruning of empty commits means multiple things:
     #   * An original parent of this commit may have been pruned causing the
@@ -2728,9 +2728,9 @@ class RepoFilter(object):
   def _prunable(self, commit, new_1st_parent, had_file_changes, orig_parents):
     parents = commit.parents
 
-    if self._args.empty_pruning == 'never':
+    if self._args.prune_empty == 'never':
       return False
-    always_prune = (self._args.empty_pruning == 'always')
+    always_prune = (self._args.prune_empty == 'always')
 
     # For merge commits, unless there are prunable (redundant) parents, we
     # do not want to prune
