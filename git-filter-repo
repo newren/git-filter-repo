@@ -3281,7 +3281,7 @@ class RepoFilter(object):
         elif old_hash in self._commit_renames:
           new_hash = self._commit_renames[old_hash]
           new_hash = new_hash if new_hash != None else deleted_hash
-        else: # Must be an annotated tag
+        else: # Must be either an annotated tag, or a ref whose tip was pruned
           if not batch_check_process:
             cmd = 'git cat-file --batch-check'.split()
             batch_check_process = subprocess.Popen(cmd,
@@ -3292,7 +3292,7 @@ class RepoFilter(object):
           batch_check_process.stdin.flush()
           line = batch_check_process.stdout.readline()
           m = batch_check_output_re.match(line)
-          if not m or m.group(2) != b'tag':
+          if not m or m.group(2) not in (b'tag', b'commit'):
             raise SystemExit(_("Failed to find new id for %(refname)s "
                                "(old id was %(old_hash)s)")
                              % ({'refname': refname, 'old_hash': old_hash})
