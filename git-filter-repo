@@ -1689,7 +1689,12 @@ class FilteringOptions(object):
         help=_("Python code body for processing reset objects; see "
                "CALLBACKS section below."))
 
-    location = parser.add_argument_group(title=_("Location to filter from/to"))
+    desc = _(
+      "Specifying alternate source or target locations will disable some \n"
+      "auxiliary steps such as disconnecting the origin remote, and avoiding\n"
+      "mixing new and old history.")
+    location = parser.add_argument_group(title=_("Location to filter from/to"),
+                                         description=desc)
     location.add_argument('--source', type=os.fsencode,
                           help=_("Git repository to read from"))
     location.add_argument('--target', type=os.fsencode,
@@ -3105,8 +3110,8 @@ class RepoFilter(object):
       del self._seen_refs[reset.ref]
 
   def results_tmp_dir(self, create_if_missing=True):
-    working_dir = self._args.target or self._args.source or b'.'
-    git_dir = GitUtils.determine_git_dir(working_dir)
+    target_working_dir = self._args.target or b'.'
+    git_dir = GitUtils.determine_git_dir(target_working_dir)
     d = os.path.join(git_dir, b'filter-repo')
     if create_if_missing and not os.path.isdir(d):
       os.mkdir(d)
@@ -3164,7 +3169,9 @@ class RepoFilter(object):
         output = open(self._fe_orig, 'bw')
         self._input = InputFileBackup(self._input, output)
         if self._args.debug:
-          print("[DEBUG] Running: {}".format(' '.join(fep_cmd)))
+          tmp = fep_cmd.copy()
+          tmp[2] = decode(tmp[2]) if isinstance(tmp[2], bytes) else tmp[2]
+          print("[DEBUG] Running: {}".format(' '.join(tmp)))
           print("  (saving a copy of the output at {})"
                 .format(decode(self._fe_orig)))
 
@@ -3185,12 +3192,14 @@ class RepoFilter(object):
       self._output = self._fip.stdin
     if self._args.debug:
       self._output = DualFileWriter(self._fip.stdin, self._output)
-      print("[DEBUG] Running: {}".format(' '.join(fip_cmd)))
+      tmp = fip_cmd.copy()
+      tmp[2] = decode(tmp[2]) if isinstance(tmp[2], bytes) else tmp[2]
+      print("[DEBUG] Running: {}".format(' '.join(tmp)))
       print("  (using the following file as input: {})"
             .format(decode(self._fe_filt)))
 
   def _migrate_origin_to_heads(self):
-    if self._args.dry_run:
+    if self._args.dry_run or self._args.source or self._args.target:
       return
     refs_to_migrate = set(x for x in self._orig_refs
                           if x.startswith(b'refs/remotes/origin/'))
@@ -3258,6 +3267,8 @@ class RepoFilter(object):
 
     # Remove unused refs
     refs_to_nuke = set(self._orig_refs) - set(self._seen_refs)
+    if self._args.source or self._args.target:
+      refs_to_nuke = set()
     if refs_to_nuke and self._args.debug:
       print("[DEBUG] Deleting the following refs:\n  "+
             decode(b"\n  ".join(refs_to_nuke)))
@@ -3318,10 +3329,11 @@ class RepoFilter(object):
         else: # Must be either an annotated tag, or a ref whose tip was pruned
           if not batch_check_process:
             cmd = 'git cat-file --batch-check'.split()
+            target_working_dir = self._args.target or '.'
             batch_check_process = subprocess.Popen(cmd,
                                                    stdin=subprocess.PIPE,
                                                    stdout=subprocess.PIPE,
-                                                   cwd=self._repo_working_dir)
+                                                   cwd=target_working_dir)
           batch_check_process.stdin.write(refname+b"\n")
           batch_check_process.stdin.flush()
           line = batch_check_process.stdout.readline()
@@ -3333,6 +3345,12 @@ class RepoFilter(object):
                              ) # pragma: no cover
           new_hash = m.group(1)
         f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
+      if self._args.source or self._args.target:
+        new_refs = GitUtils.get_refs(self._args.target or b'.')
+        for ref, new_hash in new_refs.items():
+          if ref not in orig_refs and not ref.startswith(b'refs/replace/'):
+            old_hash = b'0'*len(new_hash)
+            f.write(b'%s %s %s\n' % (old_hash, new_hash, ref))
     if batch_check_process:
       batch_check_process.stdin.close()
       batch_check_process.wait()
@@ -3436,16 +3454,20 @@ class RepoFilter(object):
                             refs_nuked)
 
     # Nuke the reflogs and repack
-    if not self._args.quiet and not self._args.debug:
+    if (not self._args.quiet and not self._args.debug and
+        not self._args.source and not self._args.target):
       print(_("Repacking your repo and cleaning out old unneeded objects"))
     quiet_flags = '--quiet' if self._args.quiet else ''
-    cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
-                    'git gc {} --prune=now'.format(quiet_flags).split()]
+    cleanup_cmds = []
+    if not self._args.source and not self._args.target:
+      cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
+                      'git gc {} --prune=now'.format(quiet_flags).split()]
     if not GitUtils.is_repository_bare(target_working_dir):
       cleanup_cmds.insert(0, 'git reset {} --hard'.format(quiet_flags).split())
+    location_info = ' (in {})'.format(decode(self._args.target)) if self._args.target else ''
     for cmd in cleanup_cmds:
       if self._args.debug:
-        print("[DEBUG] Running: {}".format(' '.join(cmd)))
+        print("[DEBUG] Running{}: {}".format(location_info, ' '.join(cmd)))
       subprocess.call(cmd, cwd=target_working_dir)
 
     # Let user know how long it took

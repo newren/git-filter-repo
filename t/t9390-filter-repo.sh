@@ -1009,6 +1009,22 @@ test_expect_success 'incremental import' '
 	)
 '
 
+test_expect_success '--target' '
+	git init target &&
+	(
+		cd target &&
+		git checkout -b other &&
+		echo hello >world &&
+		git add world &&
+		git commit -m init
+	) &&
+	git -C target rev-parse other >target/expect &&
+	git filter-repo --source analyze_me --target target --path fake_submodule --force --debug &&
+	git -C target rev-parse other >target/actual &&
+	test_cmp target/expect target/actual &&
+	test 2 = $(git -C target rev-list --count master)
+'
+
 test_expect_success 'reset to specific refs' '
 	test_create_repo reset_to_specific_refs &&
 	(
