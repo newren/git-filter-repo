@@ -1501,11 +1501,59 @@ class FilteringOptions(object):
     ''').rstrip()
 
     # Provide a long helpful examples section
-    example_text = _('''EXAMPLES
+    example_text = _('''CALLBACKS
 
-    To get help:
-      git-filter-repo --help
-    ''')
+    All callback functions are of the same general format.  For a command line
+    argument like
+      --foo-callback 'BODY'
+
+    the following code will be compiled and called:
+      def foo_callback(foo):
+        BODY
+
+    Thus, to replace 'Jon' with 'John' in author/committer/tagger names:
+      git filter-repo --name-callback 'return name.replace(b"Jon", b"John")'
+
+    To remove all 'Tested-by' tags in commit (or tag) messages:
+      git filter-repo --message-callback 'return re.sub(br"\\nTested-by:.*", "", message)'
+
+    To remove all .DS_Store files:
+      git filter-repo --filename-callback 'return None if os.path.basename(filename) == b".DS_Store" else filename'
+
+    For more detailed examples and explanations AND caveats, see
+      https://github.com/newren/git-filter-repo#callbacks
+
+EXAMPLES
+
+    To get a bunch of reports mentioning renames that have occurred in
+    your repo and listing sizes of objects aggregated by any of path,
+    directory, extension, or blob-id:
+      git filter-repo --analyze
+
+    (These reports can help you choose how to filter your repo; it can
+    be useful to re-run this command after filtering to regenerate the
+    report and verify the changes look correct.)
+
+    To extract the history that touched just 'guides' and 'tools/releases':
+      git filter-repo --path guides/ --path tools/releases
+
+    To remove foo.zip and bar/baz/zips from every revision in history:
+      git filter-repo --path foo.zip --path bar/baz/zips/ --invert-paths
+
+    To replace the text 'password' with 'p455w0rd':
+      git filter-repo --replace-text <(echo "password==>p455w0rd")
+
+    To use the current version of the .mailmap file to update authors,
+    committers, and taggers throughout history and make it permanent:
+      git filter-repo --use-mailmap
+
+    To extract the history of 'src/', rename all files to have a new leading
+    directory 'my-module' (e.g. src/foo.java -> my-module/src/foo.java), and
+    add a 'my-module-' prefix to all tags:
+      git filter-repo --path src/ --to-subdirectory-filter my-module --tag-rename '':'my-module-'
+
+    For more detailed examples and explanations, see
+      https://github.com/newren/git-filter-repo#examples''')
 
     # Create the basic parser
     parser = argparse.ArgumentParser(description=summary,
