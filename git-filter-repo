@@ -1639,6 +1639,8 @@ EXAMPLES
                           dest='max_blob_size', default=0,
         help=_("Strip blobs (files) bigger than specified size (e.g. '5M', "
                "'2G', etc)"))
+    contents.add_argument('--strip-blobs-with-ids', metavar='BLOB-ID-FILENAME',
+        help=_("Strip blob with the specified git object ids (hashes)"))
 
     refrename = parser.add_argument_group(title=_("Renaming of refs "
                                               "(see also --refname-callback)"))
@@ -1926,6 +1928,11 @@ EXAMPLES
       args.mailmap = MailmapInfo(args.mailmap)
     if args.replace_text:
       args.replace_text = FilteringOptions.get_replace_text(args.replace_text)
+    if args.strip_blobs_with_ids:
+      with open(args.strip_blobs_with_ids, 'br') as f:
+        args.strip_blobs_with_ids = set(f.read().split())
+    else:
+      args.strip_blobs_with_ids = set()
     return args
 
 class RepoAnalyze(object):
@@ -2919,6 +2926,9 @@ class RepoFilter(object):
     if self._args.max_blob_size and len(blob.data) > self._args.max_blob_size:
       blob.skip()
 
+    if blob.original_id in self._args.strip_blobs_with_ids:
+      blob.skip()
+
     if self._args.replace_text:
       for literal, replacement in self._args.replace_text['literals']:
         blob.data = blob.data.replace(literal, replacement)
@@ -3051,6 +3061,10 @@ class RepoFilter(object):
       if self._args.max_blob_size and \
          self._unpacked_size.get(change.blob_id, 0) > self._args.max_blob_size:
         continue
+      if self._args.strip_blobs_with_ids and \
+         change.blob_id in self._args.strip_blobs_with_ids:
+        continue
+      # Otherwise, record the change
       new_file_changes[change.filename] = change
     commit.file_changes = [v for k,v in sorted(new_file_changes.items())]
 

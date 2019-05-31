@@ -710,6 +710,51 @@ test_expect_success '--strip-blobs-bigger-than' '
 	)
 '
 
+test_expect_success '--strip-blobs-with-ids' '
+	(
+		git clone file://"$(pwd)"/analyze_me strip_blobs_with_ids &&
+		cd strip_blobs_with_ids &&
+
+		# Verify certain files are present initially
+		git log --format=%n --name-only | sort | uniq >../filenames &&
+		test_line_count = 11 ../filenames &&
+		grep fake_submodule ../filenames &&
+
+		# Strip "a certain file" files
+		git filter-repo --strip-blobs-with-ids <(echo deadbeefdeadbeefdeadbeefdeadbeefdeadbeef) &&
+
+		git log --format=%n --name-only | sort | uniq >../filenames &&
+		test_line_count = 10 ../filenames &&
+		# Make sure fake_submodule was removed
+		! grep fake_submodule ../filenames &&
+
+		# Do it again, this time with --replace-text since that means
+		# we are operating without --no-data and have to go through
+		# a different codepath.  (The search/replace terms are bogus)
+		cat >../bad-ids <<-\EOF &&
+		34b6a0c9d02cb6ef7f409f248c0c1224ce9dd373
+		51b95456de9274c9a95f756742808dfd480b9b35
+		EOF
+		cat >../replace-rules <<-\EOF &&
+		not found==>was found
+		EOF
+		git filter-repo --strip-blobs-with-ids ../bad-ids --replace-text ../replace-rules &&
+
+		git log --format=%n --name-only | sort | uniq >../filenames &&
+		test_line_count = 5 ../filenames &&
+		! grep sequence/to ../filenames &&
+		! grep words/to ../filenames &&
+		! grep capricious ../filenames &&
+		! grep fickle ../filenames &&
+		! grep mercurial ../filenames
+
+		# Remove the temporary auxiliary files
+		rm ../bad-ids &&
+		rm ../replace-rules &&
+		rm ../filenames
+	)
+'
+
 test_expect_success 'setup commit message rewriting' '
 	test_create_repo commit_msg &&
 	(
