@@ -16,16 +16,14 @@ args = fr.FilteringOptions.default_options()
 out = fr.RepoFilter(args)
 out.importer_only()
 
-output = out._output
-
 world = Blob(b"Hello")
-world.dump(output)
+out.insert(world)
 
 bar = Blob(b"foo\n")
-bar.dump(output)
+out.insert(bar)
 
 master = Reset(b"refs/heads/master")
-master.dump(output)
+out.insert(master)
 
 changes = [FileChange(b'M', b'world', world.id, mode=b"100644"),
            FileChange(b'M', b'bar',   bar.id,   mode=b"100644")]
@@ -39,12 +37,12 @@ commit1 = Commit(b"refs/heads/master",
                  b"My first commit!  Wooot!\n\nLonger description",
                  changes,
                  parents = [])
-commit1.dump(output)
+out.insert(commit1)
 
 world = Blob(b"Hello\nHi")
-world.dump(output)
+out.insert(world)
 world_link = Blob(b"world")
-world_link.dump(output)
+out.insert(world_link)
 
 changes = [FileChange(b'M', b'world',  world.id,      mode=b"100644"),
            FileChange(b'M', b'planet', world_link.id, mode=b"120000")]
@@ -56,10 +54,10 @@ commit2 = Commit(b"refs/heads/master",
                  b"Make a symlink to world called planet, modify world",
                  changes,
                  parents = [commit1.id])
-commit2.dump(output)
+out.insert(commit2)
 
 script = Blob(b"#!/bin/sh\n\necho Hello")
-script.dump(output)
+out.insert(script)
 changes = [FileChange(b'M', b'runme', script.id, mode=b"100755"),
            FileChange(b'D', b'bar')]
 when_string = b"1234567890 -0700"
@@ -69,18 +67,18 @@ commit3 = Commit(b"refs/heads/master",
                  b"Add runme script, remove bar",
                  changes,
                  parents = [commit2.id])
-commit3.dump(output)
+out.insert(commit3)
 
 progress = Progress(b"Done with the master branch now...")
-progress.dump(output)
+out.insert(progress)
 checkpoint = Checkpoint()
-checkpoint.dump(output)
+out.insert(checkpoint)
 
 devel = Reset(b"refs/heads/devel", commit1.id)
-devel.dump(output)
+out.insert(devel)
 
 world = Blob(b"Hello\nGoodbye")
-world.dump(output)
+out.insert(world)
 
 changes = [FileChange(b'M', b'world', world.id, mode=b"100644")]
 when = datetime(2006, 8, 17, tzinfo=FixedTimeZone(b"+0200"))
@@ -91,10 +89,10 @@ commit4 = Commit(b"refs/heads/devel",
                  b"Modify world",
                  changes,
                  parents = [commit1.id])
-commit4.dump(output)
+out.insert(commit4)
 
 world = Blob(b"Hello\nHi\nGoodbye")
-world.dump(output)
+out.insert(world)
 when = fr.string_to_date(commit3.author_date) + timedelta(days=47)
 when_string = fr.date_to_string(when)
 # git fast-import requires file changes to be listed in terms of differences
@@ -112,11 +110,11 @@ commit5 = Commit(b"refs/heads/devel",
                  b"Merge branch 'master'\n",
                  changes,
                  parents = [commit4.id, commit3.id])
-commit5.dump(output)
+out.insert(commit5)
 
 
 mytag = Tag(b"refs/tags/v1.0", commit5.id,
             b"His R. Highness", b"royalty@my.kingdom", when_string,
             b"I bequeath to my peons this royal software")
-mytag.dump(output)
+out.insert(mytag)
 out.finish()

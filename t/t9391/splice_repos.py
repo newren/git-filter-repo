@@ -39,12 +39,15 @@ class InterleaveRepositories:
     # Splice in any extra commits needed
     if prev_letter in self.commit_map:
       new_commit = self.commit_map[prev_letter]
+      new_commit.dumped = 0
       new_commit.parents = [self.last_commit] if self.last_commit else []
-      new_commit.dump(self.out._output)
+      # direct_insertion=True to avoid weave_commit being called recursively
+      # on the same commit
+      self.out.insert(new_commit, direct_insertion = True)
       commit.parents = [new_commit.id]
 
     # Dump our commit now
-    commit.dump(self.out._output)
+    self.out.insert(commit, direct_insertion = True)
 
     # Make sure that commits that depended on new_commit.id will now depend
     # on commit.id
@@ -76,8 +79,8 @@ class InterleaveRepositories:
     i2.set_output(out)
     i2.run()
 
-    blob.dump(out._output)
-    tag.dump(out._output)
+    out.insert(blob)
+    out.insert(tag)
     out.finish()
 
 splicer = InterleaveRepositories(sys.argv[1], sys.argv[2], sys.argv[3])

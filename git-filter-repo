@@ -613,6 +613,7 @@ class Commit(_GitElementWithId):
                original_id = None,
                **kwargs):
     _GitElementWithId.__init__(self)
+    self.old_id = self.id
 
     # Denote that this is a commit element
     self.type = 'commit'
@@ -1299,6 +1300,10 @@ class FastExportParser(object):
     # Now print the resulting literal command
     if not command.dumped:
       command.dump(self._output)
+
+  def insert(self, obj):
+    assert not obj.dumped
+    obj.dump(self._output)
 
   def run(self, input, output):
     """
@@ -2456,6 +2461,7 @@ class RepoFilter(object):
     self._fep = None  # Fast Export Process
     self._fe_orig = None  # Path to where original fast-export output stored
     self._fe_filt = None  # Path to where filtered fast-export output stored
+    self._parser = None # FastExportParser object we are working with
 
     # Defaults for output
     self._output = None
@@ -3096,13 +3102,13 @@ class RepoFilter(object):
       self._seen_refs[commit.branch] = None # was seen, doesn't need (another) reset
       if not self._prunable(commit, new_1st_parent,
                             aux_info['had_file_changes'], orig_parents):
-        commit.dump(self._output)
+        self._insert_into_stream(commit)
         self._record_remapping(commit, orig_parents)
       else:
         rewrite_to = new_1st_parent or commit.first_parent()
         commit.skip(new_id = rewrite_to)
         reset = Reset(commit.branch, rewrite_to or deleted_hash)
-        reset.dump(self._output)
+        self._insert_into_stream(reset)
         self._commit_renames[commit.original_id] = None
 
     # Show progress
@@ -3440,6 +3446,27 @@ class RepoFilter(object):
     assert self._managed_output
     self.run()
 
+  def insert(self, obj, direct_insertion = False):
+    if not direct_insertion:
+      if type(obj) == Blob:
+        self._tweak_blob(obj)
+      elif type(obj) == Commit:
+        aux_info = {'orig_parents': obj.parents,
+                    'had_file_changes': bool(obj.file_changes)}
+        self._tweak_commit(obj, aux_info)
+      elif type(obj) == Reset:
+        self._tweak_reset(obj)
+      elif type(obj) == Tag:
+        self._tweak_tag(obj)
+    self._insert_into_stream(obj)
+
+  def _insert_into_stream(self, obj):
+    if not obj.dumped:
+      if self._parser:
+        self._parser.insert(obj)
+      else:
+        obj.dump(self._output)
+
   def run(self):
     start = time.time()
     if not self._input and not self._output:
@@ -3452,12 +3479,12 @@ class RepoFilter(object):
     if self._input:
       # Create and run the filter
       self._repo_working_dir = self._args.source or b'.'
-      fef = FastExportParser(blob_callback       = self._tweak_blob,
-                             commit_callback     = self._tweak_commit,
-                             tag_callback        = self._tweak_tag,
-                             reset_callback      = self._tweak_reset,
-                             done_callback       = self._final_commands)
-      fef.run(self._input, self._output)
+      self._parser = FastExportParser(blob_callback   = self._tweak_blob,
+                                      commit_callback = self._tweak_commit,
+                                      tag_callback    = self._tweak_tag,
+                                      reset_callback  = self._tweak_reset,
+                                      done_callback   = self._final_commands)
+      self._parser.run(self._input, self._output)
       if not self._finalize_handled:
         self._final_commands()
 
