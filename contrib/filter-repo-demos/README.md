@@ -14,6 +14,7 @@ signed-off-by        |Add a Signed-off-by tag to a range of commits
 lint-history         |Run some lint command on all non-binary files in history.
 clean-ignore         |Delete files from history which match current gitignore rules.
 lfs-conversion       |A tool for either converting a repo to use lfs, or from using lfs.
+submodule-conversion |A tool for either extracting a submodule from a repository subdirectory (rewriting the main repo to use the submodule), or for subsuming a submodule and turning it into a subdirectory.
 filter-lamely (or filter&#8209;branch&#8209;ish) |A nearly bug compatible re-implementation of filter-branch (the git testsuite passes using it instead of filter-branch), with some performance tricks to make it several times faster (though it's still glacially slow compared to filter-repo).
 bfg-ish              |A re-implementation of most of BFG Repo Cleaner, with new features and bug fixes.
 
