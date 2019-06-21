@@ -3287,7 +3287,7 @@ class RepoFilter(object):
       print("        longer be related; consider re-pushing it elsewhere.")
     subprocess.call('git remote rm origin'.split(), cwd=target_working_dir)
 
-  def _handle_final_commands(self):
+  def _final_commands(self):
     self._finalize_handled = True
     self._done_callback and self._done_callback()
 
@@ -3456,10 +3456,10 @@ class RepoFilter(object):
                              commit_callback     = self._tweak_commit,
                              tag_callback        = self._tweak_tag,
                              reset_callback      = self._tweak_reset,
-                             done_callback       = self._handle_final_commands)
+                             done_callback       = self._final_commands)
       fef.run(self._input, self._output)
       if not self._finalize_handled:
-        self._handle_final_commands()
+        self._final_commands()
 
       # Make sure fast-export completed successfully
       if not self._args.stdin and self._fep.wait():
