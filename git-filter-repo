@@ -2500,19 +2500,6 @@ class RepoFilter(object):
     # to subsequent commits being empty
     self._files_tweaked = set()
 
-    # A list of all the refs we've seen, plus any mark we need to set them
-    # to if the last (or even only) commit on that branch was pruned.
-    #
-    # FastExportParser's _latest_*commit variables are similar, but those:
-    #   * are for tracking implicit parentage instead of pruned commits
-    #   * will have entries deleted if an explicit reset is given
-    #   * will always have values that are non-None
-    # whereas _seen_refs:
-    #   * mostly associated with tracking when refs pointed at pruned commits
-    #   * once seen, we'll always keep a record to avoid pruning the ref
-    #   * will typically be None
-    self._seen_refs = {}
-
     # A set of commit hash pairs (oldhash, newhash) which used to be merge
     # commits but due to filtering were turned into non-merge commits.
     # The commits probably have suboptimal commit messages (e.g. "Merge branch
@@ -3118,7 +3105,6 @@ class RepoFilter(object):
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
-      self._seen_refs[commit.branch] = None # was seen, doesn't need (another) reset
       if not self._prunable(commit, new_1st_parent,
                             aux_info['had_file_changes'], orig_parents):
         self._insert_into_stream(commit)
@@ -3170,11 +3156,6 @@ class RepoFilter(object):
     if self._email_callback:
       tag.tagger_email = self._email_callback(tag.tagger_email)
 
-    # Record we've seen this ref and don't need to force a manual update
-    # for it.
-    if tag.from_ref:
-      self._seen_refs[fullref] = None
-
     # Call general purpose tag callback
     if self._tag_callback:
       self._tag_callback(tag, self.callback_metadata())
@@ -3187,9 +3168,6 @@ class RepoFilter(object):
     if self._reset_callback:
       self._reset_callback(reset, self.callback_metadata())
 
-    # Record we've seen this ref and don't need to force a manual update
-    # for it.
-    self._seen_refs[reset.ref] = None
   def results_tmp_dir(self, create_if_missing=True):
     target_working_dir = self._args.target or b'.'
     git_dir = GitUtils.determine_git_dir(target_working_dir)
