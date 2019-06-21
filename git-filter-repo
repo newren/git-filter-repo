@@ -852,6 +852,12 @@ class FastExportParser(object):
     self._checkpoint_callback = checkpoint_callback
     self._done_callback       = done_callback
 
+    # Keep track of which refs appear from the export, and which make it to
+    # the import (pruning of empty commits, renaming of refs, and creating
+    # new manual objects and inserting them can cause these to differ).
+    self._exported_refs = set()
+    self._imported_refs = set()
+
     # A list of the branches we've seen, plus the last known commit they
     # pointed to.  An entry in latest_*commit will be deleted if we get a
     # reset for that branch.  These are used because of fast-import's weird
@@ -1076,6 +1082,7 @@ class FastExportParser(object):
     """
     # Parse the Reset
     ref = self._parse_ref_line(b'reset')
+    self._exported_refs.add(ref)
     ignoreme, from_ref = self._parse_optional_parent_ref(b'from')
     if self._currentline == b'\n':
       self._advance_currentline()
@@ -1102,6 +1109,7 @@ class FastExportParser(object):
 
     # Now print the resulting reset
     if not reset.dumped:
+      self._imported_refs.add(reset.ref)
       reset.dump(self._output)
 
   def _parse_commit(self):
@@ -1115,6 +1123,7 @@ class FastExportParser(object):
     # Parse the Commit. This may look involved, but it's pretty simple; it only
     # looks bad because a commit object contains many pieces of data.
     branch = self._parse_ref_line(b'commit')
+    self._exported_refs.add(branch)
     id_ = self._parse_optional_mark()
 
     original_id = None
@@ -1195,6 +1204,7 @@ class FastExportParser(object):
     if not (commit.old_id or commit.id) in _SKIPPED_COMMITS:
       self._latest_commit[branch] = commit.id
     if not commit.dumped:
+      self._imported_refs.add(commit.branch)
       commit.dump(self._output)
 
   def _parse_tag(self):
@@ -1207,6 +1217,7 @@ class FastExportParser(object):
     """
     # Parse the Tag
     tag = self._parse_ref_line(b'tag')
+    self._exported_refs.add(b'refs/tags/'+tag)
     ignoreme, from_ref = self._parse_optional_parent_ref(b'from')
 
     original_id = None
@@ -1235,6 +1246,7 @@ class FastExportParser(object):
     if tag.from_ref:
       # Print out this tag's information
       if not tag.dumped:
+        self._imported_refs.add(b'refs/tags/'+tag.ref)
         tag.dump(self._output)
 
   def _parse_progress(self):
@@ -1304,6 +1316,10 @@ class FastExportParser(object):
   def insert(self, obj):
     assert not obj.dumped
     obj.dump(self._output)
+    if type(obj) == Commit:
+      self._imported_refs.add(obj.branch)
+    elif type(obj) in (Reset, Tag):
+      self._imported_refs.add(obj.ref)
 
   def run(self, input, output):
     """
