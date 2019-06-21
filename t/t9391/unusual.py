@@ -125,4 +125,4 @@ filter._input = stream
 filter._setup_output()
 filter._sanity_checks_handled = True
 filter.run()
-assert counts == collections.Counter({fr.Blob: 1, fr.Commit: 3, fr.Reset: 1})
+assert counts == collections.Counter({fr.Blob: 1, fr.Commit: 3})

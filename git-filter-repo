@@ -50,6 +50,8 @@ __all__ = ["Blob", "Reset", "FileChange", "Commit", "Tag", "Progress",
            "string_to_date", "date_to_string",
            "record_id_rename", "GitUtils", "FilteringOptions", "RepoFilter"]
 
+deleted_hash = b'0'*40
+
 def gettext_poison(msg):
   if "GIT_TEST_GETTEXT_POISON" in os.environ: # pragma: no cover
     return "# GETTEXT POISON #"
@@ -3091,18 +3093,16 @@ class RepoFilter(object):
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
+      self._seen_refs[commit.branch] = None # was seen, doesn't need (another) reset
       if not self._prunable(commit, new_1st_parent,
                             aux_info['had_file_changes'], orig_parents):
-        self._seen_refs[commit.branch] = None # was seen, doesn't need reset
         commit.dump(self._output)
         self._record_remapping(commit, orig_parents)
       else:
         rewrite_to = new_1st_parent or commit.first_parent()
-        # We skip empty commits, but want to keep track to make sure our branch
-        # still gets set and/or updated appropriately.
-        if rewrite_to:
-          self._seen_refs[commit.branch] = rewrite_to # need reset
         commit.skip(new_id = rewrite_to)
+        reset = Reset(commit.branch, rewrite_to or deleted_hash)
+        reset.dump(self._output)
         self._commit_renames[commit.original_id] = None
 
     # Show progress
@@ -3289,18 +3289,6 @@ class RepoFilter(object):
 
   def _handle_final_commands(self):
     self._finalize_handled = True
-    for ref, value in self._seen_refs.items():
-      if value is not None:
-        # Create a reset
-        reset = Reset(ref, value)
-
-        # Call any user callback to allow them to modify the reset
-        if self._reset_callback:
-          self._reset_callback(reset, self.callback_metadata())
-
-        # Now print the resulting reset
-        reset.dump(self._output)
-
     self._done_callback and self._done_callback()
 
     if not self._args.quiet:
@@ -3364,7 +3352,6 @@ class RepoFilter(object):
     return refs_to_nuke
 
   def _record_metadata(self, metadata_dir, orig_refs, refs_nuked):
-    deleted_hash = b'0'*40
     self._flush_renames()
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())

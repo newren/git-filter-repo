@@ -1061,13 +1061,15 @@ test_expect_success '--target' '
 		git checkout -b other &&
 		echo hello >world &&
 		git add world &&
-		git commit -m init
+		git commit -m init &&
+		git checkout -b unique
 	) &&
-	git -C target rev-parse other >target/expect &&
+	git -C target rev-parse unique >target/expect &&
 	git filter-repo --source analyze_me --target target --path fake_submodule --force --debug &&
-	git -C target rev-parse other >target/actual &&
-	test_cmp target/expect target/actual &&
-	test 2 = $(git -C target rev-list --count master)
+	test 2 = $(git -C target rev-list --count master) &&
+	test_must_fail git -C target rev-parse other &&
+	git -C target rev-parse unique >target/actual &&
+	test_cmp target/expect target/actual
 '
 
 test_expect_success '--refs' '
