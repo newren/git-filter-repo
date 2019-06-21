@@ -1364,6 +1364,9 @@ class FastExportParser(object):
       else:
         raise SystemExit(_("Could not parse line: '%s'") % self._currentline)
 
+  def get_exported_and_imported_refs(self):
+    return self._exported_refs, self._imported_refs
+
 def record_id_rename(old_id, new_id):
   """
   Register a new translation
@@ -3331,7 +3334,8 @@ class RepoFilter(object):
     all(map(self._orig_refs.pop, replace_refs))
 
     # Remove unused refs
-    refs_to_nuke = set(self._orig_refs) - set(self._seen_refs)
+    exported_refs, imported_refs = self.get_exported_and_imported_refs()
+    refs_to_nuke = exported_refs - imported_refs
     if self._args.source or self._args.target:
       refs_to_nuke = set()
     if refs_to_nuke and self._args.debug:
@@ -3369,11 +3373,7 @@ class RepoFilter(object):
     if p.wait():
       raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
-    # Return what we removed due to being filtered out (not being one of the
-    # seen refs means it was filtered out).
-    return refs_to_nuke
-
-  def _record_metadata(self, metadata_dir, orig_refs, refs_nuked):
+  def _record_metadata(self, metadata_dir, orig_refs):
     self._flush_renames()
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
@@ -3381,11 +3381,15 @@ class RepoFilter(object):
         msg = b'%s %s\n' % (old, new if new != None else deleted_hash)
         f.write(msg)
 
+    exported_refs, imported_refs = self.get_exported_and_imported_refs()
+
     batch_check_process = None
     batch_check_output_re = re.compile(b'^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
     with open(os.path.join(metadata_dir, b'ref-map'), 'bw') as f:
       for refname, old_hash in orig_refs.items():
-        if refname in refs_nuked:
+        if refname not in exported_refs:
+          continue
+        if refname not in imported_refs:
           new_hash = deleted_hash
         elif old_hash in self._commit_renames:
           new_hash = self._commit_renames[old_hash]
@@ -3483,6 +3487,9 @@ class RepoFilter(object):
       else:
         obj.dump(self._output)
 
+  def get_exported_and_imported_refs(self):
+    return self._parser.get_exported_and_imported_refs()
+
   def run(self):
     start = time.time()
     if not self._input and not self._output:
@@ -3534,12 +3541,10 @@ class RepoFilter(object):
 
     target_working_dir = self._args.target or '.'
     if self._input:
-      refs_nuked = self._ref_update(target_working_dir)
+      self._ref_update(target_working_dir)
 
       # Write out data about run
-      self._record_metadata(self.results_tmp_dir(),
-                            self._orig_refs,
-                            refs_nuked)
+      self._record_metadata(self.results_tmp_dir(), self._orig_refs)
 
     # Nuke the reflogs and repack
     if (not self._args.quiet and not self._args.debug and
