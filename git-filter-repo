@@ -3165,9 +3165,6 @@ class RepoFilter(object):
     # Record we've seen this ref and don't need to force a manual update
     # for it.
     self._seen_refs[reset.ref] = None
-    if isinstance(reset.from_ref, bytes) and re.match(b'^0+$', reset.from_ref):
-      del self._seen_refs[reset.ref]
-
   def results_tmp_dir(self, create_if_missing=True):
     target_working_dir = self._args.target or b'.'
     git_dir = GitUtils.determine_git_dir(target_working_dir)
@@ -3396,12 +3393,15 @@ class RepoFilter(object):
           batch_check_process.stdin.flush()
           line = batch_check_process.stdout.readline()
           m = batch_check_output_re.match(line)
-          if not m or m.group(2) not in (b'tag', b'commit'):
+          if m and m.group(2) in (b'tag', b'commit'):
+            new_hash = m.group(1)
+          elif line.endswith(b' missing\n'):
+            new_hash = deleted_hash
+          else:
             raise SystemExit(_("Failed to find new id for %(refname)s "
                                "(old id was %(old_hash)s)")
                              % ({'refname': refname, 'old_hash': old_hash})
                              ) # pragma: no cover
-          new_hash = m.group(1)
         f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
       if self._args.source or self._args.target:
         new_refs = GitUtils.get_refs(self._args.target or b'.')
