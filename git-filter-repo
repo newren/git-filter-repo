@@ -548,7 +548,7 @@ class FileChange(_GitElement):
   elements are components within a Commit element.
   """
 
-  def __init__(self, type_, filename, id_ = None, mode = None):
+  def __init__(self, type_, filename = None, id_ = None, mode = None):
     _GitElement.__init__(self)
 
     # Denote the type of file-change (b'M' for modify, b'D' for delete, etc)
@@ -562,23 +562,27 @@ class FileChange(_GitElement):
 
     # Record the mode (mode describes type of file entry (non-executable,
     # executable, or symlink)).
-    self.mode = None
+    self.mode = mode
 
     # blob_id is the id (mark) of the affected blob
-    self.blob_id = None
+    self.blob_id = id_
 
-    # For b'M' file changes (modify), expect to have id and mode
+    if type_ == b'DELETEALL':
+      assert filename is None and id_ is None and mode is None
+      self.filename = b'' # Just so PathQuoting.enquote doesn't die
+    else:
+      assert filename is not None
+
     if type_ == b'M':
-      if mode is None:
-        raise SystemExit(_("file mode and idnum needed for %s") % filename) # pragma: no cover
-      self.mode = mode
-      self.blob_id = id_
-
-    # For b'R' file changes (rename), expect to have newname as third arg
+      assert id_ is not None and mode is not None
+    elif type_ == b'D':
+      assert id_ is None and mode is None
     elif type_ == b'R':  # pragma: no cover (now avoid fast-export renames)
+      assert mode is None
       if id_ is None:
         raise SystemExit(_("new name needed for rename of %s") % filename)
       self.filename = (self.filename, id_)
+      self.blob_id = None
 
   def dump(self, file_):
     """
@@ -595,6 +599,8 @@ class FileChange(_GitElement):
       file_.write(b'M %s %s %s\n' % (self.mode, self.blob_id, quoted_filename))
     elif self.type == b'D':
       file_.write(b'D %s\n' % quoted_filename)
+    elif self.type == b'DELETEALL':
+      file_.write(b'deleteall\n')
     else:
       raise SystemExit(_("Unhandled filechange type: %s") % self.type) # pragma: no cover
 
@@ -3028,6 +3034,9 @@ class RepoFilter(object):
       # issues a deleteall directive which has no filename, and thus this
       # block would normally strip it.  Of course, FileChange() and
       # _parse_optional_filechange() would need updates too.
+      if change.type == b'DELETEALL':
+        new_file_changes[b''] = change
+        continue
       if change.filename in self._newnames:
         change.filename = self._newnames[change.filename]
       else:

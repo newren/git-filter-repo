@@ -80,7 +80,9 @@ out.insert(devel)
 world = Blob(b"Hello\nGoodbye")
 out.insert(world)
 
-changes = [FileChange(b'M', b'world', world.id, mode=b"100644")]
+changes = [FileChange(b'DELETEALL'),
+           FileChange(b'M', b'world', world.id, mode=b"100644"),
+           FileChange(b'M', b'bar',   bar.id,   mode=b"100644")]
 when = datetime(2006, 8, 17, tzinfo=FixedTimeZone(b"+0200"))
 when_string = fr.date_to_string(when)
 commit4 = Commit(b"refs/heads/devel",
