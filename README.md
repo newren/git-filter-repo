@@ -3,16 +3,17 @@ git filter-repo is a versatile tool for rewriting history, which includes
 else](#design-rationale-behind-filter-repo-why-create-a-new-tool).  It
 roughly falls into the same space of tool as [git
 filter-branch](https://git-scm.com/docs/git-filter-branch) but without the
-[capitulation-inducing poor
-performance](https://public-inbox.org/git/CABPp-BGOz8nks0+Tdw5GyGqxeYR-3FF6FT5JcgVqZDYVRQ6qog@mail.gmail.com/),
-and with a design that scales usability-wise beyond trivial rewriting
-cases.
+capitulation-inducing poor
+[performance](https://public-inbox.org/git/CABPp-BGOz8nks0+Tdw5GyGqxeYR-3FF6FT5JcgVqZDYVRQ6qog@mail.gmail.com/),
+with far more capabilities, and with a design that scales usability-wise
+beyond trivial rewriting cases.
 
 While most users will probably just use filter-repo as a simple command
 line tool (and likely only use a few of its flags), at its core filter-repo
 contains a library for creating history rewriting tools.  As such, users
-with specialized needs can leverage it to quickly create entirely new
-history rewriting tools.
+with specialized needs can leverage it to quickly create [entirely new
+history rewriting
+tools](contrib/filter-repo-demos).
 
 filter-repo is a single-file python script, depending only on the python
 standard library (and execution of git commands), all of which is designed
@@ -88,10 +89,21 @@ By contrast, filter-branch comes with a pile of caveats (more on that
 below) even once you figure out the necessary invocation(s):
 
 ```shell
-  git filter-branch --tree-filter 'mkdir -p my-module && git ls-files | grep -v ^src/ | xargs git rm -f -q && ls -d * | grep -v my-module | xargs -I files mv files my-module/' --tag-name-filter 'echo "my-module-$(cat)"' --prune-empty -- --all
+  git filter-branch \
+      --tree-filter 'mkdir -p my-module && \
+                     git ls-files \
+                         | grep -v ^src/ \
+                         | xargs git rm -f -q && \
+                     ls -d * \
+                         | grep -v my-module \
+                         | xargs -I files mv files my-module/' \
+          --tag-name-filter 'echo "my-module-$(cat)"' \
+	  --prune-empty -- --all
   git clone file://$(pwd) newcopy
   cd newcopy
-  git for-each-ref --format="delete %(refname)" refs/tags/ | grep -v refs/tags/my-module- | git update-ref --stdin
+  git for-each-ref --format="delete %(refname)" refs/tags/ \
+      | grep -v refs/tags/my-module- \
+      | git update-ref --stdin
   git gc --prune=now
 ```
 
@@ -100,10 +112,23 @@ slow due to using --tree-filter; you could alternatively use the
 --index-filter option of filter-branch, changing the above commands to:
 
 ```shell
-  git filter-branch --index-filter 'git ls-files | grep -v ^src/ | xargs git rm -q --cached; git ls-files -s | sed "s-$(printf \\t)-&my-module/-" | git update-index --index-info; git ls-files | grep -v ^my-module/ | xargs git rm -q --cached' --tag-name-filter 'echo "my-module-$(cat)"' --prune-empty -- --all
+  git filter-branch \
+      --index-filter 'git ls-files \
+                          | grep -v ^src/ \
+                          | xargs git rm -q --cached;
+                      git ls-files -s \
+                          | sed "s%$(printf \\t)%&my-module/%" \
+                          | git update-index --index-info;
+                      git ls-files \
+                          | grep -v ^my-module/ \
+                          | xargs git rm -q --cached' \
+      --tag-name-filter 'echo "my-module-$(cat)"' \
+      --prune-empty -- --all
   git clone file://$(pwd) newcopy
   cd newcopy
-  git for-each-ref --format="delete %(refname)" refs/tags/ | grep -v refs/tags/my-module- | git update-ref --stdin
+  git for-each-ref --format="delete %(refname)" refs/tags/ \
+      | grep -v refs/tags/my-module- \
+      | git update-ref --stdin
   git gc --prune=now
 ```
 
@@ -135,7 +160,10 @@ new and old history before pushing somewhere.  Other caveats:
     three times faster than the --tree-filter version, but both
     filter-branch commands are going to be multiple orders of magnitude
     slower than filter-repo.
-
+  * Both commands assume all filenames are composed entirely of regular
+    ascii characters (even special ascii characters such as tabs or
+    double quotes will wreak havoc and likely result in missing files
+    or misnamed files)
 
 ## Design rationale behind filter-repo (why create a new tool?)
 
@@ -642,7 +670,7 @@ that filter-repo uses
 [bytestrings](https://docs.python.org/3/library/stdtypes.html#bytes)
 everywhere instead of strings.
 
-There are three callbacks that allow you to operate directly on raw
+There are four callbacks that allow you to operate directly on raw
 objects that contain data that's easy to write in [fast-import(1)
 format](https://git-scm.com/docs/git-fast-import#_input_format):
 ```
@@ -758,7 +786,7 @@ An example of each:
 
 ```shell
   git filter-repo --tag-callback '
-    if tag.tagger_name == "Jim Williams":
+    if tag.tagger_name == b"Jim Williams":
       # Omit this tag
       tag.skip()
     else:
@@ -788,14 +816,13 @@ An example of each:
 
 ### Using filter-repo as a library
 
-git-filter-repo can also be imported as a library in Python, allowing
-for further flexibility.  Some [simple
-examples](https://github.com/newren/git-filter-repo/tree/master/t/t9391)
-exist in the testsuite.  For this to work, the symlink to
-git-filter-repo named git_filter_repo.py either needs to have been
-installed in your $PYTHONPATH, or you need to create a symlink to (or
-a copy of) git-filter-repo named git_filter_repo.py and stick it in
-your $PYTHONPATH.
+git-filter-repo can also be imported as a library in Python, allowing for
+further flexibility.  [Both trivial and involved
+examples](contrib/filter-repo-demos) are provided for reference ([the
+testsuite](t/t9391) has a few more examples as well).  For any of these
+examples to work, a symlink to (or copy of) git-filter-repo named
+git_filter_repo.py needs to be created, and the directory where this
+symlink (or copy) is found must be included in your $PYTHONPATH.
 
 
 # Internals
@@ -816,7 +843,7 @@ sequence that more accurately reflects what filter-repo runs is:
   1. Verify we're in a fresh clone
   1. `git fetch -u . refs/remotes/origin/*:refs/heads/*`
   1. `git remote rm origin`
-  1. `git fast-export --show-original-ids --fake-missing-tagger --signed-tags=strip --tag-of-filtered-object=rewrite --use-done-feature --no-data --reencode=yes --all | filter | git fast-import --force --quiet`
+  1. `git fast-export --show-original-ids --reference-excluded-parents --fake-missing-tagger --signed-tags=strip --tag-of-filtered-object=rewrite --use-done-feature --no-data --reencode=yes --all | filter | git fast-import --force --quiet`
   1. `git update-ref --no-deref --stdin`, fed with a list of refs to nuke, and a list of [replace refs](https://git-scm.com/docs/git-replace) to delete, create, or update.
   1. `git reset --hard`
   1. `git reflog expire --expire=now --all`
@@ -843,15 +870,10 @@ Some notes or exceptions on each of the above:
      be passed to fast-export.  But when we don't need to work on blobs,
      passing `--no-data` speeds things up.  Also, other flags may change
      the structure of the pipeline as well (e.g. `--dry-run` and `--debug`)
-  1. Selection of files based on paths could cause every commit in the
-     history of a branch or tag to be pruned, resulting in the branch or
-     tag needing to be pruned.  However, filter-repo just works by
-     stripping out the 'commit' and 'tag' directives for each one that's
-     not needed, meaning fast-import won't do the branch or tag deletion
-     for us.  So we do it in a post-processing step to ensure we avoid
-     mixing old and new history.  Also, we use this step to write replace
-     refs for accessing the newly written commit hashes using their
-     previous names.
+  1. We use this step to write replace refs for accessing the newly written
+     commit hashes using their previous names.  Also, if refs were renamed
+     by various steps, we need to delete the old refnames in order to avoid
+     mixing old and new history.
   1. Users also have old versions of files in their working tree and index;
      we want those cleaned up to match the rewritten history as well.  Note
      that this step is skipped in bare repos.
@@ -954,16 +976,17 @@ the user when it detects an issue:
     filter-repo.
 
   * Partial-repo filtering does not mesh well with filter-repo's "avoid
-    mixing old and new history" design.  filter-repo has some capability in
-    this area but it is undocumented, mostly untested, and may require
-    multiple non-obvious flags to be set to make sane use of it.  While
-    there might be valid usecases for partial-repo filtering, the only ones
-    I've run into in the wild are sidestepping filter-branch's insanely
-    slow execution on commits that would not be changed by the filters in
-    question anyway (which is largely irrelevant since filter-repo is
-    multiple orders of magnitude faster), or to do operations better suited
-    to git-rebase(1) and which rebase grew special options for years ago
-    (e.g. the `--signoff` option).
+    mixing old and new history" design.  filter-repo has some capability
+    in this area but it is intentionally underdocumented and mostly left
+    for use by external scripts which import filter-repo as a module (some
+    examples in contrib/filter-repo-demos/ do use this).  The only real
+    usecases I've seen for partial repo filtering, though, are
+    sidestepping filter-branch's insanely slow execution on commits that
+    would not be changed by the filters in question anyway (which is
+    largely irrelevant since filter-repo is multiple orders of magnitude
+    faster), or to do operations better suited to git-rebase(1) and which
+    rebase grew special options for years ago (e.g. the `--signoff`
+    option).
 
 ### Comments on reversibility
 

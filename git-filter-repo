@@ -1653,7 +1653,7 @@ EXAMPLES
         help=_("Specify several path filtering and renaming directives, one "
                "per line.  Lines with '==>' in them specify path renames, "
                "and lines can begin with 'literal:' (the default), 'glob:', "
-               "or 'regex: ' to specify different matching styles"))
+               "or 'regex:' to specify different matching styles"))
     helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
         action=FilteringOptions.HelperFilter, type=os.fsencode,
         help=_("Only look at history that touches the given subdirectory "
@@ -1678,7 +1678,8 @@ EXAMPLES
         help=_("Strip blobs (files) bigger than specified size (e.g. '5M', "
                "'2G', etc)"))
     contents.add_argument('--strip-blobs-with-ids', metavar='BLOB-ID-FILENAME',
-        help=_("Strip blob with the specified git object ids (hashes)"))
+        help=_("Read git object ids from each line of the given file, and "
+               "strip all of them from history"))
 
     refrename = parser.add_argument_group(title=_("Renaming of refs "
                                               "(see also --refname-callback)"))
@@ -1798,9 +1799,10 @@ EXAMPLES
     misc.add_argument('--dry-run', action='store_true',
         help=_("Do not change the repository.  Run `git fast-export` and "
                "filter its output, and save both the original and the "
-               "filtered version for comparison.  Some filtering of empty "
-               "commits may not occur due to inability to query the "
-               "fast-import backend."))
+               "filtered version for comparison.  This also disables "
+               "rewriting commit messages due to not knowing new commit "
+               "IDs and disables filtering of some empty commits due to "
+               "inability to query the fast-import backend." ))
     misc.add_argument('--debug', action='store_true',
         help=_("Print additional information about operations being "
                "performed and commands being run.  When used together "
@@ -1808,7 +1810,9 @@ EXAMPLES
                "would be run."))
     misc.add_argument('--stdin', action='store_true',
         help=_("Instead of running `git fast-export` and filtering its "
-               "output, filter the fast-export stream from stdin."))
+               "output, filter the fast-export stream from stdin.    The "
+               "stdin must be in the expected input format (e.g. it needs "
+               "to include original-oid directives)."))
     misc.add_argument('--quiet', action='store_true',
         help=_("Pass --quiet to other git commands called"))
     return parser
