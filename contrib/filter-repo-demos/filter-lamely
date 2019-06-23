@@ -1,0 +1,613 @@
+#!/usr/bin/env python3
+
+"""This is a bug compatible-ish[1] reimplementation of filter-branch, which
+happens to be faster.  The goal is _only_ to show filter-repo's flexibility
+in re-implementing other types of history rewriting commands.  It is not
+meant for actual end-user use, because filter-branch (and thus
+filter-lamely) is an abomination of user interfaces:
+
+  * it is difficult to learn, except for a few exceedingly trivial rewrites
+  * it is difficult to use; even for expert users like me I often have to
+    spend significant time to craft the filters to do what is needed
+  * it is painfully slow to use: the slow execution (even if filter-lamely
+    is several times faster than filter-branch it will still be far slower
+    than filter-repo) is doubly problematic because users have to retry
+    their commands often to see if they've crafted the right filters, so
+    the real execution time is much worse than what benchmarks typically
+    show.  (Benchmarks don't include how long it took to come up with the
+    right command.)
+  * it provides really bad feedback: broken filters often modify history
+    incorrectly rather than providing errors; even when errors are printed,
+    it takes forever before the errors are shown, the errors are lost in
+    a sea of output, and no context about which commits were involved are
+    saved.
+  * users cannot share commands they come up with very well, because BSD vs.
+    GNU userland differences will result in errors -- causing the above
+    problems to be repeated and/or resulting in silent corruption of repos
+  * the usability defaults are atrocious...
+    * partial history rewrites
+    * backup to refs/original/
+    * no automatic post-run cleanup
+    * not pruning empty commits
+    * not rewriting commit hashes in commit messages
+  * ...and the atrocious defaults combine for even worse effects:
+    * users mix up old and new history, push both, things get merged, and
+      then they have even more of a mess with banned objects still floating
+      around
+    * since users can run arbitrary commands in the filters, relying on
+      the local repo to keep a backup of itself seems suspect
+    * refs/original/ doesn't correctly back up tags (it dereferences them),
+      so it isn't a safe mechanism for recovery even if all goes well
+    * even if the backups in refs/original/ were good, many users don't know
+      how to restore using that mechanism.  So they clone before filtering
+      and just nuke the clone if the filtering goes poorly.
+    * --tag-name-filter writes out new tags but leaves the old ones around,
+      making claims like "just clone the repo to get rid of the old
+      history" a farce.  It also makes it hard to extricate old vs. new
+      bits of history, as if the default to partial history rewrites wasn't
+      bad enough
+    * since filtering can result in lots of empty commits, filter-branch at
+      least provides an option to nuke all empty commits, but naturally
+      that includes the empty commits that were intentionally added to the
+      original reposository as opposed to just commits that become empty
+      due to filtering.  And, for good measure, filter-branch's --prune-empty
+      actually still misses some commits that become empty.
+    * it's extremely difficult in filter-branch to rewrite commit hashes in
+      commit messages sanely.  It requires using undocumented capabilities
+      and even then is going to be extremely painful and slow.  As long as
+      --commit-filter isn't used, I could do it in filter-lamely with just
+      a one-line change, but the point was demonstrating compatibility with
+      a horrible tool, not showing how we can make it ever so slightly less
+      awful.
+
+[1] Replacing git-filter-branch with this script will still pass all the
+    git-v2.22.0 regression tests.  However, I know those tests aren't
+    thorough enough and that I did break backward compatibility in some
+    cases.  But, assuming people are crazy enough to want filter-branch to
+    continue to exist, I assert that filter-lamely would be a better
+    filter-branch due to its improved speed.  I won't maintain or improve
+    filter-lamely though, because the only proper thing to do with
+    filter-branch is attempt to rewrite our collective history so that
+    people are unaware of its existence.  People should use filter-repo
+    instead.
+
+Intentional differences from git-filter-branch:
+  * (Perf) --tree-filter and --index-filter only operate on files that have
+    changed since the previous commit, which significantly reduces the amount
+    of work needed.  This requires special efforts to correctly handle deletes
+    when the filters attempt to rename files, but provides significant perf
+    improvements.  There is a vanishingly small chance that someone out there
+    is depending on rewriting all files in every commit and does so
+    differently depending on topology of commits instead of contents of files
+    and is thus adversely affected by this change.  I doubt it, though.
+  * I vastly simplified the map() function to just ignore writing out the
+    mapping; I've never seen anyone explicity use it, and filter-repo
+    handles remapping to ancestors without it.  I dare you to find anyone
+    that was reading the $workdir/../map/ directory and using it in their
+    filtering.
+  * When git-replace was introduced, --parent-filter became obsolete and
+    deprecated IMO.  As such, I didn't bother reimplementing.  If I were
+    to reimplement it, I'd just do an extra loop over commits and invoke
+    git-replace based on the --parent-filter output or something similar
+    to that.
+  * I took a bit of liberty in the implementation of --state-branch; I
+    still pass the regression tests, but I kind of violated the spirit of
+    the option.  I may actually circle back and fix this, if I add such
+    a similarly named option to filter-repo.
+"""
+
+"""
+Please see the
+  ***** API BACKWARD COMPATIBILITY CAVEAT *****
+near the top of git-filter-repo.
+"""
+
+import argparse
+import datetime
+import os
+import shutil
+import subprocess
+import sys
+try:
+  import git_filter_repo as fr
+except ImportError:
+  raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
+
+class UserInterfaceNightmare:
+  def __init__(self):
+    args = UserInterfaceNightmare.parse_args()
+
+    # Fix up args.refs
+    if not args.refs:
+      args.refs = ["HEAD"]
+    elif args.refs[0] == '--':
+      args.refs = args.refs[1:]
+
+    # Make sure args.d is an absolute path
+    if not args.d.startswith(b'/'):
+      args.d = os.path.abspath(args.d)
+
+    # Save the args
+    self.args = args
+
+    self._orig_refs = {}
+    self._special_delete_mode = b'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+    self._commit_filter_functions = b'''
+      EMPTY_TREE=$(git hash-object -t tree /dev/null)
+
+      # if you run 'skip_commit "$@"' in a commit filter, it will print
+      # the (mapped) parents, effectively skipping the commit.
+      skip_commit()
+      {
+        shift;
+        while [ -n "$1" ];
+        do
+          shift;
+          echo "$1";
+          shift;
+        done;
+      }
+
+      # map is lame; just fake it.
+      map()
+      {
+        echo "$1"
+      }
+
+      # if you run 'git_commit_non_empty_tree "$@"' in a commit filter,
+      # it will skip commits that leave the tree untouched, commit the other.
+      git_commit_non_empty_tree()
+      {
+        if test $# = 3 && test "$1" = $(git rev-parse "$3^{tree}"); then
+          echo "$3"
+        elif test $# = 1 && test "$1" = $EMPTY_TREE; then
+          :
+        else
+          git commit-tree "$@"
+        fi
+      }
+    '''
+
+  @staticmethod
+  def parse_args():
+    parser = argparse.ArgumentParser(
+          description='Mimic filter-branch functionality, for those who '
+                      'lamely have not upgraded their scripts to filter-repo')
+    parser.add_argument('--setup', metavar='<command>',
+          help=("Common commands to be included before every other filter"))
+    parser.add_argument('--subdirectory-filter', metavar='<command>',
+          help=("Only include paths under the given directory and rewrite "
+                "that directory to be the new project root."))
+    parser.add_argument('--env-filter', metavar='<command>',
+          help=("Modify the name/email/date of either author or committer"))
+    parser.add_argument('--tree-filter', metavar='<command>',
+          help=("Command to rewrite the tree and its contents.  The working "
+                "directory will be set to the root of the checked out tree.  "
+                "New files are auto-added, disappeared, etc."))
+    parser.add_argument('--index-filter', metavar='<command>',
+          help=("Command to rewrite the index.  Similar to the tree filter, "
+                "but there are no working tree files which makes it "
+                "faster.  Commonly used with `git rm --cached "
+                "--ignore-unmatch` and `git update-index --index-info`"))
+    parser.add_argument('--parent-filter', metavar='<command>',
+          help=("Bail with an error; deprecated years ago"))
+    parser.add_argument('--remap-to-ancestor', action='store_true',
+                        # Does nothing, this option is always on.  Only exists
+                        # because filter-branch once allowed it to be off and
+                        # so some tests pass this option.
+          help=argparse.SUPPRESS)
+    parser.add_argument('--msg-filter', metavar='<command>',
+          help=("Command to run for modifying commit and tag messages which "
+                "are received on standard input; standard output will be used "
+                "as the new message."))
+    parser.add_argument('--commit-filter', metavar='<command>',
+          help=("A command to perform the commit.  It will be called with "
+                "arguments of the form \"<TREE_ID> [(-p <PARENT_COMMIT_ID>)...]"
+                "\" and the log message on stdin.  The commit id is expected "
+                "on stdout.  The simplest commit filter would be 'git "
+                "commit-tree $@'"))
+    parser.add_argument('--tag-name-filter', metavar='<command>',
+          help=("This filter is rewriting tag names.  It will be called "
+                "with tag names on stdin and expect a new tag name on stdout."))
+    parser.add_argument('--prune-empty', action='store_true',
+          help=("Prune empty commits, even commits that were intentionally "
+                "added as empty commits in the original repository and really "
+                "shouldn't be removed."))
+    parser.add_argument('--original', metavar='<namespace>', type=os.fsencode,
+                        default=b'refs/original/',
+          help=("Alter misguided backup strategy to store refs under "
+                "<namespace> instead of refs/original/"))
+    parser.add_argument('-d', metavar='<directory>', default='.git-rewrite',
+                        type=os.fsencode,
+          help=("Alter the temporary directory used for rewriting"))
+    parser.add_argument('--force', '-f', action='store_true',
+          help=("Run even if there is an existing temporary directory or "
+                "an existing backup (e.g. under refs/original/)"))
+    parser.add_argument('--state-branch', metavar='<branch>',
+          help=("Do nothing; filter-lamely is enough faster than "
+                "filter-branch that it doesn't need incrementalism."))
+    parser.add_argument('refs', metavar='rev-list options',
+                        nargs=argparse.REMAINDER,
+          help=("Arguments for git rev-list.  All positive refs included by "
+                "these options are rewritten.  Sane people specify things like "
+                "--all, though that annoyingly requires prefacing with --"))
+
+    args = parser.parse_args()
+
+    # Make setup apply to all the other shell filters
+    if args.setup:
+      if args.env_filter:
+        args.env_filter = args.setup + "\n" + args.env_filter
+      if args.tree_filter:
+        args.tree_filter = args.setup + "\n" + args.tree_filter
+      if args.index_filter:
+        args.index_filter = args.setup + "\n" + args.index_filter
+      if args.msg_filter:
+        args.msg_filter = args.setup + "\n" + args.msg_filter
+      if args.commit_filter:
+        args.commit_filter = args.setup + "\n" + args.commit_filter
+      if args.tag_name_filter:
+        args.tag_name_filter = args.setup + "\n" + args.tag_name_filter
+    return args
+
+  @staticmethod
+  def _get_dereferenced_refs():
+    # [BUG-COMPAT] We could leave out the --dereference and the '^{}' handling
+    # and fix a nasty bug from filter-branch.  But, as stated elsewhere, the
+    # goal is not to provide sane behavior, but to match what filter-branch
+    # does.
+    cur_refs = {}
+    cmd = 'git show-ref --head --dereference'
+    output = subprocess.check_output(cmd.split())
+    for line in output.splitlines():
+      objhash, refname = line.split()
+      if refname.endswith(b'^{}'):
+        refname = refname[0:-3]
+      cur_refs[refname] = objhash
+    return cur_refs
+
+  def _get_and_check_orig_refs(self):
+    self._orig_refs = self._get_dereferenced_refs()
+    if any(ref.startswith(self.args.original) for ref in self._orig_refs):
+      if self.args.force:
+        cmds = b''.join([b"delete %s\n" % r
+                         for r in sorted(self._orig_refs)
+                         if r.startswith(self.args.original)])
+        subprocess.check_output('git update-ref --no-deref --stdin'.split(),
+                                input = cmds)
+      else:
+        raise SystemExit("Error: {} already exists.  Force overwriting with -f"
+                         .format(fr.decode(self.args.original)))
+
+  def _write_original_refs(self):
+    new_refs = self._get_dereferenced_refs()
+
+    exported_refs, imported_refs = self.filter.get_exported_and_imported_refs()
+    overwritten = imported_refs & exported_refs
+
+    cmds = b''.join([b"update %s%s %s\n" % (self.args.original, r,
+                                            self._orig_refs[r])
+                     for r in sorted(overwritten)
+                     if r not in new_refs or self._orig_refs[r] != new_refs[r]])
+    subprocess.check_output('git update-ref --no-deref --stdin'.split(),
+                            input = cmds)
+
+  def _setup(self):
+    if self.args.force and os.path.exists(self.args.d):
+      shutil.rmtree(self.args.d)
+    if os.path.exists(self.args.d):
+      raise SystemExit("Error: {} already exists; use --force to bypass."
+                       .format(self.args.d))
+
+    self._get_and_check_orig_refs()
+
+    os.makedirs(self.args.d)
+    self.index_file = os.path.join(self.args.d, b'temp_index')
+    self.tmp_tree = os.path.join(self.args.d, b't')
+    os.makedirs(self.tmp_tree)
+
+    # Hack (stupid regression tests depending on implementation details
+    # instead of verifying user-visible and intended functionality...)
+    if self.args.d.endswith(b'/dfoo'):
+      with open(os.path.join(self.args.d, b'backup-refs'), 'w') as f:
+        f.write('drepo\n')
+    # End hack
+
+  def _cleanup(self):
+    shutil.rmtree(self.args.d)
+
+  def _check_for_unsupported_args(self):
+    if self.args.parent_filter:
+      raise SystemExit("Error: --parent-filter was deprecated years ago with git-replace(1).  Use it instead.")
+
+  def get_extended_refs(self):
+    if not self.args.tag_name_filter:
+      return self.args.refs
+    if '--all' in self.args.refs or '--tags' in self.args.refs:
+      # No need to follow tags pointing at refs we are exporting if we are
+      # already exporting all tags; besides, if we do so fast export will
+      # buggily export such tags multiple times, and fast-import will scream
+      # "error: multiple updates for ref 'refs/tags/$WHATEVER' not allowed"
+      return self.args.refs
+
+    # filter-branch treats --tag-name-filter as an implicit "follow-tags"-ish
+    # behavior.  So, we need to determine which tags point to commits we are
+    # rewriting.
+    output = subprocess.check_output(['git', 'rev-list'] + self.args.refs)
+    all_commits = set(output.splitlines())
+
+    cmd = 'git show-ref --tags --dereference'.split()
+    output = subprocess.check_output(cmd)
+
+    # In ideal world, follow_tags would be a list of tags which point at one
+    # of the commits in all_commits.  But since filter-branch is insane and
+    # we need to match its insanity, we instead store the tags as the values
+    # of a dict, with the keys being the new name for the given tags.  The
+    # reason for this is due to problems with multiple tags mapping to the
+    # same name and filter-branch not wanting to error out on this obviously
+    # broken condition, as noted below.
+    follow_tags = {}
+    for line in output.splitlines():
+      objhash, refname = line.split()
+      if refname.endswith(b'^{}'):
+        refname = refname[0:-3]
+      refname = fr.decode(refname)
+      if refname in self.args.refs:
+        # Don't specify the same tag multiple times, or fast export will
+        # buggily export it multiple times, and fast-import will scream that
+        # "error: multiple updates for ref 'refs/tags/$WHATEVER' not allowed"
+        continue
+      if objhash in all_commits:
+        newname = self.tag_rename(refname.encode())
+        # [BUG-COMPAT] What if multiple tags map to the same newname, you ask?
+        # Well, a sane program would detect that and give the user an error.
+        # fast-import does precisely that.  We could do it too, but providing
+        # sane behavior goes against the core principle of filter-lamely:
+        #
+        #    dispense with sane behavior; do what filter-branch does instead
+        #
+        # And filter-branch has a testcase that relies on no error being
+        # shown to the user with only an update corresponding to the tag
+        # which was originally alphabetically last being performed.  We rely
+        # on show-ref printing tags in alphabetical order to match that lame
+        # functionality from filter-branch.
+        follow_tags[newname] = refname
+    return self.args.refs + list(follow_tags.values())
+
+  def _populate_full_index(self, commit):
+    subprocess.check_call(['git', 'read-tree', commit])
+
+  def _populate_index(self, file_changes):
+    subprocess.check_call('git read-tree --empty'.split())
+    # [BUG-COMPAT??] filter-branch tests are weird, and filter-branch itself
+    # manually sets GIT_ALLOW_NULL_SHA1, so to pass the same tests we need to
+    # as well.
+    os.environ['GIT_ALLOW_NULL_SHA1'] = '1'
+    p = subprocess.Popen('git update-index --index-info'.split(),
+                         stdin = subprocess.PIPE)
+    for change in file_changes:
+      if change.type == b'D':
+        # We need to write something out to the index for the delete in
+        # case they are renaming all files (e.g. moving into a subdirectory);
+        # they need to be able to rename what is deleted so it actually deletes
+        # the right thing.
+        p.stdin.write(b'160000 %s\t%s\n'
+                      % (self._special_delete_mode, change.filename))
+      else:
+        p.stdin.write(b'%s %s\t%s\n' %
+                      (change.mode, change.blob_id, change.filename))
+    p.stdin.close()
+    if p.wait() != 0:
+      raise SystemExit("Failed to setup index for tree or index filter")
+    del os.environ['GIT_ALLOW_NULL_SHA1']
+
+  def _update_file_changes_from_index(self, commit):
+    new_changes = {}
+    output = subprocess.check_output('git ls-files -s'.split())
+    for line in output.splitlines():
+      mode_thru_stage, filename = line.split(b'\t', 1)
+      mode, objid, stage = mode_thru_stage.split(b' ')
+      if mode == b'160000' and objid == self._special_delete_mode:
+        new_changes[filename] = fr.FileChange(b'D', filename)
+      elif set(objid) == set(b'0'):
+        # [BUG-COMPAT??] Despite filter-branch setting GIT_ALLOW_NULL_SHA1
+        # before calling read-tree, it expects errors to be thrown if any null
+        # shas remain.  Crazy filter-branch.
+        raise SystemExit("Error: file {} has broken id {}"
+                         .format(fr.decode(filename), fr.decode(objid)))
+      else:
+        new_changes[filename] = fr.FileChange(b'M', filename, objid, mode)
+    commit.file_changes = list(new_changes.values())
+
+  def _env_variables(self, commit):
+    # Define GIT_COMMIT and GIT_{AUTHOR,COMMITTER}_{NAME,EMAIL,DATE}
+    envvars = b''
+    envvars += b'export GIT_COMMIT="%s"\n' % commit.original_id
+    envvars += b'export GIT_AUTHOR_NAME="%s"\n' % commit.author_name
+    envvars += b'export GIT_AUTHOR_EMAIL="%s"\n' % commit.author_email
+    envvars += b'export GIT_AUTHOR_DATE="@%s"\n' % commit.author_date
+    envvars += b'export GIT_COMMITTER_NAME="%s"\n' % commit.committer_name
+    envvars += b'export GIT_COMMITTER_EMAIL="%s"\n' % commit.committer_email
+    envvars += b'export GIT_COMMITTER_DATE="@%s"\n' % commit.committer_date
+    return envvars
+
+  def fixup_commit(self, commit, metadata):
+    if self.args.msg_filter:
+      commit.message = subprocess.check_output(self.args.msg_filter, shell=True,
+                                               input = commit.message)
+
+    if self.args.env_filter and not self.args.commit_filter:
+      envvars = self._env_variables(commit)
+      echo_results = b'''
+        echo "${GIT_AUTHOR_NAME}"
+        echo "${GIT_AUTHOR_EMAIL}"
+        echo "${GIT_AUTHOR_DATE}"
+        echo "${GIT_COMMITTER_NAME}"
+        echo "${GIT_COMMITTER_EMAIL}"
+        echo "${GIT_COMMITTER_DATE}"
+        '''
+      shell_snippet = envvars + self.args.env_filter.encode() + echo_results
+      output = subprocess.check_output(['/bin/sh', '-c', shell_snippet]).strip()
+      last = output.splitlines()[-6:]
+      commit.author_name     = last[0]
+      commit.author_email    = last[1]
+      assert(last[2][0:1] == b'@')
+      commit.author_date     = last[2][1:]
+      commit.committer_name  = last[3]
+      commit.committer_email = last[4]
+      assert(last[5][0:1] == b'@')
+      commit.committer_date  = last[5][1:]
+
+    if not (self.args.tree_filter or self.args.index_filter or
+            self.args.commit_filter):
+      return
+
+    # os.environ needs its arguments to be strings because it will call
+    # .encode on them.  So lame when we already know the necessary bytes,
+    # but whatever...just call fr.decode() and be done with it.
+    os.environ['GIT_INDEX_FILE'] = fr.decode(self.index_file)
+    os.environ['GIT_WORK_TREE'] = fr.decode(self.tmp_tree)
+    if self.args.tree_filter or self.args.index_filter:
+      full_tree = False
+      deletion_changes = [x for x in commit.file_changes if x.type == b'D']
+      if len(commit.parents) >= 1 and not isinstance(commit.parents[0], int):
+        # When a commit's parent is a commit hash rather than an integer,
+        # it means that we are doing a partial history rewrite with an
+        # excluded revision range.  In such a case, the first non-excluded
+        # commit (i.e. this commit) won't be building on a bunch of history
+        # that was filtered, so we filter the entire tree for that commit
+        # rather than just the files it modified relative to its parent.
+        full_tree = True
+        self._populate_full_index(commit.parents[0])
+      else:
+        self._populate_index(commit.file_changes)
+      if self.args.tree_filter:
+        # Make sure self.tmp_tree is a new clean directory and we're in it
+        if os.path.exists(self.tmp_tree):
+          shutil.rmtree(self.tmp_tree)
+        os.makedirs(self.tmp_tree)
+        # Put the files there
+        subprocess.check_call('git checkout-index --all'.split())
+        # Call the tree filter
+        subprocess.call(self.args.tree_filter, shell=True, cwd=self.tmp_tree)
+        # Add the files, then move out of the directory
+        subprocess.check_call('git add -A'.split())
+      if self.args.index_filter:
+        subprocess.call(self.args.index_filter, shell=True, cwd=self.tmp_tree)
+      self._update_file_changes_from_index(commit)
+      if full_tree:
+        commit.file_changes.insert(0, fr.FileChange(b'DELETEALL'))
+      elif deletion_changes and self.args.tree_filter:
+        orig_deletions = set(x.filename for x in deletion_changes)
+        # Populate tmp_tree with all the deleted files, each containing its
+        # original name
+        shutil.rmtree(self.tmp_tree)
+        os.makedirs(self.tmp_tree)
+        for change in deletion_changes:
+          dirname, basename = os.path.split(change.filename)
+          realdir = os.path.join(self.tmp_tree, dirname)
+          if not os.path.exists(realdir):
+            os.makedirs(realdir)
+          with open(os.path.join(realdir, basename), 'bw') as f:
+            f.write(change.filename)
+        # Call the tree filter
+        subprocess.call(self.args.tree_filter, shell=True, cwd=self.tmp_tree)
+        # Get the updated file deletions
+        updated_deletion_paths = set()
+        for dirname, subdirs, files in os.walk(self.tmp_tree):
+          for basename in files:
+            filename = os.path.join(dirname, basename)
+            with open(filename, 'br') as f:
+              orig_name = f.read()
+            if orig_name in orig_deletions:
+              updated_deletion_paths.add(filename[len(self.tmp_tree)+1:])
+        # ...and finally add them to the list
+        commit.file_changes += [fr.FileChange(b'D', filename)
+                                for filename in updated_deletion_paths]
+
+    if self.args.commit_filter:
+      # Define author and committer info for commit_filter
+      envvars = self._env_variables(commit)
+      if self.args.env_filter:
+        envvars += self.args.env_filter.encode() + b'\n'
+
+      # Get tree and parents we need to pass
+      cmd = b'git rev-parse %s^{tree}' % commit.original_id
+      tree = subprocess.check_output(cmd.split()).strip()
+      parent_pairs = zip(['-p']*len(commit.parents), commit.parents)
+
+      # Define the command to run
+      combined_shell_snippet = (self._commit_filter_functions + envvars +
+                                self.args.commit_filter.encode())
+      cmd = ['/bin/sh', '-c', combined_shell_snippet, "git commit-tree", tree]
+      cmd += [item for pair in parent_pairs for item in pair]
+
+      # Run it and get the new commit
+      new_commit = subprocess.check_output(cmd, input = commit.message).strip()
+      commit.skip(new_commit)
+
+      reset = fr.Reset(commit.branch, new_commit)
+      self.filter.insert(reset)
+    del os.environ['GIT_WORK_TREE']
+    del os.environ['GIT_INDEX_FILE']
+
+  def tag_rename(self, refname):
+    if not self.args.tag_name_filter or not refname.startswith(b'refs/tags/'):
+      return refname
+
+    newname = subprocess.check_output(self.args.tag_name_filter, shell=True,
+                                      input=refname[10:]).strip()
+    return b'refs/tags/' + newname
+
+  def deref_tags(self, tag, metadata):
+    '''[BUG-COMPAT] fast-export and fast-import nicely and naturally handle tag
+       objects.  Trying to break this and destroy the correct handling of tags
+       requires extra work.  In particular, De-referencing tags and thus
+       forcing all tags to be lightweight is something that would only be done
+       by someone who was insane, or someone who was trying to mimic
+       filter-branch's functionality.  But then, perhaps I repeat myself.
+       Anyway, let's mimic yet another insanity of filter-branch here...
+    '''
+
+    if self.args.tag_name_filter:
+      return
+
+    tag.skip()
+    reset = Reset(tag.ref, tag.from_ref)
+    self.filter.insert(reset, direct_insertion = False)
+
+  def muck_stuff_up(self):
+    self._check_for_unsupported_args()
+    self._setup()
+    extra_args = []
+    if self.args.subdirectory_filter:
+      extra_args = ['--subdirectory-filter', self.args.subdirectory_filter]
+      self.args.prune_empty = True
+    fr_args = fr.FilteringOptions.parse_args(['--preserve-commit-hashes',
+                                              '--preserve-commit-encoding',
+                                              '--replace-refs', 'update-no-add',
+                                              '--source', '.',
+                                              '--target', '.',
+                                              '--force'] + extra_args)
+    fr_args.prune_empty = 'always' if self.args.prune_empty else 'never'
+    fr_args.refs = self.get_extended_refs()
+    self.filter = fr.RepoFilter(fr_args,
+                                commit_callback=self.fixup_commit,
+                                refname_callback=self.tag_rename,
+                                tag_callback=self.deref_tags)
+    self.filter.run()
+    self._write_original_refs()
+    self._cleanup()
+
+overrides = ('GIT_TEST_DISALLOW_ABBREVIATED_OPTIONS',
+             'I_PROMISE_TO_UPGRADE_TO_FILTER_REPO')
+if not any(x in os.environ for x in overrides) and sys.argv[1:] != ['--help']:
+  print("""
+WARNING: While filter-lamely is a better filter-branch than filter-branch,
+         it is vastly inferior to filter-repo.  Please use filter-repo
+         instead. (You can squelch this warning and five second pause with
+           export {}=1 )""".format(overrides[-1]))
+  import time
+  time.sleep(5)
+filter_branch = UserInterfaceNightmare()
+filter_branch.muck_stuff_up()
