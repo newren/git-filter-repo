@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+"""
+This is a simple program that will add Signed-off-by: tags to a range of
+commits.  Example usage, to add a signed-off-by trailer to every commit that
+is not in next but is in any of master, develop, or maint:
+  signed-off-by master develop maint ^next
+More likely called as:
+  signed-off-by master~4..master
+There's no real reason to use this script since `rebase --signoff` exists;
+it's mostly just a demonstration of what could be done.
+"""
+
+"""
+Please see the
+  ***** API BACKWARD COMPATIBILITY CAVEAT *****
+near the top of git-filter-repo.
+"""
+
+import argparse
+import re
+import subprocess
+try:
+  import git_filter_repo as fr
+except ImportError:
+  raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
+
+parser = argparse.ArgumentParser(
+          description="Add 'Signed-off-by:' tags to a range of commits")
+parser.add_argument('rev_list_args', metavar='rev-list args',
+                    nargs=argparse.REMAINDER,
+        help=("Range of commits (need to include ref tips) to work on"))
+myargs = parser.parse_args()
+
+user_name = subprocess.check_output('git config user.name'.split()).rstrip()
+user_email = subprocess.check_output('git config user.email'.split()).rstrip()
+trailer = b'Signed-off-by: %s <%s>' % (user_name, user_email)
+
+def add_signed_off_by_trailer(commit, metadata):
+  if trailer in commit.message:
+    return
+
+  # We want to add the trailer, but we want it to be separated from any
+  # existing paragraphs by a blank line.  However, if the commit message
+  # already ends with trailers, then we want all trailers to be on adjacent
+  # lines.
+  if not commit.message.endswith(b'\n'):
+    commit.message += b'\n'
+  lastline = commit.message.splitlines()[-1]
+  if not re.match(b'[A-Za-z0-9-_]*: ', lastline):
+    commit.message += b'\n'
+  commit.message += trailer
+
+# Setting source and target to anything prevents:
+#   * remapping origin remote tracking branches to regular branches
+#   * deletion of the origin remote
+#   * nuking unused refs
+#   * nuking reflogs
+#   * repacking
+# so we cheat and set source and target both to '.'
+args = fr.FilteringOptions.parse_args(['--source', '.',
+                                       '--target', '.',
+                                       '--force',
+                                       '--replace-refs', 'update-no-add',
+                                       '--refs'] + myargs.rev_list_args)
+args.refs = myargs.rev_list_args
+filter = fr.RepoFilter(args, commit_callback=add_signed_off_by_trailer)
+filter.run()
