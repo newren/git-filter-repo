@@ -617,6 +617,7 @@ class Commit(_GitElementWithId):
                file_changes,
                parents,
                original_id = None,
+               encoding = None, # encoding for message; None implies UTF-8
                **kwargs):
     _GitElementWithId.__init__(self)
     self.old_id = self.id
@@ -648,7 +649,8 @@ class Commit(_GitElementWithId):
     # Record date the commit was made
     self.committer_date  = committer_date
 
-    # Record commit message
+    # Record commit message and its encoding
+    self.encoding = encoding
     self.message = message
 
     # List of file-changes associated with this commit. Note that file-changes
@@ -675,14 +677,15 @@ class Commit(_GitElementWithId):
                  b'mark :%d\n'
                  b'author %s <%s> %s\n'
                  b'committer %s <%s> %s\n'
-                 b'data %d\n%s%s'
                 ) % (
                   self.branch, self.id,
                   self.author_name, self.author_email, self.author_date,
-                  self.committer_name, self.committer_email, self.committer_date,
-                  len(self.message), self.message,
-                  extra_newline)
-               )
+                  self.committer_name, self.committer_email, self.committer_date
+               ))
+    if self.encoding:
+      file_.write(b'encoding %s\n' % self.encoding)
+    file_.write(b'data %d\n%s%s' %
+                (len(self.message), self.message, extra_newline))
     for i, parent in enumerate(self.parents):
       file_.write(b'from ' if i==0 else b'merge ')
       if isinstance(parent, int):
@@ -991,6 +994,11 @@ class FastExportParser(object):
     self._advance_currentline()
     return original_id
 
+  def _parse_encoding(self):
+    encoding = self._currentline[len(b'encoding '):].rstrip()
+    self._advance_currentline()
+    return encoding
+
   def _parse_ref_line(self, refname):
     """
     Parses string data (often a branch name) from current-line. The name of
@@ -1147,6 +1155,10 @@ class FastExportParser(object):
       (author_name, author_email, author_date) = \
         (committer_name, committer_email, committer_date)
 
+    encoding = None
+    if self._currentline.startswith(b'encoding '):
+      encoding = self._parse_encoding()
+
     commit_msg = self._parse_data()
 
     pinfo = [self._parse_optional_parent_ref(b'from')]
@@ -1188,10 +1200,7 @@ class FastExportParser(object):
     commit = Commit(branch,
                     author_name,    author_email,    author_date,
                     committer_name, committer_email, committer_date,
-                    commit_msg,
-                    file_changes,
-                    parents,
-                    original_id)
+                    commit_msg, file_changes, parents, original_id, encoding)
 
     # If fast-export text had a mark for this commit, need to make sure this
     # mark translates to the commit's true id.

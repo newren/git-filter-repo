@@ -831,6 +831,33 @@ test_expect_success 'commit hash unchanged if requested' '
 	)
 '
 
+test_expect_success 'commit message encoding preserved if requested' '
+	(
+		git init commit_message_encoding &&
+		cd commit_message_encoding &&
+
+		cat >input <<-\EOF &&
+		feature done
+		commit refs/heads/develop
+		mark :1
+		original-oid deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+		author Just Me <just@here.org> 1234567890 -0200
+		committer Just Me <just@here.org> 1234567890 -0200
+		encoding iso-8859-7
+		data 5
+		EOF
+
+		printf "Pi: \360\n\ndone\n" >>input &&
+
+		cat input | git fast-import --quiet &&
+		git rev-parse develop >expect &&
+
+		git filter-repo --preserve-commit-encoding --force &&
+		git rev-parse develop >actual &&
+		test_cmp expect actual
+	)
+'
+
 test_expect_success 'commit message rewrite unsuccessful' '
 	(
 		git init commit_msg_not_found &&
