@@ -1,0 +1,449 @@
+#!/usr/bin/env python3
+
+"""
+This is a re-implementation of BFG Repo Cleaner, with some changes...
+
+New features:
+* pruning unwanted objects streamlined (automatic repack) and made more robust
+  (BFG makes user repack manually, and while it provides instructions on how
+   to do so, it won't successfully remove large objects in cases like unpacked
+   refs, loose objects, or use of --no-blob-protection; the robustness details
+   are bugfixes, so are covered below.)
+* pruning of commits which become empty (or become degenerate and empty)
+* creation of new replace refs so folks can access new commits using old
+  (unabbreviated) commit hashes
+* respects and uses grafts and replace refs in the rewrite to make them
+  permanent (this is half new feature, half bug fix; thus also mentioned
+  in bugfixes below)
+* auto-update of commit encoding to utf-8 (as per fast-export's default;
+  could pass --preserve-commit-encoding to FilteringOptions.parse_args() if
+  this isn't wanted...)
+
+Bug fixes:
+* Works for both packfiles and loose objects
+  (With BFG, if you don't repack before running, large blobs may be retained.)
+  (With BFG, any files larger than core.bigFileThreshold are thus hard to
+   remove since they will not be packed by a gc or a repack.)
+* Works for both packed-refs and loose refs
+  (As per BFG issue #221, BFG fails to properly walk history unless packed.)
+* Works with replace refs
+  (BFG operates directly on packfiles and packed-refs, and does not
+   understand replace refs; see BFG issue #82)
+* Updates both index and working tree at end of rewrite
+  (With BFG and --no-blob-protection, these are still left out-of-date.  This
+   is a doubly-whammy principle-of-least-astonishment violation: (1) users
+   are likely to accidentally commit the "staged" changes, re-introducing the
+   large blobs or removed passwords, (2) even if they don't commit the
+   changes the index holding them will prevent gc from shrinking the repo.
+   Fixing these two glaring problems not only makes --no-blob-protection
+   safe to recommend, it makes it safe to make it the default.)
+* Fixes the "protection" defaults
+  (With BFG, it won't rewrite the tree for HEAD; it can't reasonably switch
+   to doing so because of the bugs mentioned above with updating the index
+   and working tree.  However, this behavior comes with a surprise for users:
+   if HEAD is "protected" because users should manually update it first, why
+   isn't that also true of the other branches?  In my opinion, there's no
+   user-facing distinction that makes sense for such a difference in
+   handling.  "Protecting" HEAD can also be an error-prone requirement for
+   users -- why do they have to manually edit all files the same way
+   --replace-text is doing and why do they have to risk dirty diffs if they
+   get it slightly different (or a useless and ugly empty commit if they
+   manage to get it right)?  Finally, a third reason this was in my opinion a
+   bad default was that it works really poorly in conjunction with other
+   types of history rewrites, e.g. --subdirectory-filter,
+   --to-subdirectory-filter, --convert-to-git-lfs, --path-rename, etc.  For
+   all three of these reasons, and the fixes mentioned above to make it safe,
+   --no-blob-protection is made the default.)
+* Implements privacy improvements, defaulting to true
+  (As per BFG #139, one of the BFG maintainers notes problematic issues
+   with the "privacy" handling in BFG, suggesting options which could be
+   added to improve the story.  I implemented those options, except that I
+   felt --private should be the default and made the various non-private
+   choices individual options; see the --use-* options.)
+
+Other changes:
+* Removed the --convert-to-git-lfs option
+  (As per BFG issues #116 and #215, and git-lfs issue #1589, handling LFS
+   conversion is poor in BFG and not recommended; other tools are suggested
+   even by the BFG authors.)
+* Removed the --strip-biggest-blobs option
+  (I philosophically disagree with offering such an option when no
+   mechanism is provided to see what the N biggest blobs are.  How is the
+   user supposed to select N?  Even if they know they have three files
+   which have been large, they may be unaware of others in history.  Even
+   if there aren't any other files in history and the user requests to
+   remove the largest three blobs, it might not be what they want: one of
+   the files might have had multiple versions, in which case their request
+   would only remove some versions of the largest file from history and
+   leave all versions of the second and third largest files as well as all
+   but three versions of the largest file.  Finally, on a more minor note,
+   what is done in the case of a tie -- remove more than N, less than N, or
+   just pick one of the objects tieing for Nth largest at random?  It's
+   ill-defined.)
+
+...even with all these improvements, I think filter-repo is the better tool,
+and thus I suggest folks use it.  I have no plans to improve bfg-ish
+further.  However, bfg-ish serves as a nice demonstration of the ability to
+use filter-repo to write different filtering tools, which was its purpose.
+"""
+
+"""
+Please see the
+  ***** API BACKWARD COMPATIBILITY CAVEAT *****
+near the top of git-filter-repo.
+"""
+
+import argparse
+import fnmatch
+import os
+import re
+import subprocess
+import tempfile
+try:
+  import git_filter_repo as fr
+except ImportError:
+  raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
+
+def java_to_fnmatch_glob(extended_glob):
+  if not extended_glob:
+    return None
+  curly_re = re.compile(br'(.*){([^{}]*)}(.*)')
+  m = curly_re.match(extended_glob)
+  if not m:
+    return [extended_glob]
+
+  all_answers = [java_to_fnmatch_glob(m.group(1)+x+m.group(3))
+                 for x in m.group(2).split(b',')]
+  return [item for sublist in all_answers for item in sublist]
+
+class BFG_ish:
+  def __init__(self):
+    self.blob_sizes = {}
+    self.filtered_blobs = {}
+    self.cat_file_proc = None
+    self.replacement_rules = None
+    self._hash_re = re.compile(br'(\b[0-9a-f]{7,40}\b)')
+    self.args = None
+
+  def parse_options(self):
+    usage = 'bfg-ish [options] [<repo>]'
+    parser = argparse.ArgumentParser(description="bfg-ish 1.13.0", usage=usage)
+    parser.add_argument('--strip-blobs-bigger-than', '-b', metavar='<size>',
+            help=("strip blobs bigger than X (e.g. '128K', '1M', etc)"))
+    #parser.add_argument('--strip-biggest-blobs', '-B', metavar='NUM',
+    #        help=("strip the top NUM biggest blobs"))
+    parser.add_argument('--strip-blobs-with-ids', '-bi',
+                        metavar='<blob-ids-file>',
+            help=("strip blobs with the specified Git object ids"))
+    parser.add_argument('--delete-files', '-D', metavar='<glob>',
+                        type=os.fsencode,
+            help=("delete files with the specified names (e.g. '*.class', '*.{txt,log}' - matches on file name, not path within repo)"))
+    parser.add_argument('--delete-folders', metavar='<glob>',
+                        type=os.fsencode,
+            help=("delete folders with the specified names (e.g. '.svn', '*-tmp' - matches on folder name, not path within repo)"))
+    parser.add_argument('--replace-text', '-rt', metavar='<expressions-file>',
+            help=("filter content of files, replacing matched text. Match expressions should be listed in the file, one expression per line - by default, each expression is treated as a literal, but 'regex:' & 'glob:' prefixes are supported, with '==>' to specify a replacement string other than the default of '***REMOVED***'."))
+    parser.add_argument('--filter-content-including', '-fi', metavar='<glob>',
+                        type=os.fsencode,
+            help=("do file-content filtering on files that match the specified expression (eg '*.{txt,properties}')"))
+    parser.add_argument('--filter-content-excluding', '-fe', metavar='<glob>',
+                        type=os.fsencode,
+            help=("don't do file-content filtering on files that match the specified expression (eg '*.{xml,pdf}')"))
+    parser.add_argument('--filter-content-size-threshold', '-fs',
+                        metavar='<size>', default=1048576, type=int,
+            help=("only do file-content filtering on files smaller than <size> (default is 1048576 bytes)"))
+    parser.add_argument('--preserve-ref-tips', '--protect-blobs-from', '-p',
+                        metavar='<refs>', nargs='+',
+            help=("Do not filter the trees for final commit of the specified refs, only in the history before those commits (by default, filtering options affect all commits, even those at ref tips).  This is not recommended."))
+    parser.add_argument('--no-blob-protection', action='store_true',
+            help=("allow the BFG to modify even your *latest* commit.  Not only is this highly recommended, it is the default.  As such, this option does not actually do anything and is provided solely for compatibility with BFG.  To undo this option, use --preserve-ref-tips and specify HEAD or the current branch name"))
+    parser.add_argument('--use-formerly-log-text', action='store_true',
+            help=("when updating commit hashes in commit messages also add a [formerly OLDHASH] text, possibly violating commit message line length guidelines and providing an inferior way to lookup old hashes (replace references are much preferred as git itself will understand them)"))
+    parser.add_argument('--use-formerly-commit-footer', action='store_true',
+            help=("append a `Former-commit-id:` footer to commit messages.  This is an inferior way to lookup old hashes (replace references are much preferred as git itself will understand them)"))
+    parser.add_argument('--use-replace-blobs', action='store_true',
+            help=("replace any removed file by a `<filename>.REMOVED.git-id` file.  Makes history ugly as it litters it with replacement files for each one you want removed, but has a small chance of being useful if you find you pruned something incorrectly."))
+    parser.add_argument('--private', action='store_true',
+            help=("this option does nothing and is provided solely for compatibility with bfg; to undo it, use the --use-* options"))
+    parser.add_argument('--massive-non-file-objects-sized-up-to',
+                        metavar='<size>',
+            help=("this option does nothing and is provided solely for compatibility with bfg"))
+    parser.add_argument('repo', type=os.fsencode,
+            help=("file path for Git repository to clean"))
+
+    args = parser.parse_args()
+    return args
+
+  def convert_replace_text(self, filename):
+    tmpfile, newname = tempfile.mkstemp()
+    os.close(tmpfile)
+    with open(newname, 'bw') as outfile:
+      with open(filename, 'br') as infile:
+        for line in infile:
+          if line.startswith(b'regex:'):
+            beg, end = line.split(b'==>')
+            end = re.sub(br'\$([0-9])', br'\\\1', end)
+            outfile.write(b'%s==>%s\n' % (beg, end))
+          elif line.startswith(b'glob:'):
+            outfile.write(b'glob:' + java_to_fnmatch_glob(line[5:]))
+          else:
+            outfile.write(line)
+    return newname
+
+  def path_wanted(self, filename):
+    if not self.args.delete_files and not self.args.delete_folders:
+      return filename
+    paths = filename.split(b'/')
+    dirs = paths[0:-1]
+    basename = paths[-1]
+    if self.args.delete_files and any(fnmatch.fnmatch(basename, x)
+                                 for x in self.args.delete_files):
+      return False
+    if self.args.delete_folders and any(any(fnmatch.fnmatch(dirname, x)
+                                            for dirname in dirs)
+                                        for x in self.args.delete_folders):
+      return False
+    return True
+
+  def should_filter_path(self, filename):
+    def matches(basename, glob_list):
+      return any(fnmatch.fnmatch(basename, x) for x in glob_list)
+
+    basename = os.path.basename(filename)
+    if self.args.filter_content_including and \
+       not matches(basename, self.args.filter_content_including):
+        return False
+
+    if self.args.filter_content_excluding and \
+       matches(basename, self.args.filter_content_excluding):
+      return False
+
+    return True
+
+  def filter_relevant_blobs(self, commit):
+    for change in commit.file_changes:
+      if change.type == b'D':
+        continue # deleted files have no remaining content to filter
+
+      if change.mode in (b'120000', b'160000'):
+        continue # symlinks and submodules aren't text files we can filter
+
+      if change.blob_id in self.filtered_blobs:
+        change.blob_id = self.filtered_blobs[change.blob_id]
+        continue
+
+      if self.args.filter_content_size_threshold:
+        size = self.blob_sizes[change.blob_id]
+        if size >= self.args.filter_content_size_threshold:
+          continue
+
+      if not self.should_filter_path(change.filename):
+        continue
+
+      self.cat_file_proc.stdin.write(change.blob_id + b'\n')
+      self.cat_file_proc.stdin.flush()
+      objhash, objtype, objsize = self.cat_file_proc.stdout.readline().split()
+      # FIXME: This next line assumes the file fits in memory; though the way
+      # fr.Blob works we kind of have that assumption baked in elsewhere too...
+      contents = self.cat_file_proc.stdout.read(int(objsize))
+      for literal, replacement in self.replacement_rules['literals']:
+        contents = contents.replace(literal, replacement)
+      for regex,   replacement in self.replacement_rules['regexes']:
+        contents = regex.sub(replacement, contents)
+      self.cat_file_proc.stdout.read(1) # Read trailing newline
+
+      blob = fr.Blob(contents)
+      self.filter.insert(blob)
+      self.filtered_blobs[change.blob_id] = blob.id
+      change.blob_id = blob.id
+
+  def munge_message(self, message, metadata):
+    def replace_hash(matchobj):
+      oldhash = matchobj.group(1)
+      newhash = metadata['commit_rename_func'](oldhash)
+      if newhash != oldhash and self.args.use_formerly_log_text:
+        newhash = b'%s [formerly %s]' % (newhash, oldhash)
+      return newhash
+
+    return self._hash_re.sub(replace_hash, message)
+
+  def commit_update(self, commit, metadata):
+    # Strip out unwanted files
+    new_file_changes = []
+    for change in commit.file_changes:
+      if not self.path_wanted(change.filename):
+        if not self.args.use_replace_blobs:
+          continue
+        blob = fr.Blob(change.blob_id)
+        self.filter.insert(blob)
+        change.blob_id = blob.id
+        change.filename += b'.REMOVED.git-id'
+      new_file_changes.append(change)
+    commit.file_changes = new_file_changes
+
+    # Filter text of relevant files
+    if self.replacement_rules:
+      self.filter_relevant_blobs(commit)
+
+    # Replace commit hashes in commit message with 'newhash [formerly oldhash]'
+    if self.args.use_formerly_log_text:
+      commit.message = self.munge_message(commit.message, metadata)
+
+    # Add a 'Former-commit-id:' footer
+    if self.args.use_formerly_commit_footer:
+      if not commit.message.endswith(b'\n'):
+        commit.message += b'\n'
+      lastline = commit.message.splitlines()[-1]
+      if not re.match(b'\n[A-Za-z0-9-_]*: ', lastline):
+        commit.message += b'\n'
+      commit.message += b'Former-commit-id: %s' % commit.original_id
+
+  def get_preservation_info(self, ref_tips):
+    if not ref_tips:
+      return []
+    cmd = 'git rev-parse --symbolic-full-name'.split()
+    p = subprocess.Popen(cmd + ref_tips,
+                         stdout = subprocess.PIPE,
+                         stderr = subprocess.STDOUT)
+    ret = p.wait()
+    output = p.stdout.read()
+    if ret != 0:
+      raise SystemExit("Failed to translate --preserve-ref-tips arguments into refs\n"+fr.decode(output))
+    refs = output.splitlines()
+    ref_trees = [b'%s^{tree}' % ref for ref in refs]
+    output = subprocess.check_output(['git', 'rev-parse'] + ref_trees)
+    trees = output.splitlines()
+    return dict(zip(refs, trees))
+
+  def revert_tree_changes(self, preserve_refs):
+    # FIXME: Since this function essentially creates a new commit (with the
+    # original tree) to replace the commit at the ref tip (which has a
+    # filtered tree), I should update the created refs/replace/ object to
+    # point to the newest commit.  Also, the double reset (see comment near
+    # where revert_tree_changes is called) seems kinda lame.  It'd be easy
+    # enough to fix these issues, but I'm very unmotivated since
+    # --preserve-ref-tips/--protect-blobs-from is a design mistake.
+    updates = {}
+    for ref, tree in preserve_refs.items():
+      output = subprocess.check_output('git cat-file -p'.split()+[ref])
+      lines = output.splitlines()
+      if not lines[0].startswith(b'tree '):
+        raise SystemExit("Error: --preserve-ref-tips only works with commit refs")
+      num = 1
+      parents = []
+      while lines[num].startswith(b'parent '):
+        parents.append(lines[num][7:])
+        num += 1
+      assert lines[num].startswith(b'author ')
+      author_info = [x.strip()
+                     for x in re.split(b'[<>]', lines[num][7:])]
+      aenv = 'GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_AUTHOR_DATE'.split()
+      assert lines[num+1].startswith(b'committer ')
+      committer_info = [x.strip()
+                        for x in re.split(b'[<>]', lines[num+1][10:])]
+      cenv = 'GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL GIT_COMMITTER_DATE'.split()
+      new_env = {**os.environ.copy(),
+                 **dict(zip(aenv, author_info)),
+                 **dict(zip(cenv, committer_info))}
+      assert lines[num+2] == b''
+      commit_msg = b'\n'.join(lines[num+3:])+b'\n'
+      p_s = [val for pair in zip(['-p',]*len(parents), parents) for val in pair]
+      p = subprocess.Popen('git commit-tree'.split() + p_s + [tree],
+                           stdin = subprocess.PIPE, stdout = subprocess.PIPE,
+                           env = new_env)
+      p.stdin.write(commit_msg)
+      p.stdin.close()
+      if p.wait() != 0:
+        raise SystemExit("Error: failed to write preserve commit for {} [{}]"
+                         .format(ref, tree))
+      updates[ref] = p.stdout.read().strip()
+    p = subprocess.Popen('git update-ref --stdin'.split(),
+                         stdin = subprocess.PIPE)
+    for ref, newvalue in updates.items():
+      p.stdin.write(b'update %s %s\n' % (ref, newvalue))
+    p.stdin.close()
+    if p.wait() != 0:
+      raise SystemExit("Error: failed to write preserve commits")
+
+  def run(self):
+    bfg_args = self.parse_options()
+    preserve_refs = self.get_preservation_info(bfg_args.preserve_ref_tips)
+
+    os.chdir(bfg_args.repo)
+    bfg_args.delete_files = java_to_fnmatch_glob(bfg_args.delete_files)
+    bfg_args.delete_folders = java_to_fnmatch_glob(bfg_args.delete_folders)
+    bfg_args.filter_content_including = \
+             java_to_fnmatch_glob(bfg_args.filter_content_including)
+    bfg_args.filter_content_excluding = \
+             java_to_fnmatch_glob(bfg_args.filter_content_excluding)
+    if bfg_args.replace_text and bfg_args.filter_content_size_threshold:
+      # FIXME (perf): It would be much more performant and probably make more
+      # sense to have a `git cat-file --batch-check` process running and query
+      # it for blob sizes, since we may only need a small subset of blob sizes
+      # rather than the sizes of all objects in the git database.
+      self.blob_sizes, packed_sizes = fr.GitUtils.get_blob_sizes()
+    extra_args = []
+    if bfg_args.strip_blobs_bigger_than:
+      extra_args = ['--strip-blobs-bigger-than',
+                    bfg_args.strip_blobs_bigger_than]
+    if bfg_args.strip_blobs_with_ids:
+      extra_args = ['--strip-blobs-with-ids',
+                    bfg_args.strip_blobs_with_ids]
+    if bfg_args.use_formerly_log_text:
+      extra_args += ['--preserve-commit-hashes']
+    new_replace_file = None
+    if bfg_args.replace_text:
+      new_replace_file = self.convert_replace_text(bfg_args.replace_text)
+      rules = fr.FilteringOptions.get_replace_text(new_replace_file)
+      self.replacement_rules = rules
+      self.cat_file_proc = subprocess.Popen(['git', 'cat-file', '--batch'],
+                                            stdin = subprocess.PIPE,
+                                            stdout = subprocess.PIPE)
+    self.args = bfg_args
+    # Setting source and target to anything prevents:
+    #   * remapping origin remote tracking branches to regular branches
+    #   * deletion of the origin remote
+    #   * nuking unused refs
+    #   * nuking reflogs
+    #   * repacking
+    # While these are arguably desirable things, BFG documentation assumes
+    # the first two aren't done, so for compatibility turn them all off.
+    # The third is irrelevant since BFG has no mechanism for renaming refs,
+    # and we'll manually add the fourth and fifth back in below by calling
+    # RepoFilter.cleanup().
+    fr_args = fr.FilteringOptions.parse_args(['--source', '.',
+                                              '--target', '.',
+                                              '--force'] + extra_args)
+    self.filter = fr.RepoFilter(fr_args, commit_callback=self.commit_update)
+    self.filter.run()
+    if new_replace_file:
+      os.remove(new_replace_file)
+      self.cat_file_proc.stdin.close()
+      self.cat_file_proc.wait()
+    need_another_reset = False
+    if preserve_refs:
+      self.revert_tree_changes(preserve_refs)
+      # If the repository is not bare, self.filter.run() already did a reset
+      # for us.  However, if we are preserving refs (and the repository isn't
+      # bare), we need another since we possibly updated HEAD after that
+      # reset (FIXME: two resets is kinda ugly; would be nice to just do
+      # one).
+      if not fr.GitUtils.is_repository_bare('.'):
+        need_another_reset = True
+
+    fr.RepoFilter.cleanup(bfg_args.repo, repack=True, reset=need_another_reset)
+
+if __name__ == '__main__':
+  bfg = BFG_ish()
+  bfg.run()
+  # Show the same message BFG does, even if we don't copy the rest of its
+  # progress output.  Make this program feel slightly more authentically BFG.
+  # :-)
+  print('''
+
+--
+You can rewrite history in Git - don't let Trump do it for real!
+Trump's administration has lied consistently, to make people give up on ever
+being told the truth. Don't give up: https://www.rescue.org/topic/refugees-america
+--
+''')
