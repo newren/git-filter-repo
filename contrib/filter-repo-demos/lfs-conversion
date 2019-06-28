@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+
+"""
+This converts a repo to LFS, or from using LFS.
+"""
+
+"""
+Please see the
+  ***** API BACKWARD COMPATIBILITY CAVEAT *****
+near the top of git-filter-repo.
+"""
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import subprocess
+try:
+  import git_filter_repo as fr
+except ImportError:
+  raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
+
+def config_value(option):
+  cmd = ["git", "config", option]
+  p = subprocess.Popen(["git", "config", option], stdout=subprocess.PIPE)
+  if p.wait() != 0:
+    return ''
+  return p.stdout.read().rstrip()
+
+class LFS:
+  def __init__(self, clone_url, upload = True):
+    self.clone_url = clone_url
+    self.operation = "upload" if upload else "download"
+    self.lfs_url, self.auth = self.get_lfs_url_and_auth()
+
+  def get_server_url(self):
+    '''
+    Translate URL based on docs:
+
+    Git Remote: https://git-server.com/foo/bar
+    LFS Server: https://git-server.com/foo/bar.git/info/lfs
+
+    Git Remote: https://git-server.com/foo/bar.git
+    LFS Server: https://git-server.com/foo/bar.git/info/lfs
+
+    Git Remote: git@git-server.com:foo/bar.git
+    LFS Server: https://git-server.com/foo/bar.git/info/lfs
+
+    Git Remote: ssh://git-server.com/foo/bar.git
+    LFS Server: https://git-server.com/foo/bar.git/info/lfs
+    '''
+    url = re.sub(b"^(.*)@(.*):", rb"https://\2/", self.clone_url)
+    url = re.sub(b"^ssh://", b"https://", url)
+    assert url.startswith(b"https://")
+    if not url.endswith(b".git"):
+      url += b".git"
+    url += b"/info/lfs"
+    return url
+
+  def ssh_auth(self):
+    if self.clone_url.startswith(b"https://"):
+      return None
+    url = re.sub(b"^ssh://([^/:]+)(?::[^/]*)?/(.*)", br'\1:\2', self.clone_url)
+    (where, repo) = url.split(b':')
+    cmd = ['ssh', where, 'git-lfs-authenticate', repo, self.operation]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    if p.wait() != 0:
+      raise SystemExit("Error: git-lfs-authenticate failed for {}"
+                       .format(fr.decode(self.url)))
+    return json.loads(fr.decode(subprocess.check_output(cmd)))
+
+  def get_lfs_url_and_auth(self):
+    maindir = subprocess.check_output('git rev-parse --show-toplevel'.split())
+    if maindir:
+      dotlfsconfig = os.path.join(maindir.rstrip(), b'.lfsconfig')
+      if os.path.exists(dotlfsconfig):
+        return subprocess.check_output((b'git config --file %s lfs.url'
+                                        % dotlfsconfig).split()).rstrip(), None
+    url = config_value("remote.origin.lfsurl")
+    if url:
+      return url, None
+    url = config_value("lfs.url")
+    if url:
+      return url, None
+    results = self.ssh_auth()
+    if results:
+      return results["href"], results["header"]
+    return self.get_server_url(), None
+
+  def download_object(self):
+    raise NotImplementedError("I am so lame.")
+
+  def upload_object(self):
+    raise NotImplementedError("I am so lame.")
+
+class FilterObjectsOut:
+  def __init__(self):
+    self.use_lfs = None # Unknown
+    self.cat_file_proc = None
+
+  def parse_options(self):
+    parser = argparse.ArgumentParser(
+              description='Converts a repo to using LFS, or from using LFS.')
+    switch = parser.add_mutually_exclusive_group()
+    switch.add_argument('--to-lfs', dest='use_lfs', action='store_true',
+            help=("Convert this repo to using LFS"))
+    switch.add_argument('--from-lfs', dest='use_lfs', action='store_false',
+            help=("Convert this repo from using LFS"))
+    parser.set_defaults(use_lfs=None)
+    convert_args, remaining_args = parser.parse_known_args()
+    if convert_args.use_lfs is None:
+      raise SystemExit("Error: Need to specify either --to-lfs or --from-lfs")
+    self.use_lfs = convert_args.use_lfs
+
+    args = fr.FilteringOptions.parse_args(remaining_args)
+    if any(x[0] == 'rename' for x in args.path_changes):
+      raise SystemExit("Error: --path-rename is incompatible with lfs-conversion.  If you want to rename paths, do it in a separate step before or after lfs-conversion.")
+
+    return args
+
+  def lfs_ize_filtered_files(self, commit, metadata):
+    remaining_changes = set(change.filename for change in commit.file_changes)
+    for change in metadata['orig_changes']:
+      if change.filename in remaining_changes:
+        continue
+
+      # We assume there was no blob callback, and thus that references to
+      # blobs are full hashes
+      assert not isinstance(change.blob_id, int)
+
+      # See if we already converted this one
+      if change.blob_id in self.conversions:
+        change.blob_id = self.conversions[change.blob_id]
+        continue
+
+      # Get the old blob contents
+      self.cat_file_proc.stdin.write(change.blob_id + b'\n')
+      self.cat_file_proc.stdin.flush()
+      objhash, objtype, objsize = self.cat_file_proc.stdout.readline().split()
+      m = hashlib.sha256()
+      blocksize = 8192
+      remaining = int(objsize)
+      while remaining > 0:
+        more = cat_file_proc.stdout.read(min(blocksize, remaining))
+        m.update(more)
+        remaining -= blocksize
+      self.cat_file_proc.stdout.read(1) # Read trailing newline
+
+      # lfs-ize this object
+      data = 'version https://git-lfs.github.com/spec/v1\n'
+      data += 'oid sha256:{}\n'.format(m.hexdigest())
+      data += 'size {}\n'.format(objsize)
+      blob = fr.Blob(data)
+      self.conversions[change.blob_id] = blob.id
+      change.blob_id = blob.id
+
+  def run(self):
+    args = self.parse_options()
+    args.force = True # FIXME
+    self.cat_file_proc = subprocess.Popen(['git', 'cat-file', '--batch'],
+                                             stdin = subprocess.PIPE,
+                                             stdout = subprocess.PIPE)
+    filter = fr.RepoFilter(args, commit_callback=self.lfs_ize_filtered_files)
+    filter.run()
+    self.cat_file_proc.stdin.close()
+    self.cat_file_proc.wait()
+
+if __name__ == '__main__':
+  lfs = LFS(config_value('remote.origin.url'))
+  raise SystemExit("I quit")
+  foo = FilterObjectsOut()
+  foo.run()
+
+'''
+Important links:
+
+https://github.com/bozaro/git-lfs-migrate
+https://github.com/bozaro/git-lfs-migrate/issues/32
+https://github.com/git-lfs/git-lfs/tree/master/docs
+https://github.com/git-lfs/git-lfs/blob/master/docs/api/server-discovery.md
+https://github.com/git-lfs/git-lfs/blob/master/docs/spec.md
+'''
