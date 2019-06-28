@@ -32,6 +32,7 @@ operations; however:
 
 import argparse
 import collections
+import copy
 import fnmatch
 import gettext
 import io
@@ -1244,6 +1245,7 @@ class FastExportParser(object):
 
     # Call any user callback to allow them to modify the commit
     aux_info = {'orig_parents': orig_parents,
+                'orig_changes': set(copy.deepcopy(file_changes)),
                 'had_file_changes': had_file_changes}
     if self._commit_callback:
       self._commit_callback(commit, aux_info)
