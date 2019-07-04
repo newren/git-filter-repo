@@ -2733,8 +2733,10 @@ class RepoFilter(object):
       if limit and len(self._pending_renames) < limit:
         return
 
-  def _translate_commit_hash(self, matchobj):
-    old_hash = matchobj.group(1)
+  def _translate_commit_hash(self, matchobj_or_oldhash):
+    old_hash = matchobj_or_oldhash
+    if not isinstance(matchobj_or_oldhash, bytes):
+      old_hash = matchobj_or_oldhash.group(1)
     orig_len = len(old_hash)
     new_hash = self._get_rename(old_hash)
     if new_hash is None:
@@ -2943,7 +2945,7 @@ class RepoFilter(object):
       self._commits_no_longer_merges.append((commit.original_id, new_id))
 
   def callback_metadata(self, extra_items = dict()):
-    return {'commit_rename_func': self._get_rename,
+    return {'commit_rename_func': self._translate_commit_hash,
             'ancestry_graph': self._graph,
             'original_ancestry_graph': self._orig_graph,
             **extra_items}
