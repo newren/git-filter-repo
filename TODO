@@ -1,18 +1,12 @@
-Crazy ideas, showing filter-repo flexibility:
+Showing filter-repo flexibility:
   - delete commits older than certain date (simple commit.skip())
   - alternative path filtering
     - doing case-insensitive path deletion
-    - clean via (current) .gitignore files [see git-check-ignore]
   - removing/inserting files
     - removing symlinks?
-    - adding a new file (LICENSE/COPYING) to the beginning of history (or
-      more accurately, each beginning of history)
     - remove a submodule (copy contents into tree for each submodule commit)
     - extract to submodule (where to put submodule history though?)
-    - convert to git lfs
-  - reformatting (lint) files in history [maybe only via git-very-bad-idea??]
   - extend argument parser and use extended version
-  - git-bfgish (bfg) and git-very-bad-idea (filter-branch, on changed-only tree)
   - more thorough repo splicing
      - given list of (newbranch name, repo1_branchA, repo2_branchB) tuples,
        walk through first parent histories and insert according to
@@ -73,13 +67,8 @@ Other feature ideas:
   - Compatibility:
     - Is any work needed to handle submodules?
   - Options:
-    - paths-from-file (similar to --replace-text, maybe also invert or basename?)
     - include-old-names-of-specified-files (auto get rename data from --analyze?)
     - add --skip-cleanup (pruning, gc, etc.; keep reset --hard) for speed compare
-    - Old list:
-      - --keep-excluded-revisions
-      - --keep-excluded-refs
-      - --negative-refs={drop,reference}
 
 Cleanups and left-over bits:
   - put $(git --exec-path) in front of PYTHONPATH before importing?
@@ -87,25 +76,9 @@ Cleanups and left-over bits:
   - metadata
     - On second and subsequent runs, update metadata instead of overwriting
        - for maps, give beginning_hash -> end_hash, not intermediate hashes
-  - error out if any progress messages in stream (can't deal with them unless
-    we can pass --cat-blob-fd to fast-import, and that seems non-portable)
 
 Documentation
-  - Examples, include these in:
-    - help output
-    - README.md
-    - manpage
-  - Add backward compatiblity guarantee warning where needed
-    - manpage
-    - discussion of --*-callback options
-  - Make list of caveats:
-    - notes about history becoming incompatible (from rebase documentation)
-    - signed tags will be stripped
-    - empty commit pruning and topological changes
-    - --fake-missing-tagger stuff
-    - commit message rewriting
-    - path rename collisions
-    - all the git.git bug reports
+  - manpage
 
 More thorough testing
   - pruning: refs or tags behind a negative revision specification
@@ -123,34 +96,6 @@ Performance:
              maybe we don't want to prune in this case anyway...)
     - Blob filtering is active AND the only file_changes involved correspond
       to filenames that have previously been modified.
-
-Argument parsing stuff:
-  # NOT YET IMPLEMENTED OPTIONS BELOW
-  misc.add_argument('--store-backup', default=None,
-                    metavar='NAMESPACE', dest='backup',
-                    help='Store a copy of original refs under refs/NAMESPACE/')
-  misc.add_argument('--keep-excluded-refs', action='store_true',
-                    help='''If refs are excluded either explicitly (e.g.
-                            ^master) or implicitly (e.g. a branch in the
-                            history of an excluded ref/revision, or a branch
-                            not listed in the set of revisions to filter),
-                            then that ref will be deleted by the filtering
-                            process.  Use --keep-excluded-refs to retain
-                            such refs.''')
-
-  misc.add_argument('--keep-excluded-revisions', action='store_true',
-                    help='''If negative revisions are provided to exclude
-                            the range of history we are filtering over (e.g.
-                            negative_branch..master or ^negative_branch_1
-                            ^negative_branch_2 master develop), then by
-                            default any commits in the history of those
-                            revisions are excluded from the filtered history
-                            (resulting in the first not-excluded commit in
-                            history becoming a root commit and often
-                            containing an unusually large number of file
-                            changes).  With --keep-excluded-revisions, those
-                            commits are all retained (in their unfiltered
-                            form).''')
 
 BFG issues:
   3 basic types:
