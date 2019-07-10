@@ -2699,6 +2699,29 @@ class RepoFilter(object):
       if len(output.splitlines()) > 1:
         abort(_('you have multiple worktrees'))
 
+  @staticmethod
+  def cleanup(repo, repack, reset, run_quietly=False, show_debuginfo=False):
+    ''' cleanup repo; if repack then expire reflogs and do a gc --prune=now.
+        if reset then do a reset --hard.  Optionally also curb output if
+        run_quietly is True, or go the opposite direction and show extra
+        output if show_debuginfo is True. '''
+    assert not (run_quietly and show_debuginfo)
+
+    if (repack and not run_quietly and not show_debuginfo):
+      print(_("Repacking your repo and cleaning out old unneeded objects"))
+    quiet_flags = '--quiet' if run_quietly else ''
+    cleanup_cmds = []
+    if repack:
+      cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
+                      'git gc {} --prune=now'.format(quiet_flags).split()]
+    if reset:
+      cleanup_cmds.insert(0, 'git reset {} --hard'.format(quiet_flags).split())
+    location_info = ' (in {})'.format(decode(repo)) if repo != b'.' else ''
+    for cmd in cleanup_cmds:
+      if show_debuginfo:
+        print("[DEBUG] Running{}: {}".format(location_info, ' '.join(cmd)))
+      subprocess.call(cmd, cwd=repo)
+
   def _get_rename(self, old_hash):
     # If we already know the rename, just return it
     new_hash = self._commit_renames.get(old_hash, None)
@@ -3537,7 +3560,7 @@ class RepoFilter(object):
       print("        " + decode(self._fe_filt))
       return
 
-    target_working_dir = self._args.target or '.'
+    target_working_dir = self._args.target or b'.'
     if self._input:
       self._ref_update(target_working_dir)
 
@@ -3545,21 +3568,11 @@ class RepoFilter(object):
       self._record_metadata(self.results_tmp_dir(), self._orig_refs)
 
     # Nuke the reflogs and repack
-    if (not self._args.quiet and not self._args.debug and
-        not self._args.source and not self._args.target):
-      print(_("Repacking your repo and cleaning out old unneeded objects"))
-    quiet_flags = '--quiet' if self._args.quiet else ''
-    cleanup_cmds = []
-    if not self._args.source and not self._args.target:
-      cleanup_cmds = ['git reflog expire --expire=now --all'.split(),
-                      'git gc {} --prune=now'.format(quiet_flags).split()]
-    if not GitUtils.is_repository_bare(target_working_dir):
-      cleanup_cmds.insert(0, 'git reset {} --hard'.format(quiet_flags).split())
-    location_info = ' (in {})'.format(decode(self._args.target)) if self._args.target else ''
-    for cmd in cleanup_cmds:
-      if self._args.debug:
-        print("[DEBUG] Running{}: {}".format(location_info, ' '.join(cmd)))
-      subprocess.call(cmd, cwd=target_working_dir)
+    repack = (not self._args.source and not self._args.target)
+    reset = not GitUtils.is_repository_bare(target_working_dir)
+    RepoFilter.cleanup(target_working_dir, repack, reset,
+                       run_quietly=self._args.quiet,
+                       show_debuginfo=self._args.debug)
 
     # Let user know how long it took
     print(_("Completely finished after {:.2f} seconds.")
