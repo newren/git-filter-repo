@@ -3546,7 +3546,10 @@ class RepoFilter(object):
       raise SystemExit(_("Error: fast-import failed; see above.")) # pragma: no cover
 
     # Notify user how long it took, before doing a gc and such
-    msg = "New history written in {:.2f} seconds; now repacking/cleaning..."
+    repack = (not self._args.source and not self._args.target)
+    msg = "New history written in {:.2f} seconds..."
+    if repack:
+      msg = "New history written in {:.2f} seconds; now repacking/cleaning..."
     print(msg.format(time.time()-start))
 
     # Exit early, if requested
@@ -3568,7 +3571,6 @@ class RepoFilter(object):
       self._record_metadata(self.results_tmp_dir(), self._orig_refs)
 
     # Nuke the reflogs and repack
-    repack = (not self._args.source and not self._args.target)
     reset = not GitUtils.is_repository_bare(target_working_dir)
     RepoFilter.cleanup(target_working_dir, repack, reset,
                        run_quietly=self._args.quiet,
