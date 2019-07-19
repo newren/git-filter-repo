@@ -21,11 +21,13 @@ try:
 except ImportError:
   raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
 
-def config_value(option):
+def config_value(option, error_if_absent=False):
   cmd = ["git", "config", option]
   p = subprocess.Popen(["git", "config", option], stdout=subprocess.PIPE)
   if p.wait() != 0:
-    return ''
+    if error_if_absent:
+      raise SystemExit("Error: config option {} not set".format(option))
+    return b''
   return p.stdout.read().rstrip()
 
 class LFS:
@@ -33,6 +35,9 @@ class LFS:
     self.clone_url = clone_url
     self.operation = "upload" if upload else "download"
     self.lfs_url, self.auth = self.get_lfs_url_and_auth()
+    print(self.url)
+    print(self.lfs_url)
+    print(self.auth)
 
   def get_server_url(self):
     '''
@@ -167,7 +172,7 @@ class FilterObjectsOut:
     self.cat_file_proc.wait()
 
 if __name__ == '__main__':
-  lfs = LFS(config_value('remote.origin.url'))
+  lfs = LFS(config_value('remote.origin.url', True))
   raise SystemExit("I quit")
   foo = FilterObjectsOut()
   foo.run()
