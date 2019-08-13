@@ -26,6 +26,8 @@ Bug fixes:
    remove since they will not be packed by a gc or a repack.)
 * Works for both packed-refs and loose refs
   (As per BFG issue #221, BFG fails to properly walk history unless packed.)
+* Multiple --convert-to-git-lfs issues fixed
+  (As per BFG issues #116 and #215, handling LFS conversion is poor in BFG.)
 * Works with replace refs
   (BFG operates directly on packfiles and packed-refs, and does not
    understand replace refs; see BFG issue #82)
@@ -62,10 +64,6 @@ Bug fixes:
    choices individual options; see the --use-* options.)
 
 Other changes:
-* Removed the --convert-to-git-lfs option
-  (As per BFG issues #116 and #215, and git-lfs issue #1589, handling LFS
-   conversion is poor in BFG and not recommended; other tools are suggested
-   even by the BFG authors.)
 * Removed the --strip-biggest-blobs option
   (I philosophically disagree with offering such an option when no
    mechanism is provided to see what the N biggest blobs are.  How is the
@@ -141,6 +139,8 @@ class BFG_ish:
     parser.add_argument('--delete-folders', metavar='<glob>',
                         type=os.fsencode,
             help=("delete folders with the specified names (e.g. '.svn', '*-tmp' - matches on folder name, not path within repo)"))
+    parser.add_argument('--convert-to-git-lfs', metavar='<value>',
+            help=("extract files with the specified names (e.g. '*.zip' or '*.mp4') into Git LFS"))
     parser.add_argument('--replace-text', '-rt', metavar='<expressions-file>',
             help=("filter content of files, replacing matched text. Match expressions should be listed in the file, one expression per line - by default, each expression is treated as a literal, but 'regex:' & 'glob:' prefixes are supported, with '==>' to specify a replacement string other than the default of '***REMOVED***'."))
     parser.add_argument('--filter-content-including', '-fi', metavar='<glob>',
@@ -162,7 +162,7 @@ class BFG_ish:
     parser.add_argument('--use-formerly-commit-footer', action='store_true',
             help=("append a `Former-commit-id:` footer to commit messages.  This is an inferior way to lookup old hashes (replace references are much preferred as git itself will understand them)"))
     parser.add_argument('--use-replace-blobs', action='store_true',
-            help=("replace any removed file by a `<filename>.REMOVED.git-id` file.  Makes history ugly as it litters it with replacement files for each one you want removed, but has a small chance of being useful if you find you pruned something incorrectly."))
+            help=("replace any removed file by a `<filename>.REMOVED.git-id` file.  Makes history ugly as it litters it with replacement files for each one you want removed, but has a small chance of being useful if you find you pruned something incorrectly.  If you really want replacement files, you should probably use --convert-to-git-lfs instead."))
     parser.add_argument('--private', action='store_true',
             help=("this option does nothing and is provided solely for compatibility with bfg; to undo it, use the --use-* options"))
     parser.add_argument('--massive-non-file-objects-sized-up-to',
@@ -369,6 +369,8 @@ class BFG_ish:
     bfg_args = self.parse_options()
     preserve_refs = self.get_preservation_info(bfg_args.preserve_ref_tips)
 
+    if bfg_args.convert_to_git_lfs:
+      raise NotImplementedError("Sorry, still haven't implemented --convert-to-git-lfs")
     os.chdir(bfg_args.repo)
     bfg_args.delete_files = java_to_fnmatch_glob(bfg_args.delete_files)
     bfg_args.delete_folders = java_to_fnmatch_glob(bfg_args.delete_folders)
@@ -446,3 +448,9 @@ Trump's administration has lied consistently, to make people give up on ever
 being told the truth. Don't give up: https://www.rescue.org/topic/refugees-america
 --
 ''')
+
+
+'''
+FIXME, still need to do the following:
+  * implement convert-to-git-lfs -- bfg-like (separate param) or fr-like (acts on all deleted items)
+'''
