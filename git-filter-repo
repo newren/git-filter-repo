@@ -51,6 +51,7 @@ __all__ = ["Blob", "Reset", "FileChange", "Commit", "Tag", "Progress",
            "record_id_rename", "GitUtils", "FilteringOptions", "RepoFilter"]
 
 deleted_hash = b'0'*40
+write_marks = True
 
 def gettext_poison(msg):
   if "GIT_TEST_GETTEXT_POISON" in os.environ: # pragma: no cover
@@ -712,7 +713,7 @@ class Commit(_GitElementWithId):
     _SKIPPED_COMMITS.add(self.old_id or self.id)
     _GitElementWithId.skip(self, new_id)
 
-class Tag(_GitElement):
+class Tag(_GitElementWithId):
   """
   This class defines our representation of annotated tag elements.
   """
@@ -720,7 +721,8 @@ class Tag(_GitElement):
   def __init__(self, ref, from_ref,
                tagger_name, tagger_email, tagger_date, tag_msg,
                original_id = None):
-    _GitElement.__init__(self)
+    _GitElementWithId.__init__(self)
+    self.old_id = self.id
 
     # Denote that this is a tag element
     self.type = 'tag'
@@ -754,6 +756,8 @@ class Tag(_GitElement):
     self.dumped = 1
 
     file_.write(b'tag %s\n' % self.ref)
+    if (write_marks and self.id):
+      file_.write(b'mark :%d\n' % self.id)
     markfmt = b'from :%d\n' if isinstance(self.from_ref, int) else 'from %s\n'
     file_.write(markfmt % self.from_ref)
     if self.tagger_name:
@@ -833,6 +837,29 @@ class LiteralCommand(_GitElement):
     self.dumped = 1
 
     file_.write(self.line)
+
+class Alias(_GitElement):
+  """
+  This class defines our representation of fast-import alias elements.  An
+  alias element is the setting of one mark to the same sha1sum as another,
+  usually because the newer mark corresponded to a pruned commit.
+  """
+
+  def __init__(self, ref, to_ref):
+    _GitElement.__init__(self)
+    # Denote that this is a reset
+    self.type = 'alias'
+
+    self.ref = ref
+    self.to_ref = to_ref
+
+  def dump(self, file_):
+    """
+    Write this reset element to a file
+    """
+    self.dumped = 1
+
+    file_.write(b'alias\nmark :%d\nto :%d\n\n' % (self.ref, self.to_ref))
 
 class FastExportParser(object):
   """
@@ -1233,6 +1260,7 @@ class FastExportParser(object):
     # Parse the Tag
     tag = self._parse_ref_line(b'tag')
     self._exported_refs.add(b'refs/tags/'+tag)
+    id_ = self._parse_optional_mark()
     ignoreme, from_ref = self._parse_optional_parent_ref(b'from')
 
     original_id = None
@@ -1250,6 +1278,12 @@ class FastExportParser(object):
     tag = Tag(tag, from_ref,
               tagger_name, tagger_email, tagger_date, tag_msg,
               original_id)
+
+    # If fast-export text had a mark for this tag, need to make sure this
+    # mark translates to the tag's true id.
+    if id_:
+      tag.old_id = id_
+      _IDS.record_rename(id_, tag.id)
 
     # Call any user callback to allow them to modify the tag
     if self._tag_callback:
@@ -1808,6 +1842,23 @@ EXAMPLES
                "performed and commands being run.  When used together "
                "with --dry-run, also show extra information about what "
                "would be run."))
+    # WARNING: --state-branch has some problems:
+    #   * It does not work well with manually inserted objects (user creating
+    #     Blob() or Commit() or Tag() objects and calling
+    #     RepoFilter.insert(obj) on them).
+    #   * It does not work well with multiple source or multiple target repos
+    #   * It doesn't work so well with pruning become-empty commits (though
+    #     --refs doesn't work so well with it either)
+    # These are probably fixable, given some work (e.g. re-importing the
+    # graph at the beginning to get the AncestryGraph right, doing our own
+    # export of marks instead of using fast-export --export-marks, etc.), but
+    # for now just hide the option.
+    misc.add_argument('--state-branch',
+        #help=_("Enable incremental filtering by saving the mapping of old "
+        #       "to new objects to the specified branch upon exit, and"
+        #       "loading that mapping from that branch (if it exists) "
+        #       "upon startup."))
+        help=argparse.SUPPRESS)
     misc.add_argument('--stdin', action='store_true',
         help=_("Instead of running `git fast-export` and filtering its "
                "output, filter the fast-export stream from stdin.    The "
@@ -1846,6 +1897,12 @@ EXAMPLES
                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     p.wait()
     output = p.stdout.read()
+    if b'--mark-tags' not in output: # pragma: no cover
+      global write_marks
+      write_marks = False
+      if args.state_branch:
+        raise SystemExit(_("Error: need a version of git whose fast-export "
+                           "command has the --mark-tags option"))
     if b'--reencode' not in output: # pragma: no cover
       if args.preserve_commit_encoding:
         raise SystemExit(_("Error: need a version of git whose fast-export "
@@ -3136,7 +3193,10 @@ class RepoFilter(object):
 
     # Record ancestry graph
     parents, orig_parents = commit.parents, aux_info['orig_parents']
-    external_parents = [p for p in parents if not isinstance(p, int)]
+    if self._args.state_branch:
+      external_parents = parents
+    else:
+      external_parents = [p for p in parents if not isinstance(p, int)]
     self._graph.record_external_commits(external_parents)
     self._orig_graph.record_external_commits(external_parents)
     self._graph.add_commit_and_parents(commit.id, parents)
@@ -3159,6 +3219,9 @@ class RepoFilter(object):
       else:
         rewrite_to = new_1st_parent or commit.first_parent()
         commit.skip(new_id = rewrite_to)
+        if self._args.state_branch:
+          alias = Alias(commit.old_id or commit.id, rewrite_to or deleted_hash)
+          self._insert_into_stream(alias)
         reset = Reset(commit.branch, rewrite_to or deleted_hash)
         self._insert_into_stream(reset)
         self._commit_renames[commit.original_id] = None
@@ -3223,6 +3286,64 @@ class RepoFilter(object):
       os.mkdir(d)
     return d
 
+  def _load_marks_file(self, marks_basename):
+    full_branch = 'refs/heads/{}'.format(self._args.state_branch)
+    marks_file = os.path.join(self.results_tmp_dir(), marks_basename)
+    working_dir = self._args.target or b'.'
+    cmd = ['git', '-C', working_dir, 'show-ref', full_branch]
+    contents = b''
+    if subprocess.call(cmd, stdout=subprocess.DEVNULL) == 0:
+      cmd = ['git', '-C', working_dir, 'show',
+             '%s:%s' % (full_branch, decode(marks_basename))]
+      try:
+        contents = subprocess.check_output(cmd)
+      except subprocess.CalledProcessError as e: # pragma: no cover
+        raise SystemExit(_("Failed loading %s from %s") %
+                         (decode(marks_basename), branch))
+    if contents:
+      biggest_id = max(int(x.split()[0][1:]) for x in contents.splitlines())
+      _IDS._next_id = max(_IDS._next_id, biggest_id+1)
+    with open(marks_file, 'bw') as f:
+      f.write(contents)
+    return marks_file
+
+  def _save_marks_files(self):
+    basenames = [b'source-marks', b'target-marks']
+    working_dir = self._args.target or b'.'
+
+    # Check whether the branch exists
+    parent = []
+    full_branch = 'refs/heads/{}'.format(self._args.state_branch)
+    cmd = ['git', '-C', working_dir, 'show-ref', full_branch]
+    if subprocess.call(cmd, stdout=subprocess.DEVNULL) == 0:
+      parent = ['-p', full_branch]
+
+    # Run 'git hash-object $MARKS_FILE' for each marks file, save result
+    blob_hashes = {}
+    for marks_basename in basenames:
+      marks_file = os.path.join(self.results_tmp_dir(), marks_basename)
+      if not os.path.isfile(marks_file): # pragma: no cover
+        raise SystemExit(_("Failed to find %s to save to %s")
+                         % (marks_file, self._args.state_branch))
+      cmd = ['git', '-C', working_dir, 'hash-object', '-w', marks_file]
+      blob_hashes[marks_basename] = subprocess.check_output(cmd).strip()
+
+    # Run 'git mktree' to create a tree out of it
+    p = subprocess.Popen(['git', '-C', working_dir, 'mktree'],
+                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    for b in basenames:
+      p.stdin.write(b'100644 blob %s\t%s\n' % (blob_hashes[b], b))
+    p.stdin.close()
+    p.wait()
+    tree = p.stdout.read().strip()
+
+    # Create the new commit
+    cmd = (['git', '-C', working_dir, 'commit-tree', '-m', 'New mark files',
+            tree] + parent)
+    commit = subprocess.check_output(cmd).strip()
+    subprocess.call(['git', '-C', working_dir, 'update-ref',
+                     full_branch, commit])
+
   def importer_only(self):
     self._run_sanity_checks()
     self._setup_output()
@@ -3258,6 +3379,13 @@ class RepoFilter(object):
           self._unpacked_size, packed_size = GitUtils.get_blob_sizes()
       if use_done_feature:
         extra_flags.append('--use-done-feature')
+      if write_marks:
+        extra_flags.append(b'--mark-tags')
+      if self._args.state_branch:
+        assert(write_marks)
+        source_marks_file = self._load_marks_file(b'source-marks')
+        extra_flags.extend([b'--export-marks='+source_marks_file,
+                            b'--import-marks='+source_marks_file])
       if self._args.preserve_commit_encoding is not None: # pragma: no cover
         reencode = 'no' if self._args.preserve_commit_encoding else 'yes'
         extra_flags.append('--reencode='+reencode)
@@ -3274,8 +3402,7 @@ class RepoFilter(object):
         output = open(self._fe_orig, 'bw')
         self._input = InputFileBackup(self._input, output)
         if self._args.debug:
-          tmp = fep_cmd.copy()
-          tmp[2] = decode(tmp[2]) if isinstance(tmp[2], bytes) else tmp[2]
+          tmp = [decode(x) if isinstance(x, bytes) else x for x in fep_cmd]
           print("[DEBUG] Running: {}".format(' '.join(tmp)))
           print("  (saving a copy of the output at {})"
                 .format(decode(self._fe_orig)))
@@ -3283,7 +3410,11 @@ class RepoFilter(object):
   def _setup_output(self):
     if not self._args.dry_run:
       location = ['-C', self._args.target] if self._args.target else []
-      fip_cmd = ['git'] + location + 'fast-import --force --quiet'.split()
+      fip_cmd = ['git'] + location + ['fast-import', '--force', '--quiet']
+      if self._args.state_branch:
+        target_marks_file = self._load_marks_file(b'target-marks')
+        fip_cmd.extend([b'--export-marks='+target_marks_file,
+                        b'--import-marks='+target_marks_file])
       self._fip = subprocess.Popen(fip_cmd,
                                    bufsize=-1,
                                    stdin=subprocess.PIPE,
@@ -3297,8 +3428,7 @@ class RepoFilter(object):
       self._output = self._fip.stdin
     if self._args.debug:
       self._output = DualFileWriter(self._fip.stdin, self._output)
-      tmp = fip_cmd.copy()
-      tmp[2] = decode(tmp[2]) if isinstance(tmp[2], bytes) else tmp[2]
+      tmp = [decode(x) if isinstance(x, bytes) else x for x in fip_cmd]
       print("[DEBUG] Running: {}".format(' '.join(tmp)))
       print("  (using the following file as input: {})"
             .format(decode(self._fe_filt)))
@@ -3548,6 +3678,10 @@ class RepoFilter(object):
     self._output.close()
     if not self._args.dry_run and self._fip.wait():
       raise SystemExit(_("Error: fast-import failed; see above.")) # pragma: no cover
+
+    # With fast-export and fast-import complete, update state if requested
+    if self._args.state_branch:
+      self._save_marks_files()
 
     # Notify user how long it took, before doing a gc and such
     repack = (not self._args.source and not self._args.target)

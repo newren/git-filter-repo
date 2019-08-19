@@ -30,7 +30,7 @@ def track_everything(obj, *_ignored):
     def assert_not_reached(x): raise SystemExit("should have been skipped!")
     obj.dump = assert_not_reached
     obj.skip()
-  if hasattr(obj, 'id'):
+  if hasattr(obj, 'id') and type(obj) != fr.Tag:
     # The creation of myblob should cause objects in stream to get their ids
     # increased by 1; this shouldn't be depended upon as API by external
     # projects, I'm just verifying an invariant of the current code.
@@ -67,7 +67,7 @@ parser.run(input = sys.stdin.detach(),
 # DO NOT depend upon or use _IDS directly you external script writers.  I'm
 # only testing here for code coverage; the capacity exists to help debug
 # git-filter-repo itself, not for external folks to use.
-assert str(fr._IDS).startswith("Current count: 4")
+assert str(fr._IDS).startswith("Current count: 5")
 print("Found {} blobs/commits and {} other objects"
       .format(total_objects['common'], total_objects['uncommon']))
 
@@ -93,6 +93,9 @@ stream = io.BytesIO(textwrap.dedent('''
   B
   from :2
   M 100644 :1 greeting
+
+  reset refs/heads/B
+  from :3
 
   commit refs/heads/C
   mark :4
@@ -125,4 +128,4 @@ filter._input = stream
 filter._setup_output()
 filter._sanity_checks_handled = True
 filter.run()
-assert counts == collections.Counter({fr.Blob: 1, fr.Commit: 3})
+assert counts == collections.Counter({fr.Blob: 1, fr.Commit: 3, fr.Reset: 1})

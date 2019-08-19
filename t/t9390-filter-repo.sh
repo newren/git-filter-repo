@@ -7,6 +7,7 @@ test_description='Basic filter-repo tests'
 export PATH=$(dirname $TEST_DIRECTORY):$PATH  # Put git-filter-repo in PATH
 
 DATA="$TEST_DIRECTORY/t9390"
+SQ="'"
 
 filter_testcase() {
 	INPUT=$1
@@ -1208,6 +1209,104 @@ test_expect_success 'handle funny characters' '
 		echo "₪₽£€$" >expect &&
 		git cat-file -p סְפָרַד | tail -n 1 >actual
         )
+'
+
+test_expect_success '--state-branch with changing renames' '
+	test_create_repo state_branch_renames_export
+	test_create_repo state_branch_renames &&
+	(
+		cd state_branch_renames &&
+		git fast-import --quiet <$DATA/basic-numbers &&
+		git branch -d A &&
+		git branch -d B &&
+		git tag -d v1.0 &&
+
+		ORIG=$(git rev-parse master) &&
+		git reset --hard master~1 &&
+		git filter-repo --path-rename ten:zehn \
+                                --state-branch state_info \
+                                --target ../state_branch_renames_export &&
+
+		cd ../state_branch_renames_export &&
+		git log --format=%s --name-status >actual &&
+		cat <<-EOF >expect &&
+			Merge branch ${SQ}A${SQ} into B
+			add twenty
+
+			M	twenty
+			add ten
+
+			M	zehn
+			Initial
+
+			A	twenty
+			A	zehn
+			EOF
+		test_cmp expect actual &&
+
+		cd ../state_branch_renames &&
+
+		git reset --hard $ORIG &&
+		git filter-repo --path-rename twenty:veinte \
+                                --state-branch state_info \
+                                --target ../state_branch_renames_export &&
+
+		cd ../state_branch_renames_export &&
+		git log --format=%s --name-status >actual &&
+		cat <<-EOF >expect &&
+			whatever
+
+			A	ten
+			A	veinte
+			Merge branch ${SQ}A${SQ} into B
+			add twenty
+
+			M	twenty
+			add ten
+
+			M	zehn
+			Initial
+
+			A	twenty
+			A	zehn
+			EOF
+		test_cmp expect actual
+	)
+'
+
+test_expect_success '--state-branch with expanding paths and refs' '
+	test_create_repo state_branch_more_paths_export
+	test_create_repo state_branch_more_paths &&
+	(
+		cd state_branch_more_paths &&
+		git fast-import --quiet <$DATA/basic-numbers &&
+
+		git reset --hard master~1 &&
+		git filter-repo --path ten --state-branch state_info \
+                                --target ../state_branch_more_paths_export \
+                                --refs master &&
+
+		cd ../state_branch_more_paths_export &&
+		echo 2 >expect &&
+		git rev-list --count master >actual &&
+		test_cmp expect actual &&
+		test_must_fail git rev-parse master~1:twenty &&
+		test_must_fail git rev-parse master:twenty &&
+
+		cd ../state_branch_more_paths &&
+
+		git reset --hard v1.0 &&
+		git filter-repo --path ten --path twenty \
+                                --state-branch state_info \
+                                --target ../state_branch_more_paths_export &&
+
+		cd ../state_branch_more_paths_export &&
+		echo 3 >expect &&
+		git rev-list --count master >actual &&
+		test_cmp expect actual &&
+		test_must_fail git rev-parse master~2:twenty &&
+		git rev-parse master:twenty
+	)
 '
 
 test_done
