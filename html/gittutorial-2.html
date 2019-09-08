@@ -1,0 +1,1177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>gittutorial-2(7)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gittutorial-2(7) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gittutorial-2 -
+   A tutorial introduction to Git: part two
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content">git *</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>You should work through <a href="gittutorial.html">gittutorial(7)</a> before reading this tutorial.</p></div>
+<div class="paragraph"><p>The goal of this tutorial is to introduce two fundamental pieces of
+Git&#8217;s architecture&#8212;the object database and the index file&#8212;and to
+provide the reader with everything necessary to understand the rest
+of the Git documentation.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_git_object_database">The Git object database</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Let&#8217;s start a new project and create a small amount of history:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ mkdir test-project
+$ cd test-project
+$ git init
+Initialized empty Git repository in .git/
+$ echo 'hello world' &gt; file.txt
+$ git add .
+$ git commit -a -m "initial commit"
+[master (root-commit) 54196cc] initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 file.txt
+$ echo 'hello world!' &gt;file.txt
+$ git commit -a -m "add emphasis"
+[master c4d59f3] add emphasis
+ 1 file changed, 1 insertion(+), 1 deletion(-)</code></pre>
+</div></div>
+<div class="paragraph"><p>What are the 7 digits of hex that Git responded to the commit with?</p></div>
+<div class="paragraph"><p>We saw in part one of the tutorial that commits have names like this.
+It turns out that every object in the Git history is stored under
+a 40-digit hex name.  That name is the SHA-1 hash of the object&#8217;s
+contents; among other things, this ensures that Git will never store
+the same data twice (since identical data is given an identical SHA-1
+name), and that the contents of a Git object will never change (since
+that would change the object&#8217;s name as well). The 7 char hex strings
+here are simply the abbreviation of such 40 character long strings.
+Abbreviations can be used everywhere where the 40 character strings
+can be used, so long as they are unambiguous.</p></div>
+<div class="paragraph"><p>It is expected that the content of the commit object you created while
+following the example above generates a different SHA-1 hash than
+the one shown above because the commit object records the time when
+it was created and the name of the person performing the commit.</p></div>
+<div class="paragraph"><p>We can ask Git about this particular object with the <code>cat-file</code>
+command. Don&#8217;t copy the 40 hex digits from this example but use those
+from your own version. Note that you can shorten it to only a few
+characters to save yourself typing all 40 hex digits:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git cat-file -t 54196cc2
+commit
+$ git cat-file commit 54196cc2
+tree 92b8b694ffb1675e5975148e1121810081dbdffe
+author J. Bruce Fields &lt;bfields@puzzle.fieldses.org&gt; 1143414668 -0500
+committer J. Bruce Fields &lt;bfields@puzzle.fieldses.org&gt; 1143414668 -0500
+
+initial commit</code></pre>
+</div></div>
+<div class="paragraph"><p>A tree can refer to one or more "blob" objects, each corresponding to
+a file.  In addition, a tree can also refer to other tree objects,
+thus creating a directory hierarchy.  You can examine the contents of
+any tree using ls-tree (remember that a long enough initial portion
+of the SHA-1 will also work):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git ls-tree 92b8b694
+100644 blob 3b18e512dba79e4c8300dd08aeb37f8e728b8dad    file.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>Thus we see that this tree has one file in it.  The SHA-1 hash is a
+reference to that file&#8217;s data:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git cat-file -t 3b18e512
+blob</code></pre>
+</div></div>
+<div class="paragraph"><p>A "blob" is just file data, which we can also examine with cat-file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git cat-file blob 3b18e512
+hello world</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that this is the old file data; so the object that Git named in
+its response to the initial tree was a tree with a snapshot of the
+directory state that was recorded by the first commit.</p></div>
+<div class="paragraph"><p>All of these objects are stored under their SHA-1 names inside the Git
+directory:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ find .git/objects/
+.git/objects/
+.git/objects/pack
+.git/objects/info
+.git/objects/3b
+.git/objects/3b/18e512dba79e4c8300dd08aeb37f8e728b8dad
+.git/objects/92
+.git/objects/92/b8b694ffb1675e5975148e1121810081dbdffe
+.git/objects/54
+.git/objects/54/196cc2703dc165cbd373a65a4dcf22d50ae7f7
+.git/objects/a0
+.git/objects/a0/423896973644771497bdc03eb99d5281615b51
+.git/objects/d0
+.git/objects/d0/492b368b66bdabf2ac1fd8c92b39d3db916e59
+.git/objects/c4
+.git/objects/c4/d59f390b9cfd4318117afde11d601c1085f241</code></pre>
+</div></div>
+<div class="paragraph"><p>and the contents of these files is just the compressed data plus a
+header identifying their length and their type.  The type is either a
+blob, a tree, a commit, or a tag.</p></div>
+<div class="paragraph"><p>The simplest commit to find is the HEAD commit, which we can find
+from .git/HEAD:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat .git/HEAD
+ref: refs/heads/master</code></pre>
+</div></div>
+<div class="paragraph"><p>As you can see, this tells us which branch we&#8217;re currently on, and it
+tells us this by naming a file under the .git directory, which itself
+contains a SHA-1 name referring to a commit object, which we can
+examine with cat-file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat .git/refs/heads/master
+c4d59f390b9cfd4318117afde11d601c1085f241
+$ git cat-file -t c4d59f39
+commit
+$ git cat-file commit c4d59f39
+tree d0492b368b66bdabf2ac1fd8c92b39d3db916e59
+parent 54196cc2703dc165cbd373a65a4dcf22d50ae7f7
+author J. Bruce Fields &lt;bfields@puzzle.fieldses.org&gt; 1143418702 -0500
+committer J. Bruce Fields &lt;bfields@puzzle.fieldses.org&gt; 1143418702 -0500
+
+add emphasis</code></pre>
+</div></div>
+<div class="paragraph"><p>The "tree" object here refers to the new state of the tree:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git ls-tree d0492b36
+100644 blob a0423896973644771497bdc03eb99d5281615b51    file.txt
+$ git cat-file blob a0423896
+hello world!</code></pre>
+</div></div>
+<div class="paragraph"><p>and the "parent" object refers to the previous commit:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git cat-file commit 54196cc2
+tree 92b8b694ffb1675e5975148e1121810081dbdffe
+author J. Bruce Fields &lt;bfields@puzzle.fieldses.org&gt; 1143414668 -0500
+committer J. Bruce Fields &lt;bfields@puzzle.fieldses.org&gt; 1143414668 -0500
+
+initial commit</code></pre>
+</div></div>
+<div class="paragraph"><p>The tree object is the tree we examined first, and this commit is
+unusual in that it lacks any parent.</p></div>
+<div class="paragraph"><p>Most commits have only one parent, but it is also common for a commit
+to have multiple parents.   In that case the commit represents a
+merge, with the parent references pointing to the heads of the merged
+branches.</p></div>
+<div class="paragraph"><p>Besides blobs, trees, and commits, the only remaining type of object
+is a "tag", which we won&#8217;t discuss here; refer to <a href="git-tag.html">git-tag(1)</a>
+for details.</p></div>
+<div class="paragraph"><p>So now we know how Git uses the object database to represent a
+project&#8217;s history:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+"commit" objects refer to "tree" objects representing the
+    snapshot of a directory tree at a particular point in the
+    history, and refer to "parent" commits to show how they&#8217;re
+    connected into the project history.
+</p>
+</li>
+<li>
+<p>
+"tree" objects represent the state of a single directory,
+    associating directory names to "blob" objects containing file
+    data and "tree" objects containing subdirectory information.
+</p>
+</li>
+<li>
+<p>
+"blob" objects contain file data without any other structure.
+</p>
+</li>
+<li>
+<p>
+References to commit objects at the head of each branch are
+    stored in files under .git/refs/heads/.
+</p>
+</li>
+<li>
+<p>
+The name of the current branch is stored in .git/HEAD.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Note, by the way, that lots of commands take a tree as an argument.
+But as we can see above, a tree can be referred to in many different
+ways&#8212;by the SHA-1 name for that tree, by the name of a commit that
+refers to the tree, by the name of a branch whose head refers to that
+tree, etc.--and most such commands can accept any of these names.</p></div>
+<div class="paragraph"><p>In command synopses, the word "tree-ish" is sometimes used to
+designate such an argument.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_index_file">The index file</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The primary tool we&#8217;ve been using to create commits is <code>git-commit
+-a</code>, which creates a commit including every change you&#8217;ve made to
+your working tree.  But what if you want to commit changes only to
+certain files?  Or only certain changes to certain files?</p></div>
+<div class="paragraph"><p>If we look at the way commits are created under the cover, we&#8217;ll see
+that there are more flexible ways creating commits.</p></div>
+<div class="paragraph"><p>Continuing with our test-project, let&#8217;s modify file.txt again:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ echo "hello world, again" &gt;&gt;file.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>but this time instead of immediately making the commit, let&#8217;s take an
+intermediate step, and ask for diffs along the way to keep track of
+what&#8217;s happening:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git diff
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1,2 @@
+ hello world!
++hello world, again
+$ git add file.txt
+$ git diff</code></pre>
+</div></div>
+<div class="paragraph"><p>The last diff is empty, but no new commits have been made, and the
+head still doesn&#8217;t contain the new line:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git diff HEAD
+diff --git a/file.txt b/file.txt
+index a042389..513feba 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1,2 @@
+ hello world!
++hello world, again</code></pre>
+</div></div>
+<div class="paragraph"><p>So <em>git diff</em> is comparing against something other than the head.
+The thing that it&#8217;s comparing against is actually the index file,
+which is stored in .git/index in a binary format, but whose contents
+we can examine with ls-files:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git ls-files --stage
+100644 513feba2e53ebbd2532419ded848ba19de88ba00 0       file.txt
+$ git cat-file -t 513feba2
+blob
+$ git cat-file blob 513feba2
+hello world!
+hello world, again</code></pre>
+</div></div>
+<div class="paragraph"><p>So what our <em>git add</em> did was store a new blob and then put
+a reference to it in the index file.  If we modify the file again,
+we&#8217;ll see that the new modifications are reflected in the <em>git diff</em>
+output:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ echo 'again?' &gt;&gt;file.txt
+$ git diff
+index 513feba..ba3da7b 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1,2 +1,3 @@
+ hello world!
+ hello world, again
++again?</code></pre>
+</div></div>
+<div class="paragraph"><p>With the right arguments, <em>git diff</em> can also show us the difference
+between the working directory and the last commit, or between the
+index and the last commit:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git diff HEAD
+diff --git a/file.txt b/file.txt
+index a042389..ba3da7b 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1,3 @@
+ hello world!
++hello world, again
++again?
+$ git diff --cached
+diff --git a/file.txt b/file.txt
+index a042389..513feba 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1,2 @@
+ hello world!
++hello world, again</code></pre>
+</div></div>
+<div class="paragraph"><p>At any time, we can create a new commit using <em>git commit</em> (without
+the "-a" option), and verify that the state committed only includes the
+changes stored in the index file, not the additional change that is
+still only in our working tree:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git commit -m "repeat"
+$ git diff HEAD
+diff --git a/file.txt b/file.txt
+index 513feba..ba3da7b 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1,2 +1,3 @@
+ hello world!
+ hello world, again
++again?</code></pre>
+</div></div>
+<div class="paragraph"><p>So by default <em>git commit</em> uses the index to create the commit, not
+the working tree; the "-a" option to commit tells it to first update
+the index with all changes in the working tree.</p></div>
+<div class="paragraph"><p>Finally, it&#8217;s worth looking at the effect of <em>git add</em> on the index
+file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ echo "goodbye, world" &gt;closing.txt
+$ git add closing.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>The effect of the <em>git add</em> was to add one entry to the index file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git ls-files --stage
+100644 8b9743b20d4b15be3955fc8d5cd2b09cd2336138 0       closing.txt
+100644 513feba2e53ebbd2532419ded848ba19de88ba00 0       file.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>And, as you can see with cat-file, this new entry refers to the
+current contents of the file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git cat-file blob 8b9743b2
+goodbye, world</code></pre>
+</div></div>
+<div class="paragraph"><p>The "status" command is a useful way to get a quick summary of the
+situation:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git status
+On branch master
+Changes to be committed:
+  (use "git restore --staged &lt;file&gt;..." to unstage)
+
+        new file:   closing.txt
+
+Changes not staged for commit:
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+
+        modified:   file.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>Since the current state of closing.txt is cached in the index file,
+it is listed as "Changes to be committed".  Since file.txt has
+changes in the working directory that aren&#8217;t reflected in the index,
+it is marked "changed but not updated".  At this point, running "git
+commit" would create a commit that added closing.txt (with its new
+contents), but that didn&#8217;t modify file.txt.</p></div>
+<div class="paragraph"><p>Also, note that a bare <code>git diff</code> shows the changes to file.txt, but
+not the addition of closing.txt, because the version of closing.txt
+in the index file is identical to the one in the working directory.</p></div>
+<div class="paragraph"><p>In addition to being the staging area for new commits, the index file
+is also populated from the object database when checking out a
+branch, and is used to hold the trees involved in a merge operation.
+See <a href="gitcore-tutorial.html">gitcore-tutorial(7)</a> and the relevant man
+pages for details.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_next">What next?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>At this point you should know everything necessary to read the man
+pages for any of the git commands; one good place to start would be
+with the commands mentioned in <a href="giteveryday.html">giteveryday(7)</a>.  You
+should be able to find any unknown jargon in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
+<div class="paragraph"><p>The <a href="user-manual.html">Git User&#8217;s Manual</a> provides a more
+comprehensive introduction to Git.</p></div>
+<div class="paragraph"><p><a href="gitcvs-migration.html">gitcvs-migration(7)</a> explains how to
+import a CVS repository into Git, and shows how to use Git in a
+CVS-like way.</p></div>
+<div class="paragraph"><p>For some interesting examples of Git use, see the
+<a href="howto-index.html">howtos</a>.</p></div>
+<div class="paragraph"><p>For Git developers, <a href="gitcore-tutorial.html">gitcore-tutorial(7)</a> goes
+into detail on the lower-level Git mechanisms involved in, for
+example, creating a new commit.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="gittutorial.html">gittutorial(7)</a>,
+<a href="gitcvs-migration.html">gitcvs-migration(7)</a>,
+<a href="gitcore-tutorial.html">gitcore-tutorial(7)</a>,
+<a href="gitglossary.html">gitglossary(7)</a>,
+<a href="git-help.html">git-help(1)</a>,
+<a href="giteveryday.html">giteveryday(7)</a>,
+<a href="user-manual.html">The Git User&#8217;s Manual</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

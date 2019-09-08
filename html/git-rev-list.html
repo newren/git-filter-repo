@@ -1,0 +1,3243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-rev-list(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-rev-list(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-rev-list -
+   Lists commit objects in reverse chronological order
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git rev-list</em> [ --max-count=&lt;number&gt; ]
+             [ --skip=&lt;number&gt; ]
+             [ --max-age=&lt;timestamp&gt; ]
+             [ --min-age=&lt;timestamp&gt; ]
+             [ --sparse ]
+             [ --merges ]
+             [ --no-merges ]
+             [ --min-parents=&lt;number&gt; ]
+             [ --no-min-parents ]
+             [ --max-parents=&lt;number&gt; ]
+             [ --no-max-parents ]
+             [ --first-parent ]
+             [ --remove-empty ]
+             [ --full-history ]
+             [ --not ]
+             [ --all ]
+             [ --branches[=&lt;pattern&gt;] ]
+             [ --tags[=&lt;pattern&gt;] ]
+             [ --remotes[=&lt;pattern&gt;] ]
+             [ --glob=&lt;glob-pattern&gt; ]
+             [ --ignore-missing ]
+             [ --stdin ]
+             [ --quiet ]
+             [ --topo-order ]
+             [ --parents ]
+             [ --timestamp ]
+             [ --left-right ]
+             [ --left-only ]
+             [ --right-only ]
+             [ --cherry-mark ]
+             [ --cherry-pick ]
+             [ --encoding=&lt;encoding&gt; ]
+             [ --(author|committer|grep)=&lt;pattern&gt; ]
+             [ --regexp-ignore-case | -i ]
+             [ --extended-regexp | -E ]
+             [ --fixed-strings | -F ]
+             [ --date=&lt;format&gt;]
+             [ [ --objects | --objects-edge | --objects-edge-aggressive ]
+               [ --unpacked ]
+               [ --object-names | --no-object-names ]
+               [ --filter=&lt;filter-spec&gt; [ --filter-print-omitted ] ] ]
+             [ --missing=&lt;missing-action&gt; ]
+             [ --pretty | --header ]
+             [ --bisect ]
+             [ --bisect-vars ]
+             [ --bisect-all ]
+             [ --merge ]
+             [ --reverse ]
+             [ --walk-reflogs ]
+             [ --no-walk ] [ --do-walk ]
+             [ --count ]
+             [ --use-bitmap-index ]
+             &lt;commit&gt;&#8230; [ -- &lt;paths&gt;&#8230; ]</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>List commits that are reachable by following the <code>parent</code> links from the
+given commit(s), but exclude commits that are reachable from the one(s)
+given with a <em>&#94;</em> in front of them.  The output is given in reverse
+chronological order by default.</p></div>
+<div class="paragraph"><p>You can think of this as a set operation.  Commits given on the command
+line form a set of commits that are reachable from any of them, and then
+commits reachable from any of the ones given with <em>&#94;</em> in front are
+subtracted from that set.  The remaining commits are what comes out in the
+command&#8217;s output.  Various other options and paths parameters can be used
+to further limit the result.</p></div>
+<div class="paragraph"><p>Thus, the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        $ git rev-list foo bar ^baz</code></pre>
+</div></div>
+<div class="paragraph"><p>means "list all the commits which are reachable from <em>foo</em> or <em>bar</em>, but
+not from <em>baz</em>".</p></div>
+<div class="paragraph"><p>A special notation "<em>&lt;commit1&gt;</em>..<em>&lt;commit2&gt;</em>" can be used as a
+short-hand for "&#94;'&lt;commit1&gt;' <em>&lt;commit2&gt;</em>". For example, either of
+the following may be used interchangeably:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        $ git rev-list origin..HEAD
+        $ git rev-list HEAD ^origin</code></pre>
+</div></div>
+<div class="paragraph"><p>Another special notation is "<em>&lt;commit1&gt;</em>&#8230;<em>&lt;commit2&gt;</em>" which is useful
+for merges.  The resulting set of commits is the symmetric difference
+between the two operands.  The following two commands are equivalent:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        $ git rev-list A B --not $(git merge-base --all A B)
+        $ git rev-list A...B</code></pre>
+</div></div>
+<div class="paragraph"><p><em>rev-list</em> is a very essential Git command, since it
+provides the ability to build and traverse commit ancestry graphs. For
+this reason, it has a lot of different options that enables it to be
+used by commands as different as <em>git bisect</em> and
+<em>git repack</em>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_commit_limiting">Commit Limiting</h3>
+<div class="paragraph"><p>Besides specifying a range of commits that should be listed using the
+special notations explained in the description, additional commit
+limiting may be applied.</p></div>
+<div class="paragraph"><p>Using more options generally further limits the output (e.g.
+<code>--since=&lt;date1&gt;</code> limits to commits newer than <code>&lt;date1&gt;</code>, and using it
+with <code>--grep=&lt;pattern&gt;</code> further limits to commits whose log message
+has a line that matches <code>&lt;pattern&gt;</code>), unless otherwise noted.</p></div>
+<div class="paragraph"><p>Note that these are applied before commit
+ordering and formatting options, such as <code>--reverse</code>.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-&lt;number&gt;
+</dt>
+<dt class="hdlist1">
+-n &lt;number&gt;
+</dt>
+<dt class="hdlist1">
+--max-count=&lt;number&gt;
+</dt>
+<dd>
+<p>
+        Limit the number of commits to output.
+</p>
+</dd>
+<dt class="hdlist1">
+--skip=&lt;number&gt;
+</dt>
+<dd>
+<p>
+        Skip <em>number</em> commits before starting to show the commit output.
+</p>
+</dd>
+<dt class="hdlist1">
+--since=&lt;date&gt;
+</dt>
+<dt class="hdlist1">
+--after=&lt;date&gt;
+</dt>
+<dd>
+<p>
+        Show commits more recent than a specific date.
+</p>
+</dd>
+<dt class="hdlist1">
+--until=&lt;date&gt;
+</dt>
+<dt class="hdlist1">
+--before=&lt;date&gt;
+</dt>
+<dd>
+<p>
+        Show commits older than a specific date.
+</p>
+</dd>
+<dt class="hdlist1">
+--max-age=&lt;timestamp&gt;
+</dt>
+<dt class="hdlist1">
+--min-age=&lt;timestamp&gt;
+</dt>
+<dd>
+<p>
+        Limit the commits output to specified time range.
+</p>
+</dd>
+<dt class="hdlist1">
+--author=&lt;pattern&gt;
+</dt>
+<dt class="hdlist1">
+--committer=&lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with author/committer
+        header lines that match the specified pattern (regular
+        expression).  With more than one <code>--author=&lt;pattern&gt;</code>,
+        commits whose author matches any of the given patterns are
+        chosen (similarly for multiple <code>--committer=&lt;pattern&gt;</code>).
+</p>
+</dd>
+<dt class="hdlist1">
+--grep-reflog=&lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with reflog entries that
+        match the specified pattern (regular expression). With
+        more than one <code>--grep-reflog</code>, commits whose reflog message
+        matches any of the given patterns are chosen.  It is an
+        error to use this option unless <code>--walk-reflogs</code> is in use.
+</p>
+</dd>
+<dt class="hdlist1">
+--grep=&lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with log message that
+        matches the specified pattern (regular expression).  With
+        more than one <code>--grep=&lt;pattern&gt;</code>, commits whose message
+        matches any of the given patterns are chosen (but see
+        <code>--all-match</code>).
+</p>
+</dd>
+<dt class="hdlist1">
+--all-match
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones that match all given <code>--grep</code>,
+        instead of ones that match at least one.
+</p>
+</dd>
+<dt class="hdlist1">
+--invert-grep
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with log message that do not
+        match the pattern specified with <code>--grep=&lt;pattern&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-i
+</dt>
+<dt class="hdlist1">
+--regexp-ignore-case
+</dt>
+<dd>
+<p>
+        Match the regular expression limiting patterns without regard to letter
+        case.
+</p>
+</dd>
+<dt class="hdlist1">
+--basic-regexp
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be basic regular expressions;
+        this is the default.
+</p>
+</dd>
+<dt class="hdlist1">
+-E
+</dt>
+<dt class="hdlist1">
+--extended-regexp
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be extended regular expressions
+        instead of the default basic regular expressions.
+</p>
+</dd>
+<dt class="hdlist1">
+-F
+</dt>
+<dt class="hdlist1">
+--fixed-strings
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be fixed strings (don&#8217;t interpret
+        pattern as a regular expression).
+</p>
+</dd>
+<dt class="hdlist1">
+-P
+</dt>
+<dt class="hdlist1">
+--perl-regexp
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be Perl-compatible regular
+        expressions.
+</p>
+<div class="paragraph"><p>Support for these types of regular expressions is an optional
+compile-time dependency. If Git wasn&#8217;t compiled with support for them
+providing this option will cause it to die.</p></div>
+</dd>
+<dt class="hdlist1">
+--remove-empty
+</dt>
+<dd>
+<p>
+        Stop when a given path disappears from the tree.
+</p>
+</dd>
+<dt class="hdlist1">
+--merges
+</dt>
+<dd>
+<p>
+        Print only merge commits. This is exactly the same as <code>--min-parents=2</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-merges
+</dt>
+<dd>
+<p>
+        Do not print commits with more than one parent. This is
+        exactly the same as <code>--max-parents=1</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--min-parents=&lt;number&gt;
+</dt>
+<dt class="hdlist1">
+--max-parents=&lt;number&gt;
+</dt>
+<dt class="hdlist1">
+--no-min-parents
+</dt>
+<dt class="hdlist1">
+--no-max-parents
+</dt>
+<dd>
+<p>
+        Show only commits which have at least (or at most) that many parent
+        commits. In particular, <code>--max-parents=1</code> is the same as <code>--no-merges</code>,
+        <code>--min-parents=2</code> is the same as <code>--merges</code>.  <code>--max-parents=0</code>
+        gives all root commits and <code>--min-parents=3</code> all octopus merges.
+</p>
+<div class="paragraph"><p><code>--no-min-parents</code> and <code>--no-max-parents</code> reset these limits (to no limit)
+again.  Equivalent forms are <code>--min-parents=0</code> (any commit has 0 or more
+parents) and <code>--max-parents=-1</code> (negative numbers denote no upper limit).</p></div>
+</dd>
+<dt class="hdlist1">
+--first-parent
+</dt>
+<dd>
+<p>
+        Follow only the first parent commit upon seeing a merge
+        commit.  This option can give a better overview when
+        viewing the evolution of a particular topic branch,
+        because merges into a topic branch tend to be only about
+        adjusting to updated upstream from time to time, and
+        this option allows you to ignore the individual commits
+        brought in to your history by such a merge. Cannot be
+        combined with --bisect.
+</p>
+</dd>
+<dt class="hdlist1">
+--not
+</dt>
+<dd>
+<p>
+        Reverses the meaning of the <em>&#94;</em> prefix (or lack thereof)
+        for all following revision specifiers, up to the next <code>--not</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--all
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/</code>, along with <code>HEAD</code>, are
+        listed on the command line as <em>&lt;commit&gt;</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+--branches[=&lt;pattern&gt;]
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/heads</code> are listed
+        on the command line as <em>&lt;commit&gt;</em>. If <em>&lt;pattern&gt;</em> is given, limit
+        branches to ones matching given shell glob. If pattern lacks <em>?</em>,
+        <em>&#42;</em>, or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--tags[=&lt;pattern&gt;]
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/tags</code> are listed
+        on the command line as <em>&lt;commit&gt;</em>. If <em>&lt;pattern&gt;</em> is given, limit
+        tags to ones matching given shell glob. If pattern lacks <em>?</em>, <em>&#42;</em>,
+        or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--remotes[=&lt;pattern&gt;]
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/remotes</code> are listed
+        on the command line as <em>&lt;commit&gt;</em>. If <em>&lt;pattern&gt;</em> is given, limit
+        remote-tracking branches to ones matching given shell glob.
+        If pattern lacks <em>?</em>, <em>&#42;</em>, or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--glob=&lt;glob-pattern&gt;
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs matching shell glob <em>&lt;glob-pattern&gt;</em>
+        are listed on the command line as <em>&lt;commit&gt;</em>. Leading <em>refs/</em>,
+        is automatically prepended if missing. If pattern lacks <em>?</em>, <em>&#42;</em>,
+        or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude=&lt;glob-pattern&gt;
+</dt>
+<dd>
+<p>
+        Do not include refs matching <em>&lt;glob-pattern&gt;</em> that the next <code>--all</code>,
+        <code>--branches</code>, <code>--tags</code>, <code>--remotes</code>, or <code>--glob</code> would otherwise
+        consider. Repetitions of this option accumulate exclusion patterns
+        up to the next <code>--all</code>, <code>--branches</code>, <code>--tags</code>, <code>--remotes</code>, or
+        <code>--glob</code> option (other options or arguments do not clear
+        accumulated patterns).
+</p>
+<div class="paragraph"><p>The patterns given should not begin with <code>refs/heads</code>, <code>refs/tags</code>, or
+<code>refs/remotes</code> when applied to <code>--branches</code>, <code>--tags</code>, or <code>--remotes</code>,
+respectively, and they must begin with <code>refs/</code> when applied to <code>--glob</code>
+or <code>--all</code>. If a trailing <em>/&#42;</em> is intended, it must be given
+explicitly.</p></div>
+</dd>
+<dt class="hdlist1">
+--reflog
+</dt>
+<dd>
+<p>
+        Pretend as if all objects mentioned by reflogs are listed on the
+        command line as <code>&lt;commit&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--alternate-refs
+</dt>
+<dd>
+<p>
+        Pretend as if all objects mentioned as ref tips of alternate
+        repositories were listed on the command line. An alternate
+        repository is any repository whose object directory is specified
+        in <code>objects/info/alternates</code>.  The set of included objects may
+        be modified by <code>core.alternateRefsCommand</code>, etc. See
+        <a href="git-config.html">git-config(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+--single-worktree
+</dt>
+<dd>
+<p>
+        By default, all working trees will be examined by the
+        following options when there are more than one (see
+        <a href="git-worktree.html">git-worktree(1)</a>): <code>--all</code>, <code>--reflog</code> and
+        <code>--indexed-objects</code>.
+        This option forces them to examine the current working tree
+        only.
+</p>
+</dd>
+<dt class="hdlist1">
+--ignore-missing
+</dt>
+<dd>
+<p>
+        Upon seeing an invalid object name in the input, pretend as if
+        the bad input was not given.
+</p>
+</dd>
+<dt class="hdlist1">
+--stdin
+</dt>
+<dd>
+<p>
+        In addition to the <em>&lt;commit&gt;</em> listed on the command
+        line, read them from the standard input. If a <code>--</code> separator is
+        seen, stop reading commits and start reading paths to limit the
+        result.
+</p>
+</dd>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Don&#8217;t print anything to standard output.  This form
+        is primarily meant to allow the caller to
+        test the exit status to see if a range of objects is fully
+        connected (or not).  It is faster than redirecting stdout
+        to <code>/dev/null</code> as the output does not have to be formatted.
+</p>
+</dd>
+<dt class="hdlist1">
+--cherry-mark
+</dt>
+<dd>
+<p>
+        Like <code>--cherry-pick</code> (see below) but mark equivalent commits
+        with <code>=</code> rather than omitting them, and inequivalent ones with <code>+</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--cherry-pick
+</dt>
+<dd>
+<p>
+        Omit any commit that introduces the same change as
+        another commit on the &#8220;other side&#8221; when the set of
+        commits are limited with symmetric difference.
+</p>
+<div class="paragraph"><p>For example, if you have two branches, <code>A</code> and <code>B</code>, a usual way
+to list all commits on only one side of them is with
+<code>--left-right</code> (see the example below in the description of
+the <code>--left-right</code> option). However, it shows the commits that were
+cherry-picked from the other branch (for example, &#8220;3rd on b&#8221; may be
+cherry-picked from branch A). With this option, such pairs of commits are
+excluded from the output.</p></div>
+</dd>
+<dt class="hdlist1">
+--left-only
+</dt>
+<dt class="hdlist1">
+--right-only
+</dt>
+<dd>
+<p>
+        List only commits on the respective side of a symmetric difference,
+        i.e. only those which would be marked <code>&lt;</code> resp. <code>&gt;</code> by
+        <code>--left-right</code>.
+</p>
+<div class="paragraph"><p>For example, <code>--cherry-pick --right-only A...B</code> omits those
+commits from <code>B</code> which are in <code>A</code> or are patch-equivalent to a commit in
+<code>A</code>. In other words, this lists the <code>+</code> commits from <code>git cherry A B</code>.
+More precisely, <code>--cherry-pick --right-only --no-merges</code> gives the exact
+list.</p></div>
+</dd>
+<dt class="hdlist1">
+--cherry
+</dt>
+<dd>
+<p>
+        A synonym for <code>--right-only --cherry-mark --no-merges</code>; useful to
+        limit the output to the commits on our side and mark those that
+        have been applied to the other side of a forked history with
+        <code>git log --cherry upstream...mybranch</code>, similar to
+        <code>git cherry upstream mybranch</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-g
+</dt>
+<dt class="hdlist1">
+--walk-reflogs
+</dt>
+<dd>
+<p>
+        Instead of walking the commit ancestry chain, walk
+        reflog entries from the most recent one to older ones.
+        When this option is used you cannot specify commits to
+        exclude (that is, <em>&#94;commit</em>, <em>commit1..commit2</em>,
+        and <em>commit1...commit2</em> notations cannot be used).
+</p>
+<div class="paragraph"><p>With <code>--pretty</code> format other than <code>oneline</code> (for obvious reasons),
+this causes the output to have two extra lines of information
+taken from the reflog.  The reflog designator in the output may be shown
+as <code>ref@{Nth}</code> (where <code>Nth</code> is the reverse-chronological index in the
+reflog) or as <code>ref@{timestamp}</code> (with the timestamp for that entry),
+depending on a few rules:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+If the starting point is specified as <code>ref@{Nth}</code>, show the index
+   format.
+</p>
+</li>
+<li>
+<p>
+If the starting point was specified as <code>ref@{now}</code>, show the
+   timestamp format.
+</p>
+</li>
+<li>
+<p>
+If neither was used, but <code>--date</code> was given on the command line, show
+   the timestamp in the format requested by <code>--date</code>.
+</p>
+</li>
+<li>
+<p>
+Otherwise, show the index format.
+</p>
+</li>
+</ol></div>
+</div></div>
+<div class="paragraph"><p>Under <code>--pretty=oneline</code>, the commit message is
+prefixed with this information on the same line.
+This option cannot be combined with <code>--reverse</code>.
+See also <a href="git-reflog.html">git-reflog(1)</a>.</p></div>
+</dd>
+<dt class="hdlist1">
+--merge
+</dt>
+<dd>
+<p>
+        After a failed merge, show refs that touch files having a
+        conflict and don&#8217;t exist on all heads to merge.
+</p>
+</dd>
+<dt class="hdlist1">
+--boundary
+</dt>
+<dd>
+<p>
+        Output excluded boundary commits. Boundary commits are
+        prefixed with <code>-</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--use-bitmap-index
+</dt>
+<dd>
+<p>
+        Try to speed up the traversal using the pack bitmap index (if
+        one is available). Note that when traversing with <code>--objects</code>,
+        trees and blobs will not have their associated path printed.
+</p>
+</dd>
+<dt class="hdlist1">
+--progress=&lt;header&gt;
+</dt>
+<dd>
+<p>
+        Show progress reports on stderr as objects are considered. The
+        <code>&lt;header&gt;</code> text will be printed with each progress update.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_history_simplification">History Simplification</h3>
+<div class="paragraph"><p>Sometimes you are only interested in parts of the history, for example the
+commits modifying a particular &lt;path&gt;. But there are two parts of
+<em>History Simplification</em>, one part is selecting the commits and the other
+is how to do it, as there are various strategies to simplify the history.</p></div>
+<div class="paragraph"><p>The following options select the commits to be shown:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+&lt;paths&gt;
+</dt>
+<dd>
+<p>
+        Commits modifying the given &lt;paths&gt; are selected.
+</p>
+</dd>
+<dt class="hdlist1">
+--simplify-by-decoration
+</dt>
+<dd>
+<p>
+        Commits that are referred by some branch or tag are selected.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Note that extra commits can be shown to give a meaningful history.</p></div>
+<div class="paragraph"><p>The following options affect the way the simplification is performed:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Default mode
+</dt>
+<dd>
+<p>
+        Simplifies the history to the simplest history explaining the
+        final state of the tree. Simplest because it prunes some side
+        branches if the end result is the same (i.e. merging branches
+        with the same content)
+</p>
+</dd>
+<dt class="hdlist1">
+--full-history
+</dt>
+<dd>
+<p>
+        Same as the default mode, but does not prune some history.
+</p>
+</dd>
+<dt class="hdlist1">
+--dense
+</dt>
+<dd>
+<p>
+        Only the selected commits are shown, plus some to have a
+        meaningful history.
+</p>
+</dd>
+<dt class="hdlist1">
+--sparse
+</dt>
+<dd>
+<p>
+        All commits in the simplified history are shown.
+</p>
+</dd>
+<dt class="hdlist1">
+--simplify-merges
+</dt>
+<dd>
+<p>
+        Additional option to <code>--full-history</code> to remove some needless
+        merges from the resulting history, as there are no selected
+        commits contributing to this merge.
+</p>
+</dd>
+<dt class="hdlist1">
+--ancestry-path
+</dt>
+<dd>
+<p>
+        When given a range of commits to display (e.g. <em>commit1..commit2</em>
+        or <em>commit2 &#94;commit1</em>), only display commits that exist
+        directly on the ancestry chain between the <em>commit1</em> and
+        <em>commit2</em>, i.e. commits that are both descendants of <em>commit1</em>,
+        and ancestors of <em>commit2</em>.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>A more detailed explanation follows.</p></div>
+<div class="paragraph"><p>Suppose you specified <code>foo</code> as the &lt;paths&gt;.  We shall call commits
+that modify <code>foo</code> !TREESAME, and the rest TREESAME.  (In a diff
+filtered for <code>foo</code>, they look different and equal, respectively.)</p></div>
+<div class="paragraph"><p>In the following, we will always refer to the same example history to
+illustrate the differences between simplification settings.  We assume
+that you are filtering for a file <code>foo</code> in this commit graph:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M---N---O---P---Q
+         /     /   /   /   /   /
+        I     B   C   D   E   Y
+         \   /   /   /   /   /
+          `-------------'   X</code></pre>
+</div></div>
+<div class="paragraph"><p>The horizontal line of history A---Q is taken to be the first parent of
+each merge.  The commits are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>I</code> is the initial commit, in which <code>foo</code> exists with contents
+  &#8220;asdf&#8221;, and a file <code>quux</code> exists with contents &#8220;quux&#8221;. Initial
+  commits are compared to an empty tree, so <code>I</code> is !TREESAME.
+</p>
+</li>
+<li>
+<p>
+In <code>A</code>, <code>foo</code> contains just &#8220;foo&#8221;.
+</p>
+</li>
+<li>
+<p>
+<code>B</code> contains the same change as <code>A</code>.  Its merge <code>M</code> is trivial and
+  hence TREESAME to all parents.
+</p>
+</li>
+<li>
+<p>
+<code>C</code> does not change <code>foo</code>, but its merge <code>N</code> changes it to &#8220;foobar&#8221;,
+  so it is not TREESAME to any parent.
+</p>
+</li>
+<li>
+<p>
+<code>D</code> sets <code>foo</code> to &#8220;baz&#8221;. Its merge <code>O</code> combines the strings from
+  <code>N</code> and <code>D</code> to &#8220;foobarbaz&#8221;; i.e., it is not TREESAME to any parent.
+</p>
+</li>
+<li>
+<p>
+<code>E</code> changes <code>quux</code> to &#8220;xyzzy&#8221;, and its merge <code>P</code> combines the
+  strings to &#8220;quux xyzzy&#8221;. <code>P</code> is TREESAME to <code>O</code>, but not to <code>E</code>.
+</p>
+</li>
+<li>
+<p>
+<code>X</code> is an independent root commit that added a new file <code>side</code>, and <code>Y</code>
+  modified it. <code>Y</code> is TREESAME to <code>X</code>. Its merge <code>Q</code> added <code>side</code> to <code>P</code>, and
+  <code>Q</code> is TREESAME to <code>P</code>, but not to <code>Y</code>.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p><code>rev-list</code> walks backwards through history, including or excluding
+commits based on whether <code>--full-history</code> and/or parent rewriting
+(via <code>--parents</code> or <code>--children</code>) are used. The following settings
+are available.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Default mode
+</dt>
+<dd>
+<p>
+        Commits are included if they are not TREESAME to any parent
+        (though this can be changed, see <code>--sparse</code> below).  If the
+        commit was a merge, and it was TREESAME to one parent, follow
+        only that parent.  (Even if there are several TREESAME
+        parents, follow only one of them.)  Otherwise, follow all
+        parents.
+</p>
+<div class="paragraph"><p>This results in:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---N---O
+         /     /   /
+        I---------D</code></pre>
+</div></div>
+<div class="paragraph"><p>Note how the rule to only follow the TREESAME parent, if one is
+available, removed <code>B</code> from consideration entirely.  <code>C</code> was
+considered via <code>N</code>, but is TREESAME.  Root commits are compared to an
+empty tree, so <code>I</code> is !TREESAME.</p></div>
+<div class="paragraph"><p>Parent/child relations are only visible with <code>--parents</code>, but that does
+not affect the commits selected in default mode, so we have shown the
+parent lines.</p></div>
+</dd>
+<dt class="hdlist1">
+--full-history without parent rewriting
+</dt>
+<dd>
+<p>
+        This mode differs from the default in one point: always follow
+        all parents of a merge, even if it is TREESAME to one of them.
+        Even if more than one side of the merge has commits that are
+        included, this does not imply that the merge itself is!  In
+        the example, we get
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>        I  A  B  N  D  O  P  Q</code></pre>
+</div></div>
+<div class="paragraph"><p><code>M</code> was excluded because it is TREESAME to both parents.  <code>E</code>,
+<code>C</code> and <code>B</code> were all walked, but only <code>B</code> was !TREESAME, so the others
+do not appear.</p></div>
+<div class="paragraph"><p>Note that without parent rewriting, it is not really possible to talk
+about the parent/child relationships between the commits, so we show
+them disconnected.</p></div>
+</dd>
+<dt class="hdlist1">
+--full-history with parent rewriting
+</dt>
+<dd>
+<p>
+        Ordinary commits are only included if they are !TREESAME
+        (though this can be changed, see <code>--sparse</code> below).
+</p>
+<div class="paragraph"><p>Merges are always included.  However, their parent list is rewritten:
+Along each parent, prune away commits that are not included
+themselves.  This results in</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M---N---O---P---Q
+         /     /   /   /   /
+        I     B   /   D   /
+         \   /   /   /   /
+          `-------------'</code></pre>
+</div></div>
+<div class="paragraph"><p>Compare to <code>--full-history</code> without rewriting above.  Note that <code>E</code>
+was pruned away because it is TREESAME, but the parent list of P was
+rewritten to contain <code>E</code>'s parent <code>I</code>.  The same happened for <code>C</code> and
+<code>N</code>, and <code>X</code>, <code>Y</code> and <code>Q</code>.</p></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>In addition to the above settings, you can change whether TREESAME
+affects inclusion:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--dense
+</dt>
+<dd>
+<p>
+        Commits that are walked are included if they are not TREESAME
+        to any parent.
+</p>
+</dd>
+<dt class="hdlist1">
+--sparse
+</dt>
+<dd>
+<p>
+        All commits that are walked are included.
+</p>
+<div class="paragraph"><p>Note that without <code>--full-history</code>, this still simplifies merges: if
+one of the parents is TREESAME, we follow only that one, so the other
+sides of the merge are never walked.</p></div>
+</dd>
+<dt class="hdlist1">
+--simplify-merges
+</dt>
+<dd>
+<p>
+        First, build a history graph in the same way that
+        <code>--full-history</code> with parent rewriting does (see above).
+</p>
+<div class="paragraph"><p>Then simplify each commit <code>C</code> to its replacement <code>C'</code> in the final
+history according to the following rules:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+Set <code>C'</code> to <code>C</code>.
+</p>
+</li>
+<li>
+<p>
+Replace each parent <code>P</code> of <code>C'</code> with its simplification <code>P'</code>.  In
+  the process, drop parents that are ancestors of other parents or that are
+  root commits TREESAME to an empty tree, and remove duplicates, but take care
+  to never drop all parents that we are TREESAME to.
+</p>
+</li>
+<li>
+<p>
+If after this parent rewriting, <code>C'</code> is a root or merge commit (has
+  zero or &gt;1 parents), a boundary commit, or !TREESAME, it remains.
+  Otherwise, it is replaced with its only parent.
+</p>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>The effect of this is best shown by way of comparing to
+<code>--full-history</code> with parent rewriting.  The example turns into:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M---N---O
+         /     /       /
+        I     B       D
+         \   /       /
+          `---------'</code></pre>
+</div></div>
+<div class="paragraph"><p>Note the major differences in <code>N</code>, <code>P</code>, and <code>Q</code> over <code>--full-history</code>:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+<code>N</code>'s parent list had <code>I</code> removed, because it is an ancestor of the
+  other parent <code>M</code>.  Still, <code>N</code> remained because it is !TREESAME.
+</p>
+</li>
+<li>
+<p>
+<code>P</code>'s parent list similarly had <code>I</code> removed.  <code>P</code> was then
+  removed completely, because it had one parent and is TREESAME.
+</p>
+</li>
+<li>
+<p>
+<code>Q</code>'s parent list had <code>Y</code> simplified to <code>X</code>. <code>X</code> was then removed, because it
+  was a TREESAME root. <code>Q</code> was then removed completely, because it had one
+  parent and is TREESAME.
+</p>
+</li>
+</ul></div>
+</div></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Finally, there is a fifth simplification mode available:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--ancestry-path
+</dt>
+<dd>
+<p>
+        Limit the displayed commits to those directly on the ancestry
+        chain between the &#8220;from&#8221; and &#8220;to&#8221; commits in the given commit
+        range. I.e. only display commits that are ancestor of the &#8220;to&#8221;
+        commit and descendants of the &#8220;from&#8221; commit.
+</p>
+<div class="paragraph"><p>As an example use case, consider the following commit history:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>            D---E-------F
+           /     \       \
+          B---C---G---H---I---J
+         /                     \
+        A-------K---------------L--M</code></pre>
+</div></div>
+<div class="paragraph"><p>A regular <em>D..M</em> computes the set of commits that are ancestors of <code>M</code>,
+but excludes the ones that are ancestors of <code>D</code>. This is useful to see
+what happened to the history leading to <code>M</code> since <code>D</code>, in the sense
+that &#8220;what does <code>M</code> have that did not exist in <code>D</code>&#8221;. The result in this
+example would be all the commits, except <code>A</code> and <code>B</code> (and <code>D</code> itself,
+of course).</p></div>
+<div class="paragraph"><p>When we want to find out what commits in <code>M</code> are contaminated with the
+bug introduced by <code>D</code> and need fixing, however, we might want to view
+only the subset of <em>D..M</em> that are actually descendants of <code>D</code>, i.e.
+excluding <code>C</code> and <code>K</code>. This is exactly what the <code>--ancestry-path</code>
+option does. Applied to the <em>D..M</em> range, it results in:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>                E-------F
+                 \       \
+                  G---H---I---J
+                               \
+                                L--M</code></pre>
+</div></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The <code>--simplify-by-decoration</code> option allows you to view only the
+big picture of the topology of the history, by omitting commits
+that are not referenced by tags.  Commits are marked as !TREESAME
+(in other words, kept after history simplification rules described
+above) if (1) they are referenced by tags, or (2) they change the
+contents of the paths given on the command line.  All other
+commits are marked as TREESAME (subject to be simplified away).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_bisection_helpers">Bisection Helpers</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--bisect
+</dt>
+<dd>
+<p>
+        Limit output to the one commit object which is roughly halfway between
+        included and excluded commits. Note that the bad bisection ref
+        <code>refs/bisect/bad</code> is added to the included commits (if it
+        exists) and the good bisection refs <code>refs/bisect/good-*</code> are
+        added to the excluded commits (if they exist). Thus, supposing there
+        are no refs in <code>refs/bisect/</code>, if
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>        $ git rev-list --bisect foo ^bar ^baz</code></pre>
+</div></div>
+<div class="paragraph"><p>outputs <em>midpoint</em>, the output of the two commands</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        $ git rev-list foo ^midpoint
+        $ git rev-list midpoint ^bar ^baz</code></pre>
+</div></div>
+<div class="paragraph"><p>would be of roughly the same length.  Finding the change which
+introduces a regression is thus reduced to a binary search: repeatedly
+generate and test new 'midpoint&#8217;s until the commit chain is of length
+one. Cannot be combined with --first-parent.</p></div>
+</dd>
+<dt class="hdlist1">
+--bisect-vars
+</dt>
+<dd>
+<p>
+        This calculates the same as <code>--bisect</code>, except that refs in
+        <code>refs/bisect/</code> are not used, and except that this outputs
+        text ready to be eval&#8217;ed by the shell. These lines will assign the
+        name of the midpoint revision to the variable <code>bisect_rev</code>, and the
+        expected number of commits to be tested after <code>bisect_rev</code> is tested
+        to <code>bisect_nr</code>, the expected number of commits to be tested if
+        <code>bisect_rev</code> turns out to be good to <code>bisect_good</code>, the expected
+        number of commits to be tested if <code>bisect_rev</code> turns out to be bad to
+        <code>bisect_bad</code>, and the number of commits we are bisecting right now to
+        <code>bisect_all</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--bisect-all
+</dt>
+<dd>
+<p>
+        This outputs all the commit objects between the included and excluded
+        commits, ordered by their distance to the included and excluded
+        commits. Refs in <code>refs/bisect/</code> are not used. The farthest
+        from them is displayed first. (This is the only one displayed by
+        <code>--bisect</code>.)
+</p>
+<div class="paragraph"><p>This is useful because it makes it easy to choose a good commit to
+test when you want to avoid to test some of them for some reason (they
+may not compile for example).</p></div>
+<div class="paragraph"><p>This option can be used along with <code>--bisect-vars</code>, in this case,
+after all the sorted commit objects, there will be the same text as if
+<code>--bisect-vars</code> had been used alone.</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_commit_ordering">Commit Ordering</h3>
+<div class="paragraph"><p>By default, the commits are shown in reverse chronological order.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--date-order
+</dt>
+<dd>
+<p>
+        Show no parents before all of its children are shown, but
+        otherwise show commits in the commit timestamp order.
+</p>
+</dd>
+<dt class="hdlist1">
+--author-date-order
+</dt>
+<dd>
+<p>
+        Show no parents before all of its children are shown, but
+        otherwise show commits in the author timestamp order.
+</p>
+</dd>
+<dt class="hdlist1">
+--topo-order
+</dt>
+<dd>
+<p>
+        Show no parents before all of its children are shown, and
+        avoid showing commits on multiple lines of history
+        intermixed.
+</p>
+<div class="paragraph"><p>For example, in a commit history like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>    ---1----2----4----7
+        \              \
+         3----5----6----8---</code></pre>
+</div></div>
+<div class="paragraph"><p>where the numbers denote the order of commit timestamps, <code>git
+rev-list</code> and friends with <code>--date-order</code> show the commits in the
+timestamp order: 8 7 6 5 4 3 2 1.</p></div>
+<div class="paragraph"><p>With <code>--topo-order</code>, they would show 8 6 5 3 7 4 2 1 (or 8 7 4 2 6 5
+3 1); some older commits are shown before newer ones in order to
+avoid showing the commits from two parallel development track mixed
+together.</p></div>
+</dd>
+<dt class="hdlist1">
+--reverse
+</dt>
+<dd>
+<p>
+        Output the commits chosen to be shown (see Commit Limiting
+        section above) in reverse order. Cannot be combined with
+        <code>--walk-reflogs</code>.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_object_traversal">Object Traversal</h3>
+<div class="paragraph"><p>These options are mostly targeted for packing of Git repositories.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--objects
+</dt>
+<dd>
+<p>
+        Print the object IDs of any object referenced by the listed
+        commits.  <code>--objects foo ^bar</code> thus means &#8220;send me
+        all object IDs which I need to download if I have the commit
+        object <em>bar</em> but not <em>foo</em>&#8221;.
+</p>
+</dd>
+<dt class="hdlist1">
+--in-commit-order
+</dt>
+<dd>
+<p>
+        Print tree and blob ids in order of the commits. The tree
+        and blob ids are printed after they are first referenced
+        by a commit.
+</p>
+</dd>
+<dt class="hdlist1">
+--objects-edge
+</dt>
+<dd>
+<p>
+        Similar to <code>--objects</code>, but also print the IDs of excluded
+        commits prefixed with a &#8220;-&#8221; character.  This is used by
+        <a href="git-pack-objects.html">git-pack-objects(1)</a> to build a &#8220;thin&#8221; pack, which records
+        objects in deltified form based on objects contained in these
+        excluded commits to reduce network traffic.
+</p>
+</dd>
+<dt class="hdlist1">
+--objects-edge-aggressive
+</dt>
+<dd>
+<p>
+        Similar to <code>--objects-edge</code>, but it tries harder to find excluded
+        commits at the cost of increased time.  This is used instead of
+        <code>--objects-edge</code> to build &#8220;thin&#8221; packs for shallow repositories.
+</p>
+</dd>
+<dt class="hdlist1">
+--indexed-objects
+</dt>
+<dd>
+<p>
+        Pretend as if all trees and blobs used by the index are listed
+        on the command line.  Note that you probably want to use
+        <code>--objects</code>, too.
+</p>
+</dd>
+<dt class="hdlist1">
+--unpacked
+</dt>
+<dd>
+<p>
+        Only useful with <code>--objects</code>; print the object IDs that are not
+        in packs.
+</p>
+</dd>
+<dt class="hdlist1">
+--object-names
+</dt>
+<dd>
+<p>
+        Only useful with <code>--objects</code>; print the names of the object IDs
+        that are found. This is the default behavior.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-object-names
+</dt>
+<dd>
+<p>
+        Only useful with <code>--objects</code>; does not print the names of the object
+        IDs that are found. This inverts <code>--object-names</code>. This flag allows
+        the output to be more easily parsed by commands such as
+        <a href="git-cat-file.html">git-cat-file(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+--filter=&lt;filter-spec&gt;
+</dt>
+<dd>
+<p>
+        Only useful with one of the <code>--objects*</code>; omits objects (usually
+        blobs) from the list of printed objects.  The <em>&lt;filter-spec&gt;</em>
+        may be one of the following:
+</p>
+<div class="paragraph"><p>The form <em>--filter=blob:none</em> omits all blobs.</p></div>
+<div class="paragraph"><p>The form <em>--filter=blob:limit=&lt;n&gt;[kmg]</em> omits blobs larger than n bytes
+or units.  n may be zero.  The suffixes k, m, and g can be used to name
+units in KiB, MiB, or GiB.  For example, <em>blob:limit=1k</em> is the same
+as <em>blob:limit=1024</em>.</p></div>
+<div class="paragraph"><p>The form <em>--filter=sparse:oid=&lt;blob-ish&gt;</em> uses a sparse-checkout
+specification contained in the blob (or blob-expression) <em>&lt;blob-ish&gt;</em>
+to omit blobs that would not be not required for a sparse checkout on
+the requested refs.</p></div>
+<div class="paragraph"><p>The form <em>--filter=tree:&lt;depth&gt;</em> omits all blobs and trees whose depth
+from the root tree is &gt;= &lt;depth&gt; (minimum depth if an object is located
+at multiple depths in the commits traversed). &lt;depth&gt;=0 will not include
+any trees or blobs unless included explicitly in the command-line (or
+standard input when --stdin is used). &lt;depth&gt;=1 will include only the
+tree and blobs which are referenced directly by a commit reachable from
+&lt;commit&gt; or an explicitly-given object. &lt;depth&gt;=2 is like &lt;depth&gt;=1
+while also including trees and blobs one more level removed from an
+explicitly-given commit or tree.</p></div>
+<div class="paragraph"><p>Note that the form <em>--filter=sparse:path=&lt;path&gt;</em> that wants to read
+from an arbitrary path on the filesystem has been dropped for security
+reasons.</p></div>
+</dd>
+<dt class="hdlist1">
+--no-filter
+</dt>
+<dd>
+<p>
+        Turn off any previous <code>--filter=</code> argument.
+</p>
+</dd>
+<dt class="hdlist1">
+--filter-print-omitted
+</dt>
+<dd>
+<p>
+        Only useful with <code>--filter=</code>; prints a list of the objects omitted
+        by the filter.  Object IDs are prefixed with a &#8220;~&#8221; character.
+</p>
+</dd>
+<dt class="hdlist1">
+--missing=&lt;missing-action&gt;
+</dt>
+<dd>
+<p>
+        A debug option to help with future "partial clone" development.
+        This option specifies how missing objects are handled.
+</p>
+<div class="paragraph"><p>The form <em>--missing=error</em> requests that rev-list stop with an error if
+a missing object is encountered.  This is the default action.</p></div>
+<div class="paragraph"><p>The form <em>--missing=allow-any</em> will allow object traversal to continue
+if a missing object is encountered.  Missing objects will silently be
+omitted from the results.</p></div>
+<div class="paragraph"><p>The form <em>--missing=allow-promisor</em> is like <em>allow-any</em>, but will only
+allow object traversal to continue for EXPECTED promisor missing objects.
+Unexpected missing objects will raise an error.</p></div>
+<div class="paragraph"><p>The form <em>--missing=print</em> is like <em>allow-any</em>, but will also print a
+list of the missing objects.  Object IDs are prefixed with a &#8220;?&#8221; character.</p></div>
+</dd>
+<dt class="hdlist1">
+--exclude-promisor-objects
+</dt>
+<dd>
+<p>
+        (For internal use only.)  Prefilter object traversal at
+        promisor boundary.  This is used with partial clone.  This is
+        stronger than <code>--missing=allow-promisor</code> because it limits the
+        traversal, rather than just silencing errors about missing
+        objects.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-walk[=(sorted|unsorted)]
+</dt>
+<dd>
+<p>
+        Only show the given commits, but do not traverse their ancestors.
+        This has no effect if a range is specified. If the argument
+        <code>unsorted</code> is given, the commits are shown in the order they were
+        given on the command line. Otherwise (if <code>sorted</code> or no argument
+        was given), the commits are shown in reverse chronological order
+        by commit time.
+        Cannot be combined with <code>--graph</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--do-walk
+</dt>
+<dd>
+<p>
+        Overrides a previous <code>--no-walk</code>.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_commit_formatting">Commit Formatting</h3>
+<div class="paragraph"><p>Using these options, <a href="git-rev-list.html">git-rev-list(1)</a> will act similar to the
+more specialized family of commit log tools: <a href="git-log.html">git-log(1)</a>,
+<a href="git-show.html">git-show(1)</a>, and <a href="git-whatchanged.html">git-whatchanged(1)</a></p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--pretty[=&lt;format&gt;]
+</dt>
+<dt class="hdlist1">
+--format=&lt;format&gt;
+</dt>
+<dd>
+<p>
+        Pretty-print the contents of the commit logs in a given format,
+        where <em>&lt;format&gt;</em> can be one of <em>oneline</em>, <em>short</em>, <em>medium</em>,
+        <em>full</em>, <em>fuller</em>, <em>email</em>, <em>raw</em>, <em>format:&lt;string&gt;</em>
+        and <em>tformat:&lt;string&gt;</em>.  When <em>&lt;format&gt;</em> is none of the above,
+        and has <em>%placeholder</em> in it, it acts as if
+        <em>--pretty=tformat:&lt;format&gt;</em> were given.
+</p>
+<div class="paragraph"><p>See the "PRETTY FORMATS" section for some additional details for each
+format.  When <em>=&lt;format&gt;</em> part is omitted, it defaults to <em>medium</em>.</p></div>
+<div class="paragraph"><p>Note: you can specify the default pretty format in the repository
+configuration (see <a href="git-config.html">git-config(1)</a>).</p></div>
+</dd>
+<dt class="hdlist1">
+--abbrev-commit
+</dt>
+<dd>
+<p>
+        Instead of showing the full 40-byte hexadecimal commit object
+        name, show only a partial prefix.  Non default number of
+        digits can be specified with "--abbrev=&lt;n&gt;" (which also modifies
+        diff output, if it is displayed).
+</p>
+<div class="paragraph"><p>This should make "--pretty=oneline" a whole lot more readable for
+people using 80-column terminals.</p></div>
+</dd>
+<dt class="hdlist1">
+--no-abbrev-commit
+</dt>
+<dd>
+<p>
+        Show the full 40-byte hexadecimal commit object name. This negates
+        <code>--abbrev-commit</code> and those options which imply it such as
+        "--oneline". It also overrides the <code>log.abbrevCommit</code> variable.
+</p>
+</dd>
+<dt class="hdlist1">
+--oneline
+</dt>
+<dd>
+<p>
+        This is a shorthand for "--pretty=oneline --abbrev-commit"
+        used together.
+</p>
+</dd>
+<dt class="hdlist1">
+--encoding=&lt;encoding&gt;
+</dt>
+<dd>
+<p>
+        The commit objects record the encoding used for the log message
+        in their encoding header; this option can be used to tell the
+        command to re-code the commit log message in the encoding
+        preferred by the user.  For non plumbing commands this
+        defaults to UTF-8. Note that if an object claims to be encoded
+        in <code>X</code> and we are outputting in <code>X</code>, we will output the object
+        verbatim; this means that invalid sequences in the original
+        commit may be copied to the output.
+</p>
+</dd>
+<dt class="hdlist1">
+--expand-tabs=&lt;n&gt;
+</dt>
+<dt class="hdlist1">
+--expand-tabs
+</dt>
+<dt class="hdlist1">
+--no-expand-tabs
+</dt>
+<dd>
+<p>
+        Perform a tab expansion (replace each tab with enough spaces
+        to fill to the next display column that is multiple of <em>&lt;n&gt;</em>)
+        in the log message before showing it in the output.
+        <code>--expand-tabs</code> is a short-hand for <code>--expand-tabs=8</code>, and
+        <code>--no-expand-tabs</code> is a short-hand for <code>--expand-tabs=0</code>,
+        which disables tab expansion.
+</p>
+<div class="paragraph"><p>By default, tabs are expanded in pretty formats that indent the log
+message by 4 spaces (i.e.  <em>medium</em>, which is the default, <em>full</em>,
+and <em>fuller</em>).</p></div>
+</dd>
+<dt class="hdlist1">
+--show-signature
+</dt>
+<dd>
+<p>
+        Check the validity of a signed commit object by passing the signature
+        to <code>gpg --verify</code> and show the output.
+</p>
+</dd>
+<dt class="hdlist1">
+--relative-date
+</dt>
+<dd>
+<p>
+        Synonym for <code>--date=relative</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--date=&lt;format&gt;
+</dt>
+<dd>
+<p>
+        Only takes effect for dates shown in human-readable format, such
+        as when using <code>--pretty</code>. <code>log.date</code> config variable sets a default
+        value for the log command&#8217;s <code>--date</code> option. By default, dates
+        are shown in the original time zone (either committer&#8217;s or
+        author&#8217;s). If <code>-local</code> is appended to the format (e.g.,
+        <code>iso-local</code>), the user&#8217;s local time zone is used instead.
+</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph"><p><code>--date=relative</code> shows dates relative to the current time,
+e.g. &#8220;2 hours ago&#8221;. The <code>-local</code> option has no effect for
+<code>--date=relative</code>.</p></div>
+<div class="paragraph"><p><code>--date=local</code> is an alias for <code>--date=default-local</code>.</p></div>
+<div class="paragraph"><p><code>--date=iso</code> (or <code>--date=iso8601</code>) shows timestamps in a ISO 8601-like format.
+The differences to the strict ISO 8601 format are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+a space instead of the <code>T</code> date/time delimiter
+</p>
+</li>
+<li>
+<p>
+a space between time and time zone
+</p>
+</li>
+<li>
+<p>
+no colon between hours and minutes of the time zone
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p><code>--date=iso-strict</code> (or <code>--date=iso8601-strict</code>) shows timestamps in strict
+ISO 8601 format.</p></div>
+<div class="paragraph"><p><code>--date=rfc</code> (or <code>--date=rfc2822</code>) shows timestamps in RFC 2822
+format, often found in email messages.</p></div>
+<div class="paragraph"><p><code>--date=short</code> shows only the date, but not the time, in <code>YYYY-MM-DD</code> format.</p></div>
+<div class="paragraph"><p><code>--date=raw</code> shows the date as seconds since the epoch (1970-01-01
+00:00:00 UTC), followed by a space, and then the timezone as an offset
+from UTC (a <code>+</code> or <code>-</code> with four digits; the first two are hours, and
+the second two are minutes). I.e., as if the timestamp were formatted
+with <code>strftime("%s %z")</code>).
+Note that the <code>-local</code> option does not affect the seconds-since-epoch
+value (which is always measured in UTC), but does switch the accompanying
+timezone value.</p></div>
+<div class="paragraph"><p><code>--date=human</code> shows the timezone if the timezone does not match the
+current time-zone, and doesn&#8217;t print the whole date if that matches
+(ie skip printing year for dates that are "this year", but also skip
+the whole date itself if it&#8217;s in the last few days and we can just say
+what weekday it was).  For older dates the hour and minute is also
+omitted.</p></div>
+<div class="paragraph"><p><code>--date=unix</code> shows the date as a Unix epoch timestamp (seconds since
+1970).  As with <code>--raw</code>, this is always in UTC and therefore <code>-local</code>
+has no effect.</p></div>
+<div class="paragraph"><p><code>--date=format:...</code> feeds the format <code>...</code> to your system <code>strftime</code>,
+except for %z and %Z, which are handled internally.
+Use <code>--date=format:%c</code> to show the date in your system locale&#8217;s
+preferred format.  See the <code>strftime</code> manual for a complete list of
+format placeholders. When using <code>-local</code>, the correct syntax is
+<code>--date=format-local:...</code>.</p></div>
+<div class="paragraph"><p><code>--date=default</code> is the default format, and is similar to
+<code>--date=rfc2822</code>, with a few exceptions:</p></div>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+there is no comma after the day-of-week
+</p>
+</li>
+<li>
+<p>
+the time zone is omitted when the local time zone is used
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
+--header
+</dt>
+<dd>
+<p>
+        Print the contents of the commit in raw-format; each record is
+        separated with a NUL character.
+</p>
+</dd>
+<dt class="hdlist1">
+--parents
+</dt>
+<dd>
+<p>
+        Print also the parents of the commit (in the form "commit parent&#8230;").
+        Also enables parent rewriting, see <em>History Simplification</em> above.
+</p>
+</dd>
+<dt class="hdlist1">
+--children
+</dt>
+<dd>
+<p>
+        Print also the children of the commit (in the form "commit child&#8230;").
+        Also enables parent rewriting, see <em>History Simplification</em> above.
+</p>
+</dd>
+<dt class="hdlist1">
+--timestamp
+</dt>
+<dd>
+<p>
+        Print the raw commit timestamp.
+</p>
+</dd>
+<dt class="hdlist1">
+--left-right
+</dt>
+<dd>
+<p>
+        Mark which side of a symmetric difference a commit is reachable from.
+        Commits from the left side are prefixed with <code>&lt;</code> and those from
+        the right with <code>&gt;</code>.  If combined with <code>--boundary</code>, those
+        commits are prefixed with <code>-</code>.
+</p>
+<div class="paragraph"><p>For example, if you have this topology:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>             y---b---b  branch B
+            / \ /
+           /   .
+          /   / \
+         o---x---a---a  branch A</code></pre>
+</div></div>
+<div class="paragraph"><p>you would get an output like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        $ git rev-list --left-right --boundary --pretty=oneline A...B
+
+        &gt;bbbbbbb... 3rd on b
+        &gt;bbbbbbb... 2nd on b
+        &lt;aaaaaaa... 3rd on a
+        &lt;aaaaaaa... 2nd on a
+        -yyyyyyy... 1st on b
+        -xxxxxxx... 1st on a</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+--graph
+</dt>
+<dd>
+<p>
+        Draw a text-based graphical representation of the commit history
+        on the left hand side of the output.  This may cause extra lines
+        to be printed in between commits, in order for the graph history
+        to be drawn properly.
+        Cannot be combined with <code>--no-walk</code>.
+</p>
+<div class="paragraph"><p>This enables parent rewriting, see <em>History Simplification</em> above.</p></div>
+<div class="paragraph"><p>This implies the <code>--topo-order</code> option by default, but the
+<code>--date-order</code> option may also be specified.</p></div>
+</dd>
+<dt class="hdlist1">
+--show-linear-break[=&lt;barrier&gt;]
+</dt>
+<dd>
+<p>
+        When --graph is not used, all history branches are flattened
+        which can make it hard to see that the two consecutive commits
+        do not belong to a linear branch. This option puts a barrier
+        in between them in that case. If <code>&lt;barrier&gt;</code> is specified, it
+        is the string that will be shown instead of the default one.
+</p>
+</dd>
+<dt class="hdlist1">
+--count
+</dt>
+<dd>
+<p>
+        Print a number stating how many commits would have been
+        listed, and suppress all other output.  When used together
+        with <code>--left-right</code>, instead print the counts for left and
+        right commits, separated by a tab. When used together with
+        <code>--cherry-mark</code>, omit patch equivalent commits from these
+        counts and print the count for equivalent commits separated
+        by a tab.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pretty_formats">PRETTY FORMATS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the commit is a merge, and if the pretty-format
+is not <em>oneline</em>, <em>email</em> or <em>raw</em>, an additional line is
+inserted before the <em>Author:</em> line.  This line begins with
+"Merge: " and the sha1s of ancestral commits are printed,
+separated by spaces.  Note that the listed commits may not
+necessarily be the list of the <strong>direct</strong> parent commits if you
+have limited your view of history: for example, if you are
+only interested in changes related to a certain directory or
+file.</p></div>
+<div class="paragraph"><p>There are several built-in formats, and you can define
+additional formats by setting a pretty.&lt;name&gt;
+config option to either another format name, or a
+<em>format:</em> string, as described below (see
+<a href="git-config.html">git-config(1)</a>). Here are the details of the
+built-in formats:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<em>oneline</em>
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;sha1&gt; &lt;title line&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>This is designed to be as compact as possible.</p></div>
+</li>
+<li>
+<p>
+<em>short</em>
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>commit &lt;sha1&gt;
+Author: &lt;author&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;title line&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+<em>medium</em>
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>commit &lt;sha1&gt;
+Author: &lt;author&gt;
+Date:   &lt;author date&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;title line&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;full commit message&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+<em>full</em>
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>commit &lt;sha1&gt;
+Author: &lt;author&gt;
+Commit: &lt;committer&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;title line&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;full commit message&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+<em>fuller</em>
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>commit &lt;sha1&gt;
+Author:     &lt;author&gt;
+AuthorDate: &lt;author date&gt;
+Commit:     &lt;committer&gt;
+CommitDate: &lt;committer date&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;title line&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;full commit message&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+<em>email</em>
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>From &lt;sha1&gt; &lt;date&gt;
+From: &lt;author&gt;
+Date: &lt;author date&gt;
+Subject: [PATCH] &lt;title line&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;full commit message&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+<em>raw</em>
+</p>
+<div class="paragraph"><p>The <em>raw</em> format shows the entire commit exactly as
+stored in the commit object.  Notably, the SHA-1s are
+displayed in full, regardless of whether --abbrev or
+--no-abbrev are used, and <em>parents</em> information show the
+true parent commits, without taking grafts or history
+simplification into account. Note that this format affects the way
+commits are displayed, but not the way the diff is shown e.g. with
+<code>git log --raw</code>. To get full object names in a raw diff format,
+use <code>--no-abbrev</code>.</p></div>
+</li>
+<li>
+<p>
+<em>format:&lt;string&gt;</em>
+</p>
+<div class="paragraph"><p>The <em>format:&lt;string&gt;</em> format allows you to specify which information
+you want to show. It works a little bit like printf format,
+with the notable exception that you get a newline with <em>%n</em>
+instead of <em>\n</em>.</p></div>
+<div class="paragraph"><p>E.g, <em>format:"The author of %h was %an, %ar%nThe title was &gt;&gt;%s&lt;&lt;%n"</em>
+would show something like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>The author of fe6e0ee was Junio C Hamano, 23 hours ago
+The title was &gt;&gt;t4119: test autocomputing -p&lt;n&gt; for traditional diff input.&lt;&lt;</code></pre>
+</div></div>
+<div class="paragraph"><p>The placeholders are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Placeholders that expand to a single literal character:
+</p>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>%n</em>
+</dt>
+<dd>
+<p>
+newline
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%%</em>
+</dt>
+<dd>
+<p>
+a raw <em>%</em>
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%x00</em>
+</dt>
+<dd>
+<p>
+print a byte from a hex code
+</p>
+</dd>
+</dl></div>
+</li>
+<li>
+<p>
+Placeholders that affect formatting of later placeholders:
+</p>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>%Cred</em>
+</dt>
+<dd>
+<p>
+switch color to red
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%Cgreen</em>
+</dt>
+<dd>
+<p>
+switch color to green
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%Cblue</em>
+</dt>
+<dd>
+<p>
+switch color to blue
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%Creset</em>
+</dt>
+<dd>
+<p>
+reset color
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%C(&#8230;)</em>
+</dt>
+<dd>
+<p>
+color specification, as described under Values in the
+            "CONFIGURATION FILE" section of <a href="git-config.html">git-config(1)</a>.  By
+            default, colors are shown only when enabled for log output
+            (by <code>color.diff</code>, <code>color.ui</code>, or <code>--color</code>, and respecting
+            the <code>auto</code> settings of the former if we are going to a
+            terminal). <code>%C(auto,...)</code> is accepted as a historical
+            synonym for the default (e.g., <code>%C(auto,red)</code>). Specifying
+            <code>%C(always,...)</code> will show the colors even when color is
+            not otherwise enabled (though consider just using
+            <code>--color=always</code> to enable color for the whole output,
+            including this format and anything else git might color).
+            <code>auto</code> alone (i.e. <code>%C(auto)</code>) will turn on auto coloring
+            on the next placeholders until the color is switched
+            again.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%m</em>
+</dt>
+<dd>
+<p>
+left (<code>&lt;</code>), right (<code>&gt;</code>) or boundary (<code>-</code>) mark
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%w([&lt;w&gt;[,&lt;i1&gt;[,&lt;i2&gt;]]])</em>
+</dt>
+<dd>
+<p>
+switch line wrapping, like the -w option of
+                            <a href="git-shortlog.html">git-shortlog(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%&lt;(&lt;N&gt;[,trunc|ltrunc|mtrunc])</em>
+</dt>
+<dd>
+<p>
+make the next placeholder take at
+                                  least N columns, padding spaces on
+                                  the right if necessary.  Optionally
+                                  truncate at the beginning (ltrunc),
+                                  the middle (mtrunc) or the end
+                                  (trunc) if the output is longer than
+                                  N columns.  Note that truncating
+                                  only works correctly with N &gt;= 2.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%&lt;|(&lt;N&gt;)</em>
+</dt>
+<dd>
+<p>
+make the next placeholder take at least until Nth
+             columns, padding spaces on the right if necessary
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%&gt;(&lt;N&gt;)</em>, <em>%&gt;|(&lt;N&gt;)</em>
+</dt>
+<dd>
+<p>
+similar to <em>%&lt;(&lt;N&gt;)</em>, <em>%&lt;|(&lt;N&gt;)</em> respectively,
+                        but padding spaces on the left
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%&gt;&gt;(&lt;N&gt;)</em>, <em>%&gt;&gt;|(&lt;N&gt;)</em>
+</dt>
+<dd>
+<p>
+similar to <em>%&gt;(&lt;N&gt;)</em>, <em>%&gt;|(&lt;N&gt;)</em>
+                          respectively, except that if the next
+                          placeholder takes more spaces than given and
+                          there are spaces on its left, use those
+                          spaces
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%&gt;&lt;(&lt;N&gt;)</em>, <em>%&gt;&lt;|(&lt;N&gt;)</em>
+</dt>
+<dd>
+<p>
+similar to <em>%&lt;(&lt;N&gt;)</em>, <em>%&lt;|(&lt;N&gt;)</em>
+                          respectively, but padding both sides
+                          (i.e. the text is centered)
+</p>
+</dd>
+</dl></div>
+</li>
+<li>
+<p>
+Placeholders that expand to information extracted from the commit:
+</p>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>%H</em>
+</dt>
+<dd>
+<p>
+commit hash
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%h</em>
+</dt>
+<dd>
+<p>
+abbreviated commit hash
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%T</em>
+</dt>
+<dd>
+<p>
+tree hash
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%t</em>
+</dt>
+<dd>
+<p>
+abbreviated tree hash
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%P</em>
+</dt>
+<dd>
+<p>
+parent hashes
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%p</em>
+</dt>
+<dd>
+<p>
+abbreviated parent hashes
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%an</em>
+</dt>
+<dd>
+<p>
+author name
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%aN</em>
+</dt>
+<dd>
+<p>
+author name (respecting .mailmap, see <a href="git-shortlog.html">git-shortlog(1)</a>
+        or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ae</em>
+</dt>
+<dd>
+<p>
+author email
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%aE</em>
+</dt>
+<dd>
+<p>
+author email (respecting .mailmap, see <a href="git-shortlog.html">git-shortlog(1)</a>
+        or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ad</em>
+</dt>
+<dd>
+<p>
+author date (format respects --date= option)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%aD</em>
+</dt>
+<dd>
+<p>
+author date, RFC2822 style
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ar</em>
+</dt>
+<dd>
+<p>
+author date, relative
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%at</em>
+</dt>
+<dd>
+<p>
+author date, UNIX timestamp
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ai</em>
+</dt>
+<dd>
+<p>
+author date, ISO 8601-like format
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%aI</em>
+</dt>
+<dd>
+<p>
+author date, strict ISO 8601 format
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cn</em>
+</dt>
+<dd>
+<p>
+committer name
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cN</em>
+</dt>
+<dd>
+<p>
+committer name (respecting .mailmap, see
+        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ce</em>
+</dt>
+<dd>
+<p>
+committer email
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cE</em>
+</dt>
+<dd>
+<p>
+committer email (respecting .mailmap, see
+        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cd</em>
+</dt>
+<dd>
+<p>
+committer date (format respects --date= option)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cD</em>
+</dt>
+<dd>
+<p>
+committer date, RFC2822 style
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cr</em>
+</dt>
+<dd>
+<p>
+committer date, relative
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ct</em>
+</dt>
+<dd>
+<p>
+committer date, UNIX timestamp
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ci</em>
+</dt>
+<dd>
+<p>
+committer date, ISO 8601-like format
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cI</em>
+</dt>
+<dd>
+<p>
+committer date, strict ISO 8601 format
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%d</em>
+</dt>
+<dd>
+<p>
+ref names, like the --decorate option of <a href="git-log.html">git-log(1)</a>
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%D</em>
+</dt>
+<dd>
+<p>
+ref names without the " (", ")" wrapping.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%S</em>
+</dt>
+<dd>
+<p>
+ref name given on the command line by which the commit was reached
+       (like <code>git log --source</code>), only works with <code>git log</code>
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%e</em>
+</dt>
+<dd>
+<p>
+encoding
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%s</em>
+</dt>
+<dd>
+<p>
+subject
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%f</em>
+</dt>
+<dd>
+<p>
+sanitized subject line, suitable for a filename
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%b</em>
+</dt>
+<dd>
+<p>
+body
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%B</em>
+</dt>
+<dd>
+<p>
+raw body (unwrapped subject and body)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%GG</em>
+</dt>
+<dd>
+<p>
+raw verification message from GPG for a signed commit
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%G?</em>
+</dt>
+<dd>
+<p>
+show "G" for a good (valid) signature,
+        "B" for a bad signature,
+        "U" for a good signature with unknown validity,
+        "X" for a good signature that has expired,
+        "Y" for a good signature made by an expired key,
+        "R" for a good signature made by a revoked key,
+        "E" if the signature cannot be checked (e.g. missing key)
+        and "N" for no signature
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%GS</em>
+</dt>
+<dd>
+<p>
+show the name of the signer for a signed commit
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%GK</em>
+</dt>
+<dd>
+<p>
+show the key used to sign a signed commit
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%GF</em>
+</dt>
+<dd>
+<p>
+show the fingerprint of the key used to sign a signed commit
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%GP</em>
+</dt>
+<dd>
+<p>
+show the fingerprint of the primary key whose subkey was used
+        to sign a signed commit
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%gD</em>
+</dt>
+<dd>
+<p>
+reflog selector, e.g., <code>refs/stash@{1}</code> or <code>refs/stash@{2
+        minutes ago</code>}; the format follows the rules described for the
+        <code>-g</code> option. The portion before the <code>@</code> is the refname as
+        given on the command line (so <code>git log -g refs/heads/master</code>
+        would yield <code>refs/heads/master@{0}</code>).
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%gd</em>
+</dt>
+<dd>
+<p>
+shortened reflog selector; same as <code>%gD</code>, but the refname
+        portion is shortened for human readability (so
+        <code>refs/heads/master</code> becomes just <code>master</code>).
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%gn</em>
+</dt>
+<dd>
+<p>
+reflog identity name
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%gN</em>
+</dt>
+<dd>
+<p>
+reflog identity name (respecting .mailmap, see
+        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%ge</em>
+</dt>
+<dd>
+<p>
+reflog identity email
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%gE</em>
+</dt>
+<dd>
+<p>
+reflog identity email (respecting .mailmap, see
+        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%gs</em>
+</dt>
+<dd>
+<p>
+reflog subject
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%(trailers[:options])</em>
+</dt>
+<dd>
+<p>
+display the trailers of the body as
+                          interpreted by
+                          <a href="git-interpret-trailers.html">git-interpret-trailers(1)</a>. The
+                          <code>trailers</code> string may be followed by a colon
+                          and zero or more comma-separated options:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<em>key=&lt;K&gt;</em>: only show trailers with specified key. Matching is done
+   case-insensitively and trailing colon is optional. If option is
+   given multiple times trailer lines matching any of the keys are
+   shown. This option automatically enables the <code>only</code> option so that
+   non-trailer lines in the trailer block are hidden. If that is not
+   desired it can be disabled with <code>only=false</code>.  E.g.,
+   <code>%(trailers:key=Reviewed-by)</code> shows trailer lines with key
+   <code>Reviewed-by</code>.
+</p>
+</li>
+<li>
+<p>
+<em>only[=val]</em>: select whether non-trailer lines from the trailer
+   block should be included. The <code>only</code> keyword may optionally be
+   followed by an equal sign and one of <code>true</code>, <code>on</code>, <code>yes</code> to omit or
+   <code>false</code>, <code>off</code>, <code>no</code> to show the non-trailer lines. If option is
+   given without value it is enabled. If given multiple times the last
+   value is used.
+</p>
+</li>
+<li>
+<p>
+<em>separator=&lt;SEP&gt;</em>: specify a separator inserted between trailer
+   lines. When this option is not given each trailer line is
+   terminated with a line feed character. The string SEP may contain
+   the literal formatting codes described above. To use comma as
+   separator one must use <code>%x2C</code> as it would otherwise be parsed as
+   next option. If separator option is given multiple times only the
+   last one is used. E.g., <code>%(trailers:key=Ticket,separator=%x2C )</code>
+   shows all trailer lines whose key is "Ticket" separated by a comma
+   and a space.
+</p>
+</li>
+<li>
+<p>
+<em>unfold[=val]</em>: make it behave as if interpret-trailer&#8217;s <code>--unfold</code>
+   option was given. In same way as to for <code>only</code> it can be followed
+   by an equal sign and explicit value. E.g.,
+   <code>%(trailers:only,unfold=true)</code> unfolds and shows all trailer lines.
+</p>
+</li>
+<li>
+<p>
+<em>valueonly[=val]</em>: skip over the key part of the trailer line and only
+   show the value part. Also this optionally allows explicit value.
+</p>
+</li>
+</ul></div>
+</dd>
+</dl></div>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Some placeholders may depend on other options given to the
+revision traversal engine. For example, the <code>%g*</code> reflog options will
+insert an empty string unless we are traversing reflog entries (e.g., by
+<code>git log -g</code>). The <code>%d</code> and <code>%D</code> placeholders will use the "short"
+decoration format if <code>--decorate</code> was not already provided on the command
+line.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>If you add a <code>+</code> (plus sign) after <em>%</em> of a placeholder, a line-feed
+is inserted immediately before the expansion if and only if the
+placeholder expands to a non-empty string.</p></div>
+<div class="paragraph"><p>If you add a <code>-</code> (minus sign) after <em>%</em> of a placeholder, all consecutive
+line-feeds immediately preceding the expansion are deleted if and only if the
+placeholder expands to an empty string.</p></div>
+<div class="paragraph"><p>If you add a ` ` (space) after <em>%</em> of a placeholder, a space
+is inserted immediately before the expansion if and only if the
+placeholder expands to a non-empty string.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<em>tformat:</em>
+</p>
+<div class="paragraph"><p>The <em>tformat:</em> format works exactly like <em>format:</em>, except that it
+provides "terminator" semantics instead of "separator" semantics. In
+other words, each commit has the message terminator character (usually a
+newline) appended, rather than a separator placed between entries.
+This means that the final entry of a single-line format will be properly
+terminated with a new line, just as the "oneline" format does.
+For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log -2 --pretty=format:%h 4da45bef \
+  | perl -pe '$_ .= " -- NO NEWLINE\n" unless /\n/'
+4da45be
+7134973 -- NO NEWLINE
+
+$ git log -2 --pretty=tformat:%h 4da45bef \
+  | perl -pe '$_ .= " -- NO NEWLINE\n" unless /\n/'
+4da45be
+7134973</code></pre>
+</div></div>
+<div class="paragraph"><p>In addition, any unrecognized string that has a <code>%</code> in it is interpreted
+as if it has <code>tformat:</code> in front of it.  For example, these two are
+equivalent:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log -2 --pretty=tformat:%h 4da45bef
+$ git log -2 --pretty=%h 4da45bef</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

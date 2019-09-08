@@ -1,0 +1,1350 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-notes(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-notes(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-notes -
+   Add or inspect object notes
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git notes</em> [list [&lt;object&gt;]]
+<em>git notes</em> add [-f] [--allow-empty] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
+<em>git notes</em> copy [-f] ( --stdin | &lt;from-object&gt; &lt;to-object&gt; )
+<em>git notes</em> append [--allow-empty] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
+<em>git notes</em> edit [--allow-empty] [&lt;object&gt;]
+<em>git notes</em> show [&lt;object&gt;]
+<em>git notes</em> merge [-v | -q] [-s &lt;strategy&gt; ] &lt;notes-ref&gt;
+<em>git notes</em> merge --commit [-v | -q]
+<em>git notes</em> merge --abort [-v | -q]
+<em>git notes</em> remove [--ignore-missing] [--stdin] [&lt;object&gt;&#8230;]
+<em>git notes</em> prune [-n] [-v]
+<em>git notes</em> get-ref</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Adds, removes, or reads notes attached to objects, without touching
+the objects themselves.</p></div>
+<div class="paragraph"><p>By default, notes are saved to and read from <code>refs/notes/commits</code>, but
+this default can be overridden.  See the OPTIONS, CONFIGURATION, and
+ENVIRONMENT sections below.  If this ref does not exist, it will be
+quietly created when it is first needed to store a note.</p></div>
+<div class="paragraph"><p>A typical use of notes is to supplement a commit message without
+changing the commit itself. Notes can be shown by <em>git log</em> along with
+the original commit message. To distinguish these notes from the
+message stored in the commit object, the notes are indented like the
+message, after an unindented line saying "Notes (&lt;refname&gt;):" (or
+"Notes:" for <code>refs/notes/commits</code>).</p></div>
+<div class="paragraph"><p>Notes can also be added to patches prepared with <code>git format-patch</code> by
+using the <code>--notes</code> option. Such notes are added as a patch commentary
+after a three dash separator line.</p></div>
+<div class="paragraph"><p>To change which notes are shown by <em>git log</em>, see the
+"notes.displayRef" configuration in <a href="git-log.html">git-log(1)</a>.</p></div>
+<div class="paragraph"><p>See the "notes.rewrite.&lt;command&gt;" configuration for a way to carry
+notes across commands that rewrite commits.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_subcommands">SUBCOMMANDS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+list
+</dt>
+<dd>
+<p>
+        List the notes object for a given object. If no object is
+        given, show a list of all note objects and the objects they
+        annotate (in the format "&lt;note object&gt; &lt;annotated object&gt;").
+        This is the default subcommand if no subcommand is given.
+</p>
+</dd>
+<dt class="hdlist1">
+add
+</dt>
+<dd>
+<p>
+        Add notes for a given object (defaults to HEAD). Abort if the
+        object already has notes (use <code>-f</code> to overwrite existing notes).
+        However, if you&#8217;re using <code>add</code> interactively (using an editor
+        to supply the notes contents), then - instead of aborting -
+        the existing notes will be opened in the editor (like the <code>edit</code>
+        subcommand).
+</p>
+</dd>
+<dt class="hdlist1">
+copy
+</dt>
+<dd>
+<p>
+        Copy the notes for the first object onto the second object.
+        Abort if the second object already has notes, or if the first
+        object has none (use -f to overwrite existing notes to the
+        second object). This subcommand is equivalent to:
+        <code>git notes add [-f] -C $(git notes list &lt;from-object&gt;) &lt;to-object&gt;</code>
+</p>
+<div class="paragraph"><p>In <code>--stdin</code> mode, take lines in the format</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;from-object&gt; SP &lt;to-object&gt; [ SP &lt;rest&gt; ] LF</code></pre>
+</div></div>
+<div class="paragraph"><p>on standard input, and copy the notes from each &lt;from-object&gt; to its
+corresponding &lt;to-object&gt;.  (The optional <code>&lt;rest&gt;</code> is ignored so that
+the command can read the input given to the <code>post-rewrite</code> hook.)</p></div>
+</dd>
+<dt class="hdlist1">
+append
+</dt>
+<dd>
+<p>
+        Append to the notes of an existing object (defaults to HEAD).
+        Creates a new notes object if needed.
+</p>
+</dd>
+<dt class="hdlist1">
+edit
+</dt>
+<dd>
+<p>
+        Edit the notes for a given object (defaults to HEAD).
+</p>
+</dd>
+<dt class="hdlist1">
+show
+</dt>
+<dd>
+<p>
+        Show the notes for a given object (defaults to HEAD).
+</p>
+</dd>
+<dt class="hdlist1">
+merge
+</dt>
+<dd>
+<p>
+        Merge the given notes ref into the current notes ref.
+        This will try to merge the changes made by the given
+        notes ref (called "remote") since the merge-base (if
+        any) into the current notes ref (called "local").
+</p>
+<div class="paragraph"><p>If conflicts arise and a strategy for automatically resolving
+conflicting notes (see the "NOTES MERGE STRATEGIES" section) is not given,
+the "manual" resolver is used. This resolver checks out the
+conflicting notes in a special worktree (<code>.git/NOTES_MERGE_WORKTREE</code>),
+and instructs the user to manually resolve the conflicts there.
+When done, the user can either finalize the merge with
+<em>git notes merge --commit</em>, or abort the merge with
+<em>git notes merge --abort</em>.</p></div>
+</dd>
+<dt class="hdlist1">
+remove
+</dt>
+<dd>
+<p>
+        Remove the notes for given objects (defaults to HEAD). When
+        giving zero or one object from the command line, this is
+        equivalent to specifying an empty note message to
+        the <code>edit</code> subcommand.
+</p>
+</dd>
+<dt class="hdlist1">
+prune
+</dt>
+<dd>
+<p>
+        Remove all notes for non-existing/unreachable objects.
+</p>
+</dd>
+<dt class="hdlist1">
+get-ref
+</dt>
+<dd>
+<p>
+        Print the current notes ref. This provides an easy way to
+        retrieve the current notes ref (e.g. from scripts).
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-f
+</dt>
+<dt class="hdlist1">
+--force
+</dt>
+<dd>
+<p>
+        When adding notes to an object that already has notes,
+        overwrite the existing notes (instead of aborting).
+</p>
+</dd>
+<dt class="hdlist1">
+-m &lt;msg&gt;
+</dt>
+<dt class="hdlist1">
+--message=&lt;msg&gt;
+</dt>
+<dd>
+<p>
+        Use the given note message (instead of prompting).
+        If multiple <code>-m</code> options are given, their values
+        are concatenated as separate paragraphs.
+        Lines starting with <code>#</code> and empty lines other than a
+        single line between paragraphs will be stripped out.
+</p>
+</dd>
+<dt class="hdlist1">
+-F &lt;file&gt;
+</dt>
+<dt class="hdlist1">
+--file=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Take the note message from the given file.  Use <em>-</em> to
+        read the note message from the standard input.
+        Lines starting with <code>#</code> and empty lines other than a
+        single line between paragraphs will be stripped out.
+</p>
+</dd>
+<dt class="hdlist1">
+-C &lt;object&gt;
+</dt>
+<dt class="hdlist1">
+--reuse-message=&lt;object&gt;
+</dt>
+<dd>
+<p>
+        Take the given blob object (for example, another note) as the
+        note message. (Use <code>git notes copy &lt;object&gt;</code> instead to
+        copy notes between objects.)
+</p>
+</dd>
+<dt class="hdlist1">
+-c &lt;object&gt;
+</dt>
+<dt class="hdlist1">
+--reedit-message=&lt;object&gt;
+</dt>
+<dd>
+<p>
+        Like <em>-C</em>, but with <code>-c</code> the editor is invoked, so that
+        the user can further edit the note message.
+</p>
+</dd>
+<dt class="hdlist1">
+--allow-empty
+</dt>
+<dd>
+<p>
+        Allow an empty note object to be stored. The default behavior is
+        to automatically remove empty notes.
+</p>
+</dd>
+<dt class="hdlist1">
+--ref &lt;ref&gt;
+</dt>
+<dd>
+<p>
+        Manipulate the notes tree in &lt;ref&gt;.  This overrides
+        <code>GIT_NOTES_REF</code> and the "core.notesRef" configuration.  The ref
+        specifies the full refname when it begins with <code>refs/notes/</code>; when it
+        begins with <code>notes/</code>, <code>refs/</code> and otherwise <code>refs/notes/</code> is prefixed
+        to form a full name of the ref.
+</p>
+</dd>
+<dt class="hdlist1">
+--ignore-missing
+</dt>
+<dd>
+<p>
+        Do not consider it an error to request removing notes from an
+        object that does not have notes attached to it.
+</p>
+</dd>
+<dt class="hdlist1">
+--stdin
+</dt>
+<dd>
+<p>
+        Also read the object names to remove notes from the standard
+        input (there is no reason you cannot combine this with object
+        names from the command line).
+</p>
+</dd>
+<dt class="hdlist1">
+-n
+</dt>
+<dt class="hdlist1">
+--dry-run
+</dt>
+<dd>
+<p>
+        Do not remove anything; just report the object names whose notes
+        would be removed.
+</p>
+</dd>
+<dt class="hdlist1">
+-s &lt;strategy&gt;
+</dt>
+<dt class="hdlist1">
+--strategy=&lt;strategy&gt;
+</dt>
+<dd>
+<p>
+        When merging notes, resolve notes conflicts using the given
+        strategy. The following strategies are recognized: "manual"
+        (default), "ours", "theirs", "union" and "cat_sort_uniq".
+        This option overrides the "notes.mergeStrategy" configuration setting.
+        See the "NOTES MERGE STRATEGIES" section below for more
+        information on each notes merge strategy.
+</p>
+</dd>
+<dt class="hdlist1">
+--commit
+</dt>
+<dd>
+<p>
+        Finalize an in-progress <em>git notes merge</em>. Use this option
+        when you have resolved the conflicts that <em>git notes merge</em>
+        stored in .git/NOTES_MERGE_WORKTREE. This amends the partial
+        merge commit created by <em>git notes merge</em> (stored in
+        .git/NOTES_MERGE_PARTIAL) by adding the notes in
+        .git/NOTES_MERGE_WORKTREE. The notes ref stored in the
+        .git/NOTES_MERGE_REF symref is updated to the resulting commit.
+</p>
+</dd>
+<dt class="hdlist1">
+--abort
+</dt>
+<dd>
+<p>
+        Abort/reset an in-progress <em>git notes merge</em>, i.e. a notes merge
+        with conflicts. This simply removes all files related to the
+        notes merge.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        When merging notes, operate quietly.
+</p>
+</dd>
+<dt class="hdlist1">
+-v
+</dt>
+<dt class="hdlist1">
+--verbose
+</dt>
+<dd>
+<p>
+        When merging notes, be more verbose.
+        When pruning notes, report all object names whose notes are
+        removed.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_discussion">DISCUSSION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Commit notes are blobs containing extra information about an object
+(usually information to supplement a commit&#8217;s message).  These blobs
+are taken from notes refs.  A notes ref is usually a branch which
+contains "files" whose paths are the object names for the objects
+they describe, with some directory separators included for performance
+reasons <span class="footnote"><br />[Permitted pathnames have the form
+<em>ab</em><code>/</code><em>cd</em><code>/</code><em>ef</em><code>/</code><em>&#8230;</em><code>/</code><em>abcdef&#8230;</em>: a sequence of directory
+names of two hexadecimal digits each followed by a filename with the
+rest of the object ID.]<br /></span>.</p></div>
+<div class="paragraph"><p>Every notes change creates a new commit at the specified notes ref.
+You can therefore inspect the history of the notes by invoking, e.g.,
+<code>git log -p notes/commits</code>.  Currently the commit message only records
+which operation triggered the update, and the commit authorship is
+determined according to the usual rules (see <a href="git-commit.html">git-commit(1)</a>).
+These details may change in the future.</p></div>
+<div class="paragraph"><p>It is also permitted for a notes ref to point directly to a tree
+object, in which case the history of the notes can be read with
+<code>git log -p -g &lt;refname&gt;</code>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_notes_merge_strategies">NOTES MERGE STRATEGIES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The default notes merge strategy is "manual", which checks out
+conflicting notes in a special work tree for resolving notes conflicts
+(<code>.git/NOTES_MERGE_WORKTREE</code>), and instructs the user to resolve the
+conflicts in that work tree.
+When done, the user can either finalize the merge with
+<em>git notes merge --commit</em>, or abort the merge with
+<em>git notes merge --abort</em>.</p></div>
+<div class="paragraph"><p>Users may select an automated merge strategy from among the following using
+either -s/--strategy option or configuring notes.mergeStrategy accordingly:</p></div>
+<div class="paragraph"><p>"ours" automatically resolves conflicting notes in favor of the local
+version (i.e. the current notes ref).</p></div>
+<div class="paragraph"><p>"theirs" automatically resolves notes conflicts in favor of the remote
+version (i.e. the given notes ref being merged into the current notes
+ref).</p></div>
+<div class="paragraph"><p>"union" automatically resolves notes conflicts by concatenating the
+local and remote versions.</p></div>
+<div class="paragraph"><p>"cat_sort_uniq" is similar to "union", but in addition to concatenating
+the local and remote versions, this strategy also sorts the resulting
+lines, and removes duplicate lines from the result. This is equivalent
+to applying the "cat | sort | uniq" shell pipeline to the local and
+remote versions. This strategy is useful if the notes follow a line-based
+format where one wants to avoid duplicated lines in the merge result.
+Note that if either the local or remote version contain duplicate lines
+prior to the merge, these will also be removed by this notes merge
+strategy.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>You can use notes to add annotations with information that was not
+available at the time a commit was written.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git notes add -m 'Tested-by: Johannes Sixt &lt;j6t@kdbg.org&gt;' 72a144e2
+$ git show -s 72a144e
+[...]
+    Signed-off-by: Junio C Hamano &lt;gitster@pobox.com&gt;
+
+Notes:
+    Tested-by: Johannes Sixt &lt;j6t@kdbg.org&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>In principle, a note is a regular Git blob, and any kind of
+(non-)format is accepted.  You can binary-safely create notes from
+arbitrary files using <em>git hash-object</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cc *.c
+$ blob=$(git hash-object -w a.out)
+$ git notes --ref=built add --allow-empty -C "$blob" HEAD</code></pre>
+</div></div>
+<div class="paragraph"><p>(You cannot simply use <code>git notes --ref=built add -F a.out HEAD</code>
+because that is not binary-safe.)
+Of course, it doesn&#8217;t make much sense to display non-text-format notes
+with <em>git log</em>, so if you use such notes, you&#8217;ll probably need to write
+some special-purpose tools to do something useful with them.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+core.notesRef
+</dt>
+<dd>
+<p>
+        Notes ref to read and manipulate instead of
+        <code>refs/notes/commits</code>.  Must be an unabbreviated ref name.
+        This setting can be overridden through the environment and
+        command line.
+</p>
+</dd>
+<dt class="hdlist1">
+notes.mergeStrategy
+</dt>
+<dd>
+<p>
+        Which merge strategy to choose by default when resolving notes
+        conflicts.  Must be one of <code>manual</code>, <code>ours</code>, <code>theirs</code>, <code>union</code>, or
+        <code>cat_sort_uniq</code>.  Defaults to <code>manual</code>.  See "NOTES MERGE STRATEGIES"
+        section above for more information on each strategy.
+</p>
+<div class="paragraph"><p>This setting can be overridden by passing the <code>--strategy</code> option.</p></div>
+</dd>
+<dt class="hdlist1">
+notes.&lt;name&gt;.mergeStrategy
+</dt>
+<dd>
+<p>
+        Which merge strategy to choose when doing a notes merge into
+        refs/notes/&lt;name&gt;.  This overrides the more general
+        "notes.mergeStrategy".  See the "NOTES MERGE STRATEGIES" section above
+        for more information on each available strategy.
+</p>
+</dd>
+<dt class="hdlist1">
+notes.displayRef
+</dt>
+<dd>
+<p>
+        Which ref (or refs, if a glob or specified more than once), in
+        addition to the default set by <code>core.notesRef</code> or
+        <code>GIT_NOTES_REF</code>, to read notes from when showing commit
+        messages with the <em>git log</em> family of commands.
+        This setting can be overridden on the command line or by the
+        <code>GIT_NOTES_DISPLAY_REF</code> environment variable.
+        See <a href="git-log.html">git-log(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+notes.rewrite.&lt;command&gt;
+</dt>
+<dd>
+<p>
+        When rewriting commits with &lt;command&gt; (currently <code>amend</code> or
+        <code>rebase</code>), if this variable is <code>false</code>, git will not copy
+        notes from the original to the rewritten commit.  Defaults to
+        <code>true</code>.  See also "<code>notes.rewriteRef</code>" below.
+</p>
+<div class="paragraph"><p>This setting can be overridden by the <code>GIT_NOTES_REWRITE_REF</code>
+environment variable.</p></div>
+</dd>
+<dt class="hdlist1">
+notes.rewriteMode
+</dt>
+<dd>
+<p>
+        When copying notes during a rewrite, what to do if the target
+        commit already has a note.  Must be one of <code>overwrite</code>,
+        <code>concatenate</code>, <code>cat_sort_uniq</code>, or <code>ignore</code>.  Defaults to
+        <code>concatenate</code>.
+</p>
+<div class="paragraph"><p>This setting can be overridden with the <code>GIT_NOTES_REWRITE_MODE</code>
+environment variable.</p></div>
+</dd>
+<dt class="hdlist1">
+notes.rewriteRef
+</dt>
+<dd>
+<p>
+        When copying notes during a rewrite, specifies the (fully
+        qualified) ref whose notes should be copied.  May be a glob,
+        in which case notes in all matching refs will be copied.  You
+        may also specify this configuration several times.
+</p>
+<div class="paragraph"><p>Does not have a default value; you must configure this variable to
+enable note rewriting.</p></div>
+<div class="paragraph"><p>Can be overridden with the <code>GIT_NOTES_REWRITE_REF</code> environment variable.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_environment">ENVIRONMENT</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>GIT_NOTES_REF</code>
+</dt>
+<dd>
+<p>
+        Which ref to manipulate notes from, instead of <code>refs/notes/commits</code>.
+        This overrides the <code>core.notesRef</code> setting.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_NOTES_DISPLAY_REF</code>
+</dt>
+<dd>
+<p>
+        Colon-delimited list of refs or globs indicating which refs,
+        in addition to the default from <code>core.notesRef</code> or
+        <code>GIT_NOTES_REF</code>, to read notes from when showing commit
+        messages.
+        This overrides the <code>notes.displayRef</code> setting.
+</p>
+<div class="paragraph"><p>A warning will be issued for refs that do not exist, but a glob that
+does not match any refs is silently ignored.</p></div>
+</dd>
+<dt class="hdlist1">
+<code>GIT_NOTES_REWRITE_MODE</code>
+</dt>
+<dd>
+<p>
+        When copying notes during a rewrite, what to do if the target
+        commit already has a note.
+        Must be one of <code>overwrite</code>, <code>concatenate</code>, <code>cat_sort_uniq</code>, or <code>ignore</code>.
+        This overrides the <code>core.rewriteMode</code> setting.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_NOTES_REWRITE_REF</code>
+</dt>
+<dd>
+<p>
+        When rewriting commits, which notes to copy from the original
+        to the rewritten commit.  Must be a colon-delimited list of
+        refs or globs.
+</p>
+<div class="paragraph"><p>If not set in the environment, the list of notes to copy depends
+on the <code>notes.rewrite.&lt;command&gt;</code> and <code>notes.rewriteRef</code> settings.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

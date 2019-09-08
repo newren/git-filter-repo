@@ -1,0 +1,1389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>Submitting Patches</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Submitting Patches</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_guidelines">Guidelines</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Here are some guidelines for people who want to contribute their code
+to this software.</p></div>
+<div class="sect2">
+<h3 id="base-branch">Decide what to base your work on.</h3>
+<div class="paragraph"><p>In general, always base your work on the oldest branch that your
+change is relevant to.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+A bugfix should be based on <code>maint</code> in general. If the bug is not
+  present in <code>maint</code>, base it on <code>master</code>. For a bug that&#8217;s not yet
+  in <code>master</code>, find the topic that introduces the regression, and
+  base your work on the tip of the topic.
+</p>
+</li>
+<li>
+<p>
+A new feature should be based on <code>master</code> in general. If the new
+  feature depends on a topic that is in <code>pu</code>, but not in <code>master</code>,
+  base your work on the tip of that topic.
+</p>
+</li>
+<li>
+<p>
+Corrections and enhancements to a topic not yet in <code>master</code> should
+  be based on the tip of that topic. If the topic has not been merged
+  to <code>next</code>, it&#8217;s alright to add a note to squash minor corrections
+  into the series.
+</p>
+</li>
+<li>
+<p>
+In the exceptional case that a new feature depends on several topics
+  not in <code>master</code>, start working on <code>next</code> or <code>pu</code> privately and send
+  out patches for discussion. Before the final merge, you may have to
+  wait until some of the dependent topics graduate to <code>master</code>, and
+  rebase your work.
+</p>
+</li>
+<li>
+<p>
+Some parts of the system have dedicated maintainers with their own
+  repositories (see the section "Subsystems" below).  Changes to
+  these parts should be based on their trees.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>To find the tip of a topic branch, run <code>git log --first-parent
+master..pu</code> and look for the merge commit. The second parent of this
+commit is the tip of the topic branch.</p></div>
+</div>
+<div class="sect2">
+<h3 id="separate-commits">Make separate commits for logically separate changes.</h3>
+<div class="paragraph"><p>Unless your patch is really trivial, you should not be sending
+out a patch that was generated between your working tree and
+your commit head.  Instead, always make a commit with complete
+commit message and generate a series of patches from your
+repository.  It is a good discipline.</p></div>
+<div class="paragraph"><p>Give an explanation for the change(s) that is detailed enough so
+that people can judge if it is good thing to do, without reading
+the actual patch text to determine how well the code does what
+the explanation promises to do.</p></div>
+<div class="paragraph"><p>If your description starts to get too long, that&#8217;s a sign that you
+probably need to split up your commit to finer grained pieces.
+That being said, patches which plainly describe the things that
+help reviewers check the patch, and future maintainers understand
+the code, are the most beautiful patches.  Descriptions that summarize
+the point in the subject well, and describe the motivation for the
+change, the approach taken by the change, and if relevant how this
+differs substantially from the prior version, are all good things
+to have.</p></div>
+<div class="paragraph"><p>Make sure that you have tests for the bug you are fixing.  See
+<code>t/README</code> for guidance.</p></div>
+<div class="paragraph" id="tests"><p>When adding a new feature, make sure that you have new tests to show
+the feature triggers the new behavior when it should, and to show the
+feature does not trigger when it shouldn&#8217;t.  After any code change, make
+sure that the entire test suite passes.</p></div>
+<div class="paragraph"><p>If you have an account at GitHub (and you can get one for free to work
+on open source projects), you can use their Travis CI integration to
+test your changes on Linux, Mac (and hopefully soon Windows).  See
+GitHub-Travis CI hints section for details.</p></div>
+<div class="paragraph"><p>Do not forget to update the documentation to describe the updated
+behavior and make sure that the resulting documentation set formats
+well (try the Documentation/doc-diff script).</p></div>
+<div class="paragraph"><p>We currently have a liberal mixture of US and UK English norms for
+spelling and grammar, which is somewhat unfortunate.  A huge patch that
+touches the files all over the place only to correct the inconsistency
+is not welcome, though.  Potential clashes with other changes that can
+result from such a patch are not worth it.  We prefer to gradually
+reconcile the inconsistencies in favor of US English, with small and
+easily digestible patches, as a side effect of doing some other real
+work in the vicinity (e.g. rewriting a paragraph for clarity, while
+turning en_UK spelling to en_US).  Obvious typographical fixes are much
+more welcomed ("teh &#8594; "the"), preferably submitted as independent
+patches separate from other documentation changes.</p></div>
+<div class="paragraph" id="whitespace-check"><p>Oh, another thing.  We are picky about whitespaces.  Make sure your
+changes do not trigger errors with the sample pre-commit hook shipped
+in <code>templates/hooks--pre-commit</code>.  To help ensure this does not happen,
+run <code>git diff --check</code> on your changes before you commit.</p></div>
+</div>
+<div class="sect2">
+<h3 id="describe-changes">Describe your changes well.</h3>
+<div class="paragraph"><p>The first line of the commit message should be a short description (50
+characters is the soft limit, see DISCUSSION in <a href="git-commit.html">git-commit(1)</a>),
+and should skip the full stop.  It is also conventional in most cases to
+prefix the first line with "area: " where the area is a filename or
+identifier for the general area of the code being modified, e.g.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+doc: clarify distinction between sign-off and pgp-signing
+</p>
+</li>
+<li>
+<p>
+githooks.txt: improve the intro section
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>If in doubt which identifier to use, run <code>git log --no-merges</code> on the
+files you are modifying to see the current conventions.</p></div>
+<div class="paragraph" id="summary-section"><p>It&#8217;s customary to start the remainder of the first line after "area: "
+with a lower-case letter. E.g. "doc: clarify&#8230;", not "doc:
+Clarify&#8230;", or "githooks.txt: improve&#8230;", not "githooks.txt:
+Improve&#8230;".</p></div>
+<div class="paragraph" id="meaningful-message"><p>The body should provide a meaningful commit message, which:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+explains the problem the change tries to solve, i.e. what is wrong
+  with the current code without the change.
+</p>
+</li>
+<li>
+<p>
+justifies the way the change solves the problem, i.e. why the
+  result with the change is better.
+</p>
+</li>
+<li>
+<p>
+alternate solutions considered but discarded, if any.
+</p>
+</li>
+</ol></div>
+<div class="paragraph" id="imperative-mood"><p>Describe your changes in imperative mood, e.g. "make xyzzy do frotz"
+instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy
+to do frotz", as if you are giving orders to the codebase to change
+its behavior.  Try to make sure your explanation can be understood
+without external resources. Instead of giving a URL to a mailing list
+archive, summarize the relevant points of the discussion.</p></div>
+<div class="paragraph" id="commit-reference"><p>If you want to reference a previous commit in the history of a stable
+branch, use the format "abbreviated sha1 (subject, date)",
+with the subject enclosed in a pair of double-quotes, like this:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>        Commit f86a374 ("pack-bitmap.c: fix a memleak", 2015-03-30)
+        noticed that ...</code></pre>
+</div></div>
+<div class="paragraph"><p>The "Copy commit summary" command of gitk can be used to obtain this
+format, or this invocation of <code>git show</code>:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>        git show -s --date=short --pretty='format:%h ("%s", %ad)' &lt;commit&gt;</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="git-tools">Generate your patch using Git tools out of your commits.</h3>
+<div class="paragraph"><p>Git based diff tools generate unidiff which is the preferred format.</p></div>
+<div class="paragraph"><p>You do not have to be afraid to use <code>-M</code> option to <code>git diff</code> or
+<code>git format-patch</code>, if your patch involves file renames.  The
+receiving end can handle them just fine.</p></div>
+<div class="paragraph" id="review-patch"><p>Please make sure your patch does not add commented out debugging code,
+or include any extra files which do not relate to what your patch
+is trying to achieve. Make sure to review
+your patch after generating it, to ensure accuracy.  Before
+sending out, please make sure it cleanly applies to the <code>master</code>
+branch head.  If you are preparing a work based on "next" branch,
+that is fine, but please mark it as such.</p></div>
+</div>
+<div class="sect2">
+<h3 id="send-patches">Sending your patches.</h3>
+<div class="paragraph"><p>Before sending any patches, please note that patches that may be
+security relevant should be submitted privately to the Git Security
+mailing list<span class="footnote" id="_footnote_security-ml"><br />[The Git Security mailing list: <a href="mailto:git-security@googlegroups.com">git-security@googlegroups.com</a>]<br /></span>, instead of the public mailing list.</p></div>
+<div class="paragraph"><p>Learn to use format-patch and send-email if possible.  These commands
+are optimized for the workflow of sending patches, avoiding many ways
+your existing e-mail client that is optimized for "multipart/*" mime
+type e-mails to corrupt and render your patches unusable.</p></div>
+<div class="paragraph"><p>People on the Git mailing list need to be able to read and
+comment on the changes you are submitting.  It is important for
+a developer to be able to "quote" your changes, using standard
+e-mail tools, so that they may comment on specific portions of
+your code.  For this reason, each patch should be submitted
+"inline" in a separate message.</p></div>
+<div class="paragraph"><p>Multiple related patches should be grouped into their own e-mail
+thread to help readers find all parts of the series.  To that end,
+send them as replies to either an additional "cover letter" message
+(see below), the first patch, or the respective preceding patch.</p></div>
+<div class="paragraph"><p>If your log message (including your name on the
+Signed-off-by line) is not writable in ASCII, make sure that
+you send off a message in the correct encoding.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">Be wary of your MUAs word-wrap
+corrupting your patch.  Do not cut-n-paste your patch; you can
+lose tabs that way if you are not careful.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>It is a common convention to prefix your subject line with
+[PATCH].  This lets people easily distinguish patches from other
+e-mail discussions.  Use of markers in addition to PATCH within
+the brackets to describe the nature of the patch is also
+encouraged.  E.g. [RFC PATCH] (where RFC stands for "request for
+comments") is often used to indicate a patch needs further
+discussion before being accepted, [PATCH v2], [PATCH v3] etc.
+are often seen when you are sending an update to what you have
+previously sent.</p></div>
+<div class="paragraph"><p>The <code>git format-patch</code> command follows the best current practice to
+format the body of an e-mail message.  At the beginning of the
+patch should come your commit message, ending with the
+Signed-off-by: lines, and a line that consists of three dashes,
+followed by the diffstat information and the patch itself.  If
+you are forwarding a patch from somebody else, optionally, at
+the beginning of the e-mail message just before the commit
+message starts, you can put a "From: " line to name that person.
+To change the default "[PATCH]" in the subject to "[&lt;text&gt;]", use
+<code>git format-patch --subject-prefix=&lt;text&gt;</code>.  As a shortcut, you
+can use <code>--rfc</code> instead of <code>--subject-prefix="RFC PATCH"</code>, or
+<code>-v &lt;n&gt;</code> instead of <code>--subject-prefix="PATCH v&lt;n&gt;"</code>.</p></div>
+<div class="paragraph"><p>You often want to add additional explanation about the patch,
+other than the commit message itself.  Place such "cover letter"
+material between the three-dash line and the diffstat.  For
+patches requiring multiple iterations of review and discussion,
+an explanation of changes between each iteration can be kept in
+Git-notes and inserted automatically following the three-dash
+line via <code>git format-patch --notes</code>.</p></div>
+<div class="paragraph" id="attachment"><p>Do not attach the patch as a MIME attachment, compressed or not.
+Do not let your e-mail client send quoted-printable.  Do not let
+your e-mail client send format=flowed which would destroy
+whitespaces in your patches. Many
+popular e-mail applications will not always transmit a MIME
+attachment as plain text, making it impossible to comment on
+your code.  A MIME attachment also takes a bit more time to
+process.  This does not decrease the likelihood of your
+MIME-attached change being accepted, but it makes it more likely
+that it will be postponed.</p></div>
+<div class="paragraph"><p>Exception:  If your mailer is mangling patches then someone may ask
+you to re-send them using MIME, that is OK.</p></div>
+<div class="paragraph" id="pgp-signature"><p>Do not PGP sign your patch. Most likely, your maintainer or other people on the
+list would not have your PGP key and would not bother obtaining it anyway.
+Your patch is not judged by who you are; a good patch from an unknown origin
+has a far better chance of being accepted than a patch from a known, respected
+origin that is done poorly or does incorrect things.</p></div>
+<div class="paragraph"><p>If you really really really really want to do a PGP signed
+patch, format it as "multipart/signed", not a text/plain message
+that starts with <code>-----BEGIN PGP SIGNED MESSAGE-----</code>.  That is
+not a text/plain, it&#8217;s something else.</p></div>
+<div class="paragraph"><p>As mentioned at the beginning of the section, patches that may be
+security relevant should not be submitted to the public mailing list
+mentioned below, but should instead be sent privately to the Git
+Security mailing list<span class="footnoteref"><br /><a href="#_footnote_security-ml">[security-ml]</a><br /></span>.</p></div>
+<div class="paragraph"><p>Send your patch with "To:" set to the mailing list, with "cc:" listing
+people who are involved in the area you are touching (the <code>git
+contacts</code> command in <code>contrib/contacts/</code> can help to
+identify them), to solicit comments and reviews.</p></div>
+<div class="paragraph"><p>After the list reached a consensus that it is a good idea to apply the
+patch, re-send it with "To:" set to the maintainer<span class="footnote"><br />[The current maintainer: <a href="mailto:gitster@pobox.com">gitster@pobox.com</a>]<br /></span> and "cc:" the
+list<span class="footnote"><br />[The mailing list: <a href="mailto:git@vger.kernel.org">git@vger.kernel.org</a>]<br /></span> for inclusion.</p></div>
+<div class="paragraph"><p>Do not forget to add trailers such as <code>Acked-by:</code>, <code>Reviewed-by:</code> and
+<code>Tested-by:</code> lines as necessary to credit people who helped your
+patch.</p></div>
+</div>
+<div class="sect2">
+<h3 id="sign-off">Certify your work by adding your "Signed-off-by: " line</h3>
+<div class="paragraph"><p>To improve tracking of who did what, we&#8217;ve borrowed the
+"sign-off" procedure from the Linux kernel project on patches
+that are being emailed around.  Although core Git is a lot
+smaller project it is a good discipline to follow it.</p></div>
+<div class="paragraph"><p>The sign-off is a simple line at the end of the explanation for
+the patch, which certifies that you wrote it or otherwise have
+the right to pass it on as an open-source patch.  The rules are
+pretty simple: if you can certify the below D-C-O:</p></div>
+<div class="quoteblock" id="dco">
+<div class="title">Developer&#8217;s Certificate of Origin 1.1</div>
+<div class="content">
+<div class="paragraph"><p>By making a contribution to this project, I certify that:</p></div>
+<div class="olist loweralpha"><ol class="loweralpha">
+<li>
+<p>
+The contribution was created in whole or in part by me and I
+   have the right to submit it under the open source license
+   indicated in the file; or
+</p>
+</li>
+<li>
+<p>
+The contribution is based upon previous work that, to the best
+   of my knowledge, is covered under an appropriate open source
+   license and I have the right under that license to submit that
+   work with modifications, whether created in whole or in part
+   by me, under the same open source license (unless I am
+   permitted to submit under a different license), as indicated
+   in the file; or
+</p>
+</li>
+<li>
+<p>
+The contribution was provided directly to me by some other
+   person who certified (a), (b) or (c) and I have not modified
+   it.
+</p>
+</li>
+<li>
+<p>
+I understand and agree that this project and the contribution
+   are public and that a record of the contribution (including all
+   personal information I submit with it, including my sign-off) is
+   maintained indefinitely and may be redistributed consistent with
+   this project or the open source license(s) involved.
+</p>
+</li>
+</ol></div>
+</div>
+<div class="attribution">
+</div></div>
+<div class="paragraph"><p>then you just add a line saying</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>        Signed-off-by: Random J Developer &lt;random@developer.example.org&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>This line can be automatically added by Git if you run the git-commit
+command with the -s option.</p></div>
+<div class="paragraph"><p>Notice that you can place your own Signed-off-by: line when
+forwarding somebody else&#8217;s patch with the above rules for
+D-C-O.  Indeed you are encouraged to do so.  Do not forget to
+place an in-body "From: " line at the beginning to properly attribute
+the change to its true author (see (2) above).</p></div>
+<div class="paragraph" id="real-name"><p>Also notice that a real name is used in the Signed-off-by: line. Please
+don&#8217;t hide your real name.</p></div>
+<div class="paragraph" id="commit-trailers"><p>If you like, you can put extra tags at the end:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+<code>Reported-by:</code> is used to credit someone who found the bug that
+  the patch attempts to fix.
+</p>
+</li>
+<li>
+<p>
+<code>Acked-by:</code> says that the person who is more familiar with the area
+  the patch attempts to modify liked the patch.
+</p>
+</li>
+<li>
+<p>
+<code>Reviewed-by:</code>, unlike the other tags, can only be offered by the
+  reviewer and means that she is completely satisfied that the patch
+  is ready for application.  It is usually offered only after a
+  detailed review.
+</p>
+</li>
+<li>
+<p>
+<code>Tested-by:</code> is used to indicate that the person applied the patch
+  and found it to have the desired effect.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>You can also create your own tag or use one that&#8217;s in common usage
+such as "Thanks-to:", "Based-on-patch-by:", or "Mentored-by:".</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_subsystems_with_dedicated_maintainers">Subsystems with dedicated maintainers</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Some parts of the system have dedicated maintainers with their own
+repositories.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>git-gui/</code> comes from git-gui project, maintained by Pat Thoyts:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>git://repo.or.cz/git-gui.git</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+<code>gitk-git/</code> comes from Paul Mackerras&#8217;s gitk project:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>git://ozlabs.org/~paulus/gitk</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+<code>po/</code> comes from the localization coordinator, Jiang Xin:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>https://github.com/git-l10n/git-po/</code></pre>
+</div></div>
+</li>
+</ul></div>
+<div class="paragraph"><p>Patches to these parts should be based on their trees.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="patch-flow">An ideal patch flow</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Here is an ideal patch flow for this project the current maintainer
+suggests to the contributors:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+You come up with an itch.  You code it up.
+</p>
+</li>
+<li>
+<p>
+Send it to the list and cc people who may need to know about
+  the change.
+</p>
+<div class="paragraph"><p>The people who may need to know are the ones whose code you
+are butchering.  These people happen to be the ones who are
+most likely to be knowledgeable enough to help you, but
+they have no obligation to help you (i.e. you ask for help,
+don&#8217;t demand).  <code>git log -p &#45;&#45; <em>$area_you_are_modifying</em></code> would
+help you find out who they are.</p></div>
+</li>
+<li>
+<p>
+You get comments and suggestions for improvements.  You may
+  even get them in an "on top of your change" patch form.
+</p>
+</li>
+<li>
+<p>
+Polish, refine, and re-send to the list and the people who
+  spend their time to improve your patch.  Go back to step (2).
+</p>
+</li>
+<li>
+<p>
+The list forms consensus that the last round of your patch is
+  good.  Send it to the maintainer and cc the list.
+</p>
+</li>
+<li>
+<p>
+A topic branch is created with the patch and is merged to <code>next</code>,
+  and cooked further and eventually graduates to <code>master</code>.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>In any time between the (2)-(3) cycle, the maintainer may pick it up
+from the list and queue it to <code>pu</code>, in order to make it easier for
+people play with it without having to pick up and apply the patch to
+their trees themselves.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="patch-status">Know the status of your patch after submission</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+You can use Git itself to find out when your patch is merged in
+  master. <code>git pull --rebase</code> will automatically skip already-applied
+  patches, and will let you know. This works only if you rebase on top
+  of the branch in which your patch has been merged (i.e. it will not
+  tell you if your patch is merged in pu if you rebase on top of
+  master).
+</p>
+</li>
+<li>
+<p>
+Read the Git mailing list, the maintainer regularly posts messages
+  entitled "What&#8217;s cooking in git.git" and "What&#8217;s in git.git" giving
+  the status of various proposed changes.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="travis">GitHub-Travis CI hints</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>With an account at GitHub (you can get one for free to work on open
+source projects), you can use Travis CI to test your changes on Linux,
+Mac (and hopefully soon Windows).  You can find a successful example
+test build here: <a href="https://travis-ci.org/git/git/builds/120473209">https://travis-ci.org/git/git/builds/120473209</a></p></div>
+<div class="paragraph"><p>Follow these steps for the initial setup:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Fork <a href="https://github.com/git/git">https://github.com/git/git</a> to your GitHub account.
+  You can find detailed instructions how to fork here:
+  <a href="https://help.github.com/articles/fork-a-repo/">https://help.github.com/articles/fork-a-repo/</a>
+</p>
+</li>
+<li>
+<p>
+Open the Travis CI website: <a href="https://travis-ci.org">https://travis-ci.org</a>
+</p>
+</li>
+<li>
+<p>
+Press the "Sign in with GitHub" button.
+</p>
+</li>
+<li>
+<p>
+Grant Travis CI permissions to access your GitHub account.
+  You can find more information about the required permissions here:
+  <a href="https://docs.travis-ci.com/user/github-oauth-scopes">https://docs.travis-ci.com/user/github-oauth-scopes</a>
+</p>
+</li>
+<li>
+<p>
+Open your Travis CI profile page: <a href="https://travis-ci.org/profile">https://travis-ci.org/profile</a>
+</p>
+</li>
+<li>
+<p>
+Enable Travis CI builds for your Git fork.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>After the initial setup, Travis CI will run whenever you push new changes
+to your fork of Git on GitHub.  You can monitor the test state of all your
+branches here: <a href="https://travis-ci.org/">https://travis-ci.org/</a><em>&lt;Your GitHub handle&gt;</em>/git/branches</p></div>
+<div class="paragraph"><p>If a branch did not pass all test cases then it is marked with a red
+cross.  In that case you can click on the failing Travis CI job and
+scroll all the way down in the log.  Find the line "&#8592;- Click here to see
+detailed test output!" and click on the triangle next to the log line
+number to expand the detailed test output.  Here is such a failing
+example: <a href="https://travis-ci.org/git/git/jobs/122676187">https://travis-ci.org/git/git/jobs/122676187</a></p></div>
+<div class="paragraph"><p>Fix the problem and push your fix to your Git fork.  This will trigger
+a new Travis CI build to ensure all tests pass.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="mua">MUA specific hints</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Some of patches I receive or pick up from the list share common
+patterns of breakage.  Please make sure your MUA is set up
+properly not to corrupt whitespaces.</p></div>
+<div class="paragraph"><p>See the DISCUSSION section of <a href="git-format-patch.html">git-format-patch(1)</a> for hints on
+checking your patch by mailing it to yourself and applying with
+<a href="git-am.html">git-am(1)</a>.</p></div>
+<div class="paragraph"><p>While you are at it, check the resulting commit log message from
+a trial run of applying the patch.  If what is in the resulting
+commit is not exactly what you would want to see, it is very
+likely that your maintainer would end up hand editing the log
+message when he applies your patch.  Things like "Hi, this is my
+first patch.\n", if you really want to put in the patch e-mail,
+should come after the three-dash line that signals the end of the
+commit message.</p></div>
+<div class="sect2">
+<h3 id="_pine">Pine</h3>
+<div class="paragraph"><p>(Johannes Schindelin)</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>I don't know how many people still use pine, but for those poor
+souls it may be good to mention that the quell-flowed-text is
+needed for recent versions.
+
+... the "no-strip-whitespace-before-send" option, too. AFAIK it
+was introduced in 4.60.</code></pre>
+</div></div>
+<div class="paragraph"><p>(Linus Torvalds)</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>And 4.58 needs at least this.
+
+diff-tree 8326dd8350be64ac7fc805f6563a1d61ad10d32c (from e886a61f76edf5410573e92e38ce22974f9c40f1)
+Author: Linus Torvalds &lt;torvalds@g5.osdl.org&gt;
+Date:   Mon Aug 15 17:23:51 2005 -0700
+
+    Fix pine whitespace-corruption bug
+
+    There's no excuse for unconditionally removing whitespace from
+    the pico buffers on close.
+
+diff --git a/pico/pico.c b/pico/pico.c
+--- a/pico/pico.c
++++ b/pico/pico.c
+@@ -219,7 +219,9 @@ PICO *pm;
+            switch(pico_all_done){      /* prepare for/handle final events */
+              case COMP_EXIT :          /* already confirmed */
+                packheader();
++#if 0
+                stripwhitespace();
++#endif
+                c |= COMP_EXIT;
+                break;</code></pre>
+</div></div>
+<div class="paragraph"><p>(Daniel Barkalow)</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&gt; A patch to SubmittingPatches, MUA specific help section for
+&gt; users of Pine 4.63 would be very much appreciated.
+
+Ah, it looks like a recent version changed the default behavior to do the
+right thing, and inverted the sense of the configuration option. (Either
+that or Gentoo did it.) So you need to set the
+"no-strip-whitespace-before-send" option, unless the option you have is
+"strip-whitespace-before-send", in which case you should avoid checking
+it.</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_thunderbird_kmail_gmail">Thunderbird, KMail, GMail</h3>
+<div class="paragraph"><p>See the MUA-SPECIFIC HINTS section of <a href="git-format-patch.html">git-format-patch(1)</a>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_gnus">Gnus</h3>
+<div class="paragraph"><p>"|" in the <code>*Summary*</code> buffer can be used to pipe the current
+message to an external program, and this is a handy way to drive
+<code>git am</code>.  However, if the message is MIME encoded, what is
+piped into the program is the representation you see in your
+<code>*Article*</code> buffer after unwrapping MIME.  This is often not what
+you would want for two reasons.  It tends to screw up non ASCII
+characters (most notably in people&#8217;s names), and also
+whitespaces (fatal in patches).  Running "C-u g" to display the
+message in raw form before using "|" to run the pipe can work
+this problem around.</p></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-07 15:26:58 PDT
+</div>
+</div>
+</body>
+</html>

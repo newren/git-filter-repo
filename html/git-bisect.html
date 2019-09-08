@@ -1,0 +1,1235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-bisect(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-bisect(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-bisect -
+   Use binary search to find the commit that introduced a bug
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git bisect</em> &lt;subcommand&gt; &lt;options&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The command takes various subcommands, and different options depending
+on the subcommand:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>git bisect start [--term-{old,good}=&lt;term&gt; --term-{new,bad}=&lt;term&gt;]
+                 [--no-checkout] [&lt;bad&gt; [&lt;good&gt;...]] [--] [&lt;paths&gt;...]
+git bisect (bad|new|&lt;term-new&gt;) [&lt;rev&gt;]
+git bisect (good|old|&lt;term-old&gt;) [&lt;rev&gt;...]
+git bisect terms [--term-good | --term-bad]
+git bisect skip [(&lt;rev&gt;|&lt;range&gt;)...]
+git bisect reset [&lt;commit&gt;]
+git bisect (visualize|view)
+git bisect replay &lt;logfile&gt;
+git bisect log
+git bisect run &lt;cmd&gt;...
+git bisect help</code></pre>
+</div></div>
+<div class="paragraph"><p>This command uses a binary search algorithm to find which commit in
+your project&#8217;s history introduced a bug. You use it by first telling
+it a "bad" commit that is known to contain the bug, and a "good"
+commit that is known to be before the bug was introduced. Then <code>git
+bisect</code> picks a commit between those two endpoints and asks you
+whether the selected commit is "good" or "bad". It continues narrowing
+down the range until it finds the exact commit that introduced the
+change.</p></div>
+<div class="paragraph"><p>In fact, <code>git bisect</code> can be used to find the commit that changed
+<strong>any</strong> property of your project; e.g., the commit that fixed a bug, or
+the commit that caused a benchmark&#8217;s performance to improve. To
+support this more general usage, the terms "old" and "new" can be used
+in place of "good" and "bad", or you can choose your own terms. See
+section "Alternate terms" below for more information.</p></div>
+<div class="sect2">
+<h3 id="_basic_bisect_commands_start_bad_good">Basic bisect commands: start, bad, good</h3>
+<div class="paragraph"><p>As an example, suppose you are trying to find the commit that broke a
+feature that was known to work in version <code>v2.6.13-rc2</code> of your
+project. You start a bisect session as follows:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start
+$ git bisect bad                 # Current version is bad
+$ git bisect good v2.6.13-rc2    # v2.6.13-rc2 is known to be good</code></pre>
+</div></div>
+<div class="paragraph"><p>Once you have specified at least one bad and one good commit, <code>git
+bisect</code> selects a commit in the middle of that range of history,
+checks it out, and outputs something similar to the following:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Bisecting: 675 revisions left to test after this (roughly 10 steps)</code></pre>
+</div></div>
+<div class="paragraph"><p>You should now compile the checked-out version and test it. If that
+version works correctly, type</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect good</code></pre>
+</div></div>
+<div class="paragraph"><p>If that version is broken, type</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect bad</code></pre>
+</div></div>
+<div class="paragraph"><p>Then <code>git bisect</code> will respond with something like</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Bisecting: 337 revisions left to test after this (roughly 9 steps)</code></pre>
+</div></div>
+<div class="paragraph"><p>Keep repeating the process: compile the tree, test it, and depending
+on whether it is good or bad run <code>git bisect good</code> or <code>git bisect bad</code>
+to ask for the next commit that needs testing.</p></div>
+<div class="paragraph"><p>Eventually there will be no more revisions left to inspect, and the
+command will print out a description of the first bad commit. The
+reference <code>refs/bisect/bad</code> will be left pointing at that commit.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_bisect_reset">Bisect reset</h3>
+<div class="paragraph"><p>After a bisect session, to clean up the bisection state and return to
+the original HEAD, issue the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect reset</code></pre>
+</div></div>
+<div class="paragraph"><p>By default, this will return your tree to the commit that was checked
+out before <code>git bisect start</code>.  (A new <code>git bisect start</code> will also do
+that, as it cleans up the old bisection state.)</p></div>
+<div class="paragraph"><p>With an optional argument, you can return to a different commit
+instead:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect reset &lt;commit&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>For example, <code>git bisect reset bisect/bad</code> will check out the first
+bad revision, while <code>git bisect reset HEAD</code> will leave you on the
+current bisection commit and avoid switching commits at all.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_alternate_terms">Alternate terms</h3>
+<div class="paragraph"><p>Sometimes you are not looking for the commit that introduced a
+breakage, but rather for a commit that caused a change between some
+other "old" state and "new" state. For example, you might be looking
+for the commit that introduced a particular fix. Or you might be
+looking for the first commit in which the source-code filenames were
+finally all converted to your company&#8217;s naming standard. Or whatever.</p></div>
+<div class="paragraph"><p>In such cases it can be very confusing to use the terms "good" and
+"bad" to refer to "the state before the change" and "the state after
+the change". So instead, you can use the terms "old" and "new",
+respectively, in place of "good" and "bad". (But note that you cannot
+mix "good" and "bad" with "old" and "new" in a single session.)</p></div>
+<div class="paragraph"><p>In this more general usage, you provide <code>git bisect</code> with a "new"
+commit that has some property and an "old" commit that doesn&#8217;t have that
+property. Each time <code>git bisect</code> checks out a commit, you test if that
+commit has the property. If it does, mark the commit as "new";
+otherwise, mark it as "old". When the bisection is done, <code>git bisect</code>
+will report which commit introduced the property.</p></div>
+<div class="paragraph"><p>To use "old" and "new" instead of "good" and bad, you must run <code>git
+bisect start</code> without commits as argument and then run the following
+commands to add the commits:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git bisect old [&lt;rev&gt;]</code></pre>
+</div></div>
+<div class="paragraph"><p>to indicate that a commit was before the sought change, or</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git bisect new [&lt;rev&gt;...]</code></pre>
+</div></div>
+<div class="paragraph"><p>to indicate that it was after.</p></div>
+<div class="paragraph"><p>To get a reminder of the currently used terms, use</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git bisect terms</code></pre>
+</div></div>
+<div class="paragraph"><p>You can get just the old (respectively new) term with <code>git bisect terms
+--term-old</code> or <code>git bisect terms --term-good</code>.</p></div>
+<div class="paragraph"><p>If you would like to use your own terms instead of "bad"/"good" or
+"new"/"old", you can choose any names you like (except existing bisect
+subcommands like <code>reset</code>, <code>start</code>, &#8230;) by starting the
+bisection using</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git bisect start --term-old &lt;term-old&gt; --term-new &lt;term-new&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>For example, if you are looking for a commit that introduced a
+performance regression, you might use</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git bisect start --term-old fast --term-new slow</code></pre>
+</div></div>
+<div class="paragraph"><p>Or if you are looking for the commit that fixed a bug, you might use</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git bisect start --term-new fixed --term-old broken</code></pre>
+</div></div>
+<div class="paragraph"><p>Then, use <code>git bisect &lt;term-old&gt;</code> and <code>git bisect &lt;term-new&gt;</code> instead
+of <code>git bisect good</code> and <code>git bisect bad</code> to mark commits.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_bisect_visualize_view">Bisect visualize/view</h3>
+<div class="paragraph"><p>To see the currently remaining suspects in <em>gitk</em>, issue the following
+command during the bisection process (the subcommand <code>view</code> can be used
+as an alternative to <code>visualize</code>):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect visualize</code></pre>
+</div></div>
+<div class="paragraph"><p>If the <code>DISPLAY</code> environment variable is not set, <em>git log</em> is used
+instead.  You can also give command-line options such as <code>-p</code> and
+<code>--stat</code>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect visualize --stat</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_bisect_log_and_bisect_replay">Bisect log and bisect replay</h3>
+<div class="paragraph"><p>After having marked revisions as good or bad, issue the following
+command to show what has been done so far:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect log</code></pre>
+</div></div>
+<div class="paragraph"><p>If you discover that you made a mistake in specifying the status of a
+revision, you can save the output of this command to a file, edit it to
+remove the incorrect entries, and then issue the following commands to
+return to a corrected state:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect reset
+$ git bisect replay that-file</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_avoiding_testing_a_commit">Avoiding testing a commit</h3>
+<div class="paragraph"><p>If, in the middle of a bisect session, you know that the suggested
+revision is not a good one to test (e.g. it fails to build and you
+know that the failure does not have anything to do with the bug you
+are chasing), you can manually select a nearby commit and test that
+one instead.</p></div>
+<div class="paragraph"><p>For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect good/bad                   # previous round was good or bad.
+Bisecting: 337 revisions left to test after this (roughly 9 steps)
+$ git bisect visualize                  # oops, that is uninteresting.
+$ git reset --hard HEAD~3               # try 3 revisions before what
+                                        # was suggested</code></pre>
+</div></div>
+<div class="paragraph"><p>Then compile and test the chosen revision, and afterwards mark
+the revision as good or bad in the usual manner.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_bisect_skip">Bisect skip</h3>
+<div class="paragraph"><p>Instead of choosing a nearby commit by yourself, you can ask Git to do
+it for you by issuing the command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect skip                 # Current version cannot be tested</code></pre>
+</div></div>
+<div class="paragraph"><p>However, if you skip a commit adjacent to the one you are looking for,
+Git will be unable to tell exactly which of those commits was the
+first bad one.</p></div>
+<div class="paragraph"><p>You can also skip a range of commits, instead of just one commit,
+using range notation. For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect skip v2.5..v2.6</code></pre>
+</div></div>
+<div class="paragraph"><p>This tells the bisect process that no commit after <code>v2.5</code>, up to and
+including <code>v2.6</code>, should be tested.</p></div>
+<div class="paragraph"><p>Note that if you also want to skip the first commit of the range you
+would issue the command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect skip v2.5 v2.5..v2.6</code></pre>
+</div></div>
+<div class="paragraph"><p>This tells the bisect process that the commits between <code>v2.5</code> and
+<code>v2.6</code> (inclusive) should be skipped.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_cutting_down_bisection_by_giving_more_parameters_to_bisect_start">Cutting down bisection by giving more parameters to bisect start</h3>
+<div class="paragraph"><p>You can further cut down the number of trials, if you know what part of
+the tree is involved in the problem you are tracking down, by specifying
+path parameters when issuing the <code>bisect start</code> command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start -- arch/i386 include/asm-i386</code></pre>
+</div></div>
+<div class="paragraph"><p>If you know beforehand more than one good commit, you can narrow the
+bisect space down by specifying all of the good commits immediately after
+the bad commit when issuing the <code>bisect start</code> command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start v2.6.20-rc6 v2.6.20-rc4 v2.6.20-rc1 --
+                   # v2.6.20-rc6 is bad
+                   # v2.6.20-rc4 and v2.6.20-rc1 are good</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_bisect_run">Bisect run</h3>
+<div class="paragraph"><p>If you have a script that can tell if the current source code is good
+or bad, you can bisect by issuing the command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect run my_script arguments</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that the script (<code>my_script</code> in the above example) should exit
+with code 0 if the current source code is good/old, and exit with a
+code between 1 and 127 (inclusive), except 125, if the current source
+code is bad/new.</p></div>
+<div class="paragraph"><p>Any other exit code will abort the bisect process. It should be noted
+that a program that terminates via <code>exit(-1)</code> leaves $? = 255, (see the
+exit(3) manual page), as the value is chopped with <code>&amp; 0377</code>.</p></div>
+<div class="paragraph"><p>The special exit code 125 should be used when the current source code
+cannot be tested. If the script exits with this code, the current
+revision will be skipped (see <code>git bisect skip</code> above). 125 was chosen
+as the highest sensible value to use for this purpose, because 126 and 127
+are used by POSIX shells to signal specific error status (127 is for
+command not found, 126 is for command found but not executable&#8212;these
+details do not matter, as they are normal errors in the script, as far as
+<code>bisect run</code> is concerned).</p></div>
+<div class="paragraph"><p>You may often find that during a bisect session you want to have
+temporary modifications (e.g. s/#define DEBUG 0/#define DEBUG 1/ in a
+header file, or "revision that does not have this commit needs this
+patch applied to work around another problem this bisection is not
+interested in") applied to the revision being tested.</p></div>
+<div class="paragraph"><p>To cope with such a situation, after the inner <em>git bisect</em> finds the
+next revision to test, the script can apply the patch
+before compiling, run the real test, and afterwards decide if the
+revision (possibly with the needed patch) passed the test and then
+rewind the tree to the pristine state.  Finally the script should exit
+with the status of the real test to let the <code>git bisect run</code> command loop
+determine the eventual outcome of the bisect session.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--no-checkout
+</dt>
+<dd>
+<div class="paragraph"><p>Do not checkout the new working tree at each iteration of the bisection
+process. Instead just update a special reference named <code>BISECT_HEAD</code> to make
+it point to the commit that should be tested.</p></div>
+<div class="paragraph"><p>This option may be useful when the test you would perform in each step
+does not require a checked out tree.</p></div>
+<div class="paragraph"><p>If the repository is bare, <code>--no-checkout</code> is assumed.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Automatically bisect a broken build between v1.2 and HEAD:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start HEAD v1.2 --      # HEAD is bad, v1.2 is good
+$ git bisect run make                # "make" builds the app
+$ git bisect reset                   # quit the bisect session</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Automatically bisect a test failure between origin and HEAD:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start HEAD origin --    # HEAD is bad, origin is good
+$ git bisect run make test           # "make test" builds and tests
+$ git bisect reset                   # quit the bisect session</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Automatically bisect a broken test case:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat ~/test.sh
+#!/bin/sh
+make || exit 125                     # this skips broken builds
+~/check_test_case.sh                 # does the test case pass?
+$ git bisect start HEAD HEAD~10 --   # culprit is among the last 10
+$ git bisect run ~/test.sh
+$ git bisect reset                   # quit the bisect session</code></pre>
+</div></div>
+<div class="paragraph"><p>Here we use a <code>test.sh</code> custom script. In this script, if <code>make</code>
+fails, we skip the current commit.
+<code>check_test_case.sh</code> should <code>exit 0</code> if the test case passes,
+and <code>exit 1</code> otherwise.</p></div>
+<div class="paragraph"><p>It is safer if both <code>test.sh</code> and <code>check_test_case.sh</code> are
+outside the repository to prevent interactions between the bisect,
+make and test processes and the scripts.</p></div>
+</li>
+<li>
+<p>
+Automatically bisect with temporary modifications (hot-fix):
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat ~/test.sh
+#!/bin/sh
+
+# tweak the working tree by merging the hot-fix branch
+# and then attempt a build
+if      git merge --no-commit hot-fix &amp;&amp;
+        make
+then
+        # run project specific test and report its status
+        ~/check_test_case.sh
+        status=$?
+else
+        # tell the caller this is untestable
+        status=125
+fi
+
+# undo the tweak to allow clean flipping to the next commit
+git reset --hard
+
+# return control
+exit $status</code></pre>
+</div></div>
+<div class="paragraph"><p>This applies modifications from a hot-fix branch before each test run,
+e.g. in case your build or test environment changed so that older
+revisions may need a fix which newer ones have already. (Make sure the
+hot-fix branch is based off a commit which is contained in all revisions
+which you are bisecting, so that the merge does not pull in too much, or
+use <code>git cherry-pick</code> instead of <code>git merge</code>.)</p></div>
+</li>
+<li>
+<p>
+Automatically bisect a broken test case:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start HEAD HEAD~10 --   # culprit is among the last 10
+$ git bisect run sh -c "make || exit 125; ~/check_test_case.sh"
+$ git bisect reset                   # quit the bisect session</code></pre>
+</div></div>
+<div class="paragraph"><p>This shows that you can do without a run script if you write the test
+on a single line.</p></div>
+</li>
+<li>
+<p>
+Locate a good region of the object graph in a damaged repository
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start HEAD &lt;known-good-commit&gt; [ &lt;boundary-commit&gt; ... ] --no-checkout
+$ git bisect run sh -c '
+        GOOD=$(git for-each-ref "--format=%(objectname)" refs/bisect/good-*) &amp;&amp;
+        git rev-list --objects BISECT_HEAD --not $GOOD &gt;tmp.$$ &amp;&amp;
+        git pack-objects --stdout &gt;/dev/null &lt;tmp.$$
+        rc=$?
+        rm -f tmp.$$
+        test $rc = 0'
+
+$ git bisect reset                   # quit the bisect session</code></pre>
+</div></div>
+<div class="paragraph"><p>In this case, when <em>git bisect run</em> finishes, bisect/bad will refer to a commit that
+has at least one parent whose reachable graph is fully traversable in the sense
+required by <em>git pack objects</em>.</p></div>
+</li>
+<li>
+<p>
+Look for a fix instead of a regression in the code
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start
+$ git bisect new HEAD    # current commit is marked as new
+$ git bisect old HEAD~10 # the tenth commit from now is marked as old</code></pre>
+</div></div>
+<div class="paragraph"><p>or:</p></div>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bisect start --term-old broken --term-new fixed
+$ git bisect fixed
+$ git bisect broken HEAD~10</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_getting_help">Getting help</h3>
+<div class="paragraph"><p>Use <code>git bisect</code> to get a short usage description, and <code>git bisect
+help</code> or <code>git bisect -h</code> to get a long usage description.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-bisect-lk2009.html">Fighting regressions with git bisect</a>,
+<a href="git-blame.html">git-blame(1)</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

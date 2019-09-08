@@ -1,0 +1,2005 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>gitweb.conf(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitweb.conf(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitweb.conf -
+   Gitweb (Git web interface) configuration file
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>/etc/gitweb.conf, /etc/gitweb-common.conf, $GITWEBDIR/gitweb_config.perl</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The gitweb CGI script for viewing Git repositories over the web uses a
+perl script fragment as its configuration file.  You can set variables
+using "<code>our $variable = value</code>"; text from a "#" character until the
+end of a line is ignored.  See <strong>perlsyn</strong>(1) for details.</p></div>
+<div class="paragraph"><p>An example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code># gitweb configuration file for http://git.example.org
+#
+our $projectroot = "/srv/git"; # FHS recommendation
+our $site_name = 'Example.org &gt;&gt; Repos';</code></pre>
+</div></div>
+<div class="paragraph"><p>The configuration file is used to override the default settings that
+were built into gitweb at the time the <em>gitweb.cgi</em> script was generated.</p></div>
+<div class="paragraph"><p>While one could just alter the configuration settings in the gitweb
+CGI itself, those changes would be lost upon upgrade.  Configuration
+settings might also be placed into a file in the same directory as the
+CGI script with the default name <em>gitweb_config.perl</em>&#8201;&#8212;&#8201;allowing
+one to have multiple gitweb instances with different configurations by
+the use of symlinks.</p></div>
+<div class="paragraph"><p>Note that some configuration can be controlled on per-repository rather than
+gitweb-wide basis: see "Per-repository gitweb configuration" subsection on
+<a href="gitweb.html">gitweb(1)</a> manpage.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_discussion">DISCUSSION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Gitweb reads configuration data from the following sources in the
+following order:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+built-in values (some set during build stage),
+</p>
+</li>
+<li>
+<p>
+common system-wide configuration file (defaults to
+   <code>/etc/gitweb-common.conf</code>),
+</p>
+</li>
+<li>
+<p>
+either per-instance configuration file (defaults to <em>gitweb_config.perl</em>
+   in the same directory as the installed gitweb), or if it does not exists
+   then fallback system-wide configuration file (defaults to <code>/etc/gitweb.conf</code>).
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Values obtained in later configuration files override values obtained earlier
+in the above sequence.</p></div>
+<div class="paragraph"><p>Locations of the common system-wide configuration file, the fallback
+system-wide configuration file and the per-instance configuration file
+are defined at compile time using build-time Makefile configuration
+variables, respectively <code>GITWEB_CONFIG_COMMON</code>, <code>GITWEB_CONFIG_SYSTEM</code>
+and <code>GITWEB_CONFIG</code>.</p></div>
+<div class="paragraph"><p>You can also override locations of gitweb configuration files during
+runtime by setting the following environment variables:
+<code>GITWEB_CONFIG_COMMON</code>, <code>GITWEB_CONFIG_SYSTEM</code> and <code>GITWEB_CONFIG</code>
+to a non-empty value.</p></div>
+<div class="paragraph"><p>The syntax of the configuration files is that of Perl, since these files are
+handled by sourcing them as fragments of Perl code (the language that
+gitweb itself is written in). Variables are typically set using the
+<code>our</code> qualifier (as in "<code>our $variable = &lt;value&gt;;</code>") to avoid syntax
+errors if a new version of gitweb no longer uses a variable and therefore
+stops declaring it.</p></div>
+<div class="paragraph"><p>You can include other configuration file using read_config_file()
+subroutine.  For example, one might want to put gitweb configuration
+related to access control for viewing repositories via Gitolite (one
+of Git repository management tools) in a separate file, e.g. in
+<code>/etc/gitweb-gitolite.conf</code>.  To include it, put</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>read_config_file("/etc/gitweb-gitolite.conf");</code></pre>
+</div></div>
+<div class="paragraph"><p>somewhere in gitweb configuration file used, e.g. in per-installation
+gitweb configuration file.  Note that read_config_file() checks itself
+that the file it reads exists, and does nothing if it is not found.
+It also handles errors in included file.</p></div>
+<div class="paragraph"><p>The default configuration with no configuration file at all may work
+perfectly well for some installations.  Still, a configuration file is
+useful for customizing or tweaking the behavior of gitweb in many ways, and
+some optional features will not be present unless explicitly enabled using
+the configurable <code>%features</code> variable (see also "Configuring gitweb
+features" section below).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration_variables">CONFIGURATION VARIABLES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Some configuration variables have their default values (embedded in the CGI
+script) set during building gitweb&#8201;&#8212;&#8201;if that is the case, this fact is put
+in their description.  See gitweb&#8217;s <em>INSTALL</em> file for instructions on building
+and installing gitweb.</p></div>
+<div class="sect2">
+<h3 id="_location_of_repositories">Location of repositories</h3>
+<div class="paragraph"><p>The configuration variables described below control how gitweb finds
+Git repositories, and how repositories are displayed and accessed.</p></div>
+<div class="paragraph"><p>See also "Repositories" and later subsections in <a href="gitweb.html">gitweb(1)</a> manpage.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+$projectroot
+</dt>
+<dd>
+<p>
+        Absolute filesystem path which will be prepended to project path;
+        the path to repository is <code>$projectroot/$project</code>.  Set to
+        <code>$GITWEB_PROJECTROOT</code> during installation.  This variable has to be
+        set correctly for gitweb to find repositories.
+</p>
+<div class="paragraph"><p>For example, if <code>$projectroot</code> is set to "/srv/git" by putting the following
+in gitweb config file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>our $projectroot = "/srv/git";</code></pre>
+</div></div>
+<div class="paragraph"><p>then</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>http://git.example.com/gitweb.cgi?p=foo/bar.git</code></pre>
+</div></div>
+<div class="paragraph"><p>and its path_info based equivalent</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>http://git.example.com/gitweb.cgi/foo/bar.git</code></pre>
+</div></div>
+<div class="paragraph"><p>will map to the path <code>/srv/git/foo/bar.git</code> on the filesystem.</p></div>
+</dd>
+<dt class="hdlist1">
+$projects_list
+</dt>
+<dd>
+<p>
+        Name of a plain text file listing projects, or a name of directory
+        to be scanned for projects.
+</p>
+<div class="paragraph"><p>Project list files should list one project per line, with each line
+having the following format</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;URI-encoded filesystem path to repository&gt; SP &lt;URI-encoded repository owner&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>The default value of this variable is determined by the <code>GITWEB_LIST</code>
+makefile variable at installation time.  If this variable is empty, gitweb
+will fall back to scanning the <code>$projectroot</code> directory for repositories.</p></div>
+</dd>
+<dt class="hdlist1">
+$project_maxdepth
+</dt>
+<dd>
+<p>
+        If <code>$projects_list</code> variable is unset, gitweb will recursively
+        scan filesystem for Git repositories.  The <code>$project_maxdepth</code>
+        is used to limit traversing depth, relative to <code>$projectroot</code>
+        (starting point); it means that directories which are further
+        from <code>$projectroot</code> than <code>$project_maxdepth</code> will be skipped.
+</p>
+<div class="paragraph"><p>It is purely performance optimization, originally intended for MacOS X,
+where recursive directory traversal is slow.  Gitweb follows symbolic
+links, but it detects cycles, ignoring any duplicate files and directories.</p></div>
+<div class="paragraph"><p>The default value of this variable is determined by the build-time
+configuration variable <code>GITWEB_PROJECT_MAXDEPTH</code>, which defaults to
+2007.</p></div>
+</dd>
+<dt class="hdlist1">
+$export_ok
+</dt>
+<dd>
+<p>
+        Show repository only if this file exists (in repository).  Only
+        effective if this variable evaluates to true.  Can be set when
+        building gitweb by setting <code>GITWEB_EXPORT_OK</code>.  This path is
+        relative to <code>GIT_DIR</code>.  git-daemon[1] uses <em>git-daemon-export-ok</em>,
+        unless started with <code>--export-all</code>.  By default this variable is
+        not set, which means that this feature is turned off.
+</p>
+</dd>
+<dt class="hdlist1">
+$export_auth_hook
+</dt>
+<dd>
+<p>
+        Function used to determine which repositories should be shown.
+        This subroutine should take one parameter, the full path to
+        a project, and if it returns true, that project will be included
+        in the projects list and can be accessed through gitweb as long
+        as it fulfills the other requirements described by $export_ok,
+        $projects_list, and $projects_maxdepth.  Example:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>our $export_auth_hook = sub { return -e "$_[0]/git-daemon-export-ok"; };</code></pre>
+</div></div>
+<div class="paragraph"><p>though the above might be done by using <code>$export_ok</code> instead</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>our $export_ok = "git-daemon-export-ok";</code></pre>
+</div></div>
+<div class="paragraph"><p>If not set (default), it means that this feature is disabled.</p></div>
+<div class="paragraph"><p>See also more involved example in "Controlling access to Git repositories"
+subsection on <a href="gitweb.html">gitweb(1)</a> manpage.</p></div>
+</dd>
+<dt class="hdlist1">
+$strict_export
+</dt>
+<dd>
+<p>
+        Only allow viewing of repositories also shown on the overview page.
+        This for example makes <code>$export_ok</code> file decide if repository is
+        available and not only if it is shown.  If <code>$projects_list</code> points to
+        file with list of project, only those repositories listed would be
+        available for gitweb.  Can be set during building gitweb via
+        <code>GITWEB_STRICT_EXPORT</code>.  By default this variable is not set, which
+        means that you can directly access those repositories that are hidden
+        from projects list page (e.g. the are not listed in the $projects_list
+        file).
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_finding_files">Finding files</h3>
+<div class="paragraph"><p>The following configuration variables tell gitweb where to find files.
+The values of these variables are paths on the filesystem.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+$GIT
+</dt>
+<dd>
+<p>
+        Core git executable to use.  By default set to <code>$GIT_BINDIR/git</code>, which
+        in turn is by default set to <code>$(bindir)/git</code>.  If you use Git installed
+        from a binary package, you should usually set this to "/usr/bin/git".
+        This can just be "git" if your web server has a sensible PATH; from
+        security point of view it is better to use absolute path to git binary.
+        If you have multiple Git versions installed it can be used to choose
+        which one to use.  Must be (correctly) set for gitweb to be able to
+        work.
+</p>
+</dd>
+<dt class="hdlist1">
+$mimetypes_file
+</dt>
+<dd>
+<p>
+        File to use for (filename extension based) guessing of MIME types before
+        trying <code>/etc/mime.types</code>.  <strong>NOTE</strong> that this path, if relative, is taken
+        as relative to the current Git repository, not to CGI script.  If unset,
+        only <code>/etc/mime.types</code> is used (if present on filesystem).  If no mimetypes
+        file is found, mimetype guessing based on extension of file is disabled.
+        Unset by default.
+</p>
+</dd>
+<dt class="hdlist1">
+$highlight_bin
+</dt>
+<dd>
+<p>
+        Path to the highlight executable to use (it must be the one from
+        <a href="http://www.andre-simon.de">http://www.andre-simon.de</a> due to assumptions about parameters and output).
+        By default set to <em>highlight</em>; set it to full path to highlight
+        executable if it is not installed on your web server&#8217;s PATH.
+        Note that <em>highlight</em> feature must be set for gitweb to actually
+        use syntax highlighting.
+</p>
+<div class="paragraph"><p><strong>NOTE</strong>: for a file to be highlighted, its syntax type must be detected
+and that syntax must be supported by "highlight".  The default syntax
+detection is minimal, and there are many supported syntax types with no
+detection by default.  There are three options for adding syntax
+detection.  The first and second priority are <code>%highlight_basename</code> and
+<code>%highlight_ext</code>, which detect based on basename (the full filename, for
+example "Makefile") and extension (for example "sh").  The keys of these
+hashes are the basename and extension, respectively, and the value for a
+given key is the name of the syntax to be passed via <code>--syntax &lt;syntax&gt;</code>
+to "highlight".  The last priority is the "highlight" configuration of
+<code>Shebang</code> regular expressions to detect the language based on the first
+line in the file, (for example, matching the line "#!/bin/bash").  See
+the highlight documentation and the default config at
+/etc/highlight/filetypes.conf for more details.</p></div>
+<div class="paragraph"><p>For example if repositories you are hosting use "phtml" extension for
+PHP files, and you want to have correct syntax-highlighting for those
+files, you can add the following to gitweb configuration:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>our %highlight_ext;
+$highlight_ext{'phtml'} = 'php';</code></pre>
+</div></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_links_and_their_targets">Links and their targets</h3>
+<div class="paragraph"><p>The configuration variables described below configure some of gitweb links:
+their target and their look (text or image), and where to find page
+prerequisites (stylesheet, favicon, images, scripts).  Usually they are left
+at their default values, with the possible exception of <code>@stylesheets</code>
+variable.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+@stylesheets
+</dt>
+<dd>
+<p>
+        List of URIs of stylesheets (relative to the base URI of a page). You
+        might specify more than one stylesheet, for example to use "gitweb.css"
+        as base with site specific modifications in a separate stylesheet
+        to make it easier to upgrade gitweb.  For example, you can add
+        a <code>site</code> stylesheet by putting
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>push @stylesheets, "gitweb-site.css";</code></pre>
+</div></div>
+<div class="paragraph"><p>in the gitweb config file.  Those values that are relative paths are
+relative to base URI of gitweb.</p></div>
+<div class="paragraph"><p>This list should contain the URI of gitweb&#8217;s standard stylesheet.  The default
+URI of gitweb stylesheet can be set at build time using the <code>GITWEB_CSS</code>
+makefile variable.  Its default value is <code>static/gitweb.css</code>
+(or <code>static/gitweb.min.css</code> if the <code>CSSMIN</code> variable is defined,
+i.e. if CSS minifier is used during build).</p></div>
+<div class="paragraph"><p><strong>Note</strong>: there is also a legacy <code>$stylesheet</code> configuration variable, which was
+used by older gitweb.  If <code>$stylesheet</code> variable is defined, only CSS stylesheet
+given by this variable is used by gitweb.</p></div>
+</dd>
+<dt class="hdlist1">
+$logo
+</dt>
+<dd>
+<p>
+        Points to the location where you put <em>git-logo.png</em> on your web
+        server, or to be more the generic URI of logo, 72x27 size).  This image
+        is displayed in the top right corner of each gitweb page and used as
+        a logo for the Atom feed.  Relative to the base URI of gitweb (as a path).
+        Can be adjusted when building gitweb using <code>GITWEB_LOGO</code> variable
+        By default set to <code>static/git-logo.png</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+$favicon
+</dt>
+<dd>
+<p>
+        Points to the location where you put <em>git-favicon.png</em> on your web
+        server, or to be more the generic URI of favicon, which will be served
+        as "image/png" type.  Web browsers that support favicons (website icons)
+        may display them in the browser&#8217;s URL bar and next to the site name in
+        bookmarks.  Relative to the base URI of gitweb.  Can be adjusted at
+        build time using <code>GITWEB_FAVICON</code> variable.
+        By default set to <code>static/git-favicon.png</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+$javascript
+</dt>
+<dd>
+<p>
+        Points to the location where you put <em>gitweb.js</em> on your web server,
+        or to be more generic the URI of JavaScript code used by gitweb.
+        Relative to the base URI of gitweb.  Can be set at build time using
+        the <code>GITWEB_JS</code> build-time configuration variable.
+</p>
+<div class="paragraph"><p>The default value is either <code>static/gitweb.js</code>, or <code>static/gitweb.min.js</code> if
+the <code>JSMIN</code> build variable was defined, i.e. if JavaScript minifier was used
+at build time.  <strong>Note</strong> that this single file is generated from multiple
+individual JavaScript "modules".</p></div>
+</dd>
+<dt class="hdlist1">
+$home_link
+</dt>
+<dd>
+<p>
+        Target of the home link on the top of all pages (the first part of view
+        "breadcrumbs").  By default it is set to the absolute URI of a current page
+        (to the value of <code>$my_uri</code> variable, or to "/" if <code>$my_uri</code> is undefined
+        or is an empty string).
+</p>
+</dd>
+<dt class="hdlist1">
+$home_link_str
+</dt>
+<dd>
+<p>
+        Label for the "home link" at the top of all pages, leading to <code>$home_link</code>
+        (usually the main gitweb page, which contains the projects list).  It is
+        used as the first component of gitweb&#8217;s "breadcrumb trail":
+        <code>&lt;home link&gt; / &lt;project&gt; / &lt;action&gt;</code>.  Can be set at build time using
+        the <code>GITWEB_HOME_LINK_STR</code> variable.  By default it is set to "projects",
+        as this link leads to the list of projects.  Another popular choice is to
+        set it to the name of site.  Note that it is treated as raw HTML so it
+        should not be set from untrusted sources.
+</p>
+</dd>
+<dt class="hdlist1">
+@extra_breadcrumbs
+</dt>
+<dd>
+<p>
+        Additional links to be added to the start of the breadcrumb trail before
+        the home link, to pages that are logically "above" the gitweb projects
+        list, such as the organization and department which host the gitweb
+        server. Each element of the list is a reference to an array, in which
+        element 0 is the link text (equivalent to <code>$home_link_str</code>) and element
+        1 is the target URL (equivalent to <code>$home_link</code>).
+</p>
+<div class="paragraph"><p>For example, the following setting produces a breadcrumb trail like
+"home / dev / projects / &#8230;" where "projects" is the home link.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>    our @extra_breadcrumbs = (
+      [ 'home' =&gt; 'https://www.example.org/' ],
+      [ 'dev'  =&gt; 'https://dev.example.org/' ],
+    );</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+$logo_url
+</dt>
+<dt class="hdlist1">
+$logo_label
+</dt>
+<dd>
+<p>
+        URI and label (title) for the Git logo link (or your site logo,
+        if you chose to use different logo image). By default, these both
+        refer to Git homepage, <a href="https://git-scm.com">https://git-scm.com</a>; in the past, they pointed
+        to Git documentation at <a href="https://www.kernel.org">https://www.kernel.org</a>.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_changing_gitweb_8217_s_look">Changing gitweb&#8217;s look</h3>
+<div class="paragraph"><p>You can adjust how pages generated by gitweb look using the variables described
+below.  You can change the site name, add common headers and footers for all
+pages, and add a description of this gitweb installation on its main page
+(which is the projects list page), etc.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+$site_name
+</dt>
+<dd>
+<p>
+        Name of your site or organization, to appear in page titles.  Set it
+        to something descriptive for clearer bookmarks etc.  If this variable
+        is not set or is, then gitweb uses the value of the <code>SERVER_NAME</code>
+        <code>CGI</code> environment variable, setting site name to "$SERVER_NAME Git",
+        or "Untitled Git" if this variable is not set (e.g. if running gitweb
+        as standalone script).
+</p>
+<div class="paragraph"><p>Can be set using the <code>GITWEB_SITENAME</code> at build time.  Unset by default.</p></div>
+</dd>
+<dt class="hdlist1">
+$site_html_head_string
+</dt>
+<dd>
+<p>
+        HTML snippet to be included in the &lt;head&gt; section of each page.
+        Can be set using <code>GITWEB_SITE_HTML_HEAD_STRING</code> at build time.
+        No default value.
+</p>
+</dd>
+<dt class="hdlist1">
+$site_header
+</dt>
+<dd>
+<p>
+        Name of a file with HTML to be included at the top of each page.
+        Relative to the directory containing the <em>gitweb.cgi</em> script.
+        Can be set using <code>GITWEB_SITE_HEADER</code> at build time.  No default
+        value.
+</p>
+</dd>
+<dt class="hdlist1">
+$site_footer
+</dt>
+<dd>
+<p>
+        Name of a file with HTML to be included at the bottom of each page.
+        Relative to the directory containing the <em>gitweb.cgi</em> script.
+        Can be set using <code>GITWEB_SITE_FOOTER</code> at build time.  No default
+        value.
+</p>
+</dd>
+<dt class="hdlist1">
+$home_text
+</dt>
+<dd>
+<p>
+        Name of a HTML file which, if it exists, is included on the
+        gitweb projects overview page ("projects_list" view).  Relative to
+        the directory containing the gitweb.cgi script.  Default value
+        can be adjusted during build time using <code>GITWEB_HOMETEXT</code> variable.
+        By default set to <em>indextext.html</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+$projects_list_description_width
+</dt>
+<dd>
+<p>
+        The width (in characters) of the "Description" column of the projects list.
+        Longer descriptions will be truncated (trying to cut at word boundary);
+        the full description is available in the <em>title</em> attribute (usually shown on
+        mouseover).  The default is 25, which might be too small if you
+        use long project descriptions.
+</p>
+</dd>
+<dt class="hdlist1">
+$default_projects_order
+</dt>
+<dd>
+<p>
+        Default value of ordering of projects on projects list page, which
+        means the ordering used if you don&#8217;t explicitly sort projects list
+        (if there is no "o" CGI query parameter in the URL).  Valid values
+        are "none" (unsorted), "project" (projects are by project name,
+        i.e. path to repository relative to <code>$projectroot</code>), "descr"
+        (project description), "owner", and "age" (by date of most current
+        commit).
+</p>
+<div class="paragraph"><p>Default value is "project".  Unknown value means unsorted.</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_changing_gitweb_8217_s_behavior">Changing gitweb&#8217;s behavior</h3>
+<div class="paragraph"><p>These configuration variables control <em>internal</em> gitweb behavior.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+$default_blob_plain_mimetype
+</dt>
+<dd>
+<p>
+        Default mimetype for the blob_plain (raw) view, if mimetype checking
+        doesn&#8217;t result in some other type; by default "text/plain".
+        Gitweb guesses mimetype of a file to display based on extension
+        of its filename, using <code>$mimetypes_file</code> (if set and file exists)
+        and <code>/etc/mime.types</code> files (see <strong>mime.types</strong>(5) manpage; only
+        filename extension rules are supported by gitweb).
+</p>
+</dd>
+<dt class="hdlist1">
+$default_text_plain_charset
+</dt>
+<dd>
+<p>
+        Default charset for text files. If this is not set, the web server
+        configuration will be used.  Unset by default.
+</p>
+</dd>
+<dt class="hdlist1">
+$fallback_encoding
+</dt>
+<dd>
+<p>
+        Gitweb assumes this charset when a line contains non-UTF-8 characters.
+        The fallback decoding is used without error checking, so it can be even
+        "utf-8". The value must be a valid encoding; see the <strong>Encoding::Supported</strong>(3pm)
+        man page for a list. The default is "latin1", aka. "iso-8859-1".
+</p>
+</dd>
+<dt class="hdlist1">
+@diff_opts
+</dt>
+<dd>
+<p>
+        Rename detection options for git-diff and git-diff-tree. The default is
+        ('-M'); set it to ('-C') or ('-C', '-C') to also detect copies,
+        or set it to () i.e. empty list if you don&#8217;t want to have renames
+        detection.
+</p>
+<div class="paragraph"><p><strong>Note</strong> that rename and especially copy detection can be quite
+CPU-intensive.  Note also that non Git tools can have problems with
+patches generated with options mentioned above, especially when they
+involve file copies ('-C') or criss-cross renames ('-B').</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_some_optional_features_and_policies">Some optional features and policies</h3>
+<div class="paragraph"><p>Most of features are configured via <code>%feature</code> hash; however some of extra
+gitweb features can be turned on and configured using variables described
+below.  This list beside configuration variables that control how gitweb
+looks does contain variables configuring administrative side of gitweb
+(e.g. cross-site scripting prevention; admittedly this as side effect
+affects how "summary" pages look like, or load limiting).</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+@git_base_url_list
+</dt>
+<dd>
+<p>
+        List of Git base URLs.  These URLs are used to generate URLs
+        describing from where to fetch a project, which are shown on
+        project summary page.  The full fetch URL is "<code>$git_base_url/$project</code>",
+        for each element of this list. You can set up multiple base URLs
+        (for example one for <code>git://</code> protocol, and one for <code>http://</code>
+        protocol).
+</p>
+<div class="paragraph"><p>Note that per repository configuration can be set in <code>$GIT_DIR/cloneurl</code>
+file, or as values of multi-value <code>gitweb.url</code> configuration variable in
+project config.  Per-repository configuration takes precedence over value
+composed from <code>@git_base_url_list</code> elements and project name.</p></div>
+<div class="paragraph"><p>You can setup one single value (single entry/item in this list) at build
+time by setting the <code>GITWEB_BASE_URL</code> build-time configuration variable.
+By default it is set to (), i.e. an empty list.  This means that gitweb
+would not try to create project URL (to fetch) from project name.</p></div>
+</dd>
+<dt class="hdlist1">
+$projects_list_group_categories
+</dt>
+<dd>
+<p>
+        Whether to enable the grouping of projects by category on the project
+        list page. The category of a project is determined by the
+        <code>$GIT_DIR/category</code> file or the <code>gitweb.category</code> variable in each
+        repository&#8217;s configuration.  Disabled by default (set to 0).
+</p>
+</dd>
+<dt class="hdlist1">
+$project_list_default_category
+</dt>
+<dd>
+<p>
+        Default category for projects for which none is specified.  If this is
+        set to the empty string, such projects will remain uncategorized and
+        listed at the top, above categorized projects.  Used only if project
+        categories are enabled, which means if <code>$projects_list_group_categories</code>
+        is true.  By default set to "" (empty string).
+</p>
+</dd>
+<dt class="hdlist1">
+$prevent_xss
+</dt>
+<dd>
+<p>
+        If true, some gitweb features are disabled to prevent content in
+        repositories from launching cross-site scripting (XSS) attacks.  Set this
+        to true if you don&#8217;t trust the content of your repositories.
+        False by default (set to 0).
+</p>
+</dd>
+<dt class="hdlist1">
+$maxload
+</dt>
+<dd>
+<p>
+        Used to set the maximum load that we will still respond to gitweb queries.
+        If the server load exceeds this value then gitweb will return
+        "503 Service Unavailable" error.  The server load is taken to be 0
+        if gitweb cannot determine its value.  Currently it works only on Linux,
+        where it uses <code>/proc/loadavg</code>; the load there is the number of active
+        tasks on the system&#8201;&#8212;&#8201;processes that are actually running&#8201;&#8212;&#8201;averaged
+        over the last minute.
+</p>
+<div class="paragraph"><p>Set <code>$maxload</code> to undefined value (<code>undef</code>) to turn this feature off.
+The default value is 300.</p></div>
+</dd>
+<dt class="hdlist1">
+$omit_age_column
+</dt>
+<dd>
+<p>
+        If true, omit the column with date of the most current commit on the
+        projects list page. It can save a bit of I/O and a fork per repository.
+</p>
+</dd>
+<dt class="hdlist1">
+$omit_owner
+</dt>
+<dd>
+<p>
+        If true prevents displaying information about repository owner.
+</p>
+</dd>
+<dt class="hdlist1">
+$per_request_config
+</dt>
+<dd>
+<p>
+        If this is set to code reference, it will be run once for each request.
+        You can set parts of configuration that change per session this way.
+        For example, one might use the following code in a gitweb configuration
+        file
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>our $per_request_config = sub {
+        $ENV{GL_USER} = $cgi-&gt;remote_user || "gitweb";
+};</code></pre>
+</div></div>
+<div class="paragraph"><p>If <code>$per_request_config</code> is not a code reference, it is interpreted as boolean
+value.  If it is true gitweb will process config files once per request,
+and if it is false gitweb will process config files only once, each time it
+is executed.  True by default (set to 1).</p></div>
+<div class="paragraph"><p><strong>NOTE</strong>: <code>$my_url</code>, <code>$my_uri</code>, and <code>$base_url</code> are overwritten with their default
+values before every request, so if you want to change them, be sure to set
+this variable to true or a code reference effecting the desired changes.</p></div>
+<div class="paragraph"><p>This variable matters only when using persistent web environments that
+serve multiple requests using single gitweb instance, like mod_perl,
+FastCGI or Plackup.</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_other_variables">Other variables</h3>
+<div class="paragraph"><p>Usually you should not need to change (adjust) any of configuration
+variables described below; they should be automatically set by gitweb to
+correct value.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+$version
+</dt>
+<dd>
+<p>
+        Gitweb version, set automatically when creating gitweb.cgi from
+        gitweb.perl. You might want to modify it if you are running modified
+        gitweb, for example
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>our $version .= " with caching";</code></pre>
+</div></div>
+<div class="paragraph"><p>if you run modified version of gitweb with caching support.  This variable
+is purely informational, used e.g. in the "generator" meta header in HTML
+header.</p></div>
+</dd>
+<dt class="hdlist1">
+$my_url
+</dt>
+<dt class="hdlist1">
+$my_uri
+</dt>
+<dd>
+<p>
+        Full URL and absolute URL of the gitweb script;
+        in earlier versions of gitweb you might have need to set those
+        variables, but now there should be no need to do it.  See
+        <code>$per_request_config</code> if you need to set them still.
+</p>
+</dd>
+<dt class="hdlist1">
+$base_url
+</dt>
+<dd>
+<p>
+        Base URL for relative URLs in pages generated by gitweb,
+        (e.g. <code>$logo</code>, <code>$favicon</code>, <code>@stylesheets</code> if they are relative URLs),
+        needed and used <em>&lt;base href="$base_url"&gt;</em> only for URLs with nonempty
+        PATH_INFO.  Usually gitweb sets its value correctly,
+        and there is no need to set this variable, e.g. to $my_uri or "/".
+        See <code>$per_request_config</code> if you need to override it anyway.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuring_gitweb_features">CONFIGURING GITWEB FEATURES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Many gitweb features can be enabled (or disabled) and configured using the
+<code>%feature</code> hash.  Names of gitweb features are keys of this hash.</p></div>
+<div class="paragraph"><p>Each <code>%feature</code> hash element is a hash reference and has the following
+structure:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>"&lt;feature_name&gt;" =&gt; {
+        "sub" =&gt; &lt;feature-sub (subroutine)&gt;,
+        "override" =&gt; &lt;allow-override (boolean)&gt;,
+        "default" =&gt; [ &lt;options&gt;... ]
+},</code></pre>
+</div></div>
+<div class="paragraph"><p>Some features cannot be overridden per project.  For those
+features the structure of appropriate <code>%feature</code> hash element has a simpler
+form:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>"&lt;feature_name&gt;" =&gt; {
+        "override" =&gt; 0,
+        "default" =&gt; [ &lt;options&gt;... ]
+},</code></pre>
+</div></div>
+<div class="paragraph"><p>As one can see it lacks the 'sub' element.</p></div>
+<div class="paragraph"><p>The meaning of each part of feature configuration is described
+below:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+default
+</dt>
+<dd>
+<p>
+        List (array reference) of feature parameters (if there are any),
+        used also to toggle (enable or disable) given feature.
+</p>
+<div class="paragraph"><p>Note that it is currently <strong>always</strong> an array reference, even if
+feature doesn&#8217;t accept any configuration parameters, and 'default'
+is used only to turn it on or off.  In such case you turn feature on
+by setting this element to <code>[1]</code>, and torn it off by setting it to
+<code>[0]</code>.  See also the passage about the "blame" feature in the "Examples"
+section.</p></div>
+<div class="paragraph"><p>To disable features that accept parameters (are configurable), you
+need to set this element to empty list i.e. <code>[]</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+override
+</dt>
+<dd>
+<p>
+        If this field has a true value then the given feature is
+        overridable, which means that it can be configured
+        (or enabled/disabled) on a per-repository basis.
+</p>
+<div class="paragraph"><p>Usually given "&lt;feature&gt;" is configurable via the <code>gitweb.&lt;feature&gt;</code>
+config variable in the per-repository Git configuration file.</p></div>
+<div class="paragraph"><p><strong>Note</strong> that no feature is overridable by default.</p></div>
+</dd>
+<dt class="hdlist1">
+sub
+</dt>
+<dd>
+<p>
+        Internal detail of implementation.  What is important is that
+        if this field is not present then per-repository override for
+        given feature is not supported.
+</p>
+<div class="paragraph"><p>You wouldn&#8217;t need to ever change it in gitweb config file.</p></div>
+</dd>
+</dl></div>
+<div class="sect2">
+<h3 id="_features_in_code_feature_code">Features in <code>%feature</code></h3>
+<div class="paragraph"><p>The gitweb features that are configurable via <code>%feature</code> hash are listed
+below.  This should be a complete list, but ultimately the authoritative
+and complete list is in gitweb.cgi source code, with features described
+in the comments.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+blame
+</dt>
+<dd>
+<p>
+        Enable the "blame" and "blame_incremental" blob views, showing for
+        each line the last commit that modified it; see <a href="git-blame.html">git-blame(1)</a>.
+        This can be very CPU-intensive and is therefore disabled by default.
+</p>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.blame</code> configuration variable (boolean).</p></div>
+</dd>
+<dt class="hdlist1">
+snapshot
+</dt>
+<dd>
+<p>
+        Enable and configure the "snapshot" action, which allows user to
+        download a compressed archive of any tree or commit, as produced
+        by <a href="git-archive.html">git-archive(1)</a> and possibly additionally compressed.
+        This can potentially generate high traffic if you have large project.
+</p>
+<div class="paragraph"><p>The value of 'default' is a list of names of snapshot formats,
+defined in <code>%known_snapshot_formats</code> hash, that you wish to offer.
+Supported formats include "tgz", "tbz2", "txz" (gzip/bzip2/xz
+compressed tar archive) and "zip"; please consult gitweb sources for
+a definitive list.  By default only "tgz" is offered.</p></div>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.snapshot</code> configuration variable, which contains
+a comma separated list of formats or "none" to disable snapshots.
+Unknown values are ignored.</p></div>
+</dd>
+<dt class="hdlist1">
+grep
+</dt>
+<dd>
+<p>
+        Enable grep search, which lists the files in currently selected
+        tree (directory) containing the given string; see <a href="git-grep.html">git-grep(1)</a>.
+        This can be potentially CPU-intensive, of course.  Enabled by default.
+</p>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.grep</code> configuration variable (boolean).</p></div>
+</dd>
+<dt class="hdlist1">
+pickaxe
+</dt>
+<dd>
+<p>
+        Enable the so called pickaxe search, which will list the commits
+        that introduced or removed a given string in a file.  This can be
+        practical and quite faster alternative to "blame" action, but it is
+        still potentially CPU-intensive.  Enabled by default.
+</p>
+<div class="paragraph"><p>The pickaxe search is described in <a href="git-log.html">git-log(1)</a> (the
+description of <code>-S&lt;string&gt;</code> option, which refers to pickaxe entry in
+<a href="gitdiffcore.html">gitdiffcore(7)</a> for more details).</p></div>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis by setting
+repository&#8217;s <code>gitweb.pickaxe</code> configuration variable (boolean).</p></div>
+</dd>
+<dt class="hdlist1">
+show-sizes
+</dt>
+<dd>
+<p>
+        Enable showing size of blobs (ordinary files) in a "tree" view, in a
+        separate column, similar to what <code>ls -l</code> does; see description of
+        <code>-l</code> option in <a href="git-ls-tree.html">git-ls-tree(1)</a> manpage.  This costs a bit of
+        I/O.  Enabled by default.
+</p>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.showSizes</code> configuration variable (boolean).</p></div>
+</dd>
+<dt class="hdlist1">
+patches
+</dt>
+<dd>
+<p>
+        Enable and configure "patches" view, which displays list of commits in email
+        (plain text) output format; see also <a href="git-format-patch.html">git-format-patch(1)</a>.
+        The value is the maximum number of patches in a patchset generated
+        in "patches" view.  Set the <em>default</em> field to a list containing single
+        item of or to an empty list to disable patch view, or to a list
+        containing a single negative number to remove any limit.
+        Default value is 16.
+</p>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.patches</code> configuration variable (integer).</p></div>
+</dd>
+<dt class="hdlist1">
+avatar
+</dt>
+<dd>
+<p>
+        Avatar support.  When this feature is enabled, views such as
+        "shortlog" or "commit" will display an avatar associated with
+        the email of each committer and author.
+</p>
+<div class="paragraph"><p>Currently available providers are <strong>"gravatar"</strong> and <strong>"picon"</strong>.
+Only one provider at a time can be selected (<em>default</em> is one element list).
+If an unknown provider is specified, the feature is disabled.
+<strong>Note</strong> that some providers might require extra Perl packages to be
+installed; see <code>gitweb/INSTALL</code> for more details.</p></div>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.avatar</code> configuration variable.</p></div>
+<div class="paragraph"><p>See also <code>%avatar_size</code> with pixel sizes for icons and avatars
+("default" is used for one-line like "log" and "shortlog", "double"
+is used for two-line like "commit", "commitdiff" or "tag").  If the
+default font sizes or lineheights are changed (e.g. via adding extra
+CSS stylesheet in <code>@stylesheets</code>), it may be appropriate to change
+these values.</p></div>
+</dd>
+<dt class="hdlist1">
+highlight
+</dt>
+<dd>
+<p>
+        Server-side syntax highlight support in "blob" view.  It requires
+        <code>$highlight_bin</code> program to be available (see the description of
+        this variable in the "Configuration variables" section above),
+        and therefore is disabled by default.
+</p>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.highlight</code> configuration variable (boolean).</p></div>
+</dd>
+<dt class="hdlist1">
+remote_heads
+</dt>
+<dd>
+<p>
+        Enable displaying remote heads (remote-tracking branches) in the "heads"
+        list.  In most cases the list of remote-tracking branches is an
+        unnecessary internal private detail, and this feature is therefore
+        disabled by default.  <a href="git-instaweb.html">git-instaweb(1)</a>, which is usually used
+        to browse local repositories, enables and uses this feature.
+</p>
+<div class="paragraph"><p>This feature can be configured on a per-repository basis via
+repository&#8217;s <code>gitweb.remote_heads</code> configuration variable (boolean).</p></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The remaining features cannot be overridden on a per project basis.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+search
+</dt>
+<dd>
+<p>
+        Enable text search, which will list the commits which match author,
+        committer or commit text to a given string; see the description of
+        <code>--author</code>, <code>--committer</code> and <code>--grep</code> options in <a href="git-log.html">git-log(1)</a>
+        manpage.  Enabled by default.
+</p>
+<div class="paragraph"><p>Project specific override is not supported.</p></div>
+</dd>
+<dt class="hdlist1">
+forks
+</dt>
+<dd>
+<p>
+        If this feature is enabled, gitweb considers projects in
+        subdirectories of project root (basename) to be forks of existing
+        projects.  For each project <code>$projname.git</code>, projects in the
+        <code>$projname/</code> directory and its subdirectories will not be
+        shown in the main projects list.  Instead, a '+' mark is shown
+        next to <code>$projname</code>, which links to a "forks" view that lists all
+        the forks (all projects in <code>$projname/</code> subdirectory).  Additionally
+        a "forks" view for a project is linked from project summary page.
+</p>
+<div class="paragraph"><p>If the project list is taken from a file (<code>$projects_list</code> points to a
+file), forks are only recognized if they are listed after the main project
+in that file.</p></div>
+<div class="paragraph"><p>Project specific override is not supported.</p></div>
+</dd>
+<dt class="hdlist1">
+actions
+</dt>
+<dd>
+<p>
+        Insert custom links to the action bar of all project pages.  This
+        allows you to link to third-party scripts integrating into gitweb.
+</p>
+<div class="paragraph"><p>The "default" value consists of a list of triplets in the form
+&#8216;("&lt;label&gt;", "&lt;link&gt;", "&lt;position&gt;")` where "position" is the label
+after which to insert the link, "link" is a format string where <code>%n</code>
+expands to the project name, <code>%f</code> to the project path within the
+filesystem (i.e. "$projectroot/$project"), <code>%h</code> to the current hash
+('h&#8217; gitweb parameter) and &#8216;%b` to the current hash base
+('hb&#8217; gitweb parameter); &#8216;%%` expands to '%&#8217;.</p></div>
+<div class="paragraph"><p>For example, at the time this page was written, the <a href="http://repo.or.cz">http://repo.or.cz</a>
+Git hosting site set it to the following to enable graphical log
+(using the third party tool <strong>git-browser</strong>):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$feature{'actions'}{'default'} =
+        [ ('graphiclog', '/git-browser/by-commit.html?r=%n', 'summary')];</code></pre>
+</div></div>
+<div class="paragraph"><p>This adds a link titled "graphiclog" after the "summary" link, leading to
+<code>git-browser</code> script, passing <code>r=&lt;project&gt;</code> as a query parameter.</p></div>
+<div class="paragraph"><p>Project specific override is not supported.</p></div>
+</dd>
+<dt class="hdlist1">
+timed
+</dt>
+<dd>
+<p>
+        Enable displaying how much time and how many Git commands it took to
+        generate and display each page in the page footer (at the bottom of
+        page).  For example the footer might contain: "This page took 6.53325
+        seconds and 13 Git commands to generate."  Disabled by default.
+</p>
+<div class="paragraph"><p>Project specific override is not supported.</p></div>
+</dd>
+<dt class="hdlist1">
+javascript-timezone
+</dt>
+<dd>
+<p>
+        Enable and configure the ability to change a common time zone for dates
+        in gitweb output via JavaScript.  Dates in gitweb output include
+        authordate and committerdate in "commit", "commitdiff" and "log"
+        views, and taggerdate in "tag" view.  Enabled by default.
+</p>
+<div class="paragraph"><p>The value is a list of three values: a default time zone (for if the client
+hasn&#8217;t selected some other time zone and saved it in a cookie), a name of cookie
+where to store selected time zone, and a CSS class used to mark up
+dates for manipulation.  If you want to turn this feature off, set "default"
+to empty list: <code>[]</code>.</p></div>
+<div class="paragraph"><p>Typical gitweb config files will only change starting (default) time zone,
+and leave other elements at their default values:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$feature{'javascript-timezone'}{'default'}[0] = "utc";</code></pre>
+</div></div>
+<div class="paragraph"><p>The example configuration presented here is guaranteed to be backwards
+and forward compatible.</p></div>
+<div class="paragraph"><p>Time zone values can be "local" (for local time zone that browser uses), "utc"
+(what gitweb uses when JavaScript or this feature is disabled), or numerical
+time zones in the form of "+/-HHMM", such as "+0200".</p></div>
+<div class="paragraph"><p>Project specific override is not supported.</p></div>
+</dd>
+<dt class="hdlist1">
+extra-branch-refs
+</dt>
+<dd>
+<p>
+        List of additional directories under "refs" which are going to
+        be used as branch refs. For example if you have a gerrit setup
+        where all branches under refs/heads/ are official,
+        push-after-review ones and branches under refs/sandbox/,
+        refs/wip and refs/other are user ones where permissions are
+        much wider, then you might want to set this variable as
+        follows:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$feature{'extra-branch-refs'}{'default'} =
+        ['sandbox', 'wip', 'other'];</code></pre>
+</div></div>
+<div class="paragraph"><p>This feature can be configured on per-repository basis after setting
+$feature{<em>extra-branch-refs</em>}{<em>override</em>} to true, via repository&#8217;s
+<code>gitweb.extraBranchRefs</code> configuration variable, which contains a
+space separated list of refs. An example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[gitweb]
+        extraBranchRefs = sandbox wip other</code></pre>
+</div></div>
+<div class="paragraph"><p>The gitweb.extraBranchRefs is actually a multi-valued configuration
+variable, so following example is also correct and the result is the
+same as of the snippet above:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[gitweb]
+        extraBranchRefs = sandbox
+        extraBranchRefs = wip other</code></pre>
+</div></div>
+<div class="paragraph"><p>It is an error to specify a ref that does not pass "git check-ref-format"
+scrutiny. Duplicated values are filtered.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>To enable blame, pickaxe search, and snapshot support (allowing "tar.gz" and
+"zip" snapshots), while allowing individual projects to turn them off, put
+the following in your GITWEB_CONFIG file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$feature{'blame'}{'default'} = [1];
+$feature{'blame'}{'override'} = 1;
+
+$feature{'pickaxe'}{'default'} = [1];
+$feature{'pickaxe'}{'override'} = 1;
+
+$feature{'snapshot'}{'default'} = ['zip', 'tgz'];
+$feature{'snapshot'}{'override'} = 1;</code></pre>
+</div></div>
+<div class="paragraph"><p>If you allow overriding for the snapshot feature, you can specify which
+snapshot formats are globally disabled. You can also add any command-line
+options you want (such as setting the compression level). For instance, you
+can disable Zip compressed snapshots and set <strong>gzip</strong>(1) to run at level 6 by
+adding the following lines to your gitweb configuration file:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$known_snapshot_formats{'zip'}{'disabled'} = 1;
+$known_snapshot_formats{'tgz'}{'compressor'} = ['gzip','-6'];</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bugs">BUGS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Debugging would be easier if the fallback configuration file
+(<code>/etc/gitweb.conf</code>) and environment variable to override its location
+(<em>GITWEB_CONFIG_SYSTEM</em>) had names reflecting their "fallback" role.
+The current names are kept to avoid breaking working setups.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_environment">ENVIRONMENT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The location of per-instance and system-wide configuration files can be
+overridden using the following environment variables:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+GITWEB_CONFIG
+</dt>
+<dd>
+<p>
+        Sets location of per-instance configuration file.
+</p>
+</dd>
+<dt class="hdlist1">
+GITWEB_CONFIG_SYSTEM
+</dt>
+<dd>
+<p>
+        Sets location of fallback system-wide configuration file.
+        This file is read only if per-instance one does not exist.
+</p>
+</dd>
+<dt class="hdlist1">
+GITWEB_CONFIG_COMMON
+</dt>
+<dd>
+<p>
+        Sets location of common system-wide configuration file.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_files">FILES</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+gitweb_config.perl
+</dt>
+<dd>
+<p>
+        This is default name of per-instance configuration file.  The
+        format of this file is described above.
+</p>
+</dd>
+<dt class="hdlist1">
+/etc/gitweb.conf
+</dt>
+<dd>
+<p>
+        This is default name of fallback system-wide configuration
+        file.  This file is used only if per-instance configuration
+        variable is not found.
+</p>
+</dd>
+<dt class="hdlist1">
+/etc/gitweb-common.conf
+</dt>
+<dd>
+<p>
+        This is default name of common system-wide configuration
+        file.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="gitweb.html">gitweb(1)</a>, <a href="git-instaweb.html">git-instaweb(1)</a></p></div>
+<div class="paragraph"><p><em>gitweb/README</em>, <em>gitweb/INSTALL</em></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

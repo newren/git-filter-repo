@@ -1,0 +1,1381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>gittutorial(7)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gittutorial(7) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gittutorial -
+   A tutorial introduction to Git
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content">git *</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This tutorial explains how to import a new project into Git, make
+changes to it, and share changes with other developers.</p></div>
+<div class="paragraph"><p>If you are instead primarily interested in using Git to fetch a project,
+for example, to test the latest version, you may prefer to start with
+the first two chapters of <a href="user-manual.html">The Git User&#8217;s Manual</a>.</p></div>
+<div class="paragraph"><p>First, note that you can get documentation for a command such as
+<code>git log --graph</code> with:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ man git-log</code></pre>
+</div></div>
+<div class="paragraph"><p>or:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git help log</code></pre>
+</div></div>
+<div class="paragraph"><p>With the latter, you can use the manual viewer of your choice; see
+<a href="git-help.html">git-help(1)</a> for more information.</p></div>
+<div class="paragraph"><p>It is a good idea to introduce yourself to Git with your name and
+public email address before doing any operation.  The easiest
+way to do so is:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config --global user.name "Your Name Comes Here"
+$ git config --global user.email you@yourdomain.example.com</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_importing_a_new_project">Importing a new project</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Assume you have a tarball project.tar.gz with your initial work.  You
+can place it under Git revision control as follows.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ tar xzf project.tar.gz
+$ cd project
+$ git init</code></pre>
+</div></div>
+<div class="paragraph"><p>Git will reply</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Initialized empty Git repository in .git/</code></pre>
+</div></div>
+<div class="paragraph"><p>You&#8217;ve now initialized the working directory&#8212;you may notice a new
+directory created, named ".git".</p></div>
+<div class="paragraph"><p>Next, tell Git to take a snapshot of the contents of all files under the
+current directory (note the <em>.</em>), with <em>git add</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git add .</code></pre>
+</div></div>
+<div class="paragraph"><p>This snapshot is now stored in a temporary staging area which Git calls
+the "index".  You can permanently store the contents of the index in the
+repository with <em>git commit</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git commit</code></pre>
+</div></div>
+<div class="paragraph"><p>This will prompt you for a commit message.  You&#8217;ve now stored the first
+version of your project in Git.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_making_changes">Making changes</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Modify some files, then add their updated contents to the index:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git add file1 file2 file3</code></pre>
+</div></div>
+<div class="paragraph"><p>You are now ready to commit.  You can see what is about to be committed
+using <em>git diff</em> with the --cached option:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git diff --cached</code></pre>
+</div></div>
+<div class="paragraph"><p>(Without --cached, <em>git diff</em> will show you any changes that
+you&#8217;ve made but not yet added to the index.)  You can also get a brief
+summary of the situation with <em>git status</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git status
+On branch master
+Changes to be committed:
+Your branch is up to date with 'origin/master'.
+  (use "git restore --staged &lt;file&gt;..." to unstage)
+
+        modified:   file1
+        modified:   file2
+        modified:   file3</code></pre>
+</div></div>
+<div class="paragraph"><p>If you need to make any further adjustments, do so now, and then add any
+newly modified content to the index.  Finally, commit your changes with:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git commit</code></pre>
+</div></div>
+<div class="paragraph"><p>This will again prompt you for a message describing the change, and then
+record a new version of the project.</p></div>
+<div class="paragraph"><p>Alternatively, instead of running <em>git add</em> beforehand, you can use</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git commit -a</code></pre>
+</div></div>
+<div class="paragraph"><p>which will automatically notice any modified (but not new) files, add
+them to the index, and commit, all in one step.</p></div>
+<div class="paragraph"><p>A note on commit messages: Though not required, it&#8217;s a good idea to
+begin the commit message with a single short (less than 50 character)
+line summarizing the change, followed by a blank line and then a more
+thorough description. The text up to the first blank line in a commit
+message is treated as the commit title, and that title is used
+throughout Git.  For example, <a href="git-format-patch.html">git-format-patch(1)</a> turns a
+commit into email, and it uses the title on the Subject line and the
+rest of the commit in the body.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git_tracks_content_not_files">Git tracks content not files</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Many revision control systems provide an <code>add</code> command that tells the
+system to start tracking changes to a new file.  Git&#8217;s <code>add</code> command
+does something simpler and more powerful: <em>git add</em> is used both for new
+and newly modified files, and in both cases it takes a snapshot of the
+given files and stages that content in the index, ready for inclusion in
+the next commit.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_viewing_project_history">Viewing project history</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>At any point you can view the history of your changes using</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log</code></pre>
+</div></div>
+<div class="paragraph"><p>If you also want to see complete diffs at each step, use</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log -p</code></pre>
+</div></div>
+<div class="paragraph"><p>Often the overview of the change is useful to get a feel of
+each step</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log --stat --summary</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_managing_branches">Managing branches</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>A single Git repository can maintain multiple branches of
+development.  To create a new branch named "experimental", use</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git branch experimental</code></pre>
+</div></div>
+<div class="paragraph"><p>If you now run</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git branch</code></pre>
+</div></div>
+<div class="paragraph"><p>you&#8217;ll get a list of all existing branches:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  experimental
+* master</code></pre>
+</div></div>
+<div class="paragraph"><p>The "experimental" branch is the one you just created, and the
+"master" branch is a default branch that was created for you
+automatically.  The asterisk marks the branch you are currently on;
+type</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git switch experimental</code></pre>
+</div></div>
+<div class="paragraph"><p>to switch to the experimental branch.  Now edit a file, commit the
+change, and switch back to the master branch:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>(edit file)
+$ git commit -a
+$ git switch master</code></pre>
+</div></div>
+<div class="paragraph"><p>Check that the change you made is no longer visible, since it was
+made on the experimental branch and you&#8217;re back on the master branch.</p></div>
+<div class="paragraph"><p>You can make a different change on the master branch:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>(edit file)
+$ git commit -a</code></pre>
+</div></div>
+<div class="paragraph"><p>at this point the two branches have diverged, with different changes
+made in each.  To merge the changes made in experimental into master, run</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git merge experimental</code></pre>
+</div></div>
+<div class="paragraph"><p>If the changes don&#8217;t conflict, you&#8217;re done.  If there are conflicts,
+markers will be left in the problematic files showing the conflict;</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git diff</code></pre>
+</div></div>
+<div class="paragraph"><p>will show this.  Once you&#8217;ve edited the files to resolve the
+conflicts,</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git commit -a</code></pre>
+</div></div>
+<div class="paragraph"><p>will commit the result of the merge. Finally,</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ gitk</code></pre>
+</div></div>
+<div class="paragraph"><p>will show a nice graphical representation of the resulting history.</p></div>
+<div class="paragraph"><p>At this point you could delete the experimental branch with</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git branch -d experimental</code></pre>
+</div></div>
+<div class="paragraph"><p>This command ensures that the changes in the experimental branch are
+already in the current branch.</p></div>
+<div class="paragraph"><p>If you develop on a branch crazy-idea, then regret it, you can always
+delete the branch with</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git branch -D crazy-idea</code></pre>
+</div></div>
+<div class="paragraph"><p>Branches are cheap and easy, so this is a good way to try something
+out.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_git_for_collaboration">Using Git for collaboration</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Suppose that Alice has started a new project with a Git repository in
+/home/alice/project, and that Bob, who has a home directory on the
+same machine, wants to contribute.</p></div>
+<div class="paragraph"><p>Bob begins with:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>bob$ git clone /home/alice/project myrepo</code></pre>
+</div></div>
+<div class="paragraph"><p>This creates a new directory "myrepo" containing a clone of Alice&#8217;s
+repository.  The clone is on an equal footing with the original
+project, possessing its own copy of the original project&#8217;s history.</p></div>
+<div class="paragraph"><p>Bob then makes some changes and commits them:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>(edit files)
+bob$ git commit -a
+(repeat as necessary)</code></pre>
+</div></div>
+<div class="paragraph"><p>When he&#8217;s ready, he tells Alice to pull changes from the repository
+at /home/bob/myrepo.  She does this with:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>alice$ cd /home/alice/project
+alice$ git pull /home/bob/myrepo master</code></pre>
+</div></div>
+<div class="paragraph"><p>This merges the changes from Bob&#8217;s "master" branch into Alice&#8217;s
+current branch.  If Alice has made her own changes in the meantime,
+then she may need to manually fix any conflicts.</p></div>
+<div class="paragraph"><p>The "pull" command thus performs two operations: it fetches changes
+from a remote branch, then merges them into the current branch.</p></div>
+<div class="paragraph"><p>Note that in general, Alice would want her local changes committed before
+initiating this "pull".  If Bob&#8217;s work conflicts with what Alice did since
+their histories forked, Alice will use her working tree and the index to
+resolve conflicts, and existing local changes will interfere with the
+conflict resolution process (Git will still perform the fetch but will
+refuse to merge --- Alice will have to get rid of her local changes in
+some way and pull again when this happens).</p></div>
+<div class="paragraph"><p>Alice can peek at what Bob did without merging first, using the "fetch"
+command; this allows Alice to inspect what Bob did, using a special
+symbol "FETCH_HEAD", in order to determine if he has anything worth
+pulling, like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>alice$ git fetch /home/bob/myrepo master
+alice$ git log -p HEAD..FETCH_HEAD</code></pre>
+</div></div>
+<div class="paragraph"><p>This operation is safe even if Alice has uncommitted local changes.
+The range notation "HEAD..FETCH_HEAD" means "show everything that is reachable
+from the FETCH_HEAD but exclude anything that is reachable from HEAD".
+Alice already knows everything that leads to her current state (HEAD),
+and reviews what Bob has in his state (FETCH_HEAD) that she has not
+seen with this command.</p></div>
+<div class="paragraph"><p>If Alice wants to visualize what Bob did since their histories forked
+she can issue the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ gitk HEAD..FETCH_HEAD</code></pre>
+</div></div>
+<div class="paragraph"><p>This uses the same two-dot range notation we saw earlier with <em>git log</em>.</p></div>
+<div class="paragraph"><p>Alice may want to view what both of them did since they forked.
+She can use three-dot form instead of the two-dot form:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ gitk HEAD...FETCH_HEAD</code></pre>
+</div></div>
+<div class="paragraph"><p>This means "show everything that is reachable from either one, but
+exclude anything that is reachable from both of them".</p></div>
+<div class="paragraph"><p>Please note that these range notation can be used with both gitk
+and "git log".</p></div>
+<div class="paragraph"><p>After inspecting what Bob did, if there is nothing urgent, Alice may
+decide to continue working without pulling from Bob.  If Bob&#8217;s history
+does have something Alice would immediately need, Alice may choose to
+stash her work-in-progress first, do a "pull", and then finally unstash
+her work-in-progress on top of the resulting history.</p></div>
+<div class="paragraph"><p>When you are working in a small closely knit group, it is not
+unusual to interact with the same repository over and over
+again.  By defining <em>remote</em> repository shorthand, you can make
+it easier:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>alice$ git remote add bob /home/bob/myrepo</code></pre>
+</div></div>
+<div class="paragraph"><p>With this, Alice can perform the first part of the "pull" operation
+alone using the <em>git fetch</em> command without merging them with her own
+branch, using:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>alice$ git fetch bob</code></pre>
+</div></div>
+<div class="paragraph"><p>Unlike the longhand form, when Alice fetches from Bob using a
+remote repository shorthand set up with <em>git remote</em>, what was
+fetched is stored in a remote-tracking branch, in this case
+<code>bob/master</code>.  So after this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>alice$ git log -p master..bob/master</code></pre>
+</div></div>
+<div class="paragraph"><p>shows a list of all the changes that Bob made since he branched from
+Alice&#8217;s master branch.</p></div>
+<div class="paragraph"><p>After examining those changes, Alice
+could merge the changes into her master branch:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>alice$ git merge bob/master</code></pre>
+</div></div>
+<div class="paragraph"><p>This <code>merge</code> can also be done by <em>pulling from her own remote-tracking
+branch</em>, like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>alice$ git pull . remotes/bob/master</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that git pull always merges into the current branch,
+regardless of what else is given on the command line.</p></div>
+<div class="paragraph"><p>Later, Bob can update his repo with Alice&#8217;s latest changes using</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>bob$ git pull</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that he doesn&#8217;t need to give the path to Alice&#8217;s repository;
+when Bob cloned Alice&#8217;s repository, Git stored the location of her
+repository in the repository configuration, and that location is
+used for pulls:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>bob$ git config --get remote.origin.url
+/home/alice/project</code></pre>
+</div></div>
+<div class="paragraph"><p>(The complete configuration created by <em>git clone</em> is visible using
+<code>git config -l</code>, and the <a href="git-config.html">git-config(1)</a> man page
+explains the meaning of each option.)</p></div>
+<div class="paragraph"><p>Git also keeps a pristine copy of Alice&#8217;s master branch under the
+name "origin/master":</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>bob$ git branch -r
+  origin/master</code></pre>
+</div></div>
+<div class="paragraph"><p>If Bob later decides to work from a different host, he can still
+perform clones and pulls using the ssh protocol:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>bob$ git clone alice.org:/home/alice/project myrepo</code></pre>
+</div></div>
+<div class="paragraph"><p>Alternatively, Git has a native protocol, or can use http;
+see <a href="git-pull.html">git-pull(1)</a> for details.</p></div>
+<div class="paragraph"><p>Git can also be used in a CVS-like mode, with a central repository
+that various users push changes to; see <a href="git-push.html">git-push(1)</a> and
+<a href="gitcvs-migration.html">gitcvs-migration(7)</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exploring_history">Exploring history</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Git history is represented as a series of interrelated commits.  We
+have already seen that the <em>git log</em> command can list those commits.
+Note that first line of each git log entry also gives a name for the
+commit:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log
+commit c82a22c39cbc32576f64f5c6b3f24b99ea8149c7
+Author: Junio C Hamano &lt;junkio@cox.net&gt;
+Date:   Tue May 16 17:18:22 2006 -0700
+
+    merge-base: Clarify the comments on post processing.</code></pre>
+</div></div>
+<div class="paragraph"><p>We can give this name to <em>git show</em> to see the details about this
+commit.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git show c82a22c39cbc32576f64f5c6b3f24b99ea8149c7</code></pre>
+</div></div>
+<div class="paragraph"><p>But there are other ways to refer to commits.  You can use any initial
+part of the name that is long enough to uniquely identify the commit:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git show c82a22c39c   # the first few characters of the name are
+                        # usually enough
+$ git show HEAD         # the tip of the current branch
+$ git show experimental # the tip of the "experimental" branch</code></pre>
+</div></div>
+<div class="paragraph"><p>Every commit usually has one "parent" commit
+which points to the previous state of the project:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git show HEAD^  # to see the parent of HEAD
+$ git show HEAD^^ # to see the grandparent of HEAD
+$ git show HEAD~4 # to see the great-great grandparent of HEAD</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that merge commits may have more than one parent:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git show HEAD^1 # show the first parent of HEAD (same as HEAD^)
+$ git show HEAD^2 # show the second parent of HEAD</code></pre>
+</div></div>
+<div class="paragraph"><p>You can also give commits names of your own; after running</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git tag v2.5 1b2e1d63ff</code></pre>
+</div></div>
+<div class="paragraph"><p>you can refer to 1b2e1d63ff by the name "v2.5".  If you intend to
+share this name with other people (for example, to identify a release
+version), you should create a "tag" object, and perhaps sign it; see
+<a href="git-tag.html">git-tag(1)</a> for details.</p></div>
+<div class="paragraph"><p>Any Git command that needs to know a commit can take any of these
+names.  For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git diff v2.5 HEAD     # compare the current HEAD to v2.5
+$ git branch stable v2.5 # start a new branch named "stable" based
+                         # at v2.5
+$ git reset --hard HEAD^ # reset your current branch and working
+                         # directory to its state at HEAD^</code></pre>
+</div></div>
+<div class="paragraph"><p>Be careful with that last command: in addition to losing any changes
+in the working directory, it will also remove all later commits from
+this branch.  If this branch is the only branch containing those
+commits, they will be lost.  Also, don&#8217;t use <em>git reset</em> on a
+publicly-visible branch that other developers pull from, as it will
+force needless merges on other developers to clean up the history.
+If you need to undo changes that you have pushed, use <em>git revert</em>
+instead.</p></div>
+<div class="paragraph"><p>The <em>git grep</em> command can search for strings in any version of your
+project, so</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git grep "hello" v2.5</code></pre>
+</div></div>
+<div class="paragraph"><p>searches for all occurrences of "hello" in v2.5.</p></div>
+<div class="paragraph"><p>If you leave out the commit name, <em>git grep</em> will search any of the
+files it manages in your current directory.  So</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git grep "hello"</code></pre>
+</div></div>
+<div class="paragraph"><p>is a quick way to search just the files that are tracked by Git.</p></div>
+<div class="paragraph"><p>Many Git commands also take sets of commits, which can be specified
+in a number of ways.  Here are some examples with <em>git log</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log v2.5..v2.6            # commits between v2.5 and v2.6
+$ git log v2.5..                # commits since v2.5
+$ git log --since="2 weeks ago" # commits from the last 2 weeks
+$ git log v2.5.. Makefile       # commits since v2.5 which modify
+                                # Makefile</code></pre>
+</div></div>
+<div class="paragraph"><p>You can also give <em>git log</em> a "range" of commits where the first is not
+necessarily an ancestor of the second; for example, if the tips of
+the branches "stable" and "master" diverged from a common
+commit some time ago, then</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log stable..master</code></pre>
+</div></div>
+<div class="paragraph"><p>will list commits made in the master branch but not in the
+stable branch, while</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log master..stable</code></pre>
+</div></div>
+<div class="paragraph"><p>will show the list of commits made on the stable branch but not
+the master branch.</p></div>
+<div class="paragraph"><p>The <em>git log</em> command has a weakness: it must present commits in a
+list.  When the history has lines of development that diverged and
+then merged back together, the order in which <em>git log</em> presents
+those commits is meaningless.</p></div>
+<div class="paragraph"><p>Most projects with multiple contributors (such as the Linux kernel,
+or Git itself) have frequent merges, and <em>gitk</em> does a better job of
+visualizing their history.  For example,</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ gitk --since="2 weeks ago" drivers/</code></pre>
+</div></div>
+<div class="paragraph"><p>allows you to browse any commits from the last 2 weeks of commits
+that modified files under the "drivers" directory.  (Note: you can
+adjust gitk&#8217;s fonts by holding down the control key while pressing
+"-" or "+".)</p></div>
+<div class="paragraph"><p>Finally, most commands that take filenames will optionally allow you
+to precede any filename by a commit, to specify a particular version
+of the file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git diff v2.5:Makefile HEAD:Makefile.in</code></pre>
+</div></div>
+<div class="paragraph"><p>You can also use <em>git show</em> to see any such file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git show v2.5:Makefile</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps">Next Steps</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This tutorial should be enough to perform basic distributed revision
+control for your projects.  However, to fully understand the depth
+and power of Git you need to understand two simple ideas on which it
+is based:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The object database is the rather elegant system used to
+    store the history of your project&#8212;files, directories, and
+    commits.
+</p>
+</li>
+<li>
+<p>
+The index file is a cache of the state of a directory tree,
+    used to create commits, check out working directories, and
+    hold the various trees involved in a merge.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Part two of this tutorial explains the object
+database, the index file, and a few other odds and ends that you&#8217;ll
+need to make the most of Git. You can find it at <a href="gittutorial-2.html">gittutorial-2(7)</a>.</p></div>
+<div class="paragraph"><p>If you don&#8217;t want to continue with that right away, a few other
+digressions that may be interesting at this point are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="git-format-patch.html">git-format-patch(1)</a>, <a href="git-am.html">git-am(1)</a>: These convert
+    series of git commits into emailed patches, and vice versa,
+    useful for projects such as the Linux kernel which rely heavily
+    on emailed patches.
+</p>
+</li>
+<li>
+<p>
+<a href="git-bisect.html">git-bisect(1)</a>: When there is a regression in your
+    project, one way to track down the bug is by searching through
+    the history to find the exact commit that&#8217;s to blame.  Git bisect
+    can help you perform a binary search for that commit.  It is
+    smart enough to perform a close-to-optimal search even in the
+    case of complex non-linear history with lots of merged branches.
+</p>
+</li>
+<li>
+<p>
+<a href="gitworkflows.html">gitworkflows(7)</a>: Gives an overview of recommended
+    workflows.
+</p>
+</li>
+<li>
+<p>
+<a href="giteveryday.html">giteveryday(7)</a>: Everyday Git with 20 Commands Or So.
+</p>
+</li>
+<li>
+<p>
+<a href="gitcvs-migration.html">gitcvs-migration(7)</a>: Git for CVS users.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="gittutorial-2.html">gittutorial-2(7)</a>,
+<a href="gitcvs-migration.html">gitcvs-migration(7)</a>,
+<a href="gitcore-tutorial.html">gitcore-tutorial(7)</a>,
+<a href="gitglossary.html">gitglossary(7)</a>,
+<a href="git-help.html">git-help(1)</a>,
+<a href="gitworkflows.html">gitworkflows(7)</a>,
+<a href="giteveryday.html">giteveryday(7)</a>,
+<a href="user-manual.html">The Git User&#8217;s Manual</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-gc(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-gc(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-gc -
+   Cleanup unnecessary files and optimize the local repository
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git gc</em> [--aggressive] [--auto] [--quiet] [--prune=&lt;date&gt; | --no-prune] [--force] [--keep-largest-pack]</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Runs a number of housekeeping tasks within the current repository,
+such as compressing file revisions (to reduce disk space and increase
+performance), removing unreachable objects which may have been
+created from prior invocations of <em>git add</em>, packing refs, pruning
+reflog, rerere metadata or stale working trees. May also update ancillary
+indexes such as the commit-graph.</p></div>
+<div class="paragraph"><p>When common porcelain operations that create objects are run, they
+will check whether the repository has grown substantially since the
+last maintenance, and if so run <code>git gc</code> automatically. See <code>gc.auto</code>
+below for how to disable this behavior.</p></div>
+<div class="paragraph"><p>Running <code>git gc</code> manually should only be needed when adding objects to
+a repository without regularly running such porcelain commands, to do
+a one-off repository optimization, or e.g. to clean up a suboptimal
+mass-import. See the "PACKFILE OPTIMIZATION" section in
+<a href="git-fast-import.html">git-fast-import(1)</a> for more details on the import case.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--aggressive
+</dt>
+<dd>
+<p>
+        Usually <em>git gc</em> runs very quickly while providing good disk
+        space utilization and performance.  This option will cause
+        <em>git gc</em> to more aggressively optimize the repository at the expense
+        of taking much more time.  The effects of this optimization are
+        mostly persistent. See the "AGGRESSIVE" section below for details.
+</p>
+</dd>
+<dt class="hdlist1">
+--auto
+</dt>
+<dd>
+<p>
+        With this option, <em>git gc</em> checks whether any housekeeping is
+        required; if not, it exits without performing any work.
+</p>
+<div class="paragraph"><p>See the <code>gc.auto</code> option in the "CONFIGURATION" section below for how
+this heuristic works.</p></div>
+<div class="paragraph"><p>Once housekeeping is triggered by exceeding the limits of
+configuration options such as <code>gc.auto</code> and <code>gc.autoPackLimit</code>, all
+other housekeeping tasks (e.g. rerere, working trees, reflog&#8230;) will
+be performed as well.</p></div>
+</dd>
+<dt class="hdlist1">
+--prune=&lt;date&gt;
+</dt>
+<dd>
+<p>
+        Prune loose objects older than date (default is 2 weeks ago,
+        overridable by the config variable <code>gc.pruneExpire</code>).
+        --prune=now prunes loose objects regardless of their age and
+        increases the risk of corruption if another process is writing to
+        the repository concurrently; see "NOTES" below. --prune is on by
+        default.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-prune
+</dt>
+<dd>
+<p>
+        Do not prune any loose objects.
+</p>
+</dd>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Suppress all progress reports.
+</p>
+</dd>
+<dt class="hdlist1">
+--force
+</dt>
+<dd>
+<p>
+        Force <code>git gc</code> to run even if there may be another <code>git gc</code>
+        instance running on this repository.
+</p>
+</dd>
+<dt class="hdlist1">
+--keep-largest-pack
+</dt>
+<dd>
+<p>
+        All packs except the largest pack and those marked with a
+        <code>.keep</code> files are consolidated into a single pack. When this
+        option is used, <code>gc.bigPackThreshold</code> is ignored.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_aggressive">AGGRESSIVE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When the <code>--aggressive</code> option is supplied, <a href="git-repack.html">git-repack(1)</a> will
+be invoked with the <code>-f</code> flag, which in turn will pass
+<code>--no-reuse-delta</code> to <a href="git-pack-objects.html">git-pack-objects(1)</a>. This will throw
+away any existing deltas and re-compute them, at the expense of
+spending much more time on the repacking.</p></div>
+<div class="paragraph"><p>The effects of this are mostly persistent, e.g. when packs and loose
+objects are coalesced into one another pack the existing deltas in
+that pack might get re-used, but there are also various cases where we
+might pick a sub-optimal delta from a newer pack instead.</p></div>
+<div class="paragraph"><p>Furthermore, supplying <code>--aggressive</code> will tweak the <code>--depth</code> and
+<code>--window</code> options passed to <a href="git-repack.html">git-repack(1)</a>. See the
+<code>gc.aggressiveDepth</code> and <code>gc.aggressiveWindow</code> settings below. By
+using a larger window size we&#8217;re more likely to find more optimal
+deltas.</p></div>
+<div class="paragraph"><p>It&#8217;s probably not worth it to use this option on a given repository
+without running tailored performance benchmarks on it. It takes a lot
+more time, and the resulting space/delta optimization may or may not
+be worth it. Not using this at all is the right trade-off for most
+users and their repositories.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The below documentation is the same as what&#8217;s found in
+<a href="git-config.html">git-config(1)</a>:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+gc.aggressiveDepth
+</dt>
+<dd>
+<p>
+        The depth parameter used in the delta compression
+        algorithm used by <em>git gc --aggressive</em>.  This defaults
+        to 50, which is the default for the <code>--depth</code> option when
+        <code>--aggressive</code> isn&#8217;t in use.
+</p>
+<div class="paragraph"><p>See the documentation for the <code>--depth</code> option in
+<a href="git-repack.html">git-repack(1)</a> for more details.</p></div>
+</dd>
+<dt class="hdlist1">
+gc.aggressiveWindow
+</dt>
+<dd>
+<p>
+        The window size parameter used in the delta compression
+        algorithm used by <em>git gc --aggressive</em>.  This defaults
+        to 250, which is a much more aggressive window size than
+        the default <code>--window</code> of 10.
+</p>
+<div class="paragraph"><p>See the documentation for the <code>--window</code> option in
+<a href="git-repack.html">git-repack(1)</a> for more details.</p></div>
+</dd>
+<dt class="hdlist1">
+gc.auto
+</dt>
+<dd>
+<p>
+        When there are approximately more than this many loose
+        objects in the repository, <code>git gc --auto</code> will pack them.
+        Some Porcelain commands use this command to perform a
+        light-weight garbage collection from time to time.  The
+        default value is 6700.
+</p>
+<div class="paragraph"><p>Setting this to 0 disables not only automatic packing based on the
+number of loose objects, but any other heuristic <code>git gc --auto</code> will
+otherwise use to determine if there&#8217;s work to do, such as
+<code>gc.autoPackLimit</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+gc.autoPackLimit
+</dt>
+<dd>
+<p>
+        When there are more than this many packs that are not
+        marked with <code>*.keep</code> file in the repository, <code>git gc
+        --auto</code> consolidates them into one larger pack.  The
+        default value is 50.  Setting this to 0 disables it.
+        Setting <code>gc.auto</code> to 0 will also disable this.
+</p>
+<div class="paragraph"><p>See the <code>gc.bigPackThreshold</code> configuration variable below. When in
+use, it&#8217;ll affect how the auto pack limit works.</p></div>
+</dd>
+<dt class="hdlist1">
+gc.autoDetach
+</dt>
+<dd>
+<p>
+        Make <code>git gc --auto</code> return immediately and run in background
+        if the system supports it. Default is true.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.bigPackThreshold
+</dt>
+<dd>
+<p>
+        If non-zero, all packs larger than this limit are kept when
+        <code>git gc</code> is run. This is very similar to <code>--keep-base-pack</code>
+        except that all packs that meet the threshold are kept, not
+        just the base pack. Defaults to zero. Common unit suffixes of
+        <em>k</em>, <em>m</em>, or <em>g</em> are supported.
+</p>
+<div class="paragraph"><p>Note that if the number of kept packs is more than gc.autoPackLimit,
+this configuration variable is ignored, all packs except the base pack
+will be repacked. After this the number of packs should go below
+gc.autoPackLimit and gc.bigPackThreshold should be respected again.</p></div>
+<div class="paragraph"><p>If the amount of memory estimated for <code>git repack</code> to run smoothly is
+not available and <code>gc.bigPackThreshold</code> is not set, the largest pack
+will also be excluded (this is the equivalent of running <code>git gc</code> with
+<code>--keep-base-pack</code>).</p></div>
+</dd>
+<dt class="hdlist1">
+gc.writeCommitGraph
+</dt>
+<dd>
+<p>
+        If true, then gc will rewrite the commit-graph file when
+        <a href="git-gc.html">git-gc(1)</a> is run. When using <code>git gc --auto</code>
+        the commit-graph will be updated if housekeeping is
+        required. Default is false. See <a href="git-commit-graph.html">git-commit-graph(1)</a>
+        for details.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.logExpiry
+</dt>
+<dd>
+<p>
+        If the file gc.log exists, then <code>git gc --auto</code> will print
+        its content and exit with status zero instead of running
+        unless that file is more than <em>gc.logExpiry</em> old.  Default is
+        "1.day".  See <code>gc.pruneExpire</code> for more ways to specify its
+        value.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.packRefs
+</dt>
+<dd>
+<p>
+        Running <code>git pack-refs</code> in a repository renders it
+        unclonable by Git versions prior to 1.5.1.2 over dumb
+        transports such as HTTP.  This variable determines whether
+        <em>git gc</em> runs <code>git pack-refs</code>. This can be set to <code>notbare</code>
+        to enable it within all non-bare repos or it can be set to a
+        boolean value.  The default is <code>true</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.pruneExpire
+</dt>
+<dd>
+<p>
+        When <em>git gc</em> is run, it will call <em>prune --expire 2.weeks.ago</em>.
+        Override the grace period with this config variable.  The value
+        "now" may be used to disable this grace period and always prune
+        unreachable objects immediately, or "never" may be used to
+        suppress pruning.  This feature helps prevent corruption when
+        <em>git gc</em> runs concurrently with another process writing to the
+        repository; see the "NOTES" section of <a href="git-gc.html">git-gc(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.worktreePruneExpire
+</dt>
+<dd>
+<p>
+        When <em>git gc</em> is run, it calls
+        <em>git worktree prune --expire 3.months.ago</em>.
+        This config variable can be used to set a different grace
+        period. The value "now" may be used to disable the grace
+        period and prune <code>$GIT_DIR/worktrees</code> immediately, or "never"
+        may be used to suppress pruning.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.reflogExpire
+</dt>
+<dt class="hdlist1">
+gc.&lt;pattern&gt;.reflogExpire
+</dt>
+<dd>
+<p>
+        <em>git reflog expire</em> removes reflog entries older than
+        this time; defaults to 90 days. The value "now" expires all
+        entries immediately, and "never" suppresses expiration
+        altogether. With "&lt;pattern&gt;" (e.g.
+        "refs/stash") in the middle the setting applies only to
+        the refs that match the &lt;pattern&gt;.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.reflogExpireUnreachable
+</dt>
+<dt class="hdlist1">
+gc.&lt;pattern&gt;.reflogExpireUnreachable
+</dt>
+<dd>
+<p>
+        <em>git reflog expire</em> removes reflog entries older than
+        this time and are not reachable from the current tip;
+        defaults to 30 days. The value "now" expires all entries
+        immediately, and "never" suppresses expiration altogether.
+        With "&lt;pattern&gt;" (e.g. "refs/stash")
+        in the middle, the setting applies only to the refs that
+        match the &lt;pattern&gt;.
+</p>
+<div class="paragraph"><p>These types of entries are generally created as a result of using <code>git
+commit --amend</code> or <code>git rebase</code> and are the commits prior to the amend
+or rebase occurring.  Since these changes are not part of the current
+project most users will want to expire them sooner, which is why the
+default is more aggressive than <code>gc.reflogExpire</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+gc.rerereResolved
+</dt>
+<dd>
+<p>
+        Records of conflicted merge you resolved earlier are
+        kept for this many days when <em>git rerere gc</em> is run.
+        You can also use more human-readable "1.month.ago", etc.
+        The default is 60 days.  See <a href="git-rerere.html">git-rerere(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.rerereUnresolved
+</dt>
+<dd>
+<p>
+        Records of conflicted merge you have not resolved are
+        kept for this many days when <em>git rerere gc</em> is run.
+        You can also use more human-readable "1.month.ago", etc.
+        The default is 15 days.  See <a href="git-rerere.html">git-rerere(1)</a>.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_notes">NOTES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><em>git gc</em> tries very hard not to delete objects that are referenced
+anywhere in your repository. In particular, it will keep not only
+objects referenced by your current set of branches and tags, but also
+objects referenced by the index, remote-tracking branches, notes saved
+by <em>git notes</em> under refs/notes/, reflogs (which may reference commits
+in branches that were later amended or rewound), and anything else in
+the refs/* namespace.  If you are expecting some objects to be deleted
+and they aren&#8217;t, check all of those locations and decide whether it
+makes sense in your case to remove those references.</p></div>
+<div class="paragraph"><p>On the other hand, when <em>git gc</em> runs concurrently with another process,
+there is a risk of it deleting an object that the other process is using
+but hasn&#8217;t created a reference to. This may just cause the other process
+to fail or may corrupt the repository if the other process later adds a
+reference to the deleted object. Git has two features that significantly
+mitigate this problem:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Any object with modification time newer than the <code>--prune</code> date is kept,
+  along with everything reachable from it.
+</p>
+</li>
+<li>
+<p>
+Most operations that add an object to the database update the
+  modification time of the object if it is already present so that #1
+  applies.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>However, these features fall short of a complete solution, so users who
+run commands concurrently have to live with some risk of corruption (which
+seems to be low in practice).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hooks">HOOKS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <em>git gc --auto</em> command will run the <em>pre-auto-gc</em> hook.  See
+<a href="githooks.html">githooks(5)</a> for more information.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-prune.html">git-prune(1)</a>
+<a href="git-reflog.html">git-reflog(1)</a>
+<a href="git-repack.html">git-repack(1)</a>
+<a href="git-rerere.html">git-rerere(1)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-07 21:50:10 PDT
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1378 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>gitrepository-layout(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitrepository-layout(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitrepository-layout -
+   Git Repository Layout
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>$GIT_DIR/*</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>A Git repository comes in two different flavours:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+a <code>.git</code> directory at the root of the working tree;
+</p>
+</li>
+<li>
+<p>
+a <code>&lt;project&gt;.git</code> directory that is a <em>bare</em> repository
+   (i.e. without its own working tree), that is typically used for
+   exchanging histories with others by pushing into it and fetching
+   from it.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p><strong>Note</strong>: Also you can have a plain text file <code>.git</code> at the root of
+your working tree, containing <code>gitdir: &lt;path&gt;</code> to point at the real
+directory that has the repository.  This mechanism is often used for
+a working tree of a submodule checkout, to allow you in the
+containing superproject to <code>git checkout</code> a branch that does not
+have the submodule.  The <code>checkout</code> has to remove the entire
+submodule working tree, without losing the submodule repository.</p></div>
+<div class="paragraph"><p>These things may exist in a Git repository.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+objects
+</dt>
+<dd>
+<p>
+        Object store associated with this repository.  Usually
+        an object store is self sufficient (i.e. all the objects
+        that are referred to by an object found in it are also
+        found in it), but there are a few ways to violate it.
+</p>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+You could have an incomplete but locally usable repository
+by creating a shallow clone.  See <a href="git-clone.html">git-clone(1)</a>.
+</p>
+</li>
+<li>
+<p>
+You could be using the <code>objects/info/alternates</code> or
+<code>$GIT_ALTERNATE_OBJECT_DIRECTORIES</code> mechanisms to <em>borrow</em>
+objects from other object stores.  A repository with this kind
+of incomplete object store is not suitable to be published for
+use with dumb transports but otherwise is OK as long as
+<code>objects/info/alternates</code> points at the object stores it
+borrows from.
+</p>
+<div class="paragraph"><p>This directory is ignored if $GIT_COMMON_DIR is set and
+"$GIT_COMMON_DIR/objects" will be used instead.</p></div>
+</li>
+</ol></div>
+</dd>
+<dt class="hdlist1">
+objects/[0-9a-f][0-9a-f]
+</dt>
+<dd>
+<p>
+        A newly created object is stored in its own file.
+        The objects are splayed over 256 subdirectories using
+        the first two characters of the sha1 object name to
+        keep the number of directory entries in <code>objects</code>
+        itself to a manageable number. Objects found
+        here are often called <em>unpacked</em> (or <em>loose</em>) objects.
+</p>
+</dd>
+<dt class="hdlist1">
+objects/pack
+</dt>
+<dd>
+<p>
+        Packs (files that store many object in compressed form,
+        along with index files to allow them to be randomly
+        accessed) are found in this directory.
+</p>
+</dd>
+<dt class="hdlist1">
+objects/info
+</dt>
+<dd>
+<p>
+        Additional information about the object store is
+        recorded in this directory.
+</p>
+</dd>
+<dt class="hdlist1">
+objects/info/packs
+</dt>
+<dd>
+<p>
+        This file is to help dumb transports discover what packs
+        are available in this object store.  Whenever a pack is
+        added or removed, <code>git update-server-info</code> should be run
+        to keep this file up to date if the repository is
+        published for dumb transports.  <em>git repack</em> does this
+        by default.
+</p>
+</dd>
+<dt class="hdlist1">
+objects/info/alternates
+</dt>
+<dd>
+<p>
+        This file records paths to alternate object stores that
+        this object store borrows objects from, one pathname per
+        line. Note that not only native Git tools use it locally,
+        but the HTTP fetcher also tries to use it remotely; this
+        will usually work if you have relative paths (relative
+        to the object database, not to the repository!) in your
+        alternates file, but it will not work if you use absolute
+        paths unless the absolute path in filesystem and web URL
+        is the same. See also <code>objects/info/http-alternates</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+objects/info/http-alternates
+</dt>
+<dd>
+<p>
+        This file records URLs to alternate object stores that
+        this object store borrows objects from, to be used when
+        the repository is fetched over HTTP.
+</p>
+</dd>
+<dt class="hdlist1">
+refs
+</dt>
+<dd>
+<p>
+        References are stored in subdirectories of this
+        directory.  The <em>git prune</em> command knows to preserve
+        objects reachable from refs found in this directory and
+        its subdirectories.
+        This directory is ignored (except refs/bisect and
+        refs/worktree) if $GIT_COMMON_DIR is set and
+        "$GIT_COMMON_DIR/refs" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+refs/heads/<code>name</code>
+</dt>
+<dd>
+<p>
+        records tip-of-the-tree commit objects of branch <code>name</code>
+</p>
+</dd>
+<dt class="hdlist1">
+refs/tags/<code>name</code>
+</dt>
+<dd>
+<p>
+        records any object name (not necessarily a commit
+        object, or a tag object that points at a commit object).
+</p>
+</dd>
+<dt class="hdlist1">
+refs/remotes/<code>name</code>
+</dt>
+<dd>
+<p>
+        records tip-of-the-tree commit objects of branches copied
+        from a remote repository.
+</p>
+</dd>
+<dt class="hdlist1">
+refs/replace/<code>&lt;obj-sha1&gt;</code>
+</dt>
+<dd>
+<p>
+        records the SHA-1 of the object that replaces <code>&lt;obj-sha1&gt;</code>.
+        This is similar to info/grafts and is internally used and
+        maintained by <a href="git-replace.html">git-replace(1)</a>. Such refs can be exchanged
+        between repositories while grafts are not.
+</p>
+</dd>
+<dt class="hdlist1">
+packed-refs
+</dt>
+<dd>
+<p>
+        records the same information as refs/heads/, refs/tags/,
+        and friends record in a more efficient way.  See
+        <a href="git-pack-refs.html">git-pack-refs(1)</a>. This file is ignored if $GIT_COMMON_DIR
+        is set and "$GIT_COMMON_DIR/packed-refs" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+HEAD
+</dt>
+<dd>
+<p>
+        A symref (see glossary) to the <code>refs/heads/</code> namespace
+        describing the currently active branch.  It does not mean
+        much if the repository is not associated with any working tree
+        (i.e. a <em>bare</em> repository), but a valid Git repository
+        <strong>must</strong> have the HEAD file; some porcelains may use it to
+        guess the designated "default" branch of the repository
+        (usually <em>master</em>).  It is legal if the named branch
+        <em>name</em> does not (yet) exist.  In some legacy setups, it is
+        a symbolic link instead of a symref that points at the current
+        branch.
+</p>
+<div class="paragraph"><p>HEAD can also record a specific commit directly, instead of
+being a symref to point at the current branch.  Such a state
+is often called <em>detached HEAD.</em>  See <a href="git-checkout.html">git-checkout(1)</a>
+for details.</p></div>
+</dd>
+<dt class="hdlist1">
+config
+</dt>
+<dd>
+<p>
+        Repository specific configuration file. This file is ignored
+        if $GIT_COMMON_DIR is set and "$GIT_COMMON_DIR/config" will be
+        used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+config.worktree
+</dt>
+<dd>
+<p>
+        Working directory specific configuration file for the main
+        working directory in multiple working directory setup (see
+        <a href="git-worktree.html">git-worktree(1)</a>).
+</p>
+</dd>
+<dt class="hdlist1">
+branches
+</dt>
+<dd>
+<p>
+        A slightly deprecated way to store shorthands to be used
+        to specify a URL to <em>git fetch</em>, <em>git pull</em> and <em>git push</em>.
+        A file can be stored as <code>branches/&lt;name&gt;</code> and then
+        <em>name</em> can be given to these commands in place of
+        <em>repository</em> argument.  See the REMOTES section in
+        <a href="git-fetch.html">git-fetch(1)</a> for details.  This mechanism is legacy
+        and not likely to be found in modern repositories. This
+        directory is ignored if $GIT_COMMON_DIR is set and
+        "$GIT_COMMON_DIR/branches" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+hooks
+</dt>
+<dd>
+<p>
+        Hooks are customization scripts used by various Git
+        commands.  A handful of sample hooks are installed when
+        <em>git init</em> is run, but all of them are disabled by
+        default.  To enable, the <code>.sample</code> suffix has to be
+        removed from the filename by renaming.
+        Read <a href="githooks.html">githooks(5)</a> for more details about
+        each hook. This directory is ignored if $GIT_COMMON_DIR is set
+        and "$GIT_COMMON_DIR/hooks" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+common
+</dt>
+<dd>
+<p>
+        When multiple working trees are used, most of files in
+        $GIT_DIR are per-worktree with a few known exceptions. All
+        files under <em>common</em> however will be shared between all
+        working trees.
+</p>
+</dd>
+<dt class="hdlist1">
+index
+</dt>
+<dd>
+<p>
+        The current index file for the repository.  It is
+        usually not found in a bare repository.
+</p>
+</dd>
+<dt class="hdlist1">
+sharedindex.&lt;SHA-1&gt;
+</dt>
+<dd>
+<p>
+        The shared index part, to be referenced by $GIT_DIR/index and
+        other temporary index files. Only valid in split index mode.
+</p>
+</dd>
+<dt class="hdlist1">
+info
+</dt>
+<dd>
+<p>
+        Additional information about the repository is recorded
+        in this directory. This directory is ignored if $GIT_COMMON_DIR
+        is set and "$GIT_COMMON_DIR/info" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+info/refs
+</dt>
+<dd>
+<p>
+        This file helps dumb transports discover what refs are
+        available in this repository.  If the repository is
+        published for dumb transports, this file should be
+        regenerated by <em>git update-server-info</em> every time a tag
+        or branch is created or modified.  This is normally done
+        from the <code>hooks/update</code> hook, which is run by the
+        <em>git-receive-pack</em> command when you <em>git push</em> into the
+        repository.
+</p>
+</dd>
+<dt class="hdlist1">
+info/grafts
+</dt>
+<dd>
+<p>
+        This file records fake commit ancestry information, to
+        pretend the set of parents a commit has is different
+        from how the commit was actually created.  One record
+        per line describes a commit and its fake parents by
+        listing their 40-byte hexadecimal object names separated
+        by a space and terminated by a newline.
+</p>
+<div class="paragraph"><p>Note that the grafts mechanism is outdated and can lead to problems
+transferring objects between repositories; see <a href="git-replace.html">git-replace(1)</a>
+for a more flexible and robust system to do the same thing.</p></div>
+</dd>
+<dt class="hdlist1">
+info/exclude
+</dt>
+<dd>
+<p>
+        This file, by convention among Porcelains, stores the
+        exclude pattern list. <code>.gitignore</code> is the per-directory
+        ignore file.  <em>git status</em>, <em>git add</em>, <em>git rm</em> and
+        <em>git clean</em> look at it but the core Git commands do not look
+        at it.  See also: <a href="gitignore.html">gitignore(5)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+info/attributes
+</dt>
+<dd>
+<p>
+        Defines which attributes to assign to a path, similar to per-directory
+        <code>.gitattributes</code> files.   See also: <a href="gitattributes.html">gitattributes(5)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+info/sparse-checkout
+</dt>
+<dd>
+<p>
+        This file stores sparse checkout patterns.
+        See also: <a href="git-read-tree.html">git-read-tree(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+remotes
+</dt>
+<dd>
+<p>
+        Stores shorthands for URL and default refnames for use
+        when interacting with remote repositories via <em>git fetch</em>,
+        <em>git pull</em> and <em>git push</em> commands.  See the REMOTES section
+        in <a href="git-fetch.html">git-fetch(1)</a> for details.  This mechanism is legacy
+        and not likely to be found in modern repositories. This
+        directory is ignored if $GIT_COMMON_DIR is set and
+        "$GIT_COMMON_DIR/remotes" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+logs
+</dt>
+<dd>
+<p>
+        Records of changes made to refs are stored in this directory.
+        See <a href="git-update-ref.html">git-update-ref(1)</a> for more information. This
+        directory is ignored if $GIT_COMMON_DIR is set and
+        "$GIT_COMMON_DIR/logs" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+logs/refs/heads/<code>name</code>
+</dt>
+<dd>
+<p>
+        Records all changes made to the branch tip named <code>name</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+logs/refs/tags/<code>name</code>
+</dt>
+<dd>
+<p>
+        Records all changes made to the tag named <code>name</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+shallow
+</dt>
+<dd>
+<p>
+        This is similar to <code>info/grafts</code> but is internally used
+        and maintained by shallow clone mechanism.  See <code>--depth</code>
+        option to <a href="git-clone.html">git-clone(1)</a> and <a href="git-fetch.html">git-fetch(1)</a>. This
+        file is ignored if $GIT_COMMON_DIR is set and
+        "$GIT_COMMON_DIR/shallow" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+commondir
+</dt>
+<dd>
+<p>
+        If this file exists, $GIT_COMMON_DIR (see <a href="git.html">git(1)</a>) will
+        be set to the path specified in this file if it is not
+        explicitly set. If the specified path is relative, it is
+        relative to $GIT_DIR. The repository with commondir is
+        incomplete without the repository pointed by "commondir".
+</p>
+</dd>
+<dt class="hdlist1">
+modules
+</dt>
+<dd>
+<p>
+        Contains the git-repositories of the submodules.
+</p>
+</dd>
+<dt class="hdlist1">
+worktrees
+</dt>
+<dd>
+<p>
+        Contains administrative data for linked
+        working trees. Each subdirectory contains the working tree-related
+        part of a linked working tree. This directory is ignored if
+        $GIT_COMMON_DIR is set, in which case
+        "$GIT_COMMON_DIR/worktrees" will be used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+worktrees/&lt;id&gt;/gitdir
+</dt>
+<dd>
+<p>
+        A text file containing the absolute path back to the .git file
+        that points to here. This is used to check if the linked
+        repository has been manually removed and there is no need to
+        keep this directory any more. The mtime of this file should be
+        updated every time the linked repository is accessed.
+</p>
+</dd>
+<dt class="hdlist1">
+worktrees/&lt;id&gt;/locked
+</dt>
+<dd>
+<p>
+        If this file exists, the linked working tree may be on a
+        portable device and not available. The presence of this file
+        prevents <code>worktrees/&lt;id&gt;</code> from being pruned either automatically
+        or manually by <code>git worktree prune</code>. The file may contain a string
+        explaining why the repository is locked.
+</p>
+</dd>
+<dt class="hdlist1">
+worktrees/&lt;id&gt;/config.worktree
+</dt>
+<dd>
+<p>
+        Working directory specific configuration file.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git_repository_format_versions">Git Repository Format Versions</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Every git repository is marked with a numeric version in the
+<code>core.repositoryformatversion</code> key of its <code>config</code> file. This version
+specifies the rules for operating on the on-disk repository data. An
+implementation of git which does not understand a particular version
+advertised by an on-disk repository MUST NOT operate on that repository;
+doing so risks not only producing wrong results, but actually losing
+data.</p></div>
+<div class="paragraph"><p>Because of this rule, version bumps should be kept to an absolute
+minimum. Instead, we generally prefer these strategies:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+bumping format version numbers of individual data files (e.g.,
+    index, packfiles, etc). This restricts the incompatibilities only to
+    those files.
+</p>
+</li>
+<li>
+<p>
+introducing new data that gracefully degrades when used by older
+    clients (e.g., pack bitmap files are ignored by older clients, which
+    simply do not take advantage of the optimization they provide).
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>A whole-repository format version bump should only be part of a change
+that cannot be independently versioned. For instance, if one were to
+change the reachability rules for objects, or the rules for locking
+refs, that would require a bump of the repository format version.</p></div>
+<div class="paragraph"><p>Note that this applies only to accessing the repository&#8217;s disk contents
+directly. An older client which understands only format <code>0</code> may still
+connect via <code>git://</code> to a repository using format <code>1</code>, as long as the
+server process understands format <code>1</code>.</p></div>
+<div class="paragraph"><p>The preferred strategy for rolling out a version bump (whether whole
+repository or for a single file) is to teach git to read the new format,
+and allow writing the new format with a config switch or command line
+option (for experimentation or for those who do not care about backwards
+compatibility with older gits). Then after a long period to allow the
+reading capability to become common, we may switch to writing the new
+format by default.</p></div>
+<div class="paragraph"><p>The currently defined format versions are:</p></div>
+<div class="sect2">
+<h3 id="_version_code_0_code">Version <code>0</code></h3>
+<div class="paragraph"><p>This is the format defined by the initial version of git, including but
+not limited to the format of the repository directory, the repository
+configuration file, and the object and ref storage. Specifying the
+complete behavior of git is beyond the scope of this document.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_version_code_1_code">Version <code>1</code></h3>
+<div class="paragraph"><p>This format is identical to version <code>0</code>, with the following exceptions:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+When reading the <code>core.repositoryformatversion</code> variable, a git
+     implementation which supports version 1 MUST also read any
+     configuration keys found in the <code>extensions</code> section of the
+     configuration file.
+</p>
+</li>
+<li>
+<p>
+If a version-1 repository specifies any <code>extensions.*</code> keys that
+     the running git has not implemented, the operation MUST NOT
+     proceed. Similarly, if the value of any known key is not understood
+     by the implementation, the operation MUST NOT proceed.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>Note that if no extensions are specified in the config file, then
+<code>core.repositoryformatversion</code> SHOULD be set to <code>0</code> (setting it to <code>1</code>
+provides no benefit, and makes the repository incompatible with older
+implementations of git).</p></div>
+<div class="paragraph"><p>This document will serve as the master list for extensions. Any
+implementation wishing to define a new extension should make a note of
+it here, in order to claim the name.</p></div>
+<div class="paragraph"><p>The defined extensions are:</p></div>
+<div class="sect3">
+<h4 id="_code_noop_code"><code>noop</code></h4>
+<div class="paragraph"><p>This extension does not change git&#8217;s behavior at all. It is useful only
+for testing format-1 compatibility.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_code_preciousobjects_code"><code>preciousObjects</code></h4>
+<div class="paragraph"><p>When the config key <code>extensions.preciousObjects</code> is set to <code>true</code>,
+objects in the repository MUST NOT be deleted (e.g., by <code>git-prune</code> or
+<code>git repack -d</code>).</p></div>
+</div>
+<div class="sect3">
+<h4 id="_code_partialclone_code"><code>partialclone</code></h4>
+<div class="paragraph"><p>When the config key <code>extensions.partialclone</code> is set, it indicates
+that the repo was created with a partial clone (or later performed
+a partial fetch) and that the remote may have omitted sending
+certain unwanted objects.  Such a remote is called a "promisor remote"
+and it promises that all such omitted objects can be fetched from it
+in the future.</p></div>
+<div class="paragraph"><p>The value of this key is the name of the promisor remote.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_code_worktreeconfig_code"><code>worktreeConfig</code></h4>
+<div class="paragraph"><p>If set, by default "git config" reads from both "config" and
+"config.worktree" file from GIT_DIR in that order. In
+multiple working directory mode, "config" file is shared while
+"config.worktree" is per-working directory (i.e., it&#8217;s in
+GIT_COMMON_DIR/worktrees/&lt;id&gt;/config.worktree)</p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-init.html">git-init(1)</a>,
+<a href="git-clone.html">git-clone(1)</a>,
+<a href="git-fetch.html">git-fetch(1)</a>,
+<a href="git-pack-refs.html">git-pack-refs(1)</a>,
+<a href="git-gc.html">git-gc(1)</a>,
+<a href="git-checkout.html">git-checkout(1)</a>,
+<a href="gitglossary.html">gitglossary(7)</a>,
+<a href="user-manual.html">The Git User&#8217;s Manual</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1962 @@
+'\" t
+.\"     Title: git-filter-repo
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 09/07/2019
+.\"    Manual: Git Manual
+.\"    Source: Git 2.23.0.40.ge77e156ab1
+.\"  Language: English
+.\"
+.TH "GIT\-FILTER\-REPO" "1" "09/07/2019" "Git 2\&.23\&.0\&.40\&.ge77e156" "Git Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+git-filter-repo \- Rewrite repository history
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIgit filter\-repo\fR \-\-analyze
+\fIgit filter\-repo\fR [<path_filtering_options>] [<content_filtering_options>]
+        [<ref_renaming_options>] [<commit_message_filtering_options>]
+        [<name_or_email_filtering_options>] [<parent_rewriting_options>]
+        [<generic_callback_options>] [<miscellaneous_options>]
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+Rapidly rewrite entire repository history using user\-specified filters\&. This is a destructive operation which should not be used lightly; it writes new commits, trees, tags, and blobs corresponding to (but filtered from) the original objects in the repository, then deletes the original history and leaves only the new\&. See the section called \(lqDISCUSSION\(rq for more details on the ramifications of using this tool\&. Several different types of history rewrites are possible; examples include (but are not limited to):
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+stripping large files (or large directories or large extensions)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+stripping unwanted files by path
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+extracting wanted paths and their history (stripping everything else)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+restructuring the file layout (such as moving all files into a subdirectory in preparation for merging with another repo, making a subdirectory become the new toplevel directory, or merging two directories with independent filenames into one directory)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+renaming tags (also often in preparation for merging with another repo)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+replacing or removing sensitive text such as passwords
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+making mailmap rewriting of user names or emails permanent
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+making grafts or replacement refs permanent
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+rewriting commit messages
+.RE
+.sp
+Additionally, several concerns are handled automatically (many of these can be overridden, but they are all on by default):
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+rewriting (possibly abbreviated) hashes in commit messages to refer to the new post\-rewrite commit hashes
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+pruning commits which become empty due to the above filters (also handles edge cases like pruning of merge commits which become degenerate and empty)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+creating replace\-refs (see
+\fBgit-replace\fR(1)) for old commit hashes, which if pushed and fetched will allow users to continue to refer to new commits using (unabbreviated) old commit IDs
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+stripping of original history to avoid mixing old and new history
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+repacking the repository post\-rewrite to shrink the repo for the user
+.RE
+.sp
+Also, it\(cqs worth noting that there is an important safety mechanism:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+abort if run from a repo that is not a fresh clone (to prevent accidental data loss from rewriting local history that doesn\(cqt exist anywhere else)
+.RE
+.sp
+For those who know that there is large unwanted stuff in their history and want help finding it, this command also
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+provides an option to analyze a repository and generate reports that can be useful in determining what to filter (or in determining whether a separate filtering command was successful)\&.
+.RE
+.sp
+See also the section called \(lqVERSATILITY\(rq, the section called \(lqDISCUSSION\(rq, the section called \(lqEXAMPLES\(rq, and the section called \(lqINTERNALS\(rq\&.
+.SH "OPTIONS"
+.SS "Analysis Options"
+.PP
+\-\-analyze
+.RS 4
+Analyze repository history and create a report that may be useful in determining what to filter in a subsequent run (or in determining if a previous filtering command did what you wanted)\&. Will not modify your repo\&.
+.RE
+.SS "Filtering based on paths (see also \-\-filename\-callback)"
+.PP
+\-\-invert\-paths
+.RS 4
+Invert the selection of files from the specified \-\-path\-{match,glob,regex} options below, i\&.e\&. only select files matching none of those options\&.
+.RE
+.PP
+\-\-path\-match <dir_or_file>, \-\-path <dir_or_file>
+.RS 4
+Exact paths (files or directories) to include in filtered history\&. Multiple \-\-path options can be specified to get a union of paths\&.
+.RE
+.PP
+\-\-path\-glob <glob>
+.RS 4
+Glob of paths to include in filtered history\&. Multiple \-\-path\-glob options can be specified to get a union of paths\&.
+.RE
+.PP
+\-\-path\-regex <regex>
+.RS 4
+Regex of paths to include in filtered history\&. Multiple \-\-path\-regex options can be specified to get a union of paths\&.
+.RE
+.PP
+\-\-use\-base\-name
+.RS 4
+Match on file base name instead of full path from the top of the repo\&. Incompatible with \-\-path\-rename\&.
+.RE
+.SS "Renaming based on paths (see also \-\-filename\-callback)"
+.PP
+\-\-path\-rename <old_name:new_name>, \-\-path\-rename\-match <old_name:new_name>
+.RS 4
+Path to rename; if filename or directory matches <old_name> rename to <new_name>\&. Multiple \-\-path\-rename options can be specified\&.
+.RE
+.SS "Path shortcuts"
+.PP
+\-\-paths\-from\-file <filename>
+.RS 4
+Specify several path filtering and renaming directives, one per line\&. Lines with
+\fB==>\fR
+in them specify path renames, and lines can begin with
+\fBliteral:\fR
+(the default),
+\fBglob:\fR, or
+\fBregex:\fR
+to specify different matching styles
+.RE
+.PP
+\-\-subdirectory\-filter <directory>
+.RS 4
+Only look at history that touches the given subdirectory and treat that directory as the project root\&. Equivalent to using
+\fB\-\-path <directory>/ \-\-path\-rename <directory>/:\fR
+.RE
+.PP
+\-\-to\-subdirectory\-filter <directory>
+.RS 4
+Treat the project root as instead being under <directory>\&. Equivalent to using
+\fB\-\-path\-rename :<directory>/\fR
+.RE
+.SS "Content editing filters (see also \-\-blob\-callback)"
+.PP
+\-\-replace\-text <expressions_file>
+.RS 4
+A file with expressions that, if found, will be replaced\&. By default, each expression is treated as literal text, but
+\fBregex:\fR
+and
+\fBglob:\fR
+prefixes are supported\&. You can end the line with
+\fB==>\fR
+and some replacement text to choose a replacement choice other than the default of
+\fB***REMOVED***\fR\&.
+.RE
+.PP
+\-\-strip\-blobs\-bigger\-than <size>
+.RS 4
+Strip blobs (files) bigger than specified size (e\&.g\&.
+\fB5M\fR,
+\fB2G\fR, etc)
+.RE
+.PP
+\-\-strip\-blobs\-with\-ids <blob_id_filename>
+.RS 4
+Read git object ids from each line of the given file, and strip all of them from history
+.RE
+.SS "Renaming of refs (see also \-\-refname\-callback)"
+.PP
+\-\-tag\-rename <old:new>
+.RS 4
+Rename tags starting with <old> to start with <new>\&. For example, \-\-tag\-rename foo:bar will rename tag foo\-1\&.2\&.3 to bar\-1\&.2\&.3; either <old> or <new> can be empty\&.
+.RE
+.SS "Filtering of commit messages (see also \-\-message\-callback)"
+.PP
+\-\-preserve\-commit\-hashes
+.RS 4
+By default, since commits are rewritten and thus gain new hashes, references to old commit hashes in commit messages are replaced with new commit hashes (abbreviated to the same length as the old reference)\&. Use this flag to turn off updating commit hashes in commit messages\&.
+.RE
+.PP
+\-\-preserve\-commit\-encoding
+.RS 4
+Do not reencode commit messages into UTF\-8\&. By default, if the commit object specifies an encoding for the commit message, the message is re\-encoded into UTF\-8\&.
+.RE
+.SS "Filtering of names & emails (see also \-\-name\-callback and \-\-email\-callback)"
+.PP
+\-\-mailmap <filename>
+.RS 4
+Use specified mailmap file (see
+\fBgit-shortlog\fR(1)
+for details on the format) when rewriting author, committer, and tagger names and emails\&. If the specified file is part of git history, historical versions of the file will be ignored; only the current contents are consulted\&.
+.RE
+.PP
+\-\-use\-mailmap
+.RS 4
+Same as:
+\fI\-\-mailmap \&.mailmap\fR
+.RE
+.SS "Parent rewriting"
+.PP
+\-\-replace\-refs {delete\-no\-add, delete\-and\-add, update\-no\-add, update\-or\-add, update\-and\-add}
+.RS 4
+Replace refs (see
+\fBgit-replace\fR(1)) are used to rewrite parents (unless turned off by the usual git mechanism); this flag specifies what do do with those refs afterward\&. Replace refs can either be deleted or updated to point at new commit hashes\&. Also, new replace refs can be added for each commit rewrite\&. With
+\fIupdate\-or\-add\fR, new replace refs are only added for commit rewrites that aren\(cqt used to update an existing replace ref\&. default is
+\fIupdate\-and\-add\fR
+if $GIT_DIR/filter\-repo/already_ran does not exist;
+\fIupdate\-or\-add\fR
+otherwise\&.
+.RE
+.PP
+\-\-prune\-empty {always, auto, never}
+.RS 4
+Whether to prune empty commits\&.
+\fIauto\fR
+(the default) means only prune commits which become empty (not commits which were empty in the original repo, unless their parent was pruned)\&. When the parent of a commit is pruned, the first non\-pruned ancestor becomes the new parent\&.
+.RE
+.PP
+\-\-prune\-degenerate {always, auto, never}
+.RS 4
+Since merge commits are needed for history topology, they are typically exempt from pruning\&. However, they can become degenerate with the pruning of other commits (having fewer than two parents, having one commit serve as both parents, or having one parent as the ancestor of the other\&.) If such merge commits have no file changes, they can be pruned\&. The default (\fIauto\fR) is to only prune empty merge commits which become degenerate (not which started as such)\&.
+.RE
+.SS "Generic callback code snippets"
+.PP
+\-\-filename\-callback <function_body>
+.RS 4
+Python code body for processing filenames; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-message\-callback <function_body>
+.RS 4
+Python code body for processing messages (both commit messages and tag messages); see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-name\-callback <function_body>
+.RS 4
+Python code body for processing names of people; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-email\-callback <function_body>
+.RS 4
+Python code body for processing emails addresses; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-refname\-callback <function_body>
+.RS 4
+Python code body for processing refnames; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-blob\-callback <function_body>
+.RS 4
+Python code body for processing blob objects; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-commit\-callback <function_body>
+.RS 4
+Python code body for processing commit objects; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-tag\-callback <function_body>
+.RS 4
+Python code body for processing tag objects; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.PP
+\-\-reset\-callback <function_body>
+.RS 4
+Python code body for processing reset objects; see
+the section called \(lqCALLBACKS\(rq\&.
+.RE
+.SS "Location to filter from/to"
+.if n \{\
+.sp
+.\}
+.RS 4
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBNote\fR
+.ps -1
+.br
+.sp
+Specifying alternate source or target locations will disable some auxiliary steps such as disconnecting the origin remote, and avoiding mixing new and old history\&.
+.sp .5v
+.RE
+.PP
+\-\-source <source>
+.RS 4
+Git repository to read from
+.RE
+.PP
+\-\-target <target>
+.RS 4
+Git repository to overwrite with filtered history
+.RE
+.SS "Miscellaneous options"
+.PP
+\-\-help, \-h
+.RS 4
+Show a help message and exit\&.
+.RE
+.PP
+\-\-force, \-f
+.RS 4
+Rewrite history even if the current repo does not look like a fresh clone\&.
+.RE
+.PP
+\-\-dry\-run
+.RS 4
+Do not change the repository\&. Run
+\fBgit fast\-export\fR
+and filter its output, and save both the original and the filtered version for comparison\&. This also disables rewriting commit messages due to not knowing new commit IDs and disables filtering of some empty commits due to inability to query the fast\-import backend\&.
+.RE
+.PP
+\-\-debug
+.RS 4
+Print additional information about operations being performed and commands being run\&. (If used together with \-\-dry\-run, shows extra information about what would be run)\&.
+.RE
+.PP
+\-\-stdin
+.RS 4
+Instead of running
+\fBgit fast\-export\fR
+and filtering its output, filter the fast\-export stream from stdin\&. The stdin must be in the expected input format (e\&.g\&. it needs to include original\-oid directives)\&.
+.RE
+.PP
+\-\-quiet
+.RS 4
+Pass \-\-quiet to other git commands called\&.
+.RE
+.SH "VERSATILITY"
+.sp
+filter\-repo has a hierarchy of capabilities on the spectrum from easy to use convenience flags that perform pre\-defined types of filtering, to choices that provide lots of flexibility in controlling how filtering occurs\&. This spectrum includes the following:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Convenience flags making common types of history rewriting simple (e\&.g\&. \-\-path, \-\-strip\-blobs\-bigger\-than, \-\-replace\-text, \-\-mailmap)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Options which are shorthand for others or which provide greater control than others (e\&.g\&. \-\-subdirectory\-filter could just be written using both a path selection (\-\-path) and a path rename (\-\-path\-rename) filter; \-\-paths\-from\-file can handle all other \-\-path* options and more such as regex renaming of paths)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Generic python callbacks for handling a certain type of data (the filename, message, name, email, and refname callbacks)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Generic python callbacks for handling fundamental git objects, allowing greater control over the combination of data types the object holds (the commit, tag, blob, and reset callbacks)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The ability to import filter\-repo as a module in a python program and use its classes and functions for even greater control and flexibility while still leveraging lots of basic capabilities\&. One can even use this to write new tools with a completely different interface\&.
+.RE
+.sp
+For more information about callbacks, see the section called \(lqCALLBACKS\(rq\&. For examples on writing python programs that import filter\-repo as a module to create new history rewriting tools, look at the contrib/filter\-repo\-demos/ directory\&. That directory includes, among other examples, a reimplementation of git\-filter\-branch which is faster than git\-filter\-branch, and a reimplementation of BFG Repo Cleaner with several bug fixes and new features\&.
+.SH "DISCUSSION"
+.sp
+Using filter\-repo is relatively simple, but rewriting history is part of a larger discussion in terms of collaboration\&. When you rewrite history, the old and new histories are no longer compatible; if you push this history somewhere for others to view, it will look as though you\(cqve done a rebase of all branches and tags\&. Make sure you are familiar with the "RECOVERING FROM UPSTREAM REBASE" section of \fBgit-rebase\fR(1) (and in particular, "The hard case") before proceeding, in addition to this section\&.
+.sp
+Steps to use git\-filter\-repo as part of the bigger picture of doing a history rewrite are roughly as follows:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+Create a clone of your repository (if you created special refs outside of refs/heads/ or refs/tags/, make sure to fetch those too)\&. Note that
+\fB\-\-bare\fR
+and
+\fB\-\-mirror\fR
+clones are supported too, if you prefer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+(Optional) Run
+\fBgit filter\-repo \-\-analyze\fR\&. This will create a directory of reports mentioning renames that have occurred in your repo and also listing sizes of objects aggregated by path/directory/extension/blob\-id; this information may be useful in choosing how to filter your repo\&. It can also be useful to re\-run \-\-analyze after filtering to verify the changes look correct\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+Run filter\-repo with your desired filtering options\&. Many examples are given below\&. For more complex cases, note that doing the filtering in multiple steps (by running multiple filter\-repo invocations in a sequence) is supported\&. If anything goes wrong here, simply delete your clone and restart\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  4." 4.2
+.\}
+Push your new repository to its new home (note that refs/remotes/origin/* will have been moved to refs/heads/* as the first part of filter\-repo, so you can just deal with normal branches instead of remote tracking branches)\&. While you can force push this to the same URL you cloned from, there are good reasons to consider pushing to a different location instead:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+People who cloned from the original repo will have old history\&. When they fetch the new history you force pushed up, unless they do a
+\fBgit reset \-\-hard @{u}\fR
+on their branches or rebase their local work, git will think they have hundreds or thousands of commits with very similar commit messages as what exist upstream (but which include files you wanted excised from history), and allow the user to merge the two histories, resulting in what looks like two copies of each commit\&. If they then push this history back up, then everyone now has history with two copies of each commit and the bad files have returned\&. You\(cqre more likely to succeed in forcing people to get rid of the old history if they have to clone a new URL\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Rewriting history will rewrite tags; those who have already downloaded tags will not get the updated tags by default (see the "On Re\-tagging" section of
+\fBgit-tag\fR(1))\&. Every user trying to use an existing clone will have to forcibly delete all tags and re\-fetch them; it may be easier for them to just re\-clone, which they are more likely to do with a new clone URL\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Rewriting history may delete some refs (e\&.g\&. branches that only had files that you wanted excised from history); unless you run git push with the
+\fB\-\-mirror\fR
+or
+\fB\-\-prune\fR
+options, those refs will continue to exist on the server\&. If folks then merge these branches into others, then people have started mixing old and new history\&. If users had already cloned these branches, removing them from the server isn\(cqt enough; you need all users to delete any local branches based on these refs and run fetch with the
+\fB\-\-prune\fR
+option as well\&. Simply re\-cloning from a new URL is easier\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The server may not allow you to force push over some refs\&. For example, code review systems may have special ref namespaces (e\&.g\&. refs/changes/, refs/pull/, refs/merge\-requests/) that they have locked down\&.
+.RE
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 5.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  5." 4.2
+.\}
+(Optional) Some additional considerations
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+filter\-repo by default creates replace refs (see
+\fBgit-replace\fR(1)) for each rewritten commit ID, allowing you to use old (unabbreviated) commit hashes to refer to the newly rewritten commits\&. If you want to use these replace refs, push them to the relevant clone URL and tell users to adjust their fetch refspec (e\&.g\&.
+\fBgit config \-\-add remote\&.origin\&.fetch +refs/replace/*:refs/replace/*\fR) Sadly, some existing git servers (e\&.g\&. Gerrit, GitHub) do not yet understand replace refs, and thus one can\(cqt use old commit hashes within their UI; this may change in the future\&. But replace refs at least help users locally within the git CLI\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If you have a central repo, you may want to prevent people from pushing old commit IDs, in order to avoid mixing old and new history\&. Every repository manager does this differently, some provide specialized commands (e\&.g\&.
+\m[blue]\fBhttps://gerrit\-review\&.googlesource\&.com/Documentation/cmd\-ban\-commit\&.html\fR\m[]), others require you to write hooks\&.
+.RE
+.RE
+.SH "EXAMPLES"
+.SS "Path based filtering"
+.sp
+To only keep the \fIREADME\&.md\fR file plus the directories \fIguides\fR and \fItools/releases/\fR:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path README\&.md \-\-path guides/ \-\-path tools/releases
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Directory names can be given with or without a trailing slash, and all filenames are relative to the toplevel of the repo\&. To keep all files except these paths, just add \fB\-\-invert\-paths\fR:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path README\&.md \-\-path guides/ \-\-path tools/releases \-\-invert\-paths
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+If you want to have both an inclusion filter and an exclusion filter, just run filter\-repo multiple times\&. For example, to keep the src/main subdirectory but exclude files under src/main named \fIdata\fR, run:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path src/main/
+git filter\-repo \-\-path\-glob \*(Aqsrc/*/data\*(Aq \-\-invert\-paths
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Note that the asterisk (\fB*\fR) will match across multiple directories, so the second command would remove e\&.g\&. src/main/org/whatever/data\&. Also, the second command by itself would also remove e\&.g\&. src/not\-main/foo/data, but since src/not\-main/ was removed by the first command, that\(cqs not an issue\&. Also, the use of quotes around the asterisk is sometimes important to avoid glob expansion by the shell\&.
+.sp
+You can also select paths by regular expression (see \m[blue]\fBhttps://docs\&.python\&.org/3/library/re\&.html#regular\-expression\-syntax\fR\m[])\&. For example, to only include files from the repo whose name is in the format YYYY\-MM\-DD\&.txt and is found at least two subdirectories deep:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path\-regex \*(Aq^\&.*/\&.*/[0\-9]{4}\-[0\-9]{2}\-[0\-9]{2}\&.txt$\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+If you want two directories to be renamed (and maybe merged if both are renamed to the same location), use \-\-path\-rename; for example, to rename both \fIcmds/\fR and \fIsrc/scripts/\fR to \fItools/\fR:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path\-rename cmds:tools \-\-path\-rename src/scripts/:tools/
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+As with \fB\-\-path\fR, directories can be specified with or without a trailing slash for \fB\-\-path\-rename\fR\&.
+.sp
+If you do a \fB\-\-path\-rename\fR to something that was already in use, it will be silently overwritten\&. However, if you try to rename multiple files to the same location (e\&.g\&. src/scripts/run_release\&.sh and cmds/run_release\&.sh both existed and had different content with the renames above), then you will be given an error\&. If you have such a case, you may want to add another rename command to move one of the paths somewhere else where it won\(cqt collide:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path\-rename cmds/run_release\&.sh:tools/do_release\&.sh \e
+                \-\-path\-rename cmds/:tools/ \e
+                \-\-path\-rename src/scripts/:tools/
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Also, \fB\-\-path\-rename\fR brings up ordering issues; all path arguments are applied in order\&. Thus, a command like
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path\-rename sources/:src/main/ \-\-path src/main/
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+would make sense but reversing the two arguments would not (src/main/ is created by the rename so reversing the two would give you an empty repo)\&. Also, note that the rename of cmds/run_release\&.sh a couple examples ago was done before the other renames\&.
+.sp
+If you prefer to filter based solely on basename, use the \fB\-\-use\-base\-name\fR flag (though this is incompatible with \fB\-\-path\-rename\fR)\&. For example, to only include README\&.md and Makefile files from any directory:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-use\-base\-name \-\-path README\&.md \-\-path Makefile
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+If you wanted to delete all \&.DS_Store files in any directory, you could either use:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-invert\-paths \-\-path \*(Aq\&.DS_Store\*(Aq \-\-use\-base\-name
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+or
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-invert\-paths \-\-path\-glob \*(Aq*/\&.DS_Store\*(Aq \-\-path \*(Aq\&.DS_Store\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+(the \fB\-\-path\-glob\fR isn\(cqt sufficient by itself as it might miss a toplevel \&.DS_Store file; further while something like \fB\-\-path\-glob \*(Aq*\&.DS_Store\*(Aq\fR would workaround that problem it would also grab files named \fBfoo\&.DS_Store\fR or \fBbar/baz\&.DS_Store\fR)
+.sp
+If you have a long list of files, directories, globs, or regular expressions to filter on, you can stick them in a file and use \fB\-\-paths\-from\-file\fR; for example, with a file named stuff\-i\-want\&.txt with contents of
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+README\&.md
+guides/
+tools/releases
+glob:*\&.py
+regex:^\&.*/\&.*/[0\-9]{4}\-[0\-9]{2}\-[0\-9]{2}\&.txt$
+tools/==>scripts/
+regex:(\&.*)/([^/]*)/([^/]*)\e\&.text$==>\e2/\e1/\e3\&.txt
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+then you could run
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-paths\-from\-file stuff\-i\-want\&.txt
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+to get a repo containing only the toplevel README\&.md file, the guides/ and tools/releases/ directories, all python files, files whose name was of the form YYYY\&.MM\-DD\&.txt at least two subdirectories deep, and would rename tools/ to scripts/ and rename files like foo/bar/baz/bleh\&.text to baz/foo/bar/bleh\&.txt\&. Note the special line prefixes of \fBglob:\fR and \fBregex:\fR and the special string \fB==>\fR denoting renames\&.
+.sp
+Finally, see also the \fB\-\-filename\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
+.SS "Content based filtering"
+.sp
+If you want to filter out all files bigger than a certain size, you can use \fB\-\-strip\-blobs\-bigger\-than\fR with some size (K, M, and G suffixes are recognized), e\&.g\&.:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-strip\-blobs\-bigger\-than 10M
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+If you want to strip out all files with specified git object ids (hashes), list the hashes in a file and run
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-strip\-blobs\-with\-ids FILE_WITH_GIT_BLOB_IDS
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+If you want to modify file contents, you can do so based on a list of expressions in a file, one per line\&. For example, with a file named expressions\&.txt containing
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+p455w0rd
+foo==>bar
+glob:*666*==>
+regex:\ebdriver\eb==>pilot
+literal:MM/DD/YYYY=>YYYY\-MM\-DD
+regex:([0\-9]{2})/([0\-9]{2})/([0\-9]{4})==>\e3\-\e1\-\e2
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+then running
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-replace\-text expressions\&.txt
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+will go through and replace \fBp455w0rd\fR with \fB***REMOVED***\fR, \fBfoo\fR with \fBbar\fR, any line containing \fB666\fR with a blank line, the word \fBdriver\fR with \fBpilot\fR (but not if it has letters before or after; e\&.g\&. \fBdrivers\fR will be unmodified), replace the exact text \fBMM/DD/YYYY\fR with \fBYYYY\-MM\-DD\fR and replace date strings of the form MM/DD/YYYY with ones of the form YYYY\-MM\-DD\&. In the expressions file, there are a few things to note:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Every line has a replacement, given by whatever is on the right of
+\fB==>\fR\&. If
+\fB==>\fR
+does not appear on the line, the default replacement is
+\fB***REMOVED***\fR\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Lines can start with
+\fBliteral:\fR,
+\fBglob:\fR, or
+\fBregex:\fR
+to specify whether to do literal string matches, globs (see
+\m[blue]\fBhttps://docs\&.python\&.org/3/library/fnmatch\&.html\fR\m[]), or regular expressions (see
+\m[blue]\fBhttps://docs\&.python\&.org/3/library/re\&.html#regular\-expression\-syntax\fR\m[])\&. If none of these are specified,
+\fBliteral:\fR
+is assumed\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+globs and regexes are applied to each line of the file; it is not possible with \-\-replace\-text to match a multi\-line string\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If multiple matches are found on a line, all are replaced\&.
+.RE
+.sp
+See also the \fB\-\-blob\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
+.SS "Refname based filtering"
+.sp
+To rename tags, use \fB\-\-tag\-rename\fR, e\&.g\&.:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-tag\-rename foo:bar
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+This will rename any tags starting with \fBfoo\fR to now start with \fBbar\fR\&. Either side of the colon could be blank, e\&.g\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-tag\-rename \*(Aq\*(Aq:\*(Aqmy\-module\-\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+For more general refname modification, see \fB\-\-refname\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
+.SS "User and email based filtering"
+.sp
+To modify username and emails of commits, you can create a mailmap file in the format accepted by \fBgit-shortlog\fR(1)\&. For example, if you have a file named my\-mailmap you can run
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-mailmap my\-mailmap
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+and if the current contents of that file are as follows (if the specified mailmap file is version controlled, historical versions of the file are ignored):
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Name For User <email@addre\&.ss>
+<new@ema\&.il> <old1@ema\&.il>
+New Name And <new@ema\&.il> <old2@ema\&.il>
+New Name And <new@ema\&.il> Old Name And <old3@ema\&.il>
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+then we can update username and/or emails based on the specified mapping\&.
+.sp
+See also the \fB\-\-name\-callback\fR and \fB\-\-email\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
+.SS "Parent rewriting"
+.sp
+To replace $commit_A with $commit_B (e\&.g\&. make all commits which had $commit_A as a parent instead have $commit_B for that parent), and rewrite history to make it permanent:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git replace $commit_A $commit_B
+git filter\-repo \-\-force
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+To create a new commit with the same contents as $commit_A except with different parent(s) and then replace $commit_A with the new commit, and rewrite history to make it permanent:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git replace \-\-graft $commit_A $new_parent_or_parents
+git filter\-repo \-\-force
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+The reason to specify \-\-force is two\-fold: filter\-repo will error out if no arguments are specified, and the new graft commit would otherwise trigger the not\-a\-fresh\-clone check\&.
+.SH "CALLBACKS"
+.sp
+For flexibility, filter\-repo allows you to specify functions on the command line to further filter all changes\&. Please note that there are some API compatibility caveats associated with these callbacks that you should be aware of before using them; see the "API BACKWARD COMPATIBILITY CAVEAT" comment near the top of git\-filter\-repo source code\&.
+.sp
+All callback functions are of the same general format\&. For a command line argument like
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+\-\-foo\-callback \*(AqBODY\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+the following code will be compiled and called:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+def foo_callback(foo):
+  BODY
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Thus, you just need to make sure your \fIBODY\fR modifies and returns \fIfoo\fR appropriately\&. One important thing to note for all callbacks is that filter\-repo uses bytestrings (see \m[blue]\fBhttps://docs\&.python\&.org/3/library/stdtypes\&.html#bytes\fR\m[]) everywhere instead of strings\&.
+.sp
+There are four callbacks that allow you to operate directly on raw objects that contain data that\(cqs easy to write in \fBfast-import\fR(1) format:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+\-\-blob\-callback
+\-\-commit\-callback
+\-\-tag\-callback
+\-\-reset\-callback
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+We\(cqll come back to these later because it is often the case that the other callbacks are more convenient\&. The other callbacks operate on a small piece of the raw objects or operate on pieces across multiple types of raw object (e\&.g\&. author names and committer names and tagger names across commits and tags, or refnames across commits, tags, and resets, or messages across commits and tags)\&. The convenience callbacks are:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+\-\-filename\-callback
+\-\-message\-callback
+\-\-name\-callback
+\-\-email\-callback
+\-\-refname\-callback
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+in each you are expected to simply return a new value based on the one passed in\&. For example,
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-name\-callback \*(Aqreturn name\&.replace(b"Wiliam", b"William")\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+would result in the following function being called:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+def name_callback(name):
+  return name\&.replace(b"Wiliam", b"William")
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+The email callback is quite similar:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-email\-callback \*(Aqreturn email\&.replace(b"\&.cm", b"\&.com")\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+The refname callback is also similar, but note that the refname passed in and returned are expected to be fully qualified (e\&.g\&. b"refs/heads/master" instead of just b"master" and b"refs/tags/v1\&.0\&.7" instead of b"1\&.0\&.7"):
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-refname\-callback \*(Aq
+  # Change e\&.g\&. refs/heads/master to refs/heads/prefix\-master
+  rdir,rpath = os\&.path\&.split(refname)
+  return rdir + b"/prefix\-" + rpath\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+The message callback is quite similar to the previous three callbacks, though it operates on a bytestring that is likely more than one line:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-message\-callback \*(Aq
+  if b"Signed\-off\-by:" not in message:
+    message += b"\enSigned\-off\-by: Me My <self@and\&.eye>"
+  return re\&.sub(b"[Ee]\-?[Mm][Aa][Ii][Ll]", b"email", message)\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+The filename callback is slightly more interesting\&. Returning None means the file should be removed from all commits, returning the filename unmodified marks the file to be kept, and returning a different name means the file should be renamed\&. An example:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-filename\-callback \*(Aq
+  if b"/src/" in filename:
+    # Remove all files with a directory named "src" in their path
+    # (except when "src" appears at the toplevel)\&.
+    return None
+  elif filename\&.startswith(b"tools/"):
+    # Rename tools/ \-> scripts/misc/
+    return b"scripts/misc/" + filename[6:]
+  else:
+    # Keep the filename and do not rename it
+    return filename
+  \*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+In contrast, the blob, reset, tag, and commit callbacks are not expected to return a value, but are instead expected to modify the object passed in\&. Major fields for these objects are (subject to API backward compatibility caveats mentioned previously):
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Blob:
+\fBoriginal_id\fR
+(original hash) and
+\fBdata\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Reset:
+\fBref\fR
+(name of reference) and
+\fBfrom_ref\fR
+(hash or integer mark)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Tag:
+\fBref\fR,
+\fBfrom_ref\fR,
+\fBoriginal_id\fR,
+\fBtagger_name\fR,
+\fBtagger_email\fR,
+\fBtagger_date\fR,
+\fBmessage\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Commit:
+\fBbranch\fR,
+\fBoriginal_id\fR,
+\fBauthor_name\fR,
+\fBauthor_email\fR,
+\fBauthor_date\fR,
+\fBcommitter_name\fR,
+\fBcommitter_email\fR,
+\fBcommitter_date `, `message\fR,
+\fBfile_changes\fR
+(list of FileChange objects, each containing a
+\fBtype\fR,
+\fBfilename\fR,
+\fBmode\fR, and
+\fBblob_id\fR),
+\fBparents\fR
+(list of hashes or integer marks)
+.RE
+.sp
+An example of each:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-blob\-callback \*(Aq
+  if len(blob\&.data) > 25:
+    # Mark this blob for removal from all commits
+    blob\&.skip()
+  else:
+    blob\&.data = blob\&.data\&.sub(b"Hello", b"Goodbye")
+  \*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-reset\-callback \*(Aqreset\&.ref = reset\&.ref\&.replace(b"master", b"dev")\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-tag\-callback \*(Aq
+  if tag\&.tagger_name == b"Jim Williams":
+    # Omit this tag
+    tag\&.skip()
+  else:
+    tag\&.message = tag\&.message + b"\en\enTag of %s by %s on %s" % (tag\&.ref, tag\&.tagger_email, tag\&.tagger_date)\*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-commit\-callback \*(Aq
+  # Remove executable files with three 6s in their name (including
+  # from leading directories)\&.
+  # Also, undo deletion of sources/foo/bar\&.txt (change types are
+  # either b"D" (deletion) or b"M" (add or modify); renames are
+  # handled by deleting the old file and adding a new one)
+  commit\&.file_changes = [
+         change for change in commit\&.file_changes
+         if not (change\&.mode == b"100755" and
+                 change\&.filename\&.count(b"6") == 3) and
+            not (change\&.type == b"D" and
+                 change\&.filename == b"sources/foo/bar\&.txt")]
+  # Mark all \&.sh files as executable; modes in git are always one of
+  # 100644 (normal file), 100755 (executable), 120000 (symlink), or
+  # 160000 (submodule)
+  for change in commit\&.file_changes:
+    if change\&.filename\&.endswith(b"\&.sh"):
+      change\&.mode = b"100755"
+  \*(Aq
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "INTERNALS"
+.sp
+You probably don\(cqt need to read this section unless you are just very curious or you are trying to do a very complex history rewrite\&.
+.SS "How filter\-repo works"
+.sp
+Roughly, filter\-repo works by running
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git fast\-export <options> | filter | git fast\-import <options>
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+where filter\-repo not only launches the whole pipeline but also serves as the \fIfilter\fR in the middle\&. However, filter\-repo does a few additional things on top in order to make it into a well\-rounded filtering tool\&. A sequence that more accurately reflects what filter\-repo runs is:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+Verify we\(cqre in a fresh clone
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+\fBgit fetch \-u \&. refs/remotes/origin/*:refs/heads/*\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+\fBgit remote rm origin\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  4." 4.2
+.\}
+\fBgit fast\-export \-\-show\-original\-ids \-\-reference\-excluded\-parents \-\-fake\-missing\-tagger \-\-signed\-tags=strip \-\-tag\-of\-filtered\-object=rewrite \-\-use\-done\-feature \-\-no\-data \-\-reencode=yes \-\-all | filter | git fast\-import \-\-force \-\-quiet\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 5.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  5." 4.2
+.\}
+\fBgit update\-ref \-\-no\-deref \-\-stdin\fR, fed with a list of refs to nuke, and a list of replace refs to delete, create, or update\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 6.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  6." 4.2
+.\}
+\fBgit reset \-\-hard\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 7.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  7." 4.2
+.\}
+\fBgit reflog expire \-\-expire=now \-\-all\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 8.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  8." 4.2
+.\}
+\fBgit gc \-\-prune=now\fR
+.RE
+.sp
+Some notes or exceptions on each of the above:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  1." 4.2
+.\}
+If we\(cqre not in a fresh clone, users will not be able to recover if they used the wrong command or ran in the wrong repo\&. (Though
+\fB\-\-force\fR
+overrides this check, and it\(cqs also off if you\(cqve already ran filter\-repo once in this repo\&.)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  2." 4.2
+.\}
+Technically, we actually use a
+\fBgit update\-ref\fR
+command fed with a lot of input due to the fact that users can use
+\fB\-\-force\fR
+when local branches might not match remote branches\&. But this fetch command catches the intent rather succinctly\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 3.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  3." 4.2
+.\}
+We don\(cqt want users accidentally pushing back to the original repo, as discussed in
+the section called \(lqDISCUSSION\(rq\&. It also reminds users that since history has been rewritten, this repo is no longer compatible with the original\&. Finally, another minor benefit is this allows users to push with the
+\fB\-\-mirror\fR
+option to their new home without accidentally sending remote tracking branches\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  4." 4.2
+.\}
+Some of these flags are always used but others are actually conditional\&. For example, filter\-repo\(cqs
+\fB\-\-replace\-text\fR
+and
+\fB\-\-blob\-callback\fR
+options need to work on blobs so
+\fB\-\-no\-data\fR
+cannot be passed to fast\-export\&. But when we don\(cqt need to work on blobs, passing
+\fB\-\-no\-data\fR
+speeds things up\&. Also, other flags may change the structure of the pipeline as well (e\&.g\&.
+\fB\-\-dry\-run\fR
+and
+\fB\-\-debug\fR)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 5.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  5." 4.2
+.\}
+We use this step to write replace refs for accessing the newly written commit hashes using their previous names\&. Also, if refs were renamed by various steps, we need to delete the old refnames in order to avoid mixing old and new history\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 6.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  6." 4.2
+.\}
+Users also have old versions of files in their working tree and index; we want those cleaned up to match the rewritten history as well\&. Note that this step is skipped in bare repos\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 7.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  7." 4.2
+.\}
+Reflogs will hold on to old history, so we need to expire them\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 8.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  8." 4.2
+.\}
+We need to gc to avoid mixing new and old history\&. Also, it shrinks the repository for users, so they don\(cqt have to do extra work\&. (Odds are that they\(cqve only rewritten trees and commits and maybe a few blobs, so
+\fB\-\-aggressive\fR
+isn\(cqt needed and would be too slow\&.)
+.RE
+.sp
+Information about these steps is printed out when \fB\-\-debug\fR is passed to filter\-repo\&.
+.SS "Limitations"
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBInherited limitations\fR
+.RS 4
+.sp
+Since git filter\-repo calls fast\-export and fast\-import to do a lot of the heavy lifting, it inherits limitations from those systems:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+extended commit headers, if any, are stripped
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+commits get rewritten meaning they will have new hashes; therefore, signatures on commits and tags cannot continue to work and instead are just removed (thus signed tags become annotated tags)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+tags of commits are supported; tags of anything else (blobs, trees, or tags) are not\&. (fast\-export aborts on tags of blobs and tags of tags, and simply ignores tags of trees with a warning\&.)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+annotated and signed tags outside of the refs/tags/ namespace are not supported (their location will be mangled in weird ways)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+fast\-import will die on various forms of invalid input, such as a timezone with more than four digits
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+fast\-export cannot reencode commit messages into UTF\-8 if the commit message is not valid in its specified encoding (in such cases, it\(cqll leave the commit message and the encoding header alone)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+commits without an author will be given one matching the committer
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+tags without a tagger will be given a fake tagger
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+references that include commit cycles in their history (which can be created with
+\fBgit-replace\fR(1)) will not be flagged to the user as an error but will be silently deleted by fast\-export as though the branch or tag contained no interesting files
+.RE
+.sp
+There are also some limitations due to the design of these systems:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Trying to insert additional files into the stream can be tricky; since fast\-export only lists file changes in a merge relative to its first parent, if you insert additional files into a commit that is in the second (or third or fourth) parent history of a merge, then you also need to add it to the merge manually\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+fast\-export and fast\-import work with exact file contents, not patches\&. (e\&.g\&. "Whatever the current contents of this file, update them to now have these contents") Because of this, removing the changes made in a single commit or inserting additional changes to a file in some commit and expecting them to propagate forward is not something that can be done with these tools\&. Use
+\fBgit-rebase\fR(1)
+for that\&.
+.RE
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBIntrinsic limitations\fR
+.RS 4
+.sp
+Some types of filtering have limitations that would affect any tool attempting to perform them; the most any tool can do is attempt to notify the user when it detects an issue:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+When rewriting commit hashes in commit messages, there are a variety of cases when the hash will not be updated (whenever this happens, a note is written to
+\fB\&.git/filter\-repo/suboptimal\-issues\fR):
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+if a commit hash does not correspond to a commit in the old repo
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+if a commit hash corresponds to a commit that gets pruned
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+if an abbreviated hash is not unique
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Pruning of empty commits can cause a merge commit to lose an entire ancestry line and become a non\-merge\&. If the merge commit had no changes then it can be pruned too, but if it still has changes it needs to be kept\&. This might cause minor confusion since the commit will likely have a commit message that makes it sound like a merge commit even though it\(cqs not\&. (Whenever a merge commit becomes a non\-merge commit, a note is written to
+\fB\&.git/filter\-repo/suboptimal\-issues\fR)
+.RE
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBIssues specific to filter-repo\fR
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Multiple repositories in the wild have been observed which use a bogus timezone (\fB+051800\fR); google will find you some reports\&. The intended timezone wasn\(cqt clear or wasn\(cqt always the same\&. Replace with a different bogus timezone that fast\-import will accept (\fB+0261\fR)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fB\-\-path\-rename\fR
+can result in pathname collisions; to avoid excessive memory requirements of tracking which files are in all commits or looking up what files exist with either every commit or every usage of \-\-path\-rename, we just tell the user that they might clobber other changes if they aren\(cqt careful\&. We can check if the clobbering comes from another \-\-path\-rename without much overhead\&. (Perhaps in the future it\(cqs worth adding a slow mode to \-\-path\-rename that will do the more exhaustive checks?)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+There is no mechanism for directly controlling which flags are passed to fast\-export (or fast\-import); only pre\-defined flags can be turned on or off as a side\-effect of other options\&. Direct control would make little sense because some options like
+\fB\-\-full\-tree\fR
+would require additional code in filter\-repo (to parse new directives), and others such as
+\fB\-M\fR
+or
+\fB\-C\fR
+would break assumptions used in other places of filter\-repo\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Partial\-repo filtering does not mesh well with filter\-repo\(cqs "avoid mixing old and new history" design\&. filter\-repo has some capability in this area but it is intentionally underdocumented and mostly left for use by external scripts which import filter\-repo as a module (some examples in contrib/filter\-repo\-demos/ do use this)\&. The only real usecases I\(cqve seen for partial repo filtering, though, are sidestepping filter\-branch\(cqs insanely slow execution on commits that would not be changed by the filters in question anyway (which is largely irrelevant since filter\-repo is multiple orders of magnitude faster), or to do operations better suited to
+\fBgit-rebase\fR(1)
+and which rebase grew special options for years ago (e\&.g\&. the
+\fB\-\-signoff\fR
+option)\&.
+.RE
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBComments on reversibility\fR
+.RS 4
+.sp
+Some people are interested in reversibility of of a rewrite; e\&.g\&. rewrite history, possibly add some commits, then unrewrite and get the original history back plus a few new "unrewritten" commits\&. Obviously this is impossible if your rewrite involves throwing away information (e\&.g\&. filtering out files or replacing several different strings with \fB***REMOVED***\fR), but may be possible with some rewrites\&. filter\-repo is likely to be a poor fit for this type of workflow for a few reasons:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+most of the limitations inherited from fast\-export and fast\-import are of a type that cause reversibility issues
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+grafts and replace refs, if present, are used in the rewrite and made permanent
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+rewriting of commit hashes will probably be reversible, but it is possible for rewritten abbreviated hashes to not be unique even if the original abbreviated hashes were\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+filter\-repo defaults to several forms of unreversible rewriting that you may need to turn off (e\&.g\&. the last two bullet points above or reencoding commit messages into UTF\-8); it\(cqs possible that additional forms of unreversible rewrites will be added in the future\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+I assume that people use filter\-repo for one\-shot conversions, not ongoing data transfers\&. I explicitly reserve the right to change any API in filter\-repo based on this presumption (and a comment to this effect is found in multiple places in the code and examples)\&. You have been warned\&.
+.RE
+.RE
+.SH "SEE ALSO"
+.sp
+\fBgit-rebase\fR(1), \fBgit-filter-branch\fR(1)
+.SH "GIT"
+.sp
+Part of the \fBgit\fR(1) suite

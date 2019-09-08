@@ -1,0 +1,1213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>githooks(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+githooks(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>githooks -
+   Hooks used by Git
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>$GIT_DIR/hooks/* (or `git config core.hooksPath`/*)</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Hooks are programs you can place in a hooks directory to trigger
+actions at certain points in git&#8217;s execution. Hooks that don&#8217;t have
+the executable bit set are ignored.</p></div>
+<div class="paragraph"><p>By default the hooks directory is <code>$GIT_DIR/hooks</code>, but that can be
+changed via the <code>core.hooksPath</code> configuration variable (see
+<a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>Before Git invokes a hook, it changes its working directory to either
+$GIT_DIR in a bare repository or the root of the working tree in a non-bare
+repository. An exception are hooks triggered during a push (<em>pre-receive</em>,
+<em>update</em>, <em>post-receive</em>, <em>post-update</em>, <em>push-to-checkout</em>) which are always
+executed in $GIT_DIR.</p></div>
+<div class="paragraph"><p>Hooks can get their arguments via the environment, command-line
+arguments, and stdin. See the documentation for each hook below for
+details.</p></div>
+<div class="paragraph"><p><code>git init</code> may copy hooks to the new repository, depending on its
+configuration. See the "TEMPLATE DIRECTORY" section in
+<a href="git-init.html">git-init(1)</a> for details. When the rest of this document refers
+to "default hooks" it&#8217;s talking about the default template shipped
+with Git.</p></div>
+<div class="paragraph"><p>The currently supported hooks are described below.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hooks">HOOKS</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_applypatch_msg">applypatch-msg</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-am.html">git-am(1)</a>.  It takes a single
+parameter, the name of the file that holds the proposed commit
+log message.  Exiting with a non-zero status causes <code>git am</code> to abort
+before applying the patch.</p></div>
+<div class="paragraph"><p>The hook is allowed to edit the message file in place, and can
+be used to normalize the message into some project standard
+format. It can also be used to refuse the commit after inspecting
+the message file.</p></div>
+<div class="paragraph"><p>The default <em>applypatch-msg</em> hook, when enabled, runs the
+<em>commit-msg</em> hook, if the latter is enabled.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_pre_applypatch">pre-applypatch</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-am.html">git-am(1)</a>.  It takes no parameter, and is
+invoked after the patch is applied, but before a commit is made.</p></div>
+<div class="paragraph"><p>If it exits with non-zero status, then the working tree will not be
+committed after applying the patch.</p></div>
+<div class="paragraph"><p>It can be used to inspect the current working tree and refuse to
+make a commit if it does not pass certain test.</p></div>
+<div class="paragraph"><p>The default <em>pre-applypatch</em> hook, when enabled, runs the
+<em>pre-commit</em> hook, if the latter is enabled.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_post_applypatch">post-applypatch</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-am.html">git-am(1)</a>.  It takes no parameter,
+and is invoked after the patch is applied and a commit is made.</p></div>
+<div class="paragraph"><p>This hook is meant primarily for notification, and cannot affect
+the outcome of <code>git am</code>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_pre_commit">pre-commit</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-commit.html">git-commit(1)</a>, and can be bypassed
+with the <code>--no-verify</code> option.  It takes no parameters, and is
+invoked before obtaining the proposed commit log message and
+making a commit.  Exiting with a non-zero status from this script
+causes the <code>git commit</code> command to abort before creating a commit.</p></div>
+<div class="paragraph"><p>The default <em>pre-commit</em> hook, when enabled, catches introduction
+of lines with trailing whitespaces and aborts the commit when
+such a line is found.</p></div>
+<div class="paragraph"><p>All the <code>git commit</code> hooks are invoked with the environment
+variable <code>GIT_EDITOR=:</code> if the command will not bring up an editor
+to modify the commit message.</p></div>
+<div class="paragraph"><p>The default <em>pre-commit</em> hook, when enabled&#8212;and with the
+<code>hooks.allownonascii</code> config option unset or set to false&#8212;prevents
+the use of non-ASCII filenames.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_prepare_commit_msg">prepare-commit-msg</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-commit.html">git-commit(1)</a> right after preparing the
+default log message, and before the editor is started.</p></div>
+<div class="paragraph"><p>It takes one to three parameters.  The first is the name of the file
+that contains the commit log message.  The second is the source of the commit
+message, and can be: <code>message</code> (if a <code>-m</code> or <code>-F</code> option was
+given); <code>template</code> (if a <code>-t</code> option was given or the
+configuration option <code>commit.template</code> is set); <code>merge</code> (if the
+commit is a merge or a <code>.git/MERGE_MSG</code> file exists); <code>squash</code>
+(if a <code>.git/SQUASH_MSG</code> file exists); or <code>commit</code>, followed by
+a commit SHA-1 (if a <code>-c</code>, <code>-C</code> or <code>--amend</code> option was given).</p></div>
+<div class="paragraph"><p>If the exit status is non-zero, <code>git commit</code> will abort.</p></div>
+<div class="paragraph"><p>The purpose of the hook is to edit the message file in place, and
+it is not suppressed by the <code>--no-verify</code> option.  A non-zero exit
+means a failure of the hook and aborts the commit.  It should not
+be used as replacement for pre-commit hook.</p></div>
+<div class="paragraph"><p>The sample <code>prepare-commit-msg</code> hook that comes with Git removes the
+help message found in the commented portion of the commit template.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_commit_msg">commit-msg</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-commit.html">git-commit(1)</a> and <a href="git-merge.html">git-merge(1)</a>, and can be
+bypassed with the <code>--no-verify</code> option.  It takes a single parameter,
+the name of the file that holds the proposed commit log message.
+Exiting with a non-zero status causes the command to abort.</p></div>
+<div class="paragraph"><p>The hook is allowed to edit the message file in place, and can be used
+to normalize the message into some project standard format. It
+can also be used to refuse the commit after inspecting the message
+file.</p></div>
+<div class="paragraph"><p>The default <em>commit-msg</em> hook, when enabled, detects duplicate
+"Signed-off-by" lines, and aborts the commit if one is found.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_post_commit">post-commit</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-commit.html">git-commit(1)</a>. It takes no parameters, and is
+invoked after a commit is made.</p></div>
+<div class="paragraph"><p>This hook is meant primarily for notification, and cannot affect
+the outcome of <code>git commit</code>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_pre_rebase">pre-rebase</h3>
+<div class="paragraph"><p>This hook is called by <a href="git-rebase.html">git-rebase(1)</a> and can be used to prevent a
+branch from getting rebased.  The hook may be called with one or
+two parameters.  The first parameter is the upstream from which
+the series was forked.  The second parameter is the branch being
+rebased, and is not set when rebasing the current branch.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_post_checkout">post-checkout</h3>
+<div class="paragraph"><p>This hook is invoked when a <a href="git-checkout.html">git-checkout(1)</a> or
+<a href="git-switch.html">git-switch(1)</a> is run after having updated the
+worktree.  The hook is given three parameters: the ref of the previous HEAD,
+the ref of the new HEAD (which may or may not have changed), and a flag
+indicating whether the checkout was a branch checkout (changing branches,
+flag=1) or a file checkout (retrieving a file from the index, flag=0).
+This hook cannot affect the outcome of <code>git switch</code> or <code>git checkout</code>.</p></div>
+<div class="paragraph"><p>It is also run after <a href="git-clone.html">git-clone(1)</a>, unless the <code>--no-checkout</code> (<code>-n</code>) option is
+used. The first parameter given to the hook is the null-ref, the second the
+ref of the new HEAD and the flag is always 1. Likewise for <code>git worktree add</code>
+unless <code>--no-checkout</code> is used.</p></div>
+<div class="paragraph"><p>This hook can be used to perform repository validity checks, auto-display
+differences from the previous HEAD if different, or set working dir metadata
+properties.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_post_merge">post-merge</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-merge.html">git-merge(1)</a>, which happens when a <code>git pull</code>
+is done on a local repository.  The hook takes a single parameter, a status
+flag specifying whether or not the merge being done was a squash merge.
+This hook cannot affect the outcome of <code>git merge</code> and is not executed,
+if the merge failed due to conflicts.</p></div>
+<div class="paragraph"><p>This hook can be used in conjunction with a corresponding pre-commit hook to
+save and restore any form of metadata associated with the working tree
+(e.g.: permissions/ownership, ACLS, etc).  See contrib/hooks/setgitperms.perl
+for an example of how to do this.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_pre_push">pre-push</h3>
+<div class="paragraph"><p>This hook is called by <a href="git-push.html">git-push(1)</a> and can be used to prevent
+a push from taking place.  The hook is called with two parameters
+which provide the name and location of the destination remote, if a
+named remote is not being used both values will be the same.</p></div>
+<div class="paragraph"><p>Information about what is to be pushed is provided on the hook&#8217;s standard
+input with lines of the form:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;local ref&gt; SP &lt;local sha1&gt; SP &lt;remote ref&gt; SP &lt;remote sha1&gt; LF</code></pre>
+</div></div>
+<div class="paragraph"><p>For instance, if the command <code>git push origin master:foreign</code> were run the
+hook would receive a line like the following:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>refs/heads/master 67890 refs/heads/foreign 12345</code></pre>
+</div></div>
+<div class="paragraph"><p>although the full, 40-character SHA-1s would be supplied.  If the foreign ref
+does not yet exist the <code>&lt;remote SHA-1&gt;</code> will be 40 <code>0</code>.  If a ref is to be
+deleted, the <code>&lt;local ref&gt;</code> will be supplied as <code>(delete)</code> and the <code>&lt;local
+SHA-1&gt;</code> will be 40 <code>0</code>.  If the local commit was specified by something other
+than a name which could be expanded (such as <code>HEAD~</code>, or a SHA-1) it will be
+supplied as it was originally given.</p></div>
+<div class="paragraph"><p>If this hook exits with a non-zero status, <code>git push</code> will abort without
+pushing anything.  Information about why the push is rejected may be sent
+to the user by writing to standard error.</p></div>
+</div>
+<div class="sect2">
+<h3 id="pre-receive">pre-receive</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
+<code>git push</code> and updates reference(s) in its repository.
+Just before starting to update refs on the remote repository, the
+pre-receive hook is invoked.  Its exit status determines the success
+or failure of the update.</p></div>
+<div class="paragraph"><p>This hook executes once for the receive operation. It takes no
+arguments, but for each ref to be updated it receives on standard
+input a line of the format:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;old-value&gt; SP &lt;new-value&gt; SP &lt;ref-name&gt; LF</code></pre>
+</div></div>
+<div class="paragraph"><p>where <code>&lt;old-value&gt;</code> is the old object name stored in the ref,
+<code>&lt;new-value&gt;</code> is the new object name to be stored in the ref and
+<code>&lt;ref-name&gt;</code> is the full name of the ref.
+When creating a new ref, <code>&lt;old-value&gt;</code> is 40 <code>0</code>.</p></div>
+<div class="paragraph"><p>If the hook exits with non-zero status, none of the refs will be
+updated. If the hook exits with zero, updating of individual refs can
+still be prevented by the <a href="#update"><em>update</em></a> hook.</p></div>
+<div class="paragraph"><p>Both standard output and standard error output are forwarded to
+<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+for the user.</p></div>
+<div class="paragraph"><p>The number of push options given on the command line of
+<code>git push --push-option=...</code> can be read from the environment
+variable <code>GIT_PUSH_OPTION_COUNT</code>, and the options themselves are
+found in <code>GIT_PUSH_OPTION_0</code>, <code>GIT_PUSH_OPTION_1</code>,&#8230;
+If it is negotiated to not use the push options phase, the
+environment variables will not be set. If the client selects
+to use push options, but doesn&#8217;t transmit any, the count variable
+will be set to zero, <code>GIT_PUSH_OPTION_COUNT=0</code>.</p></div>
+<div class="paragraph"><p>See the section on "Quarantine Environment" in
+<a href="git-receive-pack.html">git-receive-pack(1)</a> for some caveats.</p></div>
+</div>
+<div class="sect2">
+<h3 id="update">update</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
+<code>git push</code> and updates reference(s) in its repository.
+Just before updating the ref on the remote repository, the update hook
+is invoked.  Its exit status determines the success or failure of
+the ref update.</p></div>
+<div class="paragraph"><p>The hook executes once for each ref to be updated, and takes
+three parameters:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+the name of the ref being updated,
+</p>
+</li>
+<li>
+<p>
+the old object name stored in the ref,
+</p>
+</li>
+<li>
+<p>
+and the new object name to be stored in the ref.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>A zero exit from the update hook allows the ref to be updated.
+Exiting with a non-zero status prevents <code>git receive-pack</code>
+from updating that ref.</p></div>
+<div class="paragraph"><p>This hook can be used to prevent <em>forced</em> update on certain refs by
+making sure that the object name is a commit object that is a
+descendant of the commit object named by the old object name.
+That is, to enforce a "fast-forward only" policy.</p></div>
+<div class="paragraph"><p>It could also be used to log the old..new status.  However, it
+does not know the entire set of branches, so it would end up
+firing one e-mail per ref when used naively, though.  The
+<a href="#post-receive"><em>post-receive</em></a> hook is more suited to that.</p></div>
+<div class="paragraph"><p>In an environment that restricts the users' access only to git
+commands over the wire, this hook can be used to implement access
+control without relying on filesystem ownership and group
+membership. See <a href="git-shell.html">git-shell(1)</a> for how you might use the login
+shell to restrict the user&#8217;s access to only git commands.</p></div>
+<div class="paragraph"><p>Both standard output and standard error output are forwarded to
+<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+for the user.</p></div>
+<div class="paragraph"><p>The default <em>update</em> hook, when enabled&#8212;and with
+<code>hooks.allowunannotated</code> config option unset or set to false&#8212;prevents
+unannotated tags to be pushed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="post-receive">post-receive</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
+<code>git push</code> and updates reference(s) in its repository.
+It executes on the remote repository once after all the refs have
+been updated.</p></div>
+<div class="paragraph"><p>This hook executes once for the receive operation.  It takes no
+arguments, but gets the same information as the
+<a href="#pre-receive"><em>pre-receive</em></a>
+hook does on its standard input.</p></div>
+<div class="paragraph"><p>This hook does not affect the outcome of <code>git receive-pack</code>, as it
+is called after the real work is done.</p></div>
+<div class="paragraph"><p>This supersedes the <a href="#post-update"><em>post-update</em></a> hook in that it gets
+both old and new values of all the refs in addition to their
+names.</p></div>
+<div class="paragraph"><p>Both standard output and standard error output are forwarded to
+<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+for the user.</p></div>
+<div class="paragraph"><p>The default <em>post-receive</em> hook is empty, but there is
+a sample script <code>post-receive-email</code> provided in the <code>contrib/hooks</code>
+directory in Git distribution, which implements sending commit
+emails.</p></div>
+<div class="paragraph"><p>The number of push options given on the command line of
+<code>git push --push-option=...</code> can be read from the environment
+variable <code>GIT_PUSH_OPTION_COUNT</code>, and the options themselves are
+found in <code>GIT_PUSH_OPTION_0</code>, <code>GIT_PUSH_OPTION_1</code>,&#8230;
+If it is negotiated to not use the push options phase, the
+environment variables will not be set. If the client selects
+to use push options, but doesn&#8217;t transmit any, the count variable
+will be set to zero, <code>GIT_PUSH_OPTION_COUNT=0</code>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="post-update">post-update</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
+<code>git push</code> and updates reference(s) in its repository.
+It executes on the remote repository once after all the refs have
+been updated.</p></div>
+<div class="paragraph"><p>It takes a variable number of parameters, each of which is the
+name of ref that was actually updated.</p></div>
+<div class="paragraph"><p>This hook is meant primarily for notification, and cannot affect
+the outcome of <code>git receive-pack</code>.</p></div>
+<div class="paragraph"><p>The <em>post-update</em> hook can tell what are the heads that were pushed,
+but it does not know what their original and updated values are,
+so it is a poor place to do log old..new. The
+<a href="#post-receive"><em>post-receive</em></a> hook does get both original and
+updated values of the refs. You might consider it instead if you need
+them.</p></div>
+<div class="paragraph"><p>When enabled, the default <em>post-update</em> hook runs
+<code>git update-server-info</code> to keep the information used by dumb
+transports (e.g., HTTP) up to date.  If you are publishing
+a Git repository that is accessible via HTTP, you should
+probably enable this hook.</p></div>
+<div class="paragraph"><p>Both standard output and standard error output are forwarded to
+<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+for the user.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_push_to_checkout">push-to-checkout</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
+<code>git push</code> and updates reference(s) in its repository, and when
+the push tries to update the branch that is currently checked out
+and the <code>receive.denyCurrentBranch</code> configuration variable is set to
+<code>updateInstead</code>.  Such a push by default is refused if the working
+tree and the index of the remote repository has any difference from
+the currently checked out commit; when both the working tree and the
+index match the current commit, they are updated to match the newly
+pushed tip of the branch.  This hook is to be used to override the
+default behaviour.</p></div>
+<div class="paragraph"><p>The hook receives the commit with which the tip of the current
+branch is going to be updated.  It can exit with a non-zero status
+to refuse the push (when it does so, it must not modify the index or
+the working tree).  Or it can make any necessary changes to the
+working tree and to the index to bring them to the desired state
+when the tip of the current branch is updated to the new commit, and
+exit with a zero status.</p></div>
+<div class="paragraph"><p>For example, the hook can simply run <code>git read-tree -u -m HEAD "$1"</code>
+in order to emulate <code>git fetch</code> that is run in the reverse direction
+with <code>git push</code>, as the two-tree form of <code>git read-tree -u -m</code> is
+essentially the same as <code>git switch</code> or <code>git checkout</code>
+that switches branches while
+keeping the local changes in the working tree that do not interfere
+with the difference between the branches.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_pre_auto_gc">pre-auto-gc</h3>
+<div class="paragraph"><p>This hook is invoked by <code>git gc --auto</code> (see <a href="git-gc.html">git-gc(1)</a>). It
+takes no parameter, and exiting with non-zero status from this script
+causes the <code>git gc --auto</code> to abort.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_post_rewrite">post-rewrite</h3>
+<div class="paragraph"><p>This hook is invoked by commands that rewrite commits
+(<a href="git-commit.html">git-commit(1)</a> when called with <code>--amend</code> and
+<a href="git-rebase.html">git-rebase(1)</a>; however, full-history (re)writing tools like
+<a href="git-fast-import.html">git-fast-import(1)</a> or
+<a href="https://github.com/newren/git-filter-repo">git-filter-repo</a> typically
+do not call it!).  Its first argument denotes the command it was
+invoked by: currently one of <code>amend</code> or <code>rebase</code>.  Further
+command-dependent arguments may be passed in the future.</p></div>
+<div class="paragraph"><p>The hook receives a list of the rewritten commits on stdin, in the
+format</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;old-sha1&gt; SP &lt;new-sha1&gt; [ SP &lt;extra-info&gt; ] LF</code></pre>
+</div></div>
+<div class="paragraph"><p>The <em>extra-info</em> is again command-dependent.  If it is empty, the
+preceding SP is also omitted.  Currently, no commands pass any
+<em>extra-info</em>.</p></div>
+<div class="paragraph"><p>The hook always runs after the automatic note copying (see
+"notes.rewrite.&lt;command&gt;" in <a href="git-config.html">git-config(1)</a>) has happened, and
+thus has access to these notes.</p></div>
+<div class="paragraph"><p>The following command-specific comments apply:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+rebase
+</dt>
+<dd>
+<p>
+        For the <em>squash</em> and <em>fixup</em> operation, all commits that were
+        squashed are listed as being rewritten to the squashed commit.
+        This means that there will be several lines sharing the same
+        <em>new-sha1</em>.
+</p>
+<div class="paragraph"><p>The commits are guaranteed to be listed in the order that they were
+processed by rebase.</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_sendemail_validate">sendemail-validate</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-send-email.html">git-send-email(1)</a>.  It takes a single parameter,
+the name of the file that holds the e-mail to be sent.  Exiting with a
+non-zero status causes <code>git send-email</code> to abort before sending any
+e-mails.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_fsmonitor_watchman">fsmonitor-watchman</h3>
+<div class="paragraph"><p>This hook is invoked when the configuration option <code>core.fsmonitor</code> is
+set to <code>.git/hooks/fsmonitor-watchman</code>.  It takes two arguments, a version
+(currently 1) and the time in elapsed nanoseconds since midnight,
+January 1, 1970.</p></div>
+<div class="paragraph"><p>The hook should output to stdout the list of all files in the working
+directory that may have changed since the requested time.  The logic
+should be inclusive so that it does not miss any potential changes.
+The paths should be relative to the root of the working directory
+and be separated by a single NUL.</p></div>
+<div class="paragraph"><p>It is OK to include files which have not actually changed.  All changes
+including newly-created and deleted files should be included. When
+files are renamed, both the old and the new name should be included.</p></div>
+<div class="paragraph"><p>Git will limit what files it checks for changes as well as which
+directories are checked for untracked files based on the path names
+given.</p></div>
+<div class="paragraph"><p>An optimized way to tell git "all files have changed" is to return
+the filename <code>/</code>.</p></div>
+<div class="paragraph"><p>The exit status determines whether git will use the data from the
+hook to limit its search.  On error, it will fall back to verifying
+all files and folders.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_p4_pre_submit">p4-pre-submit</h3>
+<div class="paragraph"><p>This hook is invoked by <code>git-p4 submit</code>. It takes no parameters and nothing
+from standard input. Exiting with non-zero status from this script prevent
+<code>git-p4 submit</code> from launching. Run <code>git-p4 submit --help</code> for details.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_post_index_change">post-index-change</h3>
+<div class="paragraph"><p>This hook is invoked when the index is written in read-cache.c
+do_write_locked_index.</p></div>
+<div class="paragraph"><p>The first parameter passed to the hook is the indicator for the
+working directory being updated.  "1" meaning working directory
+was updated or "0" when the working directory was not updated.</p></div>
+<div class="paragraph"><p>The second parameter passed to the hook is the indicator for whether
+or not the index was updated and the skip-worktree bit could have
+changed.  "1" meaning skip-worktree bits could have been updated
+and "0" meaning they were not.</p></div>
+<div class="paragraph"><p>Only one parameter should be set to "1" when the hook runs.  The hook
+running passing "1", "1" should not be possible.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-07 21:50:10 PDT
+</div>
+</div>
+</body>
+</html>

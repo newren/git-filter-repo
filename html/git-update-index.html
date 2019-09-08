@@ -1,0 +1,1499 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-update-index(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-update-index(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-update-index -
+   Register file contents in the working tree to the index
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git update-index</em>
+             [--add] [--remove | --force-remove] [--replace]
+             [--refresh] [-q] [--unmerged] [--ignore-missing]
+             [(--cacheinfo &lt;mode&gt;,&lt;object&gt;,&lt;file&gt;)&#8230;]
+             [--chmod=(+|-)x]
+             [--[no-]assume-unchanged]
+             [--[no-]skip-worktree]
+             [--[no-]fsmonitor-valid]
+             [--ignore-submodules]
+             [--[no-]split-index]
+             [--[no-|test-|force-]untracked-cache]
+             [--[no-]fsmonitor]
+             [--really-refresh] [--unresolve] [--again | -g]
+             [--info-only] [--index-info]
+             [-z] [--stdin] [--index-version &lt;n&gt;]
+             [--verbose]
+             [--] [&lt;file&gt;&#8230;]</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Modifies the index or directory cache. Each file mentioned is updated
+into the index and any <em>unmerged</em> or <em>needs updating</em> state is
+cleared.</p></div>
+<div class="paragraph"><p>See also <a href="git-add.html">git-add(1)</a> for a more user-friendly way to do some of
+the most common operations on the index.</p></div>
+<div class="paragraph"><p>The way <em>git update-index</em> handles files it is told about can be modified
+using the various options:</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--add
+</dt>
+<dd>
+<p>
+        If a specified file isn&#8217;t in the index already then it&#8217;s
+        added.
+        Default behaviour is to ignore new files.
+</p>
+</dd>
+<dt class="hdlist1">
+--remove
+</dt>
+<dd>
+<p>
+        If a specified file is in the index but is missing then it&#8217;s
+        removed.
+        Default behavior is to ignore removed file.
+</p>
+</dd>
+<dt class="hdlist1">
+--refresh
+</dt>
+<dd>
+<p>
+        Looks at the current index and checks to see if merges or
+        updates are needed by checking stat() information.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dd>
+<p>
+        Quiet.  If --refresh finds that the index needs an update, the
+        default behavior is to error out.  This option makes
+        <em>git update-index</em> continue anyway.
+</p>
+</dd>
+<dt class="hdlist1">
+--ignore-submodules
+</dt>
+<dd>
+<p>
+        Do not try to update submodules.  This option is only respected
+        when passed before --refresh.
+</p>
+</dd>
+<dt class="hdlist1">
+--unmerged
+</dt>
+<dd>
+<p>
+        If --refresh finds unmerged changes in the index, the default
+        behavior is to error out.  This option makes <em>git update-index</em>
+        continue anyway.
+</p>
+</dd>
+<dt class="hdlist1">
+--ignore-missing
+</dt>
+<dd>
+<p>
+        Ignores missing files during a --refresh
+</p>
+</dd>
+<dt class="hdlist1">
+--cacheinfo &lt;mode&gt;,&lt;object&gt;,&lt;path&gt;
+</dt>
+<dt class="hdlist1">
+--cacheinfo &lt;mode&gt; &lt;object&gt; &lt;path&gt;
+</dt>
+<dd>
+<p>
+        Directly insert the specified info into the index.  For
+        backward compatibility, you can also give these three
+        arguments as three separate parameters, but new users are
+        encouraged to use a single-parameter form.
+</p>
+</dd>
+<dt class="hdlist1">
+--index-info
+</dt>
+<dd>
+<p>
+        Read index information from stdin.
+</p>
+</dd>
+<dt class="hdlist1">
+--chmod=(+|-)x
+</dt>
+<dd>
+<p>
+        Set the execute permissions on the updated files.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]assume-unchanged
+</dt>
+<dd>
+<p>
+        When this flag is specified, the object names recorded
+        for the paths are not updated.  Instead, this option
+        sets/unsets the "assume unchanged" bit for the
+        paths.  When the "assume unchanged" bit is on, the user
+        promises not to change the file and allows Git to assume
+        that the working tree file matches what is recorded in
+        the index.  If you want to change the working tree file,
+        you need to unset the bit to tell Git.  This is
+        sometimes helpful when working with a big project on a
+        filesystem that has very slow lstat(2) system call
+        (e.g. cifs).
+</p>
+<div class="paragraph"><p>Git will fail (gracefully) in case it needs to modify this file
+in the index e.g. when merging in a commit;
+thus, in case the assumed-untracked file is changed upstream,
+you will need to handle the situation manually.</p></div>
+</dd>
+<dt class="hdlist1">
+--really-refresh
+</dt>
+<dd>
+<p>
+        Like <code>--refresh</code>, but checks stat information unconditionally,
+        without regard to the "assume unchanged" setting.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]skip-worktree
+</dt>
+<dd>
+<p>
+        When one of these flags is specified, the object name recorded
+        for the paths are not updated. Instead, these options
+        set and unset the "skip-worktree" bit for the paths. See
+        section "Skip-worktree bit" below for more information.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]fsmonitor-valid
+</dt>
+<dd>
+<p>
+        When one of these flags is specified, the object name recorded
+        for the paths are not updated. Instead, these options
+        set and unset the "fsmonitor valid" bit for the paths. See
+        section "File System Monitor" below for more information.
+</p>
+</dd>
+<dt class="hdlist1">
+-g
+</dt>
+<dt class="hdlist1">
+--again
+</dt>
+<dd>
+<p>
+        Runs <em>git update-index</em> itself on the paths whose index
+        entries are different from those from the <code>HEAD</code> commit.
+</p>
+</dd>
+<dt class="hdlist1">
+--unresolve
+</dt>
+<dd>
+<p>
+        Restores the <em>unmerged</em> or <em>needs updating</em> state of a
+        file during a merge if it was cleared by accident.
+</p>
+</dd>
+<dt class="hdlist1">
+--info-only
+</dt>
+<dd>
+<p>
+        Do not create objects in the object database for all
+        &lt;file&gt; arguments that follow this flag; just insert
+        their object IDs into the index.
+</p>
+</dd>
+<dt class="hdlist1">
+--force-remove
+</dt>
+<dd>
+<p>
+        Remove the file from the index even when the working directory
+        still has such a file. (Implies --remove.)
+</p>
+</dd>
+<dt class="hdlist1">
+--replace
+</dt>
+<dd>
+<p>
+        By default, when a file <code>path</code> exists in the index,
+        <em>git update-index</em> refuses an attempt to add <code>path/file</code>.
+        Similarly if a file <code>path/file</code> exists, a file <code>path</code>
+        cannot be added.  With --replace flag, existing entries
+        that conflict with the entry being added are
+        automatically removed with warning messages.
+</p>
+</dd>
+<dt class="hdlist1">
+--stdin
+</dt>
+<dd>
+<p>
+        Instead of taking list of paths from the command line,
+        read list of paths from the standard input.  Paths are
+        separated by LF (i.e. one path per line) by default.
+</p>
+</dd>
+<dt class="hdlist1">
+--verbose
+</dt>
+<dd>
+<p>
+        Report what is being added and removed from index.
+</p>
+</dd>
+<dt class="hdlist1">
+--index-version &lt;n&gt;
+</dt>
+<dd>
+<p>
+        Write the resulting index out in the named on-disk format version.
+        Supported versions are 2, 3 and 4. The current default version is 2
+        or 3, depending on whether extra features are used, such as
+        <code>git add -N</code>.
+</p>
+<div class="paragraph"><p>Version 4 performs a simple pathname compression that reduces index
+size by 30%-50% on large repositories, which results in faster load
+time. Version 4 is relatively young (first released in 1.8.0 in
+October 2012). Other Git implementations such as JGit and libgit2
+may not support it yet.</p></div>
+</dd>
+<dt class="hdlist1">
+-z
+</dt>
+<dd>
+<p>
+        Only meaningful with <code>--stdin</code> or <code>--index-info</code>; paths are
+        separated with NUL character instead of LF.
+</p>
+</dd>
+<dt class="hdlist1">
+--split-index
+</dt>
+<dt class="hdlist1">
+--no-split-index
+</dt>
+<dd>
+<p>
+        Enable or disable split index mode. If split-index mode is
+        already enabled and <code>--split-index</code> is given again, all
+        changes in $GIT_DIR/index are pushed back to the shared index
+        file.
+</p>
+<div class="paragraph"><p>These options take effect whatever the value of the <code>core.splitIndex</code>
+configuration variable (see <a href="git-config.html">git-config(1)</a>). But a warning is
+emitted when the change goes against the configured value, as the
+configured value will take effect next time the index is read and this
+will remove the intended effect of the option.</p></div>
+</dd>
+<dt class="hdlist1">
+--untracked-cache
+</dt>
+<dt class="hdlist1">
+--no-untracked-cache
+</dt>
+<dd>
+<p>
+        Enable or disable untracked cache feature. Please use
+        <code>--test-untracked-cache</code> before enabling it.
+</p>
+<div class="paragraph"><p>These options take effect whatever the value of the <code>core.untrackedCache</code>
+configuration variable (see <a href="git-config.html">git-config(1)</a>). But a warning is
+emitted when the change goes against the configured value, as the
+configured value will take effect next time the index is read and this
+will remove the intended effect of the option.</p></div>
+</dd>
+<dt class="hdlist1">
+--test-untracked-cache
+</dt>
+<dd>
+<p>
+        Only perform tests on the working directory to make sure
+        untracked cache can be used. You have to manually enable
+        untracked cache using <code>--untracked-cache</code> or
+        <code>--force-untracked-cache</code> or the <code>core.untrackedCache</code>
+        configuration variable afterwards if you really want to use
+        it. If a test fails the exit code is 1 and a message
+        explains what is not working as needed, otherwise the exit
+        code is 0 and OK is printed.
+</p>
+</dd>
+<dt class="hdlist1">
+--force-untracked-cache
+</dt>
+<dd>
+<p>
+        Same as <code>--untracked-cache</code>. Provided for backwards
+        compatibility with older versions of Git where
+        <code>--untracked-cache</code> used to imply <code>--test-untracked-cache</code> but
+        this option would enable the extension unconditionally.
+</p>
+</dd>
+<dt class="hdlist1">
+--fsmonitor
+</dt>
+<dt class="hdlist1">
+--no-fsmonitor
+</dt>
+<dd>
+<p>
+        Enable or disable files system monitor feature. These options
+        take effect whatever the value of the <code>core.fsmonitor</code>
+        configuration variable (see <a href="git-config.html">git-config(1)</a>). But a warning
+        is emitted when the change goes against the configured value, as
+        the configured value will take effect next time the index is
+        read and this will remove the intended effect of the option.
+</p>
+</dd>
+<dt class="hdlist1">
+--
+</dt>
+<dd>
+<p>
+        Do not interpret any more arguments as options.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Files to act on.
+        Note that files beginning with <em>.</em> are discarded. This includes
+        <code>./file</code> and <code>dir/./file</code>. If you don&#8217;t want this, then use
+        cleaner names.
+        The same applies to directories ending <em>/</em> and paths with <em>//</em>
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_refresh">USING --REFRESH</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><code>--refresh</code> does not calculate a new sha1 file or bring the index
+up to date for mode/content changes. But what it <strong>does</strong> do is to
+"re-match" the stat information of a file with the index, so that you
+can refresh the index for a file that hasn&#8217;t been changed but where
+the stat entry is out of date.</p></div>
+<div class="paragraph"><p>For example, you&#8217;d want to do this after doing a <em>git read-tree</em>, to link
+up the stat index details with the proper files.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_cacheinfo_or_info_only">USING --CACHEINFO OR --INFO-ONLY</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><code>--cacheinfo</code> is used to register a file that is not in the
+current working directory.  This is useful for minimum-checkout
+merging.</p></div>
+<div class="paragraph"><p>To pretend you have a file at path with mode and sha1, say:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git update-index --add --cacheinfo &lt;mode&gt;,&lt;sha1&gt;,&lt;path&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p><code>--info-only</code> is used to register files without placing them in the object
+database.  This is useful for status-only repositories.</p></div>
+<div class="paragraph"><p>Both <code>--cacheinfo</code> and <code>--info-only</code> behave similarly: the index is updated
+but the object database isn&#8217;t.  <code>--cacheinfo</code> is useful when the object is
+in the database but the file isn&#8217;t available locally.  <code>--info-only</code> is
+useful when the file is available, but you do not wish to update the
+object database.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_index_info">USING --INDEX-INFO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><code>--index-info</code> is a more powerful mechanism that lets you feed
+multiple entry definitions from the standard input, and designed
+specifically for scripts.  It can take inputs of three formats:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+mode SP type SP sha1          TAB path
+</p>
+<div class="paragraph"><p>This format is to stuff <code>git ls-tree</code> output into the index.</p></div>
+</li>
+<li>
+<p>
+mode         SP sha1 SP stage TAB path
+</p>
+<div class="paragraph"><p>This format is to put higher order stages into the
+index file and matches <em>git ls-files --stage</em> output.</p></div>
+</li>
+<li>
+<p>
+mode         SP sha1          TAB path
+</p>
+<div class="paragraph"><p>This format is no longer produced by any Git command, but is
+and will continue to be supported by <code>update-index --index-info</code>.</p></div>
+</li>
+</ol></div>
+<div class="paragraph"><p>To place a higher stage entry to the index, the path should
+first be removed by feeding a mode=0 entry for the path, and
+then feeding necessary input lines in the third format.</p></div>
+<div class="paragraph"><p>For example, starting with this index:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git ls-files -s
+100644 8a1218a1024a212bb3db30becd860315f9f3ac52 0       frotz</code></pre>
+</div></div>
+<div class="paragraph"><p>you can feed the following input to <code>--index-info</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git update-index --index-info
+0 0000000000000000000000000000000000000000      frotz
+100644 8a1218a1024a212bb3db30becd860315f9f3ac52 1       frotz
+100755 8a1218a1024a212bb3db30becd860315f9f3ac52 2       frotz</code></pre>
+</div></div>
+<div class="paragraph"><p>The first line of the input feeds 0 as the mode to remove the
+path; the SHA-1 does not matter as long as it is well formatted.
+Then the second and third line feeds stage 1 and stage 2 entries
+for that path.  After the above, we would end up with this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git ls-files -s
+100644 8a1218a1024a212bb3db30becd860315f9f3ac52 1       frotz
+100755 8a1218a1024a212bb3db30becd860315f9f3ac52 2       frotz</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_8220_assume_unchanged_8221_bit">USING &#8220;ASSUME UNCHANGED&#8221; BIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Many operations in Git depend on your filesystem to have an
+efficient <code>lstat(2)</code> implementation, so that <code>st_mtime</code>
+information for working tree files can be cheaply checked to see
+if the file contents have changed from the version recorded in
+the index file.  Unfortunately, some filesystems have
+inefficient <code>lstat(2)</code>.  If your filesystem is one of them, you
+can set "assume unchanged" bit to paths you have not changed to
+cause Git not to do this check.  Note that setting this bit on a
+path does not mean Git will check the contents of the file to
+see if it has changed&#8201;&#8212;&#8201;it makes Git to omit any checking and
+assume it has <strong>not</strong> changed.  When you make changes to working
+tree files, you have to explicitly tell Git about it by dropping
+"assume unchanged" bit, either before or after you modify them.</p></div>
+<div class="paragraph"><p>In order to set "assume unchanged" bit, use <code>--assume-unchanged</code>
+option.  To unset, use <code>--no-assume-unchanged</code>. To see which files
+have the "assume unchanged" bit set, use <code>git ls-files -v</code>
+(see <a href="git-ls-files.html">git-ls-files(1)</a>).</p></div>
+<div class="paragraph"><p>The command looks at <code>core.ignorestat</code> configuration variable.  When
+this is true, paths updated with <code>git update-index paths...</code> and
+paths updated with other Git commands that update both index and
+working tree (e.g. <em>git apply --index</em>, <em>git checkout-index -u</em>,
+and <em>git read-tree -u</em>) are automatically marked as "assume
+unchanged".  Note that "assume unchanged" bit is <strong>not</strong> set if
+<code>git update-index --refresh</code> finds the working tree file matches
+the index (use <code>git update-index --really-refresh</code> if you want
+to mark them as "assume unchanged").</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>To update and refresh only the files already checked out:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git checkout-index -n -f -a &amp;&amp; git update-index --ignore-missing --refresh</code></pre>
+</div></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+On an inefficient filesystem with <code>core.ignorestat</code> set
+</dt>
+<dd>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git update-index --really-refresh              <b>&lt;1&gt;</b>
+$ git update-index --no-assume-unchanged foo.c   <b>&lt;2&gt;</b>
+$ git diff --name-only                           <b>&lt;3&gt;</b>
+$ edit foo.c
+$ git diff --name-only                           <b>&lt;4&gt;</b>
+M foo.c
+$ git update-index foo.c                         <b>&lt;5&gt;</b>
+$ git diff --name-only                           <b>&lt;6&gt;</b>
+$ edit foo.c
+$ git diff --name-only                           <b>&lt;7&gt;</b>
+$ git update-index --no-assume-unchanged foo.c   <b>&lt;8&gt;</b>
+$ git diff --name-only                           <b>&lt;9&gt;</b>
+M foo.c</code></pre>
+</div></div>
+<div class="colist arabic"><ol>
+<li>
+<p>
+forces lstat(2) to set "assume unchanged" bits for paths that match index.
+</p>
+</li>
+<li>
+<p>
+mark the path to be edited.
+</p>
+</li>
+<li>
+<p>
+this does lstat(2) and finds index matches the path.
+</p>
+</li>
+<li>
+<p>
+this does lstat(2) and finds index does <strong>not</strong> match the path.
+</p>
+</li>
+<li>
+<p>
+registering the new version to index sets "assume unchanged" bit.
+</p>
+</li>
+<li>
+<p>
+and it is assumed unchanged.
+</p>
+</li>
+<li>
+<p>
+even after you edit it.
+</p>
+</li>
+<li>
+<p>
+you can tell about the change after the fact.
+</p>
+</li>
+<li>
+<p>
+now it checks with lstat(2) and finds it has been changed.
+</p>
+</li>
+</ol></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_skip_worktree_bit">SKIP-WORKTREE BIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Skip-worktree bit can be defined in one (long) sentence: When reading
+an entry, if it is marked as skip-worktree, then Git pretends its
+working directory version is up to date and read the index version
+instead.</p></div>
+<div class="paragraph"><p>To elaborate, "reading" means checking for file existence, reading
+file attributes or file content. The working directory version may be
+present or absent. If present, its content may match against the index
+version or not. Writing is not affected by this bit, content safety
+is still first priority. Note that Git <em>can</em> update working directory
+file, that is marked skip-worktree, if it is safe to do so (i.e.
+working directory version matches index version)</p></div>
+<div class="paragraph"><p>Although this bit looks similar to assume-unchanged bit, its goal is
+different from assume-unchanged bit&#8217;s. Skip-worktree also takes
+precedence over assume-unchanged bit when both are set.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_split_index">SPLIT INDEX</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This mode is designed for repositories with very large indexes, and
+aims at reducing the time it takes to repeatedly write these indexes.</p></div>
+<div class="paragraph"><p>In this mode, the index is split into two files, $GIT_DIR/index and
+$GIT_DIR/sharedindex.&lt;SHA-1&gt;. Changes are accumulated in
+$GIT_DIR/index, the split index, while the shared index file contains
+all index entries and stays unchanged.</p></div>
+<div class="paragraph"><p>All changes in the split index are pushed back to the shared index
+file when the number of entries in the split index reaches a level
+specified by the splitIndex.maxPercentChange config variable (see
+<a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>Each time a new shared index file is created, the old shared index
+files are deleted if their modification time is older than what is
+specified by the splitIndex.sharedIndexExpire config variable (see
+<a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>To avoid deleting a shared index file that is still used, its
+modification time is updated to the current time everytime a new split
+index based on the shared index file is either created or read from.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_untracked_cache">UNTRACKED CACHE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This cache is meant to speed up commands that involve determining
+untracked files such as <code>git status</code>.</p></div>
+<div class="paragraph"><p>This feature works by recording the mtime of the working tree
+directories and then omitting reading directories and stat calls
+against files in those directories whose mtime hasn&#8217;t changed. For
+this to work the underlying operating system and file system must
+change the <code>st_mtime</code> field of directories if files in the directory
+are added, modified or deleted.</p></div>
+<div class="paragraph"><p>You can test whether the filesystem supports that with the
+<code>--test-untracked-cache</code> option. The <code>--untracked-cache</code> option used
+to implicitly perform that test in older versions of Git, but that&#8217;s
+no longer the case.</p></div>
+<div class="paragraph"><p>If you want to enable (or disable) this feature, it is easier to use
+the <code>core.untrackedCache</code> configuration variable (see
+<a href="git-config.html">git-config(1)</a>) than using the <code>--untracked-cache</code> option to
+<code>git update-index</code> in each repository, especially if you want to do so
+across all repositories you use, because you can set the configuration
+variable to <code>true</code> (or <code>false</code>) in your <code>$HOME/.gitconfig</code> just once
+and have it affect all repositories you touch.</p></div>
+<div class="paragraph"><p>When the <code>core.untrackedCache</code> configuration variable is changed, the
+untracked cache is added to or removed from the index the next time a
+command reads the index; while when <code>--[no-|force-]untracked-cache</code>
+are used, the untracked cache is immediately added to or removed from
+the index.</p></div>
+<div class="paragraph"><p>Before 2.17, the untracked cache had a bug where replacing a directory
+with a symlink to another directory could cause it to incorrectly show
+files tracked by git as untracked. See the "status: add a failing test
+showing a core.untrackedCache bug" commit to git.git. A workaround for
+that is (and this might work for other undiscovered bugs in the
+future):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git -c core.untrackedCache=false status</code></pre>
+</div></div>
+<div class="paragraph"><p>This bug has also been shown to affect non-symlink cases of replacing
+a directory with a file when it comes to the internal structures of
+the untracked cache, but no case has been reported where this resulted in
+wrong "git status" output.</p></div>
+<div class="paragraph"><p>There are also cases where existing indexes written by git versions
+before 2.17 will reference directories that don&#8217;t exist anymore,
+potentially causing many "could not open directory" warnings to be
+printed on "git status". These are new warnings for existing issues
+that were previously silently discarded.</p></div>
+<div class="paragraph"><p>As with the bug described above the solution is to one-off do a "git
+status" run with <code>core.untrackedCache=false</code> to flush out the leftover
+bad data.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_file_system_monitor">FILE SYSTEM MONITOR</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This feature is intended to speed up git operations for repos that have
+large working directories.</p></div>
+<div class="paragraph"><p>It enables git to work together with a file system monitor (see the
+"fsmonitor-watchman" section of <a href="githooks.html">githooks(5)</a>) that can
+inform it as to what files have been modified. This enables git to avoid
+having to lstat() every file to find modified files.</p></div>
+<div class="paragraph"><p>When used in conjunction with the untracked cache, it can further improve
+performance by avoiding the cost of scanning the entire working directory
+looking for new files.</p></div>
+<div class="paragraph"><p>If you want to enable (or disable) this feature, it is easier to use
+the <code>core.fsmonitor</code> configuration variable (see
+<a href="git-config.html">git-config(1)</a>) than using the <code>--fsmonitor</code> option to
+<code>git update-index</code> in each repository, especially if you want to do so
+across all repositories you use, because you can set the configuration
+variable in your <code>$HOME/.gitconfig</code> just once and have it affect all
+repositories you touch.</p></div>
+<div class="paragraph"><p>When the <code>core.fsmonitor</code> configuration variable is changed, the
+file system monitor is added to or removed from the index the next time
+a command reads the index. When <code>--[no-]fsmonitor</code> are used, the file
+system monitor is immediately added to or removed from the index.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The command honors <code>core.filemode</code> configuration variable.  If
+your repository is on a filesystem whose executable bits are
+unreliable, this should be set to <em>false</em> (see <a href="git-config.html">git-config(1)</a>).
+This causes the command to ignore differences in file modes recorded
+in the index and the file mode on the filesystem if they differ only on
+executable bit.   On such an unfortunate filesystem, you may
+need to use <em>git update-index --chmod=</em>.</p></div>
+<div class="paragraph"><p>Quite similarly, if <code>core.symlinks</code> configuration variable is set
+to <em>false</em> (see <a href="git-config.html">git-config(1)</a>), symbolic links are checked out
+as plain files, and this command does not modify a recorded file mode
+from symbolic link to regular file.</p></div>
+<div class="paragraph"><p>The command looks at <code>core.ignorestat</code> configuration variable.  See
+<em>Using "assume unchanged" bit</em> section above.</p></div>
+<div class="paragraph"><p>The command also looks at <code>core.trustctime</code> configuration variable.
+It can be useful when the inode change time is regularly modified by
+something outside Git (file system crawlers and backup systems use
+ctime for marking files processed) (see <a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>The untracked cache extension can be enabled by the
+<code>core.untrackedCache</code> configuration variable (see
+<a href="git-config.html">git-config(1)</a>).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-config.html">git-config(1)</a>,
+<a href="git-add.html">git-add(1)</a>,
+<a href="git-ls-files.html">git-ls-files(1)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1446 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-grep(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-grep(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-grep -
+   Print lines matching a pattern
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git grep</em> [-a | --text] [-I] [--textconv] [-i | --ignore-case] [-w | --word-regexp]
+           [-v | --invert-match] [-h|-H] [--full-name]
+           [-E | --extended-regexp] [-G | --basic-regexp]
+           [-P | --perl-regexp]
+           [-F | --fixed-strings] [-n | --line-number] [--column]
+           [-l | --files-with-matches] [-L | --files-without-match]
+           [(-O | --open-files-in-pager) [&lt;pager&gt;]]
+           [-z | --null]
+           [ -o | --only-matching ] [-c | --count] [--all-match] [-q | --quiet]
+           [--max-depth &lt;depth&gt;] [--[no-]recursive]
+           [--color[=&lt;when&gt;] | --no-color]
+           [--break] [--heading] [-p | --show-function]
+           [-A &lt;post-context&gt;] [-B &lt;pre-context&gt;] [-C &lt;context&gt;]
+           [-W | --function-context]
+           [--threads &lt;num&gt;]
+           [-f &lt;file&gt;] [-e] &lt;pattern&gt;
+           [--and|--or|--not|(|)|-e &lt;pattern&gt;&#8230;]
+           [--recurse-submodules] [--parent-basename &lt;basename&gt;]
+           [ [--[no-]exclude-standard] [--cached | --no-index | --untracked] | &lt;tree&gt;&#8230;]
+           [--] [&lt;pathspec&gt;&#8230;]</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Look for specified patterns in the tracked files in the work tree, blobs
+registered in the index file, or blobs in given tree objects.  Patterns
+are lists of one or more search expressions separated by newline
+characters.  An empty string as search expression matches all lines.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+grep.lineNumber
+</dt>
+<dd>
+<p>
+        If set to true, enable <code>-n</code> option by default.
+</p>
+</dd>
+<dt class="hdlist1">
+grep.column
+</dt>
+<dd>
+<p>
+        If set to true, enable the <code>--column</code> option by default.
+</p>
+</dd>
+<dt class="hdlist1">
+grep.patternType
+</dt>
+<dd>
+<p>
+        Set the default matching behavior. Using a value of <em>basic</em>, <em>extended</em>,
+        <em>fixed</em>, or <em>perl</em> will enable the <code>--basic-regexp</code>, <code>--extended-regexp</code>,
+        <code>--fixed-strings</code>, or <code>--perl-regexp</code> option accordingly, while the
+        value <em>default</em> will return to the default matching behavior.
+</p>
+</dd>
+<dt class="hdlist1">
+grep.extendedRegexp
+</dt>
+<dd>
+<p>
+        If set to true, enable <code>--extended-regexp</code> option by default. This
+        option is ignored when the <code>grep.patternType</code> option is set to a value
+        other than <em>default</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+grep.threads
+</dt>
+<dd>
+<p>
+        Number of grep worker threads to use.  If unset (or set to 0),
+        8 threads are used by default (for now).
+</p>
+</dd>
+<dt class="hdlist1">
+grep.fullName
+</dt>
+<dd>
+<p>
+        If set to true, enable <code>--full-name</code> option by default.
+</p>
+</dd>
+<dt class="hdlist1">
+grep.fallbackToNoIndex
+</dt>
+<dd>
+<p>
+        If set to true, fall back to git grep --no-index if git grep
+        is executed outside of a git repository.  Defaults to false.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--cached
+</dt>
+<dd>
+<p>
+        Instead of searching tracked files in the working tree, search
+        blobs registered in the index file.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-index
+</dt>
+<dd>
+<p>
+        Search files in the current directory that is not managed by Git.
+</p>
+</dd>
+<dt class="hdlist1">
+--untracked
+</dt>
+<dd>
+<p>
+        In addition to searching in the tracked files in the working
+        tree, search also in untracked files.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-exclude-standard
+</dt>
+<dd>
+<p>
+        Also search in ignored files by not honoring the <code>.gitignore</code>
+        mechanism. Only useful with <code>--untracked</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude-standard
+</dt>
+<dd>
+<p>
+        Do not pay attention to ignored files specified via the <code>.gitignore</code>
+        mechanism.  Only useful when searching files in the current directory
+        with <code>--no-index</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--recurse-submodules
+</dt>
+<dd>
+<p>
+        Recursively search in each submodule that has been initialized and
+        checked out in the repository.  When used in combination with the
+        &lt;tree&gt; option the prefix of all submodule output will be the name of
+        the parent project&#8217;s &lt;tree&gt; object.
+</p>
+</dd>
+<dt class="hdlist1">
+-a
+</dt>
+<dt class="hdlist1">
+--text
+</dt>
+<dd>
+<p>
+        Process binary files as if they were text.
+</p>
+</dd>
+<dt class="hdlist1">
+--textconv
+</dt>
+<dd>
+<p>
+        Honor textconv filter settings.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-textconv
+</dt>
+<dd>
+<p>
+        Do not honor textconv filter settings.
+        This is the default.
+</p>
+</dd>
+<dt class="hdlist1">
+-i
+</dt>
+<dt class="hdlist1">
+--ignore-case
+</dt>
+<dd>
+<p>
+        Ignore case differences between the patterns and the
+        files.
+</p>
+</dd>
+<dt class="hdlist1">
+-I
+</dt>
+<dd>
+<p>
+        Don&#8217;t match the pattern in binary files.
+</p>
+</dd>
+<dt class="hdlist1">
+--max-depth &lt;depth&gt;
+</dt>
+<dd>
+<p>
+        For each &lt;pathspec&gt; given on command line, descend at most &lt;depth&gt;
+        levels of directories. A value of -1 means no limit.
+        This option is ignored if &lt;pathspec&gt; contains active wildcards.
+        In other words if "a*" matches a directory named "a*",
+        "*" is matched literally so --max-depth is still effective.
+</p>
+</dd>
+<dt class="hdlist1">
+-r
+</dt>
+<dt class="hdlist1">
+--recursive
+</dt>
+<dd>
+<p>
+        Same as <code>--max-depth=-1</code>; this is the default.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-recursive
+</dt>
+<dd>
+<p>
+        Same as <code>--max-depth=0</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-w
+</dt>
+<dt class="hdlist1">
+--word-regexp
+</dt>
+<dd>
+<p>
+        Match the pattern only at word boundary (either begin at the
+        beginning of a line, or preceded by a non-word character; end at
+        the end of a line or followed by a non-word character).
+</p>
+</dd>
+<dt class="hdlist1">
+-v
+</dt>
+<dt class="hdlist1">
+--invert-match
+</dt>
+<dd>
+<p>
+        Select non-matching lines.
+</p>
+</dd>
+<dt class="hdlist1">
+-h
+</dt>
+<dt class="hdlist1">
+-H
+</dt>
+<dd>
+<p>
+        By default, the command shows the filename for each
+        match.  <code>-h</code> option is used to suppress this output.
+        <code>-H</code> is there for completeness and does not do anything
+        except it overrides <code>-h</code> given earlier on the command
+        line.
+</p>
+</dd>
+<dt class="hdlist1">
+--full-name
+</dt>
+<dd>
+<p>
+        When run from a subdirectory, the command usually
+        outputs paths relative to the current directory.  This
+        option forces paths to be output relative to the project
+        top directory.
+</p>
+</dd>
+<dt class="hdlist1">
+-E
+</dt>
+<dt class="hdlist1">
+--extended-regexp
+</dt>
+<dt class="hdlist1">
+-G
+</dt>
+<dt class="hdlist1">
+--basic-regexp
+</dt>
+<dd>
+<p>
+        Use POSIX extended/basic regexp for patterns.  Default
+        is to use basic regexp.
+</p>
+</dd>
+<dt class="hdlist1">
+-P
+</dt>
+<dt class="hdlist1">
+--perl-regexp
+</dt>
+<dd>
+<p>
+        Use Perl-compatible regular expressions for patterns.
+</p>
+<div class="paragraph"><p>Support for these types of regular expressions is an optional
+compile-time dependency. If Git wasn&#8217;t compiled with support for them
+providing this option will cause it to die.</p></div>
+</dd>
+<dt class="hdlist1">
+-F
+</dt>
+<dt class="hdlist1">
+--fixed-strings
+</dt>
+<dd>
+<p>
+        Use fixed strings for patterns (don&#8217;t interpret pattern
+        as a regex).
+</p>
+</dd>
+<dt class="hdlist1">
+-n
+</dt>
+<dt class="hdlist1">
+--line-number
+</dt>
+<dd>
+<p>
+        Prefix the line number to matching lines.
+</p>
+</dd>
+<dt class="hdlist1">
+--column
+</dt>
+<dd>
+<p>
+        Prefix the 1-indexed byte-offset of the first match from the start of the
+        matching line.
+</p>
+</dd>
+<dt class="hdlist1">
+-l
+</dt>
+<dt class="hdlist1">
+--files-with-matches
+</dt>
+<dt class="hdlist1">
+--name-only
+</dt>
+<dt class="hdlist1">
+-L
+</dt>
+<dt class="hdlist1">
+--files-without-match
+</dt>
+<dd>
+<p>
+        Instead of showing every matched line, show only the
+        names of files that contain (or do not contain) matches.
+        For better compatibility with <em>git diff</em>, <code>--name-only</code> is a
+        synonym for <code>--files-with-matches</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-O[&lt;pager&gt;]
+</dt>
+<dt class="hdlist1">
+--open-files-in-pager[=&lt;pager&gt;]
+</dt>
+<dd>
+<p>
+        Open the matching files in the pager (not the output of <em>grep</em>).
+        If the pager happens to be "less" or "vi", and the user
+        specified only one pattern, the first file is positioned at
+        the first match automatically. The <code>pager</code> argument is
+        optional; if specified, it must be stuck to the option
+        without a space. If <code>pager</code> is unspecified, the default pager
+        will be used (see <code>core.pager</code> in <a href="git-config.html">git-config(1)</a>).
+</p>
+</dd>
+<dt class="hdlist1">
+-z
+</dt>
+<dt class="hdlist1">
+--null
+</dt>
+<dd>
+<p>
+        Output \0 instead of the character that normally follows a
+        file name.
+</p>
+</dd>
+<dt class="hdlist1">
+-o
+</dt>
+<dt class="hdlist1">
+--only-matching
+</dt>
+<dd>
+<p>
+        Print only the matched (non-empty) parts of a matching line, with each such
+        part on a separate output line.
+</p>
+</dd>
+<dt class="hdlist1">
+-c
+</dt>
+<dt class="hdlist1">
+--count
+</dt>
+<dd>
+<p>
+        Instead of showing every matched line, show the number of
+        lines that match.
+</p>
+</dd>
+<dt class="hdlist1">
+--color[=&lt;when&gt;]
+</dt>
+<dd>
+<p>
+        Show colored matches.
+        The value must be always (the default), never, or auto.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-color
+</dt>
+<dd>
+<p>
+        Turn off match highlighting, even when the configuration file
+        gives the default to color output.
+        Same as <code>--color=never</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--break
+</dt>
+<dd>
+<p>
+        Print an empty line between matches from different files.
+</p>
+</dd>
+<dt class="hdlist1">
+--heading
+</dt>
+<dd>
+<p>
+        Show the filename above the matches in that file instead of
+        at the start of each shown line.
+</p>
+</dd>
+<dt class="hdlist1">
+-p
+</dt>
+<dt class="hdlist1">
+--show-function
+</dt>
+<dd>
+<p>
+        Show the preceding line that contains the function name of
+        the match, unless the matching line is a function name itself.
+        The name is determined in the same way as <em>git diff</em> works out
+        patch hunk headers (see <em>Defining a custom hunk-header</em> in
+        <a href="gitattributes.html">gitattributes(5)</a>).
+</p>
+</dd>
+<dt class="hdlist1">
+-&lt;num&gt;
+</dt>
+<dt class="hdlist1">
+-C &lt;num&gt;
+</dt>
+<dt class="hdlist1">
+--context &lt;num&gt;
+</dt>
+<dd>
+<p>
+        Show &lt;num&gt; leading and trailing lines, and place a line
+        containing <code>--</code> between contiguous groups of matches.
+</p>
+</dd>
+<dt class="hdlist1">
+-A &lt;num&gt;
+</dt>
+<dt class="hdlist1">
+--after-context &lt;num&gt;
+</dt>
+<dd>
+<p>
+        Show &lt;num&gt; trailing lines, and place a line containing
+        <code>--</code> between contiguous groups of matches.
+</p>
+</dd>
+<dt class="hdlist1">
+-B &lt;num&gt;
+</dt>
+<dt class="hdlist1">
+--before-context &lt;num&gt;
+</dt>
+<dd>
+<p>
+        Show &lt;num&gt; leading lines, and place a line containing
+        <code>--</code> between contiguous groups of matches.
+</p>
+</dd>
+<dt class="hdlist1">
+-W
+</dt>
+<dt class="hdlist1">
+--function-context
+</dt>
+<dd>
+<p>
+        Show the surrounding text from the previous line containing a
+        function name up to the one before the next function name,
+        effectively showing the whole function in which the match was
+        found.
+</p>
+</dd>
+<dt class="hdlist1">
+--threads &lt;num&gt;
+</dt>
+<dd>
+<p>
+        Number of grep worker threads to use.
+        See <code>grep.threads</code> in <em>CONFIGURATION</em> for more information.
+</p>
+</dd>
+<dt class="hdlist1">
+-f &lt;file&gt;
+</dt>
+<dd>
+<p>
+        Read patterns from &lt;file&gt;, one per line.
+</p>
+</dd>
+<dt class="hdlist1">
+-e
+</dt>
+<dd>
+<p>
+        The next parameter is the pattern. This option has to be
+        used for patterns starting with <code>-</code> and should be used in
+        scripts passing user input to grep.  Multiple patterns are
+        combined by <em>or</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+--and
+</dt>
+<dt class="hdlist1">
+--or
+</dt>
+<dt class="hdlist1">
+--not
+</dt>
+<dt class="hdlist1">
+( &#8230; )
+</dt>
+<dd>
+<p>
+        Specify how multiple patterns are combined using Boolean
+        expressions.  <code>--or</code> is the default operator.  <code>--and</code> has
+        higher precedence than <code>--or</code>.  <code>-e</code> has to be used for all
+        patterns.
+</p>
+</dd>
+<dt class="hdlist1">
+--all-match
+</dt>
+<dd>
+<p>
+        When giving multiple pattern expressions combined with <code>--or</code>,
+        this flag is specified to limit the match to files that
+        have lines to match all of them.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Do not output matched lines; instead, exit with status 0 when
+        there is a match and with non-zero status when there isn&#8217;t.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;tree&gt;&#8230;
+</dt>
+<dd>
+<p>
+        Instead of searching tracked files in the working tree, search
+        blobs in the given trees.
+</p>
+</dd>
+<dt class="hdlist1">
+--
+</dt>
+<dd>
+<p>
+        Signals the end of options; the rest of the parameters
+        are &lt;pathspec&gt; limiters.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;pathspec&gt;&#8230;
+</dt>
+<dd>
+<p>
+        If given, limit the search to paths matching at least one pattern.
+        Both leading paths match and glob(7) patterns are supported.
+</p>
+<div class="paragraph"><p>For more details about the &lt;pathspec&gt; syntax, see the <em>pathspec</em> entry
+in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>git grep 'time_t' -- '*.[ch]'</code>
+</dt>
+<dd>
+<p>
+        Looks for <code>time_t</code> in all tracked .c and .h files in the working
+        directory and its subdirectories.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>git grep -e '#define' --and \( -e MAX_PATH -e PATH_MAX \)</code>
+</dt>
+<dd>
+<p>
+        Looks for a line that has <code>#define</code> and either <code>MAX_PATH</code> or
+        <code>PATH_MAX</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>git grep --all-match -e NODE -e Unexpected</code>
+</dt>
+<dd>
+<p>
+        Looks for a line that has <code>NODE</code> or <code>Unexpected</code> in
+        files that have lines that match both.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>git grep solution -- :^Documentation</code>
+</dt>
+<dd>
+<p>
+        Looks for <code>solution</code>, excluding files in <code>Documentation</code>.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

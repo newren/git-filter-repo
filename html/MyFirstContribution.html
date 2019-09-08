@@ -1,0 +1,1820 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>My First Contribution to the Git Project</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>My First Contribution to the Git Project</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="summary">Summary</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This is a tutorial demonstrating the end-to-end workflow of creating a change to
+the Git tree, sending it for review, and making changes based on comments.</p></div>
+<div class="sect2">
+<h3 id="prerequisites">Prerequisites</h3>
+<div class="paragraph"><p>This tutorial assumes you&#8217;re already fairly familiar with using Git to manage
+source code.  The Git workflow steps will largely remain unexplained.</p></div>
+</div>
+<div class="sect2">
+<h3 id="related-reading">Related Reading</h3>
+<div class="paragraph"><p>This tutorial aims to summarize the following documents, but the reader may find
+useful additional context:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>Documentation/SubmittingPatches</code>
+</p>
+</li>
+<li>
+<p>
+<code>Documentation/howto/new-command.txt</code>
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="getting-started">Getting Started</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="cloning">Clone the Git Repository</h3>
+<div class="paragraph"><p>Git is mirrored in a number of locations. Clone the repository from one of them;
+<a href="https://git-scm.com/downloads">https://git-scm.com/downloads</a> suggests one of the best places to clone from is
+the mirror on GitHub.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git clone https://github.com/git/git git
+$ cd git</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="identify-problem">Identify Problem to Solve</h3>
+<div class="paragraph"><p>In this tutorial, we will add a new command, <code>git psuh</code>, short for &#8220;Pony Saying
+&#8216;Um, Hello&#8221;&#8217; - a feature which has gone unimplemented despite a high frequency
+of invocation during users' typical daily workflow.</p></div>
+<div class="paragraph"><p>(We&#8217;ve seen some other effort in this space with the implementation of popular
+commands such as <code>sl</code>.)</p></div>
+</div>
+<div class="sect2">
+<h3 id="setup-workspace">Set Up Your Workspace</h3>
+<div class="paragraph"><p>Let&#8217;s start by making a development branch to work on our changes. Per
+<code>Documentation/SubmittingPatches</code>, since a brand new command is a new feature,
+it&#8217;s fine to base your work on <code>master</code>. However, in the future for bugfixes,
+etc., you should check that document and base it on the appropriate branch.</p></div>
+<div class="paragraph"><p>For the purposes of this document, we will base all our work on the <code>master</code>
+branch of the upstream project. Create the <code>psuh</code> branch you will use for
+development like so:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git checkout -b psuh origin/master</code></pre>
+</div></div>
+<div class="paragraph"><p>We&#8217;ll make a number of commits here in order to demonstrate how to send a topic
+with multiple patches up for review simultaneously.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="code-it-up">Code It Up!</h2>
+<div class="sectionbody">
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">A reference implementation can be found at
+<a href="https://github.com/nasamuffin/git/tree/psuh">https://github.com/nasamuffin/git/tree/psuh</a>.</td>
+</tr></table>
+</div>
+<div class="sect2">
+<h3 id="add-new-command">Adding a New Command</h3>
+<div class="paragraph"><p>Lots of the subcommands are written as builtins, which means they are
+implemented in C and compiled into the main <code>git</code> executable. Implementing the
+very simple <code>psuh</code> command as a built-in will demonstrate the structure of the
+codebase, the internal API, and the process of working together as a contributor
+with the reviewers and maintainer to integrate this change into the system.</p></div>
+<div class="paragraph"><p>Built-in subcommands are typically implemented in a function named "cmd_"
+followed by the name of the subcommand, in a source file named after the
+subcommand and contained within <code>builtin/</code>. So it makes sense to implement your
+command in <code>builtin/psuh.c</code>. Create that file, and within it, write the entry
+point for your command in a function matching the style and signature:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_psuh(int argc, const char **argv, const char *prefix)</code></pre>
+</div></div>
+<div class="paragraph"><p>We&#8217;ll also need to add the declaration of psuh; open up <code>builtin.h</code>, find the
+declaration for <code>cmd_push</code>, and add a new line for <code>psuh</code> immediately before it,
+in order to keep the declarations sorted:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_psuh(int argc, const char **argv, const char *prefix);</code></pre>
+</div></div>
+<div class="paragraph"><p>Be sure to <code>#include "builtin.h"</code> in your <code>psuh.c</code>.</p></div>
+<div class="paragraph"><p>Go ahead and add some throwaway printf to that function. This is a decent
+starting point as we can now add build rules and register the command.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Your throwaway text, as well as much of the text you will be adding over
+the course of this tutorial, is user-facing. That means it needs to be
+localizable. Take a look at <code>po/README</code> under "Marking strings for translation".
+Throughout the tutorial, we will mark strings for translation as necessary; you
+should also do so when writing your user-facing commands in the future.</td>
+</tr></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_psuh(int argc, const char **argv, const char *prefix)
+{
+        printf(_("Pony saying hello goes here.\n"));
+        return 0;
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Let&#8217;s try to build it.  Open <code>Makefile</code>, find where <code>builtin/push.o</code> is added
+to <code>BUILTIN_OBJS</code>, and add <code>builtin/psuh.o</code> in the same way next to it in
+alphabetical order. Once you&#8217;ve done so, move to the top-level directory and
+build simply with <code>make</code>. Also add the <code>DEVELOPER=1</code> variable to turn on
+some additional warnings:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ echo DEVELOPER=1 &gt;config.mak
+$ make</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">When you are developing the Git project, it&#8217;s preferred that you use the
+<code>DEVELOPER</code> flag; if there&#8217;s some reason it doesn&#8217;t work for you, you can turn
+it off, but it&#8217;s a good idea to mention the problem to the mailing list.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The Git build is parallelizable. <code>-j#</code> is not included above but you can
+use it as you prefer, here and elsewhere.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Great, now your new command builds happily on its own. But nobody invokes it.
+Let&#8217;s change that.</p></div>
+<div class="paragraph"><p>The list of commands lives in <code>git.c</code>. We can register a new command by adding
+a <code>cmd_struct</code> to the <code>commands[]</code> array. <code>struct cmd_struct</code> takes a string
+with the command name, a function pointer to the command implementation, and a
+setup option flag. For now, let&#8217;s keep mimicking <code>push</code>. Find the line where
+<code>cmd_push</code> is registered, copy it, and modify it for <code>cmd_psuh</code>, placing the new
+line in alphabetical order.</p></div>
+<div class="paragraph"><p>The options are documented in <code>builtin.h</code> under "Adding a new built-in." Since
+we hope to print some data about the user&#8217;s current workspace context later,
+we need a Git directory, so choose <code>RUN_SETUP</code> as your only option.</p></div>
+<div class="paragraph"><p>Go ahead and build again. You should see a clean build, so let&#8217;s kick the tires
+and see if it works. There&#8217;s a binary you can use to test with in the
+<code>bin-wrappers</code> directory.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ ./bin-wrappers/git psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>Check it out! You&#8217;ve got a command! Nice work! Let&#8217;s commit this.</p></div>
+<div class="paragraph"><p><code>git status</code> reveals modified <code>Makefile</code>, <code>builtin.h</code>, and <code>git.c</code> as well as
+untracked <code>builtin/psuh.c</code> and <code>git-psuh</code>. First, let&#8217;s take care of the binary,
+which should be ignored. Open <code>.gitignore</code> in your editor, find <code>/git-push</code>, and
+add an entry for your new command in alphabetical order:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>...
+/git-prune-packed
+/git-psuh
+/git-pull
+/git-push
+/git-quiltimport
+/git-range-diff
+...</code></pre>
+</div></div>
+<div class="paragraph"><p>Checking <code>git status</code> again should show that <code>git-psuh</code> has been removed from
+the untracked list and <code>.gitignore</code> has been added to the modified list. Now we
+can stage and commit:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git add Makefile builtin.h builtin/psuh.c git.c .gitignore
+$ git commit -s</code></pre>
+</div></div>
+<div class="paragraph"><p>You will be presented with your editor in order to write a commit message. Start
+the commit with a 50-column or less subject line, including the name of the
+component you&#8217;re working on, followed by a blank line (always required) and then
+the body of your commit message, which should provide the bulk of the context.
+Remember to be explicit and provide the "Why" of your change, especially if it
+couldn&#8217;t easily be understood from your diff. When editing your commit message,
+don&#8217;t remove the Signed-off-by line which was added by <code>-s</code> above.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>psuh: add a built-in by popular demand
+
+Internal metrics indicate this is a command many users expect to be
+present. So here's an implementation to help drive customer
+satisfaction and engagement: a pony which doubtfully greets the user,
+or, a Pony Saying "Um, Hello" (PSUH).
+
+This commit message is intentionally formatted to 72 columns per line,
+starts with a single line as "commit message subject" that is written as
+if to command the codebase to do something (add this, teach a command
+that). The body of the message is designed to add information about the
+commit that is not readily deduced from reading the associated diff,
+such as answering the question "why?".
+
+Signed-off-by: A U Thor &lt;author@example.com&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Go ahead and inspect your new commit with <code>git show</code>. "psuh:" indicates you
+have modified mainly the <code>psuh</code> command. The subject line gives readers an idea
+of what you&#8217;ve changed. The sign-off line (<code>-s</code>) indicates that you agree to
+the Developer&#8217;s Certificate of Origin 1.1 (see the
+<code>Documentation/SubmittingPatches</code> [[dco]] header).</p></div>
+<div class="paragraph"><p>For the remainder of the tutorial, the subject line only will be listed for the
+sake of brevity. However, fully-fleshed example commit messages are available
+on the reference implementation linked at the top of this document.</p></div>
+</div>
+<div class="sect2">
+<h3 id="implementation">Implementation</h3>
+<div class="paragraph"><p>It&#8217;s probably useful to do at least something besides printing out a string.
+Let&#8217;s start by having a look at everything we get.</p></div>
+<div class="paragraph"><p>Modify your <code>cmd_psuh</code> implementation to dump the args you&#8217;re passed, keeping
+existing <code>printf()</code> calls in place:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        int i;
+
+        ...
+
+        printf(Q_("Your args (there is %d):\n",
+                  "Your args (there are %d):\n",
+                  argc),
+               argc);
+        for (i = 0; i &lt; argc; i++)
+                printf("%d: %s\n", i, argv[i]);
+
+        printf(_("Your current working directory:\n&lt;top-level&gt;%s%s\n"),
+               prefix ? "/" : "", prefix ? prefix : "");</code></pre>
+</div></div>
+<div class="paragraph"><p>Build and try it. As you may expect, there&#8217;s pretty much just whatever we give
+on the command line, including the name of our command. (If <code>prefix</code> is empty
+for you, try <code>cd Documentation/ &amp;&amp; ../bin-wrappers/git psuh</code>). That&#8217;s not so
+helpful. So what other context can we get?</p></div>
+<div class="paragraph"><p>Add a line to <code>#include "config.h"</code>. Then, add the following bits to the
+function body:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        const char *cfg_name;
+
+...
+
+        git_config(git_default_config, NULL);
+        if (git_config_get_string_const("user.name", &amp;cfg_name) &gt; 0)
+                printf(_("No name is found in config\n"));
+        else
+                printf(_("Your name: %s\n"), cfg_name);</code></pre>
+</div></div>
+<div class="paragraph"><p><code>git_config()</code> will grab the configuration from config files known to Git and
+apply standard precedence rules. <code>git_config_get_string_const()</code> will look up
+a specific key ("user.name") and give you the value. There are a number of
+single-key lookup functions like this one; you can see them all (and more info
+about how to use <code>git_config()</code>) in <code>Documentation/technical/api-config.txt</code>.</p></div>
+<div class="paragraph"><p>You should see that the name printed matches the one you see when you run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config --get user.name</code></pre>
+</div></div>
+<div class="paragraph"><p>Great! Now we know how to check for values in the Git config. Let&#8217;s commit this
+too, so we don&#8217;t lose our progress.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git add builtin/psuh.c
+$ git commit -sm "psuh: show parameters &amp; config opts"</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Again, the above is for sake of brevity in this tutorial. In a real change
+you should not use <code>-m</code> but instead use the editor to write a meaningful
+message.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Still, it&#8217;d be nice to know what the user&#8217;s working context is like. Let&#8217;s see
+if we can print the name of the user&#8217;s current branch. We can mimic the
+<code>git status</code> implementation; the printer is located in <code>wt-status.c</code> and we can
+see that the branch is held in a <code>struct wt_status</code>.</p></div>
+<div class="paragraph"><p><code>wt_status_print()</code> gets invoked by <code>cmd_status()</code> in <code>builtin/commit.c</code>.
+Looking at that implementation we see the status config being populated like so:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>status_init_config(&amp;s, git_status_config);</code></pre>
+</div></div>
+<div class="paragraph"><p>But as we drill down, we can find that <code>status_init_config()</code> wraps a call
+to <code>git_config()</code>. Let&#8217;s modify the code we wrote in the previous commit.</p></div>
+<div class="paragraph"><p>Be sure to include the header to allow you to use <code>struct wt_status</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>#include "wt-status.h"</code></pre>
+</div></div>
+<div class="paragraph"><p>Then modify your <code>cmd_psuh</code> implementation to declare your <code>struct wt_status</code>,
+prepare it, and print its contents:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        struct wt_status status;
+
+...
+
+        wt_status_prepare(the_repository, &amp;status);
+        git_config(git_default_config, &amp;status);
+
+...
+
+        printf(_("Your current branch: %s\n"), status.branch);</code></pre>
+</div></div>
+<div class="paragraph"><p>Run it again. Check it out - here&#8217;s the (verbose) name of your current branch!</p></div>
+<div class="paragraph"><p>Let&#8217;s commit this as well.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git add builtin/psuh.c
+$ git commit -sm "psuh: print the current branch"</code></pre>
+</div></div>
+<div class="paragraph"><p>Now let&#8217;s see if we can get some info about a specific commit.</p></div>
+<div class="paragraph"><p>Luckily, there are some helpers for us here. <code>commit.h</code> has a function called
+<code>lookup_commit_reference_by_name</code> to which we can simply provide a hardcoded
+string; <code>pretty.h</code> has an extremely handy <code>pp_commit_easy()</code> call which doesn&#8217;t
+require a full format object to be passed.</p></div>
+<div class="paragraph"><p>Add the following includes:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>#include "commit.h"
+#include "pretty.h"</code></pre>
+</div></div>
+<div class="paragraph"><p>Then, add the following lines within your implementation of <code>cmd_psuh()</code> near
+the declarations and the logic, respectively.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        struct commit *c = NULL;
+        struct strbuf commitline = STRBUF_INIT;
+
+...
+
+        c = lookup_commit_reference_by_name("origin/master");
+
+        if (c != NULL) {
+                pp_commit_easy(CMIT_FMT_ONELINE, c, &amp;commitline);
+                printf(_("Current commit: %s\n"), commitline.buf);
+        }</code></pre>
+</div></div>
+<div class="paragraph"><p>The <code>struct strbuf</code> provides some safety belts to your basic <code>char*</code>, one of
+which is a length member to prevent buffer overruns. It needs to be initialized
+nicely with <code>STRBUF_INIT</code>. Keep it in mind when you need to pass around <code>char*</code>.</p></div>
+<div class="paragraph"><p><code>lookup_commit_reference_by_name</code> resolves the name you pass it, so you can play
+with the value there and see what kind of things you can come up with.</p></div>
+<div class="paragraph"><p><code>pp_commit_easy</code> is a convenience wrapper in <code>pretty.h</code> that takes a single
+format enum shorthand, rather than an entire format struct. It then
+pretty-prints the commit according to that shorthand. These are similar to the
+formats available with <code>--pretty=FOO</code> in many Git commands.</p></div>
+<div class="paragraph"><p>Build it and run, and if you&#8217;re using the same name in the example, you should
+see the subject line of the most recent commit in <code>origin/master</code> that you know
+about. Neat! Let&#8217;s commit that as well.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git add builtin/psuh.c
+$ git commit -sm "psuh: display the top of origin/master"</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="add-documentation">Adding Documentation</h3>
+<div class="paragraph"><p>Awesome! You&#8217;ve got a fantastic new command that you&#8217;re ready to share with the
+community. But hang on just a minute - this isn&#8217;t very user-friendly. Run the
+following:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ ./bin-wrappers/git help psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>Your new command is undocumented! Let&#8217;s fix that.</p></div>
+<div class="paragraph"><p>Take a look at <code>Documentation/git-*.txt</code>. These are the manpages for the
+subcommands that Git knows about. You can open these up and take a look to get
+acquainted with the format, but then go ahead and make a new file
+<code>Documentation/git-psuh.txt</code>. Like with most of the documentation in the Git
+project, help pages are written with AsciiDoc (see CodingGuidelines, "Writing
+Documentation" section). Use the following template to fill out your own
+manpage:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git-psuh(1)
+===========
+
+NAME
+----
+git-psuh - Delight users' typo with a shy horse
+
+
+SYNOPSIS
+--------
+[verse]
+'git-psuh [&lt;arg&gt;...]'
+
+DESCRIPTION
+-----------
+...
+
+OPTIONS[[OPTIONS]]
+------------------
+...
+
+OUTPUT
+------
+...
+
+GIT
+---
+Part of the linkgit:git[1] suite</code></pre>
+</div></div>
+<div class="paragraph"><p>The most important pieces of this to note are the file header, underlined by =,
+the NAME section, and the SYNOPSIS, which would normally contain the grammar if
+your command took arguments. Try to use well-established manpage headers so your
+documentation is consistent with other Git and UNIX manpages; this makes life
+easier for your user, who can skip to the section they know contains the
+information they need.</p></div>
+<div class="paragraph"><p>Now that you&#8217;ve written your manpage, you&#8217;ll need to build it explicitly. We
+convert your AsciiDoc to troff which is man-readable like so:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ make all doc
+$ man Documentation/git-psuh.1</code></pre>
+</div></div>
+<div class="paragraph"><p>or</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ make -C Documentation/ git-psuh.1
+$ man Documentation/git-psuh.1</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">You may need to install the package <code>asciidoc</code> to get this to work.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>While this isn&#8217;t as satisfying as running through <code>git help</code>, you can at least
+check that your help page looks right.</p></div>
+<div class="paragraph"><p>You can also check that the documentation coverage is good (that is, the project
+sees that your command has been implemented as well as documented) by running
+<code>make check-docs</code> from the top-level.</p></div>
+<div class="paragraph"><p>Go ahead and commit your new documentation change.</p></div>
+</div>
+<div class="sect2">
+<h3 id="add-usage">Adding Usage Text</h3>
+<div class="paragraph"><p>Try and run <code>./bin-wrappers/git psuh -h</code>. Your command should crash at the end.
+That&#8217;s because <code>-h</code> is a special case which your command should handle by
+printing usage.</p></div>
+<div class="paragraph"><p>Take a look at <code>Documentation/technical/api-parse-options.txt</code>. This is a handy
+tool for pulling out options you need to be able to handle, and it takes a
+usage string.</p></div>
+<div class="paragraph"><p>In order to use it, we&#8217;ll need to prepare a NULL-terminated array of usage
+strings and a <code>builtin_psuh_options</code> array.</p></div>
+<div class="paragraph"><p>Add a line to <code>#include "parse-options.h"</code>.</p></div>
+<div class="paragraph"><p>At global scope, add your array of usage strings:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static const char * const psuh_usage[] = {
+        N_("git psuh [&lt;arg&gt;...]"),
+        NULL,
+};</code></pre>
+</div></div>
+<div class="paragraph"><p>Then, within your <code>cmd_psuh()</code> implementation, we can declare and populate our
+<code>option</code> struct. Ours is pretty boring but you can add more to it if you want to
+explore <code>parse_options()</code> in more detail:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        struct option options[] = {
+                OPT_END()
+        };</code></pre>
+</div></div>
+<div class="paragraph"><p>Finally, before you print your args and prefix, add the call to
+<code>parse-options()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        argc = parse_options(argc, argv, prefix, options, psuh_usage, 0);</code></pre>
+</div></div>
+<div class="paragraph"><p>This call will modify your <code>argv</code> parameter. It will strip the options you
+specified in <code>options</code> from <code>argv</code> and the locations pointed to from <code>options</code>
+entries will be updated. Be sure to replace your <code>argc</code> with the result from
+<code>parse_options()</code>, or you will be confused if you try to parse <code>argv</code> later.</p></div>
+<div class="paragraph"><p>It&#8217;s worth noting the special argument <code>--</code>. As you may be aware, many Unix
+commands use <code>--</code> to indicate "end of named parameters" - all parameters after
+the <code>--</code> are interpreted merely as positional arguments. (This can be handy if
+you want to pass as a parameter something which would usually be interpreted as
+a flag.) <code>parse_options()</code> will terminate parsing when it reaches <code>--</code> and give
+you the rest of the options afterwards, untouched.</p></div>
+<div class="paragraph"><p>Build again. Now, when you run with <code>-h</code>, you should see your usage printed and
+your command terminated before anything else interesting happens. Great!</p></div>
+<div class="paragraph"><p>Go ahead and commit this one, too.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="testing">Testing</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>It&#8217;s important to test your code - even for a little toy command like this one.
+Moreover, your patch won&#8217;t be accepted into the Git tree without tests. Your
+tests should:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Illustrate the current behavior of the feature
+</p>
+</li>
+<li>
+<p>
+Prove the current behavior matches the expected behavior
+</p>
+</li>
+<li>
+<p>
+Ensure the externally-visible behavior isn&#8217;t broken in later changes
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>So let&#8217;s write some tests.</p></div>
+<div class="paragraph"><p>Related reading: <code>t/README</code></p></div>
+<div class="sect2">
+<h3 id="overview-test-structure">Overview of Testing Structure</h3>
+<div class="paragraph"><p>The tests in Git live in <code>t/</code> and are named with a 4-digit decimal number using
+the schema shown in the Naming Tests section of <code>t/README</code>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="write-new-test">Writing Your Test</h3>
+<div class="paragraph"><p>Since this a toy command, let&#8217;s go ahead and name the test with t9999. However,
+as many of the family/subcmd combinations are full, best practice seems to be
+to find a command close enough to the one you&#8217;ve added and share its naming
+space.</p></div>
+<div class="paragraph"><p>Create a new file <code>t/t9999-psuh-tutorial.sh</code>. Begin with the header as so (see
+"Writing Tests" and "Source <em>test-lib.sh</em>" in <code>t/README</code>):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>#!/bin/sh
+
+test_description='git-psuh test
+
+This test runs git-psuh and makes sure it does not crash.'
+
+. ./test-lib.sh</code></pre>
+</div></div>
+<div class="paragraph"><p>Tests are framed inside of a <code>test_expect_success</code> in order to output TAP
+formatted results. Let&#8217;s make sure that <code>git psuh</code> doesn&#8217;t exit poorly and does
+mention the right animal somewhere:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>test_expect_success 'runs correctly with no args and good output' '
+        git psuh &gt;actual &amp;&amp;
+        test_i18ngrep Pony actual
+'</code></pre>
+</div></div>
+<div class="paragraph"><p>Indicate that you&#8217;ve run everything you wanted by adding the following at the
+bottom of your script:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>test_done</code></pre>
+</div></div>
+<div class="paragraph"><p>Make sure you mark your test script executable:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ chmod +x t/t9999-psuh-tutorial.sh</code></pre>
+</div></div>
+<div class="paragraph"><p>You can get an idea of whether you created your new test script successfully
+by running <code>make -C t test-lint</code>, which will check for things like test number
+uniqueness, executable bit, and so on.</p></div>
+</div>
+<div class="sect2">
+<h3 id="local-test">Running Locally</h3>
+<div class="paragraph"><p>Let&#8217;s try and run locally:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ make
+$ cd t/ &amp;&amp; prove t9999-psuh-tutorial.sh</code></pre>
+</div></div>
+<div class="paragraph"><p>You can run the full test suite and ensure <code>git-psuh</code> didn&#8217;t break anything:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cd t/
+$ prove -j$(nproc) --shuffle t[0-9]*.sh</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">You can also do this with <code>make test</code> or use any testing harness which can
+speak TAP. <code>prove</code> can run concurrently. <code>shuffle</code> randomizes the order the
+tests are run in, which makes them resilient against unwanted inter-test
+dependencies. <code>prove</code> also makes the output nicer.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Go ahead and commit this change, as well.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ready-to-share">Getting Ready to Share</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>You may have noticed already that the Git project performs its code reviews via
+emailed patches, which are then applied by the maintainer when they are ready
+and approved by the community. The Git project does not accept patches from
+pull requests, and the patches emailed for review need to be formatted a
+specific way. At this point the tutorial diverges, in order to demonstrate two
+different methods of formatting your patchset and getting it reviewed.</p></div>
+<div class="paragraph"><p>The first method to be covered is GitGitGadget, which is useful for those
+already familiar with GitHub&#8217;s common pull request workflow. This method
+requires a GitHub account.</p></div>
+<div class="paragraph"><p>The second method to be covered is <code>git send-email</code>, which can give slightly
+more fine-grained control over the emails to be sent. This method requires some
+setup which can change depending on your system and will not be covered in this
+tutorial.</p></div>
+<div class="paragraph"><p>Regardless of which method you choose, your engagement with reviewers will be
+the same; the review process will be covered after the sections on GitGitGadget
+and <code>git send-email</code>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="howto-ggg">Sending Patches via GitGitGadget</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>One option for sending patches is to follow a typical pull request workflow and
+send your patches out via GitGitGadget. GitGitGadget is a tool created by
+Johannes Schindelin to make life as a Git contributor easier for those used to
+the GitHub PR workflow. It allows contributors to open pull requests against its
+mirror of the Git project, and does some magic to turn the PR into a set of
+emails and send them out for you. It also runs the Git continuous integration
+suite for you. It&#8217;s documented at <a href="http://gitgitgadget.github.io">http://gitgitgadget.github.io</a>.</p></div>
+<div class="sect2">
+<h3 id="create-fork">Forking <code>git/git</code> on GitHub</h3>
+<div class="paragraph"><p>Before you can send your patch off to be reviewed using GitGitGadget, you will
+need to fork the Git project and upload your changes. First thing - make sure
+you have a GitHub account.</p></div>
+<div class="paragraph"><p>Head to the <a href="https://github.com/git/git">GitHub mirror</a> and look for the Fork
+button. Place your fork wherever you deem appropriate and create it.</p></div>
+</div>
+<div class="sect2">
+<h3 id="upload-to-fork">Uploading to Your Own Fork</h3>
+<div class="paragraph"><p>To upload your branch to your own fork, you&#8217;ll need to add the new fork as a
+remote. You can use <code>git remote -v</code> to show the remotes you have added already.
+From your new fork&#8217;s page on GitHub, you can press "Clone or download" to get
+the URL; then you need to run the following to add, replacing your own URL and
+remote name for the examples provided:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git remote add remotename git@github.com:remotename/git.git</code></pre>
+</div></div>
+<div class="paragraph"><p>or to use the HTTPS URL:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git remote add remotename https://github.com/remotename/git/.git</code></pre>
+</div></div>
+<div class="paragraph"><p>Run <code>git remote -v</code> again and you should see the new remote showing up.
+<code>git fetch remotename</code> (with the real name of your remote replaced) in order to
+get ready to push.</p></div>
+<div class="paragraph"><p>Next, double-check that you&#8217;ve been doing all your development in a new branch
+by running <code>git branch</code>. If you didn&#8217;t, now is a good time to move your new
+commits to their own branch.</p></div>
+<div class="paragraph"><p>As mentioned briefly at the beginning of this document, we are basing our work
+on <code>master</code>, so go ahead and update as shown below, or using your preferred
+workflow.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git checkout master
+$ git pull -r
+$ git rebase master psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>Finally, you&#8217;re ready to push your new topic branch! (Due to our branch and
+command name choices, be careful when you type the command below.)</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git push remotename psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>Now you should be able to go and check out your newly created branch on GitHub.</p></div>
+</div>
+<div class="sect2">
+<h3 id="send-pr-ggg">Sending a PR to GitGitGadget</h3>
+<div class="paragraph"><p>In order to have your code tested and formatted for review, you need to start by
+opening a Pull Request against <code>gitgitgadget/git</code>. Head to
+<a href="https://github.com/gitgitgadget/git">https://github.com/gitgitgadget/git</a> and open a PR either with the "New pull
+request" button or the convenient "Compare &amp; pull request" button that may
+appear with the name of your newly pushed branch.</p></div>
+<div class="paragraph"><p>Review the PR&#8217;s title and description, as it&#8217;s used by GitGitGadget as the cover
+letter for your change. When you&#8217;re happy, submit your pull request.</p></div>
+</div>
+<div class="sect2">
+<h3 id="run-ci-ggg">Running CI and Getting Ready to Send</h3>
+<div class="paragraph"><p>If it&#8217;s your first time using GitGitGadget (which is likely, as you&#8217;re using
+this tutorial) then someone will need to give you permission to use the tool.
+As mentioned in the GitGitGadget documentation, you just need someone who
+already uses it to comment on your PR with <code>/allow &lt;username&gt;</code>. GitGitGadget
+will automatically run your PRs through the CI even without the permission given
+but you will not be able to <code>/submit</code> your changes until someone allows you to
+use the tool.</p></div>
+<div class="paragraph"><p>If the CI fails, you can update your changes with <code>git rebase -i</code> and push your
+branch again:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git push -f remotename psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>In fact, you should continue to make changes this way up until the point when
+your patch is accepted into <code>next</code>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="send-mail-ggg">Sending Your Patches</h3>
+<div class="paragraph"><p>Now that your CI is passing and someone has granted you permission to use
+GitGitGadget with the <code>/allow</code> command, sending out for review is as simple as
+commenting on your PR with <code>/submit</code>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="responding-ggg">Updating With Comments</h3>
+<div class="paragraph"><p>Skip ahead to <a href="#reviewing">Responding to Reviews</a> for information on how to
+reply to review comments you will receive on the mailing list.</p></div>
+<div class="paragraph"><p>Once you have your branch again in the shape you want following all review
+comments, you can submit again:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git push -f remotename psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>Next, go look at your pull request against GitGitGadget; you should see the CI
+has been kicked off again. Now while the CI is running is a good time for you
+to modify your description at the top of the pull request thread; it will be
+used again as the cover letter. You should use this space to describe what
+has changed since your previous version, so that your reviewers have some idea
+of what they&#8217;re looking at. When the CI is done running, you can comment once
+more with <code>/submit</code> - GitGitGadget will automatically add a v2 mark to your
+changes.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="howto-git-send-email">Sending Patches with <code>git send-email</code></h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If you don&#8217;t want to use GitGitGadget, you can also use Git itself to mail your
+patches. Some benefits of using Git this way include finer grained control of
+subject line (for example, being able to use the tag [RFC PATCH] in the subject)
+and being able to send a &#8220;dry run&#8221; mail to yourself to ensure it all looks
+good before going out to the list.</p></div>
+<div class="sect2">
+<h3 id="setup-git-send-email">Prerequisite: Setting Up <code>git send-email</code></h3>
+<div class="paragraph"><p>Configuration for <code>send-email</code> can vary based on your operating system and email
+provider, and so will not be covered in this tutorial, beyond stating that in
+many distributions of Linux, <code>git-send-email</code> is not packaged alongside the
+typical <code>git</code> install. You may need to install this additional package; there
+are a number of resources online to help you do so. You will also need to
+determine the right way to configure it to use your SMTP server; again, as this
+configuration can change significantly based on your system and email setup, it
+is out of scope for the context of this tutorial.</p></div>
+</div>
+<div class="sect2">
+<h3 id="format-patch">Preparing Initial Patchset</h3>
+<div class="paragraph"><p>Sending emails with Git is a two-part process; before you can prepare the emails
+themselves, you&#8217;ll need to prepare the patches. Luckily, this is pretty simple:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git format-patch --cover-letter -o psuh/ master..psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>The <code>--cover-letter</code> parameter tells <code>format-patch</code> to create a cover letter
+template for you. You will need to fill in the template before you&#8217;re ready
+to send - but for now, the template will be next to your other patches.</p></div>
+<div class="paragraph"><p>The <code>-o psuh/</code> parameter tells <code>format-patch</code> to place the patch files into a
+directory. This is useful because <code>git send-email</code> can take a directory and
+send out all the patches from there.</p></div>
+<div class="paragraph"><p><code>master..psuh</code> tells <code>format-patch</code> to generate patches for the difference
+between <code>master</code> and <code>psuh</code>. It will make one patch file per commit. After you
+run, you can go have a look at each of the patches with your favorite text
+editor and make sure everything looks alright; however, it&#8217;s not recommended to
+make code fixups via the patch file. It&#8217;s a better idea to make the change the
+normal way using <code>git rebase -i</code> or by adding a new commit than by modifying a
+patch.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Optionally, you can also use the <code>--rfc</code> flag to prefix your patch subject
+with &#8220;[RFC PATCH]&#8221; instead of &#8220;[PATCH]&#8221;. RFC stands for &#8220;request for
+comments&#8221; and indicates that while your code isn&#8217;t quite ready for submission,
+you&#8217;d like to begin the code review process. This can also be used when your
+patch is a proposal, but you aren&#8217;t sure whether the community wants to solve
+the problem with that approach or not - to conduct a sort of design review. You
+may also see on the list patches marked &#8220;WIP&#8221; - this means they are incomplete
+but want reviewers to look at what they have so far. You can add this flag with
+<code>--subject-prefix=WIP</code>.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Check and make sure that your patches and cover letter template exist in the
+directory you specified - you&#8217;re nearly ready to send out your review!</p></div>
+</div>
+<div class="sect2">
+<h3 id="cover-letter">Preparing Email</h3>
+<div class="paragraph"><p>In addition to an email per patch, the Git community also expects your patches
+to come with a cover letter, typically with a subject line [PATCH 0/x] (where
+x is the number of patches you&#8217;re sending). Since you invoked <code>format-patch</code>
+with <code>--cover-letter</code>, you&#8217;ve already got a template ready. Open it up in your
+favorite editor.</p></div>
+<div class="paragraph"><p>You should see a number of headers present already. Check that your <code>From:</code>
+header is correct. Then modify your <code>Subject:</code> to something which succinctly
+covers the purpose of your entire topic branch, for example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Subject: [PATCH 0/7] adding the 'psuh' command</code></pre>
+</div></div>
+<div class="paragraph"><p>Make sure you retain the &#8220;[PATCH 0/X]&#8221; part; that&#8217;s what indicates to the Git
+community that this email is the beginning of a review, and many reviewers
+filter their email for this type of flag.</p></div>
+<div class="paragraph"><p>You&#8217;ll need to add some extra parameters when you invoke <code>git send-email</code> to add
+the cover letter.</p></div>
+<div class="paragraph"><p>Next you&#8217;ll have to fill out the body of your cover letter. This is an important
+component of change submission as it explains to the community from a high level
+what you&#8217;re trying to do, and why, in a way that&#8217;s more apparent than just
+looking at your diff. Be sure to explain anything your diff doesn&#8217;t make clear
+on its own.</p></div>
+<div class="paragraph"><p>Here&#8217;s an example body for <code>psuh</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Our internal metrics indicate widespread interest in the command
+git-psuh - that is, many users are trying to use it, but finding it is
+unavailable, using some unknown workaround instead.
+
+The following handful of patches add the psuh command and implement some
+handy features on top of it.
+
+This patchset is part of the MyFirstContribution tutorial and should not
+be merged.</code></pre>
+</div></div>
+<div class="paragraph"><p>The template created by <code>git format-patch --cover-letter</code> includes a diffstat.
+This gives reviewers a summary of what they&#8217;re in for when reviewing your topic.
+The one generated for <code>psuh</code> from the sample implementation looks like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code> Documentation/git-psuh.txt | 40 +++++++++++++++++++++
+ Makefile                   |  1 +
+ builtin.h                  |  1 +
+ builtin/psuh.c             | 73 ++++++++++++++++++++++++++++++++++++++
+ git.c                      |  1 +
+ t/t9999-psuh-tutorial.sh   | 12 +++++++
+ 6 files changed, 128 insertions(+)
+ create mode 100644 Documentation/git-psuh.txt
+ create mode 100644 builtin/psuh.c
+ create mode 100755 t/t9999-psuh-tutorial.sh</code></pre>
+</div></div>
+<div class="paragraph"><p>Finally, the letter will include the version of Git used to generate the
+patches. You can leave that string alone.</p></div>
+</div>
+<div class="sect2">
+<h3 id="sending-git-send-email">Sending Email</h3>
+<div class="paragraph"><p>At this point you should have a directory <code>psuh/</code> which is filled with your
+patches and a cover letter. Time to mail it out! You can send it like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git send-email --to=target@example.com psuh/*.patch</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Check <code>git help send-email</code> for some other options which you may find
+valuable, such as changing the Reply-to address or adding more CC and BCC lines.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">When you are sending a real patch, it will go to <a href="mailto:git@vger.kernel.org">git@vger.kernel.org</a> - but
+please don&#8217;t send your patchset from the tutorial to the real mailing list! For
+now, you can send it to yourself, to make sure you understand how it will look.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>After you run the command above, you will be presented with an interactive
+prompt for each patch that&#8217;s about to go out. This gives you one last chance to
+edit or quit sending something (but again, don&#8217;t edit code this way). Once you
+press <code>y</code> or <code>a</code> at these prompts your emails will be sent! Congratulations!</p></div>
+<div class="paragraph"><p>Awesome, now the community will drop everything and review your changes. (Just
+kidding - be patient!)</p></div>
+</div>
+<div class="sect2">
+<h3 id="v2-git-send-email">Sending v2</h3>
+<div class="paragraph"><p>Skip ahead to <a href="#reviewing">Responding to Reviews</a> for information on how to
+handle comments from reviewers. Continue this section when your topic branch is
+shaped the way you want it to look for your patchset v2.</p></div>
+<div class="paragraph"><p>When you&#8217;re ready with the next iteration of your patch, the process is fairly
+similar.</p></div>
+<div class="paragraph"><p>First, generate your v2 patches again:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git format-patch -v2 --cover-letter -o psuh/ master..psuh</code></pre>
+</div></div>
+<div class="paragraph"><p>This will add your v2 patches, all named like <code>v2-000n-my-commit-subject.patch</code>,
+to the <code>psuh/</code> directory. You may notice that they are sitting alongside the v1
+patches; that&#8217;s fine, but be careful when you are ready to send them.</p></div>
+<div class="paragraph"><p>Edit your cover letter again. Now is a good time to mention what&#8217;s different
+between your last version and now, if it&#8217;s something significant. You do not
+need the exact same body in your second cover letter; focus on explaining to
+reviewers the changes you&#8217;ve made that may not be as visible.</p></div>
+<div class="paragraph"><p>You will also need to go and find the Message-Id of your previous cover letter.
+You can either note it when you send the first series, from the output of <code>git
+send-email</code>, or you can look it up on the
+<a href="https://public-inbox.org/git">mailing list</a>. Find your cover letter in the
+archives, click on it, then click "permalink" or "raw" to reveal the Message-Id
+header. It should match:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Message-Id: &lt;foo.12345.author@example.com&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Your Message-Id is <code>&lt;foo.12345.author@example.com&gt;</code>. This example will be used
+below as well; make sure to replace it with the correct Message-Id for your
+<strong>previous cover letter</strong> - that is, if you&#8217;re sending v2, use the Message-Id
+from v1; if you&#8217;re sending v3, use the Message-Id from v2.</p></div>
+<div class="paragraph"><p>While you&#8217;re looking at the email, you should also note who is CC&#8217;d, as it&#8217;s
+common practice in the mailing list to keep all CCs on a thread. You can add
+these CC lines directly to your cover letter with a line like so in the header
+(before the Subject line):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>CC: author@example.com, Othe R &lt;other@example.com&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Now send the emails again, paying close attention to which messages you pass in
+to the command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git send-email --to=target@example.com
+                 --in-reply-to="&lt;foo.12345.author@example.com&gt;"
+                 psuh/v2*</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="single-patch">Bonus Chapter: One-Patch Changes</h3>
+<div class="paragraph"><p>In some cases, your very small change may consist of only one patch. When that
+happens, you only need to send one email. Your commit message should already be
+meaningful and explain at a high level the purpose (what is happening and why)
+of your patch, but if you need to supply even more context, you can do so below
+the <code>---</code> in your patch. Take the example below, which was generated with <code>git
+format-patch</code> on a single commit, and then edited to add the content between
+the <code>---</code> and the diffstat.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>From 1345bbb3f7ac74abde040c12e737204689a72723 Mon Sep 17 00:00:00 2001
+From: A U Thor &lt;author@example.com&gt;
+Date: Thu, 18 Apr 2019 15:11:02 -0700
+Subject: [PATCH] README: change the grammar
+
+I think it looks better this way. This part of the commit message will
+end up in the commit-log.
+
+Signed-off-by: A U Thor &lt;author@example.com&gt;
+---
+Let's have a wild discussion about grammar on the mailing list. This
+part of my email will never end up in the commit log. Here is where I
+can add additional context to the mailing list about my intent, outside
+of the context of the commit log. This section was added after `git
+format-patch` was run, by editing the patch file in a text editor.
+
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 88f126184c..38da593a60 100644
+--- a/README.md
++++ b/README.md
+@@ -3,7 +3,7 @@
+ Git - fast, scalable, distributed revision control system
+ =========================================================
+
+-Git is a fast, scalable, distributed revision control system with an
++Git is a fast, scalable, and distributed revision control system with an
+ unusually rich command set that provides both high-level operations
+ and full access to internals.
+
+--
+2.21.0.392.gf8f6787159e-goog</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="now-what">My Patch Got Emailed - Now What?</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="reviewing">Responding to Reviews</h3>
+<div class="paragraph"><p>After a few days, you will hopefully receive a reply to your patchset with some
+comments. Woohoo! Now you can get back to work.</p></div>
+<div class="paragraph"><p>It&#8217;s good manners to reply to each comment, notifying the reviewer that you have
+made the change requested, feel the original is better, or that the comment
+inspired you to do something a new way which is superior to both the original
+and the suggested change. This way reviewers don&#8217;t need to inspect your v2 to
+figure out whether you implemented their comment or not.</p></div>
+<div class="paragraph"><p>If you are going to push back on a comment, be polite and explain why you feel
+your original is better; be prepared that the reviewer may still disagree with
+you, and the rest of the community may weigh in on one side or the other. As
+with all code reviews, it&#8217;s important to keep an open mind to doing something a
+different way than you originally planned; other reviewers have a different
+perspective on the project than you do, and may be thinking of a valid side
+effect which had not occurred to you. It is always okay to ask for clarification
+if you aren&#8217;t sure why a change was suggested, or what the reviewer is asking
+you to do.</p></div>
+<div class="paragraph"><p>Make sure your email client has a plaintext email mode and it is turned on; the
+Git list rejects HTML email. Please also follow the mailing list etiquette
+outlined in the
+<a href="https://kernel.googlesource.com/pub/scm/git/git/+/todo/MaintNotes">Maintainer&#8217;s
+Note</a>, which are similar to etiquette rules in most open source communities
+surrounding bottom-posting and inline replies.</p></div>
+<div class="paragraph"><p>When you&#8217;re making changes to your code, it is cleanest - that is, the resulting
+commits are easiest to look at - if you use <code>git rebase -i</code> (interactive
+rebase). Take a look at this
+<a href="https://www.oreilly.com/library/view/git-pocket-guide/9781449327507/ch10.html">overview</a>
+from O&#8217;Reilly. The general idea is to modify each commit which requires changes;
+this way, instead of having a patch A with a mistake, a patch B which was fine
+and required no upstream reviews in v1, and a patch C which fixes patch A for
+v2, you can just ship a v2 with a correct patch A and correct patch B. This is
+changing history, but since it&#8217;s local history which you haven&#8217;t shared with
+anyone, that is okay for now! (Later, it may not make sense to do this; take a
+look at the section below this one for some context.)</p></div>
+</div>
+<div class="sect2">
+<h3 id="after-approval">After Review Approval</h3>
+<div class="paragraph"><p>The Git project has four integration branches: <code>pu</code>, <code>next</code>, <code>master</code>, and
+<code>maint</code>. Your change will be placed into <code>pu</code> fairly early on by the maintainer
+while it is still in the review process; from there, when it is ready for wider
+testing, it will be merged into <code>next</code>. Plenty of early testers use <code>next</code> and
+may report issues. Eventually, changes in <code>next</code> will make it to <code>master</code>,
+which is typically considered stable. Finally, when a new release is cut,
+<code>maint</code> is used to base bugfixes onto. As mentioned at the beginning of this
+document, you can read <code>Documents/SubmittingPatches</code> for some more info about
+the use of the various integration branches.</p></div>
+<div class="paragraph"><p>Back to now: your code has been lauded by the upstream reviewers. It is perfect.
+It is ready to be accepted. You don&#8217;t need to do anything else; the maintainer
+will merge your topic branch to <code>next</code> and life is good.</p></div>
+<div class="paragraph"><p>However, if you discover it isn&#8217;t so perfect after this point, you may need to
+take some special steps depending on where you are in the process.</p></div>
+<div class="paragraph"><p>If the maintainer has announced in the "What&#8217;s cooking in git.git" email that
+your topic is marked for <code>next</code> - that is, that they plan to merge it to <code>next</code>
+but have not yet done so - you should send an email asking the maintainer to
+wait a little longer: "I&#8217;ve sent v4 of my series and you marked it for <code>next</code>,
+but I need to change this and that - please wait for v5 before you merge it."</p></div>
+<div class="paragraph"><p>If the topic has already been merged to <code>next</code>, rather than modifying your
+patches with <code>git rebase -i</code>, you should make further changes incrementally -
+that is, with another commit, based on top of the maintainer&#8217;s topic branch as
+detailed in <a href="https://github.com/gitster/git">https://github.com/gitster/git</a>. Your work is still in the same topic
+but is now incremental, rather than a wholesale rewrite of the topic branch.</p></div>
+<div class="paragraph"><p>The topic branches in the maintainer&#8217;s GitHub are mirrored in GitGitGadget, so
+if you&#8217;re sending your reviews out that way, you should be sure to open your PR
+against the appropriate GitGitGadget/Git branch.</p></div>
+<div class="paragraph"><p>If you&#8217;re using <code>git send-email</code>, you can use it the same way as before, but you
+should generate your diffs from <code>&lt;topic&gt;..&lt;mybranch&gt;</code> and base your work on
+<code>&lt;topic&gt;</code> instead of <code>master</code>.</p></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

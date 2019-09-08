@@ -1,0 +1,1393 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-clone(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-clone(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-clone -
+   Clone a repository into a new directory
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git clone</em> [--template=&lt;template_directory&gt;]
+          [-l] [-s] [--no-hardlinks] [-q] [-n] [--bare] [--mirror]
+          [-o &lt;name&gt;] [-b &lt;name&gt;] [-u &lt;upload-pack&gt;] [--reference &lt;repository&gt;]
+          [--dissociate] [--separate-git-dir &lt;git dir&gt;]
+          [--depth &lt;depth&gt;] [--[no-]single-branch] [--no-tags]
+          [--recurse-submodules[=&lt;pathspec&gt;]] [--[no-]shallow-submodules]
+          [--[no-]remote-submodules] [--jobs &lt;n&gt;] [--] &lt;repository&gt;
+          [&lt;directory&gt;]</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Clones a repository into a newly created directory, creates
+remote-tracking branches for each branch in the cloned repository
+(visible using <code>git branch --remotes</code>), and creates and checks out an
+initial branch that is forked from the cloned repository&#8217;s
+currently active branch.</p></div>
+<div class="paragraph"><p>After the clone, a plain <code>git fetch</code> without arguments will update
+all the remote-tracking branches, and a <code>git pull</code> without
+arguments will in addition merge the remote master branch into the
+current master branch, if any (this is untrue when "--single-branch"
+is given; see below).</p></div>
+<div class="paragraph"><p>This default configuration is achieved by creating references to
+the remote branch heads under <code>refs/remotes/origin</code> and
+by initializing <code>remote.origin.url</code> and <code>remote.origin.fetch</code>
+configuration variables.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-l
+</dt>
+<dt class="hdlist1">
+--local
+</dt>
+<dd>
+<p>
+        When the repository to clone from is on a local machine,
+        this flag bypasses the normal "Git aware" transport
+        mechanism and clones the repository by making a copy of
+        HEAD and everything under objects and refs directories.
+        The files under <code>.git/objects/</code> directory are hardlinked
+        to save space when possible.
+</p>
+<div class="paragraph"><p>If the repository is specified as a local path (e.g., <code>/path/to/repo</code>),
+this is the default, and --local is essentially a no-op.  If the
+repository is specified as a URL, then this flag is ignored (and we
+never use the local optimizations).  Specifying <code>--no-local</code> will
+override the default when <code>/path/to/repo</code> is given, using the regular
+Git transport instead.</p></div>
+</dd>
+<dt class="hdlist1">
+--no-hardlinks
+</dt>
+<dd>
+<p>
+        Force the cloning process from a repository on a local
+        filesystem to copy the files under the <code>.git/objects</code>
+        directory instead of using hardlinks. This may be desirable
+        if you are trying to make a back-up of your repository.
+</p>
+</dd>
+<dt class="hdlist1">
+-s
+</dt>
+<dt class="hdlist1">
+--shared
+</dt>
+<dd>
+<p>
+        When the repository to clone is on the local machine,
+        instead of using hard links, automatically setup
+        <code>.git/objects/info/alternates</code> to share the objects
+        with the source repository.  The resulting repository
+        starts out without any object of its own.
+</p>
+<div class="paragraph"><p><strong>NOTE</strong>: this is a possibly dangerous operation; do <strong>not</strong> use
+it unless you understand what it does. If you clone your
+repository using this option and then delete branches (or use any
+other Git command that makes any existing commit unreferenced) in the
+source repository, some objects may become unreferenced (or dangling).
+These objects may be removed by normal Git operations (such as <code>git commit</code>)
+which automatically call <code>git gc --auto</code>. (See <a href="git-gc.html">git-gc(1)</a>.)
+If these objects are removed and were referenced by the cloned repository,
+then the cloned repository will become corrupt.</p></div>
+<div class="paragraph"><p>Note that running <code>git repack</code> without the <code>--local</code> option in a repository
+cloned with <code>--shared</code> will copy objects from the source repository into a pack
+in the cloned repository, removing the disk space savings of <code>clone --shared</code>.
+It is safe, however, to run <code>git gc</code>, which uses the <code>--local</code> option by
+default.</p></div>
+<div class="paragraph"><p>If you want to break the dependency of a repository cloned with <code>--shared</code> on
+its source repository, you can simply run <code>git repack -a</code> to copy all
+objects from the source repository into a pack in the cloned repository.</p></div>
+</dd>
+<dt class="hdlist1">
+--reference[-if-able] &lt;repository&gt;
+</dt>
+<dd>
+<p>
+        If the reference repository is on the local machine,
+        automatically setup <code>.git/objects/info/alternates</code> to
+        obtain objects from the reference repository.  Using
+        an already existing repository as an alternate will
+        require fewer objects to be copied from the repository
+        being cloned, reducing network and local storage costs.
+        When using the <code>--reference-if-able</code>, a non existing
+        directory is skipped with a warning instead of aborting
+        the clone.
+</p>
+<div class="paragraph"><p><strong>NOTE</strong>: see the NOTE for the <code>--shared</code> option, and also the
+<code>--dissociate</code> option.</p></div>
+</dd>
+<dt class="hdlist1">
+--dissociate
+</dt>
+<dd>
+<p>
+        Borrow the objects from reference repositories specified
+        with the <code>--reference</code> options only to reduce network
+        transfer, and stop borrowing from them after a clone is made
+        by making necessary local copies of borrowed objects.  This
+        option can also be used when cloning locally from a
+        repository that already borrows objects from another
+        repository&#8212;the new repository will borrow objects from the
+        same repository, and this option can be used to stop the
+        borrowing.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Operate quietly.  Progress is not reported to the standard
+        error stream.
+</p>
+</dd>
+<dt class="hdlist1">
+-v
+</dt>
+<dt class="hdlist1">
+--verbose
+</dt>
+<dd>
+<p>
+        Run verbosely. Does not affect the reporting of progress status
+        to the standard error stream.
+</p>
+</dd>
+<dt class="hdlist1">
+--progress
+</dt>
+<dd>
+<p>
+        Progress status is reported on the standard error stream
+        by default when it is attached to a terminal, unless <code>--quiet</code>
+        is specified. This flag forces progress status even if the
+        standard error stream is not directed to a terminal.
+</p>
+</dd>
+<dt class="hdlist1">
+--server-option=&lt;option&gt;
+</dt>
+<dd>
+<p>
+        Transmit the given string to the server when communicating using
+        protocol version 2.  The given string must not contain a NUL or LF
+        character.  The server&#8217;s handling of server options, including
+        unknown ones, is server-specific.
+        When multiple <code>--server-option=&lt;option&gt;</code> are given, they are all
+        sent to the other side in the order listed on the command line.
+</p>
+</dd>
+<dt class="hdlist1">
+-n
+</dt>
+<dt class="hdlist1">
+--no-checkout
+</dt>
+<dd>
+<p>
+        No checkout of HEAD is performed after the clone is complete.
+</p>
+</dd>
+<dt class="hdlist1">
+--bare
+</dt>
+<dd>
+<p>
+        Make a <em>bare</em> Git repository.  That is, instead of
+        creating <code>&lt;directory&gt;</code> and placing the administrative
+        files in <code>&lt;directory&gt;/.git</code>, make the <code>&lt;directory&gt;</code>
+        itself the <code>$GIT_DIR</code>. This obviously implies the <code>--no-checkout</code>
+        because there is nowhere to check out the working tree.
+        Also the branch heads at the remote are copied directly
+        to corresponding local branch heads, without mapping
+        them to <code>refs/remotes/origin/</code>.  When this option is
+        used, neither remote-tracking branches nor the related
+        configuration variables are created.
+</p>
+</dd>
+<dt class="hdlist1">
+--mirror
+</dt>
+<dd>
+<p>
+        Set up a mirror of the source repository.  This implies <code>--bare</code>.
+        Compared to <code>--bare</code>, <code>--mirror</code> not only maps local branches of the
+        source to local branches of the target, it maps all refs (including
+        remote-tracking branches, notes etc.) and sets up a refspec configuration such
+        that all these refs are overwritten by a <code>git remote update</code> in the
+        target repository.
+</p>
+</dd>
+<dt class="hdlist1">
+-o &lt;name&gt;
+</dt>
+<dt class="hdlist1">
+--origin &lt;name&gt;
+</dt>
+<dd>
+<p>
+        Instead of using the remote name <code>origin</code> to keep track
+        of the upstream repository, use <code>&lt;name&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-b &lt;name&gt;
+</dt>
+<dt class="hdlist1">
+--branch &lt;name&gt;
+</dt>
+<dd>
+<p>
+        Instead of pointing the newly created HEAD to the branch pointed
+        to by the cloned repository&#8217;s HEAD, point to <code>&lt;name&gt;</code> branch
+        instead. In a non-bare repository, this is the branch that will
+        be checked out.
+        <code>--branch</code> can also take tags and detaches the HEAD at that commit
+        in the resulting repository.
+</p>
+</dd>
+<dt class="hdlist1">
+-u &lt;upload-pack&gt;
+</dt>
+<dt class="hdlist1">
+--upload-pack &lt;upload-pack&gt;
+</dt>
+<dd>
+<p>
+        When given, and the repository to clone from is accessed
+        via ssh, this specifies a non-default path for the command
+        run on the other end.
+</p>
+</dd>
+<dt class="hdlist1">
+--template=&lt;template_directory&gt;
+</dt>
+<dd>
+<p>
+        Specify the directory from which templates will be used;
+        (See the "TEMPLATE DIRECTORY" section of <a href="git-init.html">git-init(1)</a>.)
+</p>
+</dd>
+<dt class="hdlist1">
+-c &lt;key&gt;=&lt;value&gt;
+</dt>
+<dt class="hdlist1">
+--config &lt;key&gt;=&lt;value&gt;
+</dt>
+<dd>
+<p>
+        Set a configuration variable in the newly-created repository;
+        this takes effect immediately after the repository is
+        initialized, but before the remote history is fetched or any
+        files checked out.  The key is in the same format as expected by
+        <a href="git-config.html">git-config(1)</a> (e.g., <code>core.eol=true</code>). If multiple
+        values are given for the same key, each value will be written to
+        the config file. This makes it safe, for example, to add
+        additional fetch refspecs to the origin remote.
+</p>
+<div class="paragraph"><p>Due to limitations of the current implementation, some configuration
+variables do not take effect until after the initial fetch and checkout.
+Configuration variables known to not take effect are:
+<code>remote.&lt;name&gt;.mirror</code> and <code>remote.&lt;name&gt;.tagOpt</code>.  Use the
+corresponding <code>--mirror</code> and <code>--no-tags</code> options instead.</p></div>
+</dd>
+<dt class="hdlist1">
+--depth &lt;depth&gt;
+</dt>
+<dd>
+<p>
+        Create a <em>shallow</em> clone with a history truncated to the
+        specified number of commits. Implies <code>--single-branch</code> unless
+        <code>--no-single-branch</code> is given to fetch the histories near the
+        tips of all branches. If you want to clone submodules shallowly,
+        also pass <code>--shallow-submodules</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--shallow-since=&lt;date&gt;
+</dt>
+<dd>
+<p>
+        Create a shallow clone with a history after the specified time.
+</p>
+</dd>
+<dt class="hdlist1">
+--shallow-exclude=&lt;revision&gt;
+</dt>
+<dd>
+<p>
+        Create a shallow clone with a history, excluding commits
+        reachable from a specified remote branch or tag.  This option
+        can be specified multiple times.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]single-branch
+</dt>
+<dd>
+<p>
+        Clone only the history leading to the tip of a single branch,
+        either specified by the <code>--branch</code> option or the primary
+        branch remote&#8217;s <code>HEAD</code> points at.
+        Further fetches into the resulting repository will only update the
+        remote-tracking branch for the branch this option was used for the
+        initial cloning.  If the HEAD at the remote did not point at any
+        branch when <code>--single-branch</code> clone was made, no remote-tracking
+        branch is created.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-tags
+</dt>
+<dd>
+<p>
+        Don&#8217;t clone any tags, and set
+        <code>remote.&lt;remote&gt;.tagOpt=--no-tags</code> in the config, ensuring
+        that future <code>git pull</code> and <code>git fetch</code> operations won&#8217;t follow
+        any tags. Subsequent explicit tag fetches will still work,
+        (see <a href="git-fetch.html">git-fetch(1)</a>).
+</p>
+<div class="paragraph"><p>Can be used in conjunction with <code>--single-branch</code> to clone and
+maintain a branch with no references other than a single cloned
+branch. This is useful e.g. to maintain minimal clones of the default
+branch of some repository for search indexing.</p></div>
+</dd>
+<dt class="hdlist1">
+--recurse-submodules[=&lt;pathspec]
+</dt>
+<dd>
+<p>
+        After the clone is created, initialize and clone submodules
+        within based on the provided pathspec.  If no pathspec is
+        provided, all submodules are initialized and cloned.
+        This option can be given multiple times for pathspecs consisting
+        of multiple entries.  The resulting clone has <code>submodule.active</code> set to
+        the provided pathspec, or "." (meaning all submodules) if no
+        pathspec is provided.
+</p>
+<div class="paragraph"><p>Submodules are initialized and cloned using their default settings. This is
+equivalent to running
+<code>git submodule update --init --recursive &lt;pathspec&gt;</code> immediately after
+the clone is finished. This option is ignored if the cloned repository does
+not have a worktree/checkout (i.e. if any of <code>--no-checkout</code>/<code>-n</code>, <code>--bare</code>,
+or <code>--mirror</code> is given)</p></div>
+</dd>
+<dt class="hdlist1">
+--[no-]shallow-submodules
+</dt>
+<dd>
+<p>
+        All submodules which are cloned will be shallow with a depth of 1.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]remote-submodules
+</dt>
+<dd>
+<p>
+        All submodules which are cloned will use the status of the submodule’s
+        remote-tracking branch to update the submodule, rather than the
+        superproject’s recorded SHA-1. Equivalent to passing <code>--remote</code> to
+        <code>git submodule update</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--separate-git-dir=&lt;git dir&gt;
+</dt>
+<dd>
+<p>
+        Instead of placing the cloned repository where it is supposed
+        to be, place the cloned repository at the specified directory,
+        then make a filesystem-agnostic Git symbolic link to there.
+        The result is Git repository can be separated from working
+        tree.
+</p>
+</dd>
+<dt class="hdlist1">
+-j &lt;n&gt;
+</dt>
+<dt class="hdlist1">
+--jobs &lt;n&gt;
+</dt>
+<dd>
+<p>
+        The number of submodules fetched at the same time.
+        Defaults to the <code>submodule.fetchJobs</code> option.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;repository&gt;
+</dt>
+<dd>
+<p>
+        The (possibly remote) repository to clone from.  See the
+        <a href="#URLS">GIT URLS</a> section below for more information on specifying
+        repositories.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;directory&gt;
+</dt>
+<dd>
+<p>
+        The name of a new directory to clone into.  The "humanish"
+        part of the source repository is used if no directory is
+        explicitly given (<code>repo</code> for <code>/path/to/repo.git</code> and <code>foo</code>
+        for <code>host.xz:foo/.git</code>).  Cloning into an existing directory
+        is only allowed if the directory is empty.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git_urls_a_id_urls_a">GIT URLS<a id="URLS"></a></h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In general, URLs contain information about the transport protocol, the
+address of the remote server, and the path to the repository.
+Depending on the transport protocol, some of this information may be
+absent.</p></div>
+<div class="paragraph"><p>Git supports ssh, git, http, and https protocols (in addition, ftp,
+and ftps can be used for fetching, but this is inefficient and
+deprecated; do not use it).</p></div>
+<div class="paragraph"><p>The native transport (i.e. git:// URL) does no authentication and
+should be used with caution on unsecured networks.</p></div>
+<div class="paragraph"><p>The following syntaxes may be used with them:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+ssh://&#91;user@&#93;host.xz&#91;:port&#93;/path/to/repo.git/
+</p>
+</li>
+<li>
+<p>
+git://host.xz&#91;:port&#93;/path/to/repo.git/
+</p>
+</li>
+<li>
+<p>
+http&#91;s&#93;://host.xz&#91;:port&#93;/path/to/repo.git/
+</p>
+</li>
+<li>
+<p>
+ftp&#91;s&#93;://host.xz&#91;:port&#93;/path/to/repo.git/
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>An alternative scp-like syntax may also be used with the ssh protocol:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+&#91;user@&#93;host.xz:path/to/repo.git/
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>This syntax is only recognized if there are no slashes before the
+first colon. This helps differentiate a local path that contains a
+colon. For example the local path <code>foo:bar</code> could be specified as an
+absolute path or <code>./foo:bar</code> to avoid being misinterpreted as an ssh
+url.</p></div>
+<div class="paragraph"><p>The ssh and git protocols additionally support ~username expansion:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+ssh://&#91;user@&#93;host.xz&#91;:port&#93;/~&#91;user&#93;/path/to/repo.git/
+</p>
+</li>
+<li>
+<p>
+git://host.xz&#91;:port&#93;/~&#91;user&#93;/path/to/repo.git/
+</p>
+</li>
+<li>
+<p>
+&#91;user@&#93;host.xz:/~&#91;user&#93;/path/to/repo.git/
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>For local repositories, also supported by Git natively, the following
+syntaxes may be used:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+/path/to/repo.git/
+</p>
+</li>
+<li>
+<p>
+file:///path/to/repo.git/
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>These two syntaxes are mostly equivalent, except the former implies
+--local option.</p></div>
+<div class="paragraph"><p>When Git doesn&#8217;t know how to handle a certain transport protocol, it
+attempts to use the <em>remote-&lt;transport&gt;</em> remote helper, if one
+exists. To explicitly request a remote helper, the following syntax
+may be used:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+&lt;transport&gt;::&lt;address&gt;
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>where &lt;address&gt; may be a path, a server and path, or an arbitrary
+URL-like string recognized by the specific remote helper being
+invoked. See <a href="gitremote-helpers.html">gitremote-helpers(7)</a> for details.</p></div>
+<div class="paragraph"><p>If there are a large number of similarly-named remote repositories and
+you want to use a different format for them (such that the URLs you
+use will be rewritten into URLs that work), you can create a
+configuration section of the form:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        [url "&lt;actual url base&gt;"]
+                insteadOf = &lt;other url base&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>For example, with this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        [url "git://git.host.xz/"]
+                insteadOf = host.xz:/path/to/
+                insteadOf = work:</code></pre>
+</div></div>
+<div class="paragraph"><p>a URL like "work:repo.git" or like "host.xz:/path/to/repo.git" will be
+rewritten in any context that takes a URL to be "git://git.host.xz/repo.git".</p></div>
+<div class="paragraph"><p>If you want to rewrite URLs for push only, you can create a
+configuration section of the form:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        [url "&lt;actual url base&gt;"]
+                pushInsteadOf = &lt;other url base&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>For example, with this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        [url "ssh://example.org/"]
+                pushInsteadOf = git://example.org/</code></pre>
+</div></div>
+<div class="paragraph"><p>a URL like "git://example.org/path/to/repo.git" will be rewritten to
+"ssh://example.org/path/to/repo.git" for pushes, but pulls will still
+use the original URL.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Clone from upstream:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git clone git://git.kernel.org/pub/scm/.../linux.git my-linux
+$ cd my-linux
+$ make</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Make a local clone that borrows from the current directory, without checking things out:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git clone -l -s -n . ../copy
+$ cd ../copy
+$ git show-branch</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Clone from upstream while borrowing from an existing local directory:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git clone --reference /git/linux.git \
+        git://git.kernel.org/pub/scm/.../linux.git \
+        my-linux
+$ cd my-linux</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Create a bare repository to publish your changes to the public:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git clone --bare -l /home/proj/.git /pub/scm/proj.git</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

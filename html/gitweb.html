@@ -1,0 +1,1648 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>gitweb(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitweb(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitweb -
+   Git web interface (web frontend to Git repositories)
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>To get started with gitweb, run <a href="git-instaweb.html">git-instaweb(1)</a> from a Git repository.
+This would configure and start your web server, and run web browser pointing to
+gitweb.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Gitweb provides a web interface to Git repositories.  Its features include:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Viewing multiple Git repositories with common root.
+</p>
+</li>
+<li>
+<p>
+Browsing every revision of the repository.
+</p>
+</li>
+<li>
+<p>
+Viewing the contents of files in the repository at any revision.
+</p>
+</li>
+<li>
+<p>
+Viewing the revision log of branches, history of files and directories,
+  see what was changed when, by who.
+</p>
+</li>
+<li>
+<p>
+Viewing the blame/annotation details of any file (if enabled).
+</p>
+</li>
+<li>
+<p>
+Generating RSS and Atom feeds of commits, for any branch.
+  The feeds are auto-discoverable in modern web browsers.
+</p>
+</li>
+<li>
+<p>
+Viewing everything that was changed in a revision, and step through
+  revisions one at a time, viewing the history of the repository.
+</p>
+</li>
+<li>
+<p>
+Finding commits which commit messages matches given search term.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>See <a href="http://repo.or.cz/w/git.git/tree/HEAD:/gitweb/">http://repo.or.cz/w/git.git/tree/HEAD:/gitweb/</a> for gitweb source code,
+browsed using gitweb itself.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Various aspects of gitweb&#8217;s behavior can be controlled through the configuration
+file <code>gitweb_config.perl</code> or <code>/etc/gitweb.conf</code>.  See the <a href="gitweb.conf.html">gitweb.conf(5)</a>
+for details.</p></div>
+<div class="sect2">
+<h3 id="_repositories">Repositories</h3>
+<div class="paragraph"><p>Gitweb can show information from one or more Git repositories.  These
+repositories have to be all on local filesystem, and have to share common
+repository root, i.e. be all under a single parent repository (but see also
+"Advanced web server setup" section, "Webserver configuration with multiple
+projects' root" subsection).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>our $projectroot = '/path/to/parent/directory';</code></pre>
+</div></div>
+<div class="paragraph"><p>The default value for <code>$projectroot</code> is <code>/pub/git</code>.  You can change it during
+building gitweb via <code>GITWEB_PROJECTROOT</code> build configuration variable.</p></div>
+<div class="paragraph"><p>By default all Git repositories under <code>$projectroot</code> are visible and available
+to gitweb.  The list of projects is generated by default by scanning the
+<code>$projectroot</code> directory for Git repositories (for object databases to be
+more exact; gitweb is not interested in a working area, and is best suited
+to showing "bare" repositories).</p></div>
+<div class="paragraph"><p>The name of the repository in gitweb is the path to its <code>$GIT_DIR</code> (its object
+database) relative to <code>$projectroot</code>.  Therefore the repository $repo can be
+found at "$projectroot/$repo".</p></div>
+</div>
+<div class="sect2">
+<h3 id="_projects_list_file_format">Projects list file format</h3>
+<div class="paragraph"><p>Instead of having gitweb find repositories by scanning filesystem
+starting from $projectroot, you can provide a pre-generated list of
+visible projects by setting <code>$projects_list</code> to point to a plain text
+file with a list of projects (with some additional info).</p></div>
+<div class="paragraph"><p>This file uses the following format:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+One record (for project / repository) per line; does not support line
+continuation (newline escaping).
+</p>
+</li>
+<li>
+<p>
+Leading and trailing whitespace are ignored.
+</p>
+</li>
+<li>
+<p>
+Whitespace separated fields; any run of whitespace can be used as field
+separator (rules for Perl&#8217;s "<code>split(" ", $line)</code>").
+</p>
+</li>
+<li>
+<p>
+Fields use modified URI encoding, defined in RFC 3986, section 2.1
+(Percent-Encoding), or rather "Query string encoding" (see
+<a href="https://en.wikipedia.org/wiki/Query_string#URL_encoding">https://en.wikipedia.org/wiki/Query_string#URL_encoding</a>), the difference
+being that SP (" ") can be encoded as "&#43;" (and therefore "&#43;" has to be
+also percent-encoded).
+</p>
+<div class="paragraph"><p>Reserved characters are: "%" (used for encoding), "&#43;" (can be used to
+encode SPACE), all whitespace characters as defined in Perl, including SP,
+TAB and LF, (used to separate fields in a record).</p></div>
+</li>
+<li>
+<p>
+Currently recognized fields are:
+</p>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+&lt;repository path&gt;
+</dt>
+<dd>
+<p>
+        path to repository GIT_DIR, relative to <code>$projectroot</code>
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;repository owner&gt;
+</dt>
+<dd>
+<p>
+        displayed as repository owner, preferably full name, or email,
+        or both
+</p>
+</dd>
+</dl></div>
+</li>
+</ul></div>
+<div class="paragraph"><p>You can generate the projects list index file using the project_index action
+(the <em>TXT</em> link on projects list page) directly from gitweb; see also
+"Generating projects list using gitweb" section below.</p></div>
+<div class="paragraph"><p>Example contents:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>foo.git       Joe+R+Hacker+&lt;joe@example.com&gt;
+foo/bar.git   O+W+Ner+&lt;owner@example.org&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>By default this file controls only which projects are <strong>visible</strong> on projects
+list page (note that entries that do not point to correctly recognized Git
+repositories won&#8217;t be displayed by gitweb).  Even if a project is not
+visible on projects list page, you can view it nevertheless by hand-crafting
+a gitweb URL.  By setting <code>$strict_export</code> configuration variable (see
+<a href="gitweb.conf.html">gitweb.conf(5)</a>) to true value you can allow viewing only of
+repositories also shown on the overview page (i.e. only projects explicitly
+listed in projects list file will be accessible).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_generating_projects_list_using_gitweb">Generating projects list using gitweb</h3>
+<div class="paragraph"><p>We assume that GITWEB_CONFIG has its default Makefile value, namely
+<em>gitweb_config.perl</em>. Put the following in <em>gitweb_make_index.perl</em> file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>read_config_file("gitweb_config.perl");
+$projects_list = $projectroot;</code></pre>
+</div></div>
+<div class="paragraph"><p>Then create the following script to get list of project in the format
+suitable for GITWEB_LIST build configuration variable (or
+<code>$projects_list</code> variable in gitweb config):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>#!/bin/sh
+
+export GITWEB_CONFIG="gitweb_make_index.perl"
+export GATEWAY_INTERFACE="CGI/1.1"
+export HTTP_ACCEPT="*/*"
+export REQUEST_METHOD="GET"
+export QUERY_STRING="a=project_index"
+
+perl -- /var/www/cgi-bin/gitweb.cgi</code></pre>
+</div></div>
+<div class="paragraph"><p>Run this script and save its output to a file.  This file could then be used
+as projects list file, which means that you can set <code>$projects_list</code> to its
+filename.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_controlling_access_to_git_repositories">Controlling access to Git repositories</h3>
+<div class="paragraph"><p>By default all Git repositories under <code>$projectroot</code> are visible and
+available to gitweb.  You can however configure how gitweb controls access
+to repositories.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+As described in "Projects list file format" section, you can control which
+projects are <strong>visible</strong> by selectively including repositories in projects
+list file, and setting <code>$projects_list</code> gitweb configuration variable to
+point to it.  With <code>$strict_export</code> set, projects list file can be used to
+control which repositories are <strong>available</strong> as well.
+</p>
+</li>
+<li>
+<p>
+You can configure gitweb to only list and allow viewing of the explicitly
+exported repositories, via <code>$export_ok</code> variable in gitweb config file; see
+<a href="gitweb.conf.html">gitweb.conf(5)</a> manpage.  If it evaluates to true, gitweb shows
+repositories only if this file named by <code>$export_ok</code> exists in its object
+database (if directory has the magic file named <code>$export_ok</code>).
+</p>
+<div class="paragraph"><p>For example <a href="git-daemon.html">git-daemon(1)</a> by default (unless <code>--export-all</code> option
+is used) allows pulling only for those repositories that have
+<em>git-daemon-export-ok</em> file.  Adding</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>our $export_ok = "git-daemon-export-ok";</code></pre>
+</div></div>
+<div class="paragraph"><p>makes gitweb show and allow access only to those repositories that can be
+fetched from via <code>git://</code> protocol.</p></div>
+</li>
+<li>
+<p>
+Finally, it is possible to specify an arbitrary perl subroutine that will
+be called for each repository to determine if it can be exported.  The
+subroutine receives an absolute path to the project (repository) as its only
+parameter (i.e. "$projectroot/$project").
+</p>
+<div class="paragraph"><p>For example, if you use mod_perl to run the script, and have dumb
+HTTP protocol authentication configured for your repositories, you
+can use the following hook to allow access only if the user is
+authorized to read the files:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$export_auth_hook = sub {
+        use Apache2::SubRequest ();
+        use Apache2::Const -compile =&gt; qw(HTTP_OK);
+        my $path = "$_[0]/HEAD";
+        my $r    = Apache2::RequestUtil-&gt;request;
+        my $sub  = $r-&gt;lookup_file($path);
+        return $sub-&gt;filename eq $path
+            &amp;&amp; $sub-&gt;status == Apache2::Const::HTTP_OK;
+};</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 id="_per_repository_gitweb_configuration">Per-repository gitweb configuration</h3>
+<div class="paragraph"><p>You can configure individual repositories shown in gitweb by creating file
+in the <code>GIT_DIR</code> of Git repository, or by setting some repo configuration
+variable (in <code>GIT_DIR/config</code>, see <a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>You can use the following files in repository:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+README.html
+</dt>
+<dd>
+<p>
+        A html file (HTML fragment) which is included on the gitweb project
+        "summary" page inside <code>&lt;div&gt;</code> block element. You can use it for longer
+        description of a project, to provide links (for example to project&#8217;s
+        homepage), etc. This is recognized only if XSS prevention is off
+        (<code>$prevent_xss</code> is false, see <a href="gitweb.conf.html">gitweb.conf(5)</a>); a way to include
+        a README safely when XSS prevention is on may be worked out in the
+        future.
+</p>
+</dd>
+<dt class="hdlist1">
+description (or <code>gitweb.description</code>)
+</dt>
+<dd>
+<p>
+        Short (shortened to <code>$projects_list_description_width</code> in the projects
+        list page, which is 25 characters by default; see
+        <a href="gitweb.conf.html">gitweb.conf(5)</a>) single line description of a project (of a
+        repository).  Plain text file; HTML will be escaped.  By default set to
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>Unnamed repository; edit this file to name it for gitweb.</code></pre>
+</div></div>
+<div class="paragraph"><p>from the template during repository creation, usually installed in
+<code>/usr/share/git-core/templates/</code>.  You can use the <code>gitweb.description</code> repo
+configuration variable, but the file takes precedence.</p></div>
+</dd>
+<dt class="hdlist1">
+category (or <code>gitweb.category</code>)
+</dt>
+<dd>
+<p>
+        Singe line category of a project, used to group projects if
+        <code>$projects_list_group_categories</code> is enabled.  By default (file and
+        configuration variable absent), uncategorized projects are put in the
+        <code>$project_list_default_category</code> category.  You can use the
+        <code>gitweb.category</code> repo configuration variable, but the file takes
+        precedence.
+</p>
+<div class="paragraph"><p>The configuration variables <code>$projects_list_group_categories</code> and
+<code>$project_list_default_category</code> are described in <a href="gitweb.conf.html">gitweb.conf(5)</a></p></div>
+</dd>
+<dt class="hdlist1">
+cloneurl (or multiple-valued <code>gitweb.url</code>)
+</dt>
+<dd>
+<p>
+        File with repository URL (used for clone and fetch), one per line.
+        Displayed in the project summary page. You can use multiple-valued
+        <code>gitweb.url</code> repository configuration variable for that, but the file
+        takes precedence.
+</p>
+<div class="paragraph"><p>This is per-repository enhancement / version of global prefix-based
+<code>@git_base_url_list</code> gitweb configuration variable (see
+<a href="gitweb.conf.html">gitweb.conf(5)</a>).</p></div>
+</dd>
+<dt class="hdlist1">
+gitweb.owner
+</dt>
+<dd>
+<p>
+        You can use the <code>gitweb.owner</code> repository configuration variable to set
+        repository&#8217;s owner.  It is displayed in the project list and summary
+        page.
+</p>
+<div class="paragraph"><p>If it&#8217;s not set, filesystem directory&#8217;s owner is used (via GECOS field,
+i.e. real name field from <strong>getpwuid</strong>(3)) if <code>$projects_list</code> is unset
+(gitweb scans <code>$projectroot</code> for repositories); if <code>$projects_list</code>
+points to file with list of repositories, then project owner defaults to
+value from this file for given repository.</p></div>
+</dd>
+<dt class="hdlist1">
+various <code>gitweb.*</code> config variables (in config)
+</dt>
+<dd>
+<p>
+        Read description of <code>%feature</code> hash for detailed list, and descriptions.
+        See also "Configuring gitweb features" section in <a href="gitweb.conf.html">gitweb.conf(5)</a>
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_actions_and_urls">ACTIONS, AND URLS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Gitweb can use path_info (component) based URLs, or it can pass all necessary
+information via query parameters.  The typical gitweb URLs are broken down in to
+five components:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>.../gitweb.cgi/&lt;repo&gt;/&lt;action&gt;/&lt;revision&gt;:/&lt;path&gt;?&lt;arguments&gt;</code></pre>
+</div></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+repo
+</dt>
+<dd>
+<p>
+        The repository the action will be performed on.
+</p>
+<div class="paragraph"><p>All actions except for those that list all available projects,
+in whatever form, require this parameter.</p></div>
+</dd>
+<dt class="hdlist1">
+action
+</dt>
+<dd>
+<p>
+        The action that will be run.  Defaults to <em>projects_list</em> if repo
+        is not set, and to <em>summary</em> otherwise.
+</p>
+</dd>
+<dt class="hdlist1">
+revision
+</dt>
+<dd>
+<p>
+        Revision shown.  Defaults to HEAD.
+</p>
+</dd>
+<dt class="hdlist1">
+path
+</dt>
+<dd>
+<p>
+        The path within the &lt;repository&gt; that the action is performed on,
+        for those actions that require it.
+</p>
+</dd>
+<dt class="hdlist1">
+arguments
+</dt>
+<dd>
+<p>
+        Any arguments that control the behaviour of the action.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Some actions require or allow to specify two revisions, and sometimes even two
+pathnames.  In most general form such path_info (component) based gitweb URL
+looks like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>.../gitweb.cgi/&lt;repo&gt;/&lt;action&gt;/&lt;revision_from&gt;:/&lt;path_from&gt;..&lt;revision_to&gt;:/&lt;path_to&gt;?&lt;arguments&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Each action is implemented as a subroutine, and must be present in %actions
+hash.  Some actions are disabled by default, and must be turned on via feature
+mechanism.  For example to enable <em>blame</em> view add the following to gitweb
+configuration file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$feature{'blame'}{'default'} = [1];</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_actions">Actions:</h3>
+<div class="paragraph"><p>The standard actions are:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+project_list
+</dt>
+<dd>
+<p>
+        Lists the available Git repositories.  This is the default command if no
+        repository is specified in the URL.
+</p>
+</dd>
+<dt class="hdlist1">
+summary
+</dt>
+<dd>
+<p>
+        Displays summary about given repository.  This is the default command if
+        no action is specified in URL, and only repository is specified.
+</p>
+</dd>
+<dt class="hdlist1">
+heads
+</dt>
+<dt class="hdlist1">
+remotes
+</dt>
+<dd>
+<p>
+        Lists all local or all remote-tracking branches in given repository.
+</p>
+<div class="paragraph"><p>The latter is not available by default, unless configured.</p></div>
+</dd>
+<dt class="hdlist1">
+tags
+</dt>
+<dd>
+<p>
+        List all tags (lightweight and annotated) in given repository.
+</p>
+</dd>
+<dt class="hdlist1">
+blob
+</dt>
+<dt class="hdlist1">
+tree
+</dt>
+<dd>
+<p>
+        Shows the files and directories in a given repository path, at given
+        revision.  This is default command if no action is specified in the URL,
+        and path is given.
+</p>
+</dd>
+<dt class="hdlist1">
+blob_plain
+</dt>
+<dd>
+<p>
+        Returns the raw data for the file in given repository, at given path and
+        revision.  Links to this action are marked <em>raw</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+blobdiff
+</dt>
+<dd>
+<p>
+        Shows the difference between two revisions of the same file.
+</p>
+</dd>
+<dt class="hdlist1">
+blame
+</dt>
+<dt class="hdlist1">
+blame_incremental
+</dt>
+<dd>
+<p>
+        Shows the blame (also called annotation) information for a file. On a
+        per line basis it shows the revision in which that line was last changed
+        and the user that committed the change.  The incremental version (which
+        if configured is used automatically when JavaScript is enabled) uses
+        Ajax to incrementally add blame info to the contents of given file.
+</p>
+<div class="paragraph"><p>This action is disabled by default for performance reasons.</p></div>
+</dd>
+<dt class="hdlist1">
+commit
+</dt>
+<dt class="hdlist1">
+commitdiff
+</dt>
+<dd>
+<p>
+        Shows information about a specific commit in a repository.  The <em>commit</em>
+        view shows information about commit in more detail, the <em>commitdiff</em>
+        action shows changeset for given commit.
+</p>
+</dd>
+<dt class="hdlist1">
+patch
+</dt>
+<dd>
+<p>
+        Returns the commit in plain text mail format, suitable for applying with
+        <a href="git-am.html">git-am(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+tag
+</dt>
+<dd>
+<p>
+        Display specific annotated tag (tag object).
+</p>
+</dd>
+<dt class="hdlist1">
+log
+</dt>
+<dt class="hdlist1">
+shortlog
+</dt>
+<dd>
+<p>
+        Shows log information (commit message or just commit subject) for a
+        given branch (starting from given revision).
+</p>
+<div class="paragraph"><p>The <em>shortlog</em> view is more compact; it shows one commit per line.</p></div>
+</dd>
+<dt class="hdlist1">
+history
+</dt>
+<dd>
+<p>
+        Shows history of the file or directory in a given repository path,
+        starting from given revision (defaults to HEAD, i.e. default branch).
+</p>
+<div class="paragraph"><p>This view is similar to <em>shortlog</em> view.</p></div>
+</dd>
+<dt class="hdlist1">
+rss
+</dt>
+<dt class="hdlist1">
+atom
+</dt>
+<dd>
+<p>
+        Generates an RSS (or Atom) feed of changes to repository.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_webserver_configuration">WEBSERVER CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This section explains how to configure some common webservers to run gitweb. In
+all cases, <code>/path/to/gitweb</code> in the examples is the directory you ran installed
+gitweb in, and contains <code>gitweb_config.perl</code>.</p></div>
+<div class="paragraph"><p>If you&#8217;ve configured a web server that isn&#8217;t listed here for gitweb, please send
+in the instructions so they can be included in a future release.</p></div>
+<div class="sect2">
+<h3 id="_apache_as_cgi">Apache as CGI</h3>
+<div class="paragraph"><p>Apache must be configured to support CGI scripts in the directory in
+which gitweb is installed.  Let&#8217;s assume that it is <code>/var/www/cgi-bin</code>
+directory.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>ScriptAlias /cgi-bin/ "/var/www/cgi-bin/"
+
+&lt;Directory "/var/www/cgi-bin"&gt;
+    Options Indexes FollowSymlinks ExecCGI
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+&lt;/Directory&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>With that configuration the full path to browse repositories would be:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://server/cgi-bin/gitweb.cgi</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_apache_with_mod_perl_via_modperl_registry">Apache with mod_perl, via ModPerl::Registry</h3>
+<div class="paragraph"><p>You can use mod_perl with gitweb.  You must install Apache::Registry
+(for mod_perl 1.x) or ModPerl::Registry (for mod_perl 2.x) to enable
+this support.</p></div>
+<div class="paragraph"><p>Assuming that gitweb is installed to <code>/var/www/perl</code>, the following
+Apache configuration (for mod_perl 2.x) is suitable.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Alias /perl "/var/www/perl"
+
+&lt;Directory "/var/www/perl"&gt;
+    SetHandler perl-script
+    PerlResponseHandler ModPerl::Registry
+    PerlOptions +ParseHeaders
+    Options Indexes FollowSymlinks +ExecCGI
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+&lt;/Directory&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>With that configuration the full path to browse repositories would be:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://server/perl/gitweb.cgi</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_apache_with_fastcgi">Apache with FastCGI</h3>
+<div class="paragraph"><p>Gitweb works with Apache and FastCGI.  First you need to rename, copy
+or symlink gitweb.cgi to gitweb.fcgi.  Let&#8217;s assume that gitweb is
+installed in <code>/usr/share/gitweb</code> directory.  The following Apache
+configuration is suitable (UNTESTED!)</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>FastCgiServer /usr/share/gitweb/gitweb.cgi
+ScriptAlias /gitweb /usr/share/gitweb/gitweb.cgi
+
+Alias /gitweb/static /usr/share/gitweb/static
+&lt;Directory /usr/share/gitweb/static&gt;
+    SetHandler default-handler
+&lt;/Directory&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>With that configuration the full path to browse repositories would be:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://server/gitweb</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_advanced_web_server_setup">ADVANCED WEB SERVER SETUP</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>All of those examples use request rewriting, and need <code>mod_rewrite</code>
+(or equivalent; examples below are written for Apache).</p></div>
+<div class="sect2">
+<h3 id="_single_url_for_gitweb_and_for_fetching">Single URL for gitweb and for fetching</h3>
+<div class="paragraph"><p>If you want to have one URL for both gitweb and your <code>http://</code>
+repositories, you can configure Apache like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;VirtualHost *:80&gt;
+    ServerName    git.example.org
+    DocumentRoot  /pub/git
+    SetEnv        GITWEB_CONFIG   /etc/gitweb.conf
+
+    # turning on mod rewrite
+    RewriteEngine on
+
+    # make the front page an internal rewrite to the gitweb script
+    RewriteRule ^/$  /cgi-bin/gitweb.cgi
+
+    # make access for "dumb clients" work
+    RewriteRule ^/(.*\.git/(?!/?(HEAD|info|objects|refs)).*)?$ \
+                /cgi-bin/gitweb.cgi%{REQUEST_URI}  [L,PT]
+&lt;/VirtualHost&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>The above configuration expects your public repositories to live under
+<code>/pub/git</code> and will serve them as <code>http://git.domain.org/dir-under-pub-git</code>,
+both as clonable Git URL and as browseable gitweb interface.  If you then
+start your <a href="git-daemon.html">git-daemon(1)</a> with <code>--base-path=/pub/git --export-all</code>
+then you can even use the <code>git://</code> URL with exactly the same path.</p></div>
+<div class="paragraph"><p>Setting the environment variable <code>GITWEB_CONFIG</code> will tell gitweb to use the
+named file (i.e. in this example <code>/etc/gitweb.conf</code>) as a configuration for
+gitweb.  You don&#8217;t really need it in above example; it is required only if
+your configuration file is in different place than built-in (during
+compiling gitweb) <em>gitweb_config.perl</em> or <code>/etc/gitweb.conf</code>.  See
+<a href="gitweb.conf.html">gitweb.conf(5)</a> for details, especially information about precedence
+rules.</p></div>
+<div class="paragraph"><p>If you use the rewrite rules from the example you <strong>might</strong> also need
+something like the following in your gitweb configuration file
+(<code>/etc/gitweb.conf</code> following example):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>@stylesheets = ("/some/absolute/path/gitweb.css");
+$my_uri    = "/";
+$home_link = "/";
+$per_request_config = 1;</code></pre>
+</div></div>
+<div class="paragraph"><p>Nowadays though gitweb should create HTML base tag when needed (to set base
+URI for relative links), so it should work automatically.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_webserver_configuration_with_multiple_projects_root">Webserver configuration with multiple projects' root</h3>
+<div class="paragraph"><p>If you want to use gitweb with several project roots you can edit your
+Apache virtual host and gitweb configuration files in the following way.</p></div>
+<div class="paragraph"><p>The virtual host configuration (in Apache configuration file) should look
+like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;VirtualHost *:80&gt;
+    ServerName    git.example.org
+    DocumentRoot  /pub/git
+    SetEnv        GITWEB_CONFIG  /etc/gitweb.conf
+
+    # turning on mod rewrite
+    RewriteEngine on
+
+    # make the front page an internal rewrite to the gitweb script
+    RewriteRule ^/$  /cgi-bin/gitweb.cgi  [QSA,L,PT]
+
+    # look for a public_git folder in unix users' home
+    # http://git.example.org/~&lt;user&gt;/
+    RewriteRule ^/\~([^\/]+)(/|/gitweb.cgi)?$   /cgi-bin/gitweb.cgi \
+                [QSA,E=GITWEB_PROJECTROOT:/home/$1/public_git/,L,PT]
+
+    # http://git.example.org/+&lt;user&gt;/
+    #RewriteRule ^/\+([^\/]+)(/|/gitweb.cgi)?$  /cgi-bin/gitweb.cgi \
+                 [QSA,E=GITWEB_PROJECTROOT:/home/$1/public_git/,L,PT]
+
+    # http://git.example.org/user/&lt;user&gt;/
+    #RewriteRule ^/user/([^\/]+)/(gitweb.cgi)?$ /cgi-bin/gitweb.cgi \
+                 [QSA,E=GITWEB_PROJECTROOT:/home/$1/public_git/,L,PT]
+
+    # defined list of project roots
+    RewriteRule ^/scm(/|/gitweb.cgi)?$ /cgi-bin/gitweb.cgi \
+                [QSA,E=GITWEB_PROJECTROOT:/pub/scm/,L,PT]
+    RewriteRule ^/var(/|/gitweb.cgi)?$ /cgi-bin/gitweb.cgi \
+                [QSA,E=GITWEB_PROJECTROOT:/var/git/,L,PT]
+
+    # make access for "dumb clients" work
+    RewriteRule ^/(.*\.git/(?!/?(HEAD|info|objects|refs)).*)?$ \
+                /cgi-bin/gitweb.cgi%{REQUEST_URI}  [L,PT]
+&lt;/VirtualHost&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Here actual project root is passed to gitweb via <code>GITWEB_PROJECT_ROOT</code>
+environment variable from a web server, so you need to put the following
+line in gitweb configuration file (<code>/etc/gitweb.conf</code> in above example):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$projectroot = $ENV{'GITWEB_PROJECTROOT'} || "/pub/git";</code></pre>
+</div></div>
+<div class="paragraph"><p><strong>Note</strong> that this requires to be set for each request, so either
+<code>$per_request_config</code> must be false, or the above must be put in code
+referenced by <code>$per_request_config</code>;</p></div>
+<div class="paragraph"><p>These configurations enable two things. First, each unix user (<code>&lt;user&gt;</code>) of
+the server will be able to browse through gitweb Git repositories found in
+<code>~/public_git/</code> with the following url:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://git.example.org/~&lt;user&gt;/</code></pre>
+</div></div>
+<div class="paragraph"><p>If you do not want this feature on your server just remove the second
+rewrite rule.</p></div>
+<div class="paragraph"><p>If you already use &#8216;mod_userdir` in your virtual host or you don&#8217;t want to
+use the '~&#8217; as first character, just comment or remove the second rewrite
+rule, and uncomment one of the following according to what you want.</p></div>
+<div class="paragraph"><p>Second, repositories found in <code>/pub/scm/</code> and <code>/var/git/</code> will be accessible
+through <code>http://git.example.org/scm/</code> and <code>http://git.example.org/var/</code>.
+You can add as many project roots as you want by adding rewrite rules like
+the third and the fourth.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_path_info_usage">PATH_INFO usage</h3>
+<div class="paragraph"><p>If you enable PATH_INFO usage in gitweb by putting</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$feature{'pathinfo'}{'default'} = [1];</code></pre>
+</div></div>
+<div class="paragraph"><p>in your gitweb configuration file, it is possible to set up your server so
+that it consumes and produces URLs in the form</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://git.example.com/project.git/shortlog/sometag</code></pre>
+</div></div>
+<div class="paragraph"><p>i.e. without <em>gitweb.cgi</em> part, by using a configuration such as the
+following.  This configuration assumes that <code>/var/www/gitweb</code> is the
+DocumentRoot of your webserver, contains the gitweb.cgi script and
+complementary static files (stylesheet, favicon, JavaScript):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;VirtualHost *:80&gt;
+        ServerAlias git.example.com
+
+        DocumentRoot /var/www/gitweb
+
+        &lt;Directory /var/www/gitweb&gt;
+                Options ExecCGI
+                AddHandler cgi-script cgi
+
+                DirectoryIndex gitweb.cgi
+
+                RewriteEngine On
+                RewriteCond %{REQUEST_FILENAME} !-f
+                RewriteCond %{REQUEST_FILENAME} !-d
+                RewriteRule ^.* /gitweb.cgi/$0 [L,PT]
+        &lt;/Directory&gt;
+&lt;/VirtualHost&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>The rewrite rule guarantees that existing static files will be properly
+served, whereas any other URL will be passed to gitweb as PATH_INFO
+parameter.</p></div>
+<div class="paragraph"><p><strong>Notice</strong> that in this case you don&#8217;t need special settings for
+<code>@stylesheets</code>, <code>$my_uri</code> and <code>$home_link</code>, but you lose "dumb client"
+access to your project .git dirs (described in "Single URL for gitweb and
+for fetching" section).  A possible workaround for the latter is the
+following: in your project root dir (e.g. <code>/pub/git</code>) have the projects
+named <strong>without</strong> a .git extension (e.g. <code>/pub/git/project</code> instead of
+<code>/pub/git/project.git</code>) and configure Apache as follows:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;VirtualHost *:80&gt;
+        ServerAlias git.example.com
+
+        DocumentRoot /var/www/gitweb
+
+        AliasMatch ^(/.*?)(\.git)(/.*)?$ /pub/git$1$3
+        &lt;Directory /var/www/gitweb&gt;
+                Options ExecCGI
+                AddHandler cgi-script cgi
+
+                DirectoryIndex gitweb.cgi
+
+                RewriteEngine On
+                RewriteCond %{REQUEST_FILENAME} !-f
+                RewriteCond %{REQUEST_FILENAME} !-d
+                RewriteRule ^.* /gitweb.cgi/$0 [L,PT]
+        &lt;/Directory&gt;
+&lt;/VirtualHost&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>The additional AliasMatch makes it so that</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://git.example.com/project.git</code></pre>
+</div></div>
+<div class="paragraph"><p>will give raw access to the project&#8217;s Git dir (so that the project can be
+cloned), while</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://git.example.com/project</code></pre>
+</div></div>
+<div class="paragraph"><p>will provide human-friendly gitweb access.</p></div>
+<div class="paragraph"><p>This solution is not 100% bulletproof, in the sense that if some project has
+a named ref (branch, tag) starting with <code>git/</code>, then paths such as</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://git.example.com/project/command/abranch..git/abranch</code></pre>
+</div></div>
+<div class="paragraph"><p>will fail with a 404 error.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bugs">BUGS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Please report any bugs or feature requests to <a href="mailto:git@vger.kernel.org">git@vger.kernel.org</a>,
+putting "gitweb" in the subject of email.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="gitweb.conf.html">gitweb.conf(5)</a>, <a href="git-instaweb.html">git-instaweb(1)</a></p></div>
+<div class="paragraph"><p><code>gitweb/README</code>, <code>gitweb/INSTALL</code></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

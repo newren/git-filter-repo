@@ -1,0 +1,1044 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-describe(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-describe(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-describe -
+   Give an object a human readable name based on an available ref
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git describe</em> [--all] [--tags] [--contains] [--abbrev=&lt;n&gt;] [&lt;commit-ish&gt;&#8230;]
+<em>git describe</em> [--all] [--tags] [--contains] [--abbrev=&lt;n&gt;] --dirty[=&lt;mark&gt;]
+<em>git describe</em> &lt;blob&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The command finds the most recent tag that is reachable from a
+commit.  If the tag points to the commit, then only the tag is
+shown.  Otherwise, it suffixes the tag name with the number of
+additional commits on top of the tagged object and the
+abbreviated object name of the most recent commit. The result
+is a "human-readable" object name which can also be used to
+identify the commit to other git commands.</p></div>
+<div class="paragraph"><p>By default (without --all or --tags) <code>git describe</code> only shows
+annotated tags.  For more information about creating annotated tags
+see the -a and -s options to <a href="git-tag.html">git-tag(1)</a>.</p></div>
+<div class="paragraph"><p>If the given object refers to a blob, it will be described
+as <code>&lt;commit-ish&gt;:&lt;path&gt;</code>, such that the blob can be found
+at <code>&lt;path&gt;</code> in the <code>&lt;commit-ish&gt;</code>, which itself describes the
+first commit in which this blob occurs in a reverse revision walk
+from HEAD.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+&lt;commit-ish&gt;&#8230;
+</dt>
+<dd>
+<p>
+        Commit-ish object names to describe.  Defaults to HEAD if omitted.
+</p>
+</dd>
+<dt class="hdlist1">
+--dirty[=&lt;mark&gt;]
+</dt>
+<dt class="hdlist1">
+--broken[=&lt;mark&gt;]
+</dt>
+<dd>
+<p>
+        Describe the state of the working tree.  When the working
+        tree matches HEAD, the output is the same as "git describe
+        HEAD".  If the working tree has local modification "-dirty"
+        is appended to it.  If a repository is corrupt and Git
+        cannot determine if there is local modification, Git will
+        error out, unless &#8216;--broken&#8217; is given, which appends
+        the suffix "-broken" instead.
+</p>
+</dd>
+<dt class="hdlist1">
+--all
+</dt>
+<dd>
+<p>
+        Instead of using only the annotated tags, use any ref
+        found in <code>refs/</code> namespace.  This option enables matching
+        any known branch, remote-tracking branch, or lightweight tag.
+</p>
+</dd>
+<dt class="hdlist1">
+--tags
+</dt>
+<dd>
+<p>
+        Instead of using only the annotated tags, use any tag
+        found in <code>refs/tags</code> namespace.  This option enables matching
+        a lightweight (non-annotated) tag.
+</p>
+</dd>
+<dt class="hdlist1">
+--contains
+</dt>
+<dd>
+<p>
+        Instead of finding the tag that predates the commit, find
+        the tag that comes after the commit, and thus contains it.
+        Automatically implies --tags.
+</p>
+</dd>
+<dt class="hdlist1">
+--abbrev=&lt;n&gt;
+</dt>
+<dd>
+<p>
+        Instead of using the default 7 hexadecimal digits as the
+        abbreviated object name, use &lt;n&gt; digits, or as many digits
+        as needed to form a unique object name.  An &lt;n&gt; of 0
+        will suppress long format, only showing the closest tag.
+</p>
+</dd>
+<dt class="hdlist1">
+--candidates=&lt;n&gt;
+</dt>
+<dd>
+<p>
+        Instead of considering only the 10 most recent tags as
+        candidates to describe the input commit-ish consider
+        up to &lt;n&gt; candidates.  Increasing &lt;n&gt; above 10 will take
+        slightly longer but may produce a more accurate result.
+        An &lt;n&gt; of 0 will cause only exact matches to be output.
+</p>
+</dd>
+<dt class="hdlist1">
+--exact-match
+</dt>
+<dd>
+<p>
+        Only output exact matches (a tag directly references the
+        supplied commit).  This is a synonym for --candidates=0.
+</p>
+</dd>
+<dt class="hdlist1">
+--debug
+</dt>
+<dd>
+<p>
+        Verbosely display information about the searching strategy
+        being employed to standard error.  The tag name will still
+        be printed to standard out.
+</p>
+</dd>
+<dt class="hdlist1">
+--long
+</dt>
+<dd>
+<p>
+        Always output the long format (the tag, the number of commits
+        and the abbreviated commit name) even when it matches a tag.
+        This is useful when you want to see parts of the commit object name
+        in "describe" output, even when the commit in question happens to be
+        a tagged version.  Instead of just emitting the tag name, it will
+        describe such a commit as v1.2-0-gdeadbee (0th commit since tag v1.2
+        that points at object deadbee&#8230;.).
+</p>
+</dd>
+<dt class="hdlist1">
+--match &lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Only consider tags matching the given <code>glob(7)</code> pattern,
+        excluding the "refs/tags/" prefix. If used with <code>--all</code>, it also
+        considers local branches and remote-tracking references matching the
+        pattern, excluding respectively "refs/heads/" and "refs/remotes/"
+        prefix; references of other types are never considered. If given
+        multiple times, a list of patterns will be accumulated, and tags
+        matching any of the patterns will be considered.  Use <code>--no-match</code> to
+        clear and reset the list of patterns.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude &lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Do not consider tags matching the given <code>glob(7)</code> pattern, excluding
+        the "refs/tags/" prefix. If used with <code>--all</code>, it also does not consider
+        local branches and remote-tracking references matching the pattern,
+        excluding respectively "refs/heads/" and "refs/remotes/" prefix;
+        references of other types are never considered. If given multiple times,
+        a list of patterns will be accumulated and tags matching any of the
+        patterns will be excluded. When combined with --match a tag will be
+        considered when it matches at least one --match pattern and does not
+        match any of the --exclude patterns. Use <code>--no-exclude</code> to clear and
+        reset the list of patterns.
+</p>
+</dd>
+<dt class="hdlist1">
+--always
+</dt>
+<dd>
+<p>
+        Show uniquely abbreviated commit object as fallback.
+</p>
+</dd>
+<dt class="hdlist1">
+--first-parent
+</dt>
+<dd>
+<p>
+        Follow only the first parent commit upon seeing a merge commit.
+        This is useful when you wish to not match tags on branches merged
+        in the history of the target commit.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>With something like git.git current tree, I get:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[torvalds@g5 git]$ git describe parent
+v1.0.4-14-g2414721</code></pre>
+</div></div>
+<div class="paragraph"><p>i.e. the current head of my "parent" branch is based on v1.0.4,
+but since it has a few commits on top of that,
+describe has added the number of additional commits ("14") and
+an abbreviated object name for the commit itself ("2414721")
+at the end.</p></div>
+<div class="paragraph"><p>The number of additional commits is the number
+of commits which would be displayed by "git log v1.0.4..parent".
+The hash suffix is "-g" + unambiguous abbreviation for the tip commit
+of parent (which was <code>2414721b194453f058079d897d13c4e377f92dc6</code>).
+The "g" prefix stands for "git" and is used to allow describing the version of
+a software depending on the SCM the software is managed with. This is useful
+in an environment where people may use different SCMs.</p></div>
+<div class="paragraph"><p>Doing a <em>git describe</em> on a tag-name will just show the tag name:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[torvalds@g5 git]$ git describe v1.0.4
+v1.0.4</code></pre>
+</div></div>
+<div class="paragraph"><p>With --all, the command can use branch heads as references, so
+the output shows the reference path as well:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[torvalds@g5 git]$ git describe --all --abbrev=4 v1.0.5^2
+tags/v1.0.0-21-g975b</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[torvalds@g5 git]$ git describe --all --abbrev=4 HEAD^
+heads/lt/describe-7-g975b</code></pre>
+</div></div>
+<div class="paragraph"><p>With --abbrev set to 0, the command can be used to find the
+closest tagname without any suffix:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[torvalds@g5 git]$ git describe --abbrev=0 v1.0.5^2
+tags/v1.0.0</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that the suffix you get if you type these commands today may be
+longer than what Linus saw above when he ran these commands, as your
+Git repository may have new commits whose object names begin with
+975b that did not exist back then, and "-g975b" suffix alone may not
+be sufficient to disambiguate these commits.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_search_strategy">SEARCH STRATEGY</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>For each commit-ish supplied, <em>git describe</em> will first look for
+a tag which tags exactly that commit.  Annotated tags will always
+be preferred over lightweight tags, and tags with newer dates will
+always be preferred over tags with older dates.  If an exact match
+is found, its name will be output and searching will stop.</p></div>
+<div class="paragraph"><p>If an exact match was not found, <em>git describe</em> will walk back
+through the commit history to locate an ancestor commit which
+has been tagged.  The ancestor&#8217;s tag will be output along with an
+abbreviation of the input commit-ish&#8217;s SHA-1. If <code>--first-parent</code> was
+specified then the walk will only consider the first parent of each
+commit.</p></div>
+<div class="paragraph"><p>If multiple tags were found during the walk then the tag which
+has the fewest commits different from the input commit-ish will be
+selected and output.  Here fewest commits different is defined as
+the number of commits which would be shown by <code>git log tag..input</code>
+will be the smallest number of commits possible.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bugs">BUGS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Tree objects as well as tag objects not pointing at commits, cannot be described.
+When describing blobs, the lightweight tags pointing at blobs are ignored,
+but the blob is still described as &lt;committ-ish&gt;:&lt;path&gt; despite the lightweight
+tag being favorable.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

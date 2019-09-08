@@ -1,0 +1,1127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-fsck(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-fsck(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-fsck -
+   Verifies the connectivity and validity of the objects in the database
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git fsck</em> [--tags] [--root] [--unreachable] [--cache] [--no-reflogs]
+         [--[no-]full] [--strict] [--verbose] [--lost-found]
+         [--[no-]dangling] [--[no-]progress] [--connectivity-only]
+         [--[no-]name-objects] [&lt;object&gt;*]</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Verifies the connectivity and validity of the objects in the database.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+&lt;object&gt;
+</dt>
+<dd>
+<p>
+        An object to treat as the head of an unreachability trace.
+</p>
+<div class="paragraph"><p>If no objects are given, <em>git fsck</em> defaults to using the
+index file, all SHA-1 references in <code>refs</code> namespace, and all reflogs
+(unless --no-reflogs is given) as heads.</p></div>
+</dd>
+<dt class="hdlist1">
+--unreachable
+</dt>
+<dd>
+<p>
+        Print out objects that exist but that aren&#8217;t reachable from any
+        of the reference nodes.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]dangling
+</dt>
+<dd>
+<p>
+        Print objects that exist but that are never <em>directly</em> used (default).
+        <code>--no-dangling</code> can be used to omit this information from the output.
+</p>
+</dd>
+<dt class="hdlist1">
+--root
+</dt>
+<dd>
+<p>
+        Report root nodes.
+</p>
+</dd>
+<dt class="hdlist1">
+--tags
+</dt>
+<dd>
+<p>
+        Report tags.
+</p>
+</dd>
+<dt class="hdlist1">
+--cache
+</dt>
+<dd>
+<p>
+        Consider any object recorded in the index also as a head node for
+        an unreachability trace.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-reflogs
+</dt>
+<dd>
+<p>
+        Do not consider commits that are referenced only by an
+        entry in a reflog to be reachable.  This option is meant
+        only to search for commits that used to be in a ref, but
+        now aren&#8217;t, but are still in that corresponding reflog.
+</p>
+</dd>
+<dt class="hdlist1">
+--full
+</dt>
+<dd>
+<p>
+        Check not just objects in GIT_OBJECT_DIRECTORY
+        ($GIT_DIR/objects), but also the ones found in alternate
+        object pools listed in GIT_ALTERNATE_OBJECT_DIRECTORIES
+        or $GIT_DIR/objects/info/alternates,
+        and in packed Git archives found in $GIT_DIR/objects/pack
+        and corresponding pack subdirectories in alternate
+        object pools.  This is now default; you can turn it off
+        with --no-full.
+</p>
+</dd>
+<dt class="hdlist1">
+--connectivity-only
+</dt>
+<dd>
+<p>
+        Check only the connectivity of reachable objects, making sure
+        that any objects referenced by a reachable tag, commit, or tree
+        is present. This speeds up the operation by avoiding reading
+        blobs entirely (though it does still check that referenced blobs
+        exist). This will detect corruption in commits and trees, but
+        not do any semantic checks (e.g., for format errors). Corruption
+        in blob objects will not be detected at all.
+</p>
+<div class="paragraph"><p>Unreachable tags, commits, and trees will also be accessed to find the
+tips of dangling segments of history. Use <code>--no-dangling</code> if you don&#8217;t
+care about this output and want to speed it up further.</p></div>
+</dd>
+<dt class="hdlist1">
+--strict
+</dt>
+<dd>
+<p>
+        Enable more strict checking, namely to catch a file mode
+        recorded with g+w bit set, which was created by older
+        versions of Git.  Existing repositories, including the
+        Linux kernel, Git itself, and sparse repository have old
+        objects that triggers this check, but it is recommended
+        to check new projects with this flag.
+</p>
+</dd>
+<dt class="hdlist1">
+--verbose
+</dt>
+<dd>
+<p>
+        Be chatty.
+</p>
+</dd>
+<dt class="hdlist1">
+--lost-found
+</dt>
+<dd>
+<p>
+        Write dangling objects into .git/lost-found/commit/ or
+        .git/lost-found/other/, depending on type.  If the object is
+        a blob, the contents are written into the file, rather than
+        its object name.
+</p>
+</dd>
+<dt class="hdlist1">
+--name-objects
+</dt>
+<dd>
+<p>
+        When displaying names of reachable objects, in addition to the
+        SHA-1 also display a name that describes <strong>how</strong> they are reachable,
+        compatible with <a href="git-rev-parse.html">git-rev-parse(1)</a>, e.g.
+        <code>HEAD@{1234567890}~25^2:src/</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]progress
+</dt>
+<dd>
+<p>
+        Progress status is reported on the standard error stream by
+        default when it is attached to a terminal, unless
+        --no-progress or --verbose is specified. --progress forces
+        progress status even if the standard error stream is not
+        directed to a terminal.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+fsck.&lt;msg-id&gt;
+</dt>
+<dd>
+<p>
+        During fsck git may find issues with legacy data which
+        wouldn&#8217;t be generated by current versions of git, and which
+        wouldn&#8217;t be sent over the wire if <code>transfer.fsckObjects</code> was
+        set. This feature is intended to support working with legacy
+        repositories containing such data.
+</p>
+<div class="paragraph"><p>Setting <code>fsck.&lt;msg-id&gt;</code> will be picked up by <a href="git-fsck.html">git-fsck(1)</a>, but
+to accept pushes of such data set <code>receive.fsck.&lt;msg-id&gt;</code> instead, or
+to clone or fetch it set <code>fetch.fsck.&lt;msg-id&gt;</code>.</p></div>
+<div class="paragraph"><p>The rest of the documentation discusses <code>fsck.*</code> for brevity, but the
+same applies for the corresponding <code>receive.fsck.*</code> and
+<code>fetch.&lt;msg-id&gt;.*</code>. variables.</p></div>
+<div class="paragraph"><p>Unlike variables like <code>color.ui</code> and <code>core.editor</code> the
+<code>receive.fsck.&lt;msg-id&gt;</code> and <code>fetch.fsck.&lt;msg-id&gt;</code> variables will not
+fall back on the <code>fsck.&lt;msg-id&gt;</code> configuration if they aren&#8217;t set. To
+uniformly configure the same fsck settings in different circumstances
+all three of them they must all set to the same values.</p></div>
+<div class="paragraph"><p>When <code>fsck.&lt;msg-id&gt;</code> is set, errors can be switched to warnings and
+vice versa by configuring the <code>fsck.&lt;msg-id&gt;</code> setting where the
+<code>&lt;msg-id&gt;</code> is the fsck message ID and the value is one of <code>error</code>,
+<code>warn</code> or <code>ignore</code>. For convenience, fsck prefixes the error/warning
+with the message ID, e.g. "missingEmail: invalid author/committer
+line - missing email" means that setting <code>fsck.missingEmail = ignore</code>
+will hide that issue.</p></div>
+<div class="paragraph"><p>In general, it is better to enumerate existing objects with problems
+with <code>fsck.skipList</code>, instead of listing the kind of breakages these
+problematic objects share to be ignored, as doing the latter will
+allow new instances of the same breakages go unnoticed.</p></div>
+<div class="paragraph"><p>Setting an unknown <code>fsck.&lt;msg-id&gt;</code> value will cause fsck to die, but
+doing the same for <code>receive.fsck.&lt;msg-id&gt;</code> and <code>fetch.fsck.&lt;msg-id&gt;</code>
+will only cause git to warn.</p></div>
+</dd>
+<dt class="hdlist1">
+fsck.skipList
+</dt>
+<dd>
+<p>
+        The path to a list of object names (i.e. one unabbreviated SHA-1 per
+        line) that are known to be broken in a non-fatal way and should
+        be ignored. On versions of Git 2.20 and later comments (<em>#</em>), empty
+        lines, and any leading and trailing whitespace is ignored. Everything
+        but a SHA-1 per line will error out on older versions.
+</p>
+<div class="paragraph"><p>This feature is useful when an established project should be accepted
+despite early commits containing errors that can be safely ignored
+such as invalid committer email addresses.  Note: corrupt objects
+cannot be skipped with this setting.</p></div>
+<div class="paragraph"><p>Like <code>fsck.&lt;msg-id&gt;</code> this variable has corresponding
+<code>receive.fsck.skipList</code> and <code>fetch.fsck.skipList</code> variants.</p></div>
+<div class="paragraph"><p>Unlike variables like <code>color.ui</code> and <code>core.editor</code> the
+<code>receive.fsck.skipList</code> and <code>fetch.fsck.skipList</code> variables will not
+fall back on the <code>fsck.skipList</code> configuration if they aren&#8217;t set. To
+uniformly configure the same fsck settings in different circumstances
+all three of them they must all set to the same values.</p></div>
+<div class="paragraph"><p>Older versions of Git (before 2.20) documented that the object names
+list should be sorted. This was never a requirement, the object names
+could appear in any order, but when reading the list we tracked whether
+the list was sorted for the purposes of an internal binary search
+implementation, which could save itself some work with an already sorted
+list. Unless you had a humongous list there was no reason to go out of
+your way to pre-sort the list. After Git version 2.20 a hash implementation
+is used instead, so there&#8217;s now no reason to pre-sort the list.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_discussion">DISCUSSION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>git-fsck tests SHA-1 and general object sanity, and it does full tracking
+of the resulting reachability and everything else. It prints out any
+corruption it finds (missing or bad objects), and if you use the
+<code>--unreachable</code> flag it will also print out objects that exist but that
+aren&#8217;t reachable from any of the specified head nodes (or the default
+set, as mentioned above).</p></div>
+<div class="paragraph"><p>Any corrupt objects you will have to find in backups or other archives
+(i.e., you can just remove them and do an <em>rsync</em> with some other site in
+the hopes that somebody else has the object you have corrupted).</p></div>
+<div class="paragraph"><p>If core.commitGraph is true, the commit-graph file will also be inspected
+using <em>git commit-graph verify</em>. See <a href="git-commit-graph.html">git-commit-graph(1)</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_extracted_diagnostics">Extracted Diagnostics</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+expect dangling commits - potential heads - due to lack of head information
+</dt>
+<dd>
+<p>
+        You haven&#8217;t specified any nodes as heads so it won&#8217;t be
+        possible to differentiate between un-parented commits and
+        root nodes.
+</p>
+</dd>
+<dt class="hdlist1">
+missing sha1 directory <em>&lt;dir&gt;</em>
+</dt>
+<dd>
+<p>
+        The directory holding the sha1 objects is missing.
+</p>
+</dd>
+<dt class="hdlist1">
+unreachable &lt;type&gt; &lt;object&gt;
+</dt>
+<dd>
+<p>
+        The &lt;type&gt; object &lt;object&gt;, isn&#8217;t actually referred to directly
+        or indirectly in any of the trees or commits seen. This can
+        mean that there&#8217;s another root node that you&#8217;re not specifying
+        or that the tree is corrupt. If you haven&#8217;t missed a root node
+        then you might as well delete unreachable nodes since they
+        can&#8217;t be used.
+</p>
+</dd>
+<dt class="hdlist1">
+missing &lt;type&gt; &lt;object&gt;
+</dt>
+<dd>
+<p>
+        The &lt;type&gt; object &lt;object&gt;, is referred to but isn&#8217;t present in
+        the database.
+</p>
+</dd>
+<dt class="hdlist1">
+dangling &lt;type&gt; &lt;object&gt;
+</dt>
+<dd>
+<p>
+        The &lt;type&gt; object &lt;object&gt;, is present in the database but never
+        <em>directly</em> used. A dangling commit could be a root node.
+</p>
+</dd>
+<dt class="hdlist1">
+hash mismatch &lt;object&gt;
+</dt>
+<dd>
+<p>
+        The database has an object whose hash doesn&#8217;t match the
+        object database value.
+        This indicates a serious data integrity problem.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_environment_variables">Environment Variables</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+GIT_OBJECT_DIRECTORY
+</dt>
+<dd>
+<p>
+        used to specify the object database root (usually $GIT_DIR/objects)
+</p>
+</dd>
+<dt class="hdlist1">
+GIT_INDEX_FILE
+</dt>
+<dd>
+<p>
+        used to specify the index file of the index
+</p>
+</dd>
+<dt class="hdlist1">
+GIT_ALTERNATE_OBJECT_DIRECTORIES
+</dt>
+<dd>
+<p>
+        used to specify additional object database roots (usually unset)
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

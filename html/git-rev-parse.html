@@ -1,0 +1,2014 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-rev-parse(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-rev-parse(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-rev-parse -
+   Pick out and massage parameters
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git rev-parse</em> [&lt;options&gt;] &lt;args&gt;&#8230;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Many Git porcelainish commands take mixture of flags
+(i.e. parameters that begin with a dash <em>-</em>) and parameters
+meant for the underlying <em>git rev-list</em> command they use internally
+and flags and parameters for the other commands they use
+downstream of <em>git rev-list</em>.  This command is used to
+distinguish between them.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_operation_modes">Operation Modes</h3>
+<div class="paragraph"><p>Each of these options must appear first on the command line.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--parseopt
+</dt>
+<dd>
+<p>
+        Use <em>git rev-parse</em> in option parsing mode (see PARSEOPT section below).
+</p>
+</dd>
+<dt class="hdlist1">
+--sq-quote
+</dt>
+<dd>
+<p>
+        Use <em>git rev-parse</em> in shell quoting mode (see SQ-QUOTE
+        section below). In contrast to the <code>--sq</code> option below, this
+        mode does only quoting. Nothing else is done to command input.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_options_for_parseopt">Options for --parseopt</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--keep-dashdash
+</dt>
+<dd>
+<p>
+        Only meaningful in <code>--parseopt</code> mode. Tells the option parser to echo
+        out the first <code>--</code> met instead of skipping it.
+</p>
+</dd>
+<dt class="hdlist1">
+--stop-at-non-option
+</dt>
+<dd>
+<p>
+        Only meaningful in <code>--parseopt</code> mode.  Lets the option parser stop at
+        the first non-option argument.  This can be used to parse sub-commands
+        that take options themselves.
+</p>
+</dd>
+<dt class="hdlist1">
+--stuck-long
+</dt>
+<dd>
+<p>
+        Only meaningful in <code>--parseopt</code> mode. Output the options in their
+        long form if available, and with their arguments stuck.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_options_for_filtering">Options for Filtering</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--revs-only
+</dt>
+<dd>
+<p>
+        Do not output flags and parameters not meant for
+        <em>git rev-list</em> command.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-revs
+</dt>
+<dd>
+<p>
+        Do not output flags and parameters meant for
+        <em>git rev-list</em> command.
+</p>
+</dd>
+<dt class="hdlist1">
+--flags
+</dt>
+<dd>
+<p>
+        Do not output non-flag parameters.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-flags
+</dt>
+<dd>
+<p>
+        Do not output flag parameters.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_options_for_output">Options for Output</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--default &lt;arg&gt;
+</dt>
+<dd>
+<p>
+        If there is no parameter given by the user, use <code>&lt;arg&gt;</code>
+        instead.
+</p>
+</dd>
+<dt class="hdlist1">
+--prefix &lt;arg&gt;
+</dt>
+<dd>
+<p>
+        Behave as if <em>git rev-parse</em> was invoked from the <code>&lt;arg&gt;</code>
+        subdirectory of the working tree.  Any relative filenames are
+        resolved as if they are prefixed by <code>&lt;arg&gt;</code> and will be printed
+        in that form.
+</p>
+<div class="paragraph"><p>This can be used to convert arguments to a command run in a subdirectory
+so that they can still be used after moving to the top-level of the
+repository.  For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>prefix=$(git rev-parse --show-prefix)
+cd "$(git rev-parse --show-toplevel)"
+# rev-parse provides the -- needed for 'set'
+eval "set $(git rev-parse --sq --prefix "$prefix" -- "$@")"</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+--verify
+</dt>
+<dd>
+<p>
+        Verify that exactly one parameter is provided, and that it
+        can be turned into a raw 20-byte SHA-1 that can be used to
+        access the object database. If so, emit it to the standard
+        output; otherwise, error out.
+</p>
+<div class="paragraph"><p>If you want to make sure that the output actually names an object in
+your object database and/or can be used as a specific type of object
+you require, you can add the <code>^{type}</code> peeling operator to the parameter.
+For example, <code>git rev-parse "$VAR^{commit}"</code> will make sure <code>$VAR</code>
+names an existing object that is a commit-ish (i.e. a commit, or an
+annotated tag that points at a commit).  To make sure that <code>$VAR</code>
+names an existing object of any type, <code>git rev-parse "$VAR^{object}"</code>
+can be used.</p></div>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Only meaningful in <code>--verify</code> mode. Do not output an error
+        message if the first argument is not a valid object name;
+        instead exit with non-zero status silently.
+        SHA-1s for valid object names are printed to stdout on success.
+</p>
+</dd>
+<dt class="hdlist1">
+--sq
+</dt>
+<dd>
+<p>
+        Usually the output is made one line per flag and
+        parameter.  This option makes output a single line,
+        properly quoted for consumption by shell.  Useful when
+        you expect your parameter to contain whitespaces and
+        newlines (e.g. when using pickaxe <code>-S</code> with
+        <em>git diff-&#42;</em>). In contrast to the <code>--sq-quote</code> option,
+        the command input is still interpreted as usual.
+</p>
+</dd>
+<dt class="hdlist1">
+--short[=length]
+</dt>
+<dd>
+<p>
+        Same as <code>--verify</code> but shortens the object name to a unique
+        prefix with at least <code>length</code> characters. The minimum length
+        is 4, the default is the effective value of the <code>core.abbrev</code>
+        configuration variable (see <a href="git-config.html">git-config(1)</a>).
+</p>
+</dd>
+<dt class="hdlist1">
+--not
+</dt>
+<dd>
+<p>
+        When showing object names, prefix them with <em>&#94;</em> and
+        strip <em>&#94;</em> prefix from the object names that already have
+        one.
+</p>
+</dd>
+<dt class="hdlist1">
+--abbrev-ref[=(strict|loose)]
+</dt>
+<dd>
+<p>
+        A non-ambiguous short name of the objects name.
+        The option core.warnAmbiguousRefs is used to select the strict
+        abbreviation mode.
+</p>
+</dd>
+<dt class="hdlist1">
+--symbolic
+</dt>
+<dd>
+<p>
+        Usually the object names are output in SHA-1 form (with
+        possible <em>&#94;</em> prefix); this option makes them output in a
+        form as close to the original input as possible.
+</p>
+</dd>
+<dt class="hdlist1">
+--symbolic-full-name
+</dt>
+<dd>
+<p>
+        This is similar to --symbolic, but it omits input that
+        are not refs (i.e. branch or tag names; or more
+        explicitly disambiguating "heads/master" form, when you
+        want to name the "master" branch when there is an
+        unfortunately named tag "master"), and show them as full
+        refnames (e.g. "refs/heads/master").
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_options_for_objects">Options for Objects</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--all
+</dt>
+<dd>
+<p>
+        Show all refs found in <code>refs/</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--branches[=pattern]
+</dt>
+<dt class="hdlist1">
+--tags[=pattern]
+</dt>
+<dt class="hdlist1">
+--remotes[=pattern]
+</dt>
+<dd>
+<p>
+        Show all branches, tags, or remote-tracking branches,
+        respectively (i.e., refs found in <code>refs/heads</code>,
+        <code>refs/tags</code>, or <code>refs/remotes</code>, respectively).
+</p>
+<div class="paragraph"><p>If a <code>pattern</code> is given, only refs matching the given shell glob are
+shown.  If the pattern does not contain a globbing character (<code>?</code>,
+<code>*</code>, or <code>[</code>), it is turned into a prefix match by appending <code>/*</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+--glob=pattern
+</dt>
+<dd>
+<p>
+        Show all refs matching the shell glob pattern <code>pattern</code>. If
+        the pattern does not start with <code>refs/</code>, this is automatically
+        prepended.  If the pattern does not contain a globbing
+        character (<code>?</code>, <code>*</code>, or <code>[</code>), it is turned into a prefix
+        match by appending <code>/*</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude=&lt;glob-pattern&gt;
+</dt>
+<dd>
+<p>
+        Do not include refs matching <em>&lt;glob-pattern&gt;</em> that the next <code>--all</code>,
+        <code>--branches</code>, <code>--tags</code>, <code>--remotes</code>, or <code>--glob</code> would otherwise
+        consider. Repetitions of this option accumulate exclusion patterns
+        up to the next <code>--all</code>, <code>--branches</code>, <code>--tags</code>, <code>--remotes</code>, or
+        <code>--glob</code> option (other options or arguments do not clear
+        accumulated patterns).
+</p>
+<div class="paragraph"><p>The patterns given should not begin with <code>refs/heads</code>, <code>refs/tags</code>, or
+<code>refs/remotes</code> when applied to <code>--branches</code>, <code>--tags</code>, or <code>--remotes</code>,
+respectively, and they must begin with <code>refs/</code> when applied to <code>--glob</code>
+or <code>--all</code>. If a trailing <em>/&#42;</em> is intended, it must be given
+explicitly.</p></div>
+</dd>
+<dt class="hdlist1">
+--disambiguate=&lt;prefix&gt;
+</dt>
+<dd>
+<p>
+        Show every object whose name begins with the given prefix.
+        The &lt;prefix&gt; must be at least 4 hexadecimal digits long to
+        avoid listing each and every object in the repository by
+        mistake.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_options_for_files">Options for Files</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--local-env-vars
+</dt>
+<dd>
+<p>
+        List the GIT_* environment variables that are local to the
+        repository (e.g. GIT_DIR or GIT_WORK_TREE, but not GIT_EDITOR).
+        Only the names of the variables are listed, not their value,
+        even if they are set.
+</p>
+</dd>
+<dt class="hdlist1">
+--git-dir
+</dt>
+<dd>
+<p>
+        Show <code>$GIT_DIR</code> if defined. Otherwise show the path to
+        the .git directory. The path shown, when relative, is
+        relative to the current working directory.
+</p>
+<div class="paragraph"><p>If <code>$GIT_DIR</code> is not defined and the current directory
+is not detected to lie in a Git repository or work tree
+print a message to stderr and exit with nonzero status.</p></div>
+</dd>
+<dt class="hdlist1">
+--absolute-git-dir
+</dt>
+<dd>
+<p>
+        Like <code>--git-dir</code>, but its output is always the canonicalized
+        absolute path.
+</p>
+</dd>
+<dt class="hdlist1">
+--git-common-dir
+</dt>
+<dd>
+<p>
+        Show <code>$GIT_COMMON_DIR</code> if defined, else <code>$GIT_DIR</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--is-inside-git-dir
+</dt>
+<dd>
+<p>
+        When the current working directory is below the repository
+        directory print "true", otherwise "false".
+</p>
+</dd>
+<dt class="hdlist1">
+--is-inside-work-tree
+</dt>
+<dd>
+<p>
+        When the current working directory is inside the work tree of the
+        repository print "true", otherwise "false".
+</p>
+</dd>
+<dt class="hdlist1">
+--is-bare-repository
+</dt>
+<dd>
+<p>
+        When the repository is bare print "true", otherwise "false".
+</p>
+</dd>
+<dt class="hdlist1">
+--is-shallow-repository
+</dt>
+<dd>
+<p>
+        When the repository is shallow print "true", otherwise "false".
+</p>
+</dd>
+<dt class="hdlist1">
+--resolve-git-dir &lt;path&gt;
+</dt>
+<dd>
+<p>
+        Check if &lt;path&gt; is a valid repository or a gitfile that
+        points at a valid repository, and print the location of the
+        repository.  If &lt;path&gt; is a gitfile then the resolved path
+        to the real repository is printed.
+</p>
+</dd>
+<dt class="hdlist1">
+--git-path &lt;path&gt;
+</dt>
+<dd>
+<p>
+        Resolve "$GIT_DIR/&lt;path&gt;" and takes other path relocation
+        variables such as $GIT_OBJECT_DIRECTORY,
+        $GIT_INDEX_FILE&#8230; into account. For example, if
+        $GIT_OBJECT_DIRECTORY is set to /foo/bar then "git rev-parse
+        --git-path objects/abc" returns /foo/bar/abc.
+</p>
+</dd>
+<dt class="hdlist1">
+--show-cdup
+</dt>
+<dd>
+<p>
+        When the command is invoked from a subdirectory, show the
+        path of the top-level directory relative to the current
+        directory (typically a sequence of "../", or an empty string).
+</p>
+</dd>
+<dt class="hdlist1">
+--show-prefix
+</dt>
+<dd>
+<p>
+        When the command is invoked from a subdirectory, show the
+        path of the current directory relative to the top-level
+        directory.
+</p>
+</dd>
+<dt class="hdlist1">
+--show-toplevel
+</dt>
+<dd>
+<p>
+        Show the absolute path of the top-level directory.
+</p>
+</dd>
+<dt class="hdlist1">
+--show-superproject-working-tree
+</dt>
+<dd>
+<p>
+        Show the absolute path of the root of the superproject&#8217;s
+        working tree (if exists) that uses the current repository as
+        its submodule.  Outputs nothing if the current repository is
+        not used as a submodule by any project.
+</p>
+</dd>
+<dt class="hdlist1">
+--shared-index-path
+</dt>
+<dd>
+<p>
+        Show the path to the shared index file in split index mode, or
+        empty if not in split-index mode.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_other_options">Other Options</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--since=datestring
+</dt>
+<dt class="hdlist1">
+--after=datestring
+</dt>
+<dd>
+<p>
+        Parse the date string, and output the corresponding
+        --max-age= parameter for <em>git rev-list</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+--until=datestring
+</dt>
+<dt class="hdlist1">
+--before=datestring
+</dt>
+<dd>
+<p>
+        Parse the date string, and output the corresponding
+        --min-age= parameter for <em>git rev-list</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;args&gt;&#8230;
+</dt>
+<dd>
+<p>
+        Flags and parameters to be parsed.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_specifying_revisions">SPECIFYING REVISIONS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>A revision parameter <em>&lt;rev&gt;</em> typically, but not necessarily, names a
+commit object.  It uses what is called an <em>extended SHA-1</em>
+syntax.  Here are various ways to spell object names.  The
+ones listed near the end of this list name trees and
+blobs contained in a commit.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">This document shows the "raw" syntax as seen by git. The shell
+and other UIs might require additional quoting to protect special
+characters and to avoid word splitting.</td>
+</tr></table>
+</div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>&lt;sha1&gt;</em>, e.g. <em>dae86e1950b1277e545cee180551750029cfe735</em>, <em>dae86e</em>
+</dt>
+<dd>
+<p>
+  The full SHA-1 object name (40-byte hexadecimal string), or
+  a leading substring that is unique within the repository.
+  E.g. dae86e1950b1277e545cee180551750029cfe735 and dae86e both
+  name the same commit object if there is no other object in
+  your repository whose object name starts with dae86e.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;describeOutput&gt;</em>, e.g. <em>v1.7.4.2-679-g3bee7fb</em>
+</dt>
+<dd>
+<p>
+  Output from <code>git describe</code>; i.e. a closest tag, optionally
+  followed by a dash and a number of commits, followed by a dash, a
+  <em>g</em>, and an abbreviated object name.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;refname&gt;</em>, e.g. <em>master</em>, <em>heads/master</em>, <em>refs/heads/master</em>
+</dt>
+<dd>
+<p>
+  A symbolic ref name.  E.g. <em>master</em> typically means the commit
+  object referenced by <em>refs/heads/master</em>.  If you
+  happen to have both <em>heads/master</em> and <em>tags/master</em>, you can
+  explicitly say <em>heads/master</em> to tell Git which one you mean.
+  When ambiguous, a <em>&lt;refname&gt;</em> is disambiguated by taking the
+  first match in the following rules:
+</p>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+If <em>$GIT_DIR/&lt;refname&gt;</em> exists, that is what you mean (this is usually
+    useful only for <code>HEAD</code>, <code>FETCH_HEAD</code>, <code>ORIG_HEAD</code>, <code>MERGE_HEAD</code>
+    and <code>CHERRY_PICK_HEAD</code>);
+</p>
+</li>
+<li>
+<p>
+otherwise, <em>refs/&lt;refname&gt;</em> if it exists;
+</p>
+</li>
+<li>
+<p>
+otherwise, <em>refs/tags/&lt;refname&gt;</em> if it exists;
+</p>
+</li>
+<li>
+<p>
+otherwise, <em>refs/heads/&lt;refname&gt;</em> if it exists;
+</p>
+</li>
+<li>
+<p>
+otherwise, <em>refs/remotes/&lt;refname&gt;</em> if it exists;
+</p>
+</li>
+<li>
+<p>
+otherwise, <em>refs/remotes/&lt;refname&gt;/HEAD</em> if it exists.
+</p>
+<div class="paragraph"><p><code>HEAD</code> names the commit on which you based the changes in the working tree.
+<code>FETCH_HEAD</code> records the branch which you fetched from a remote repository
+with your last <code>git fetch</code> invocation.
+<code>ORIG_HEAD</code> is created by commands that move your <code>HEAD</code> in a drastic
+way, to record the position of the <code>HEAD</code> before their operation, so that
+you can easily change the tip of the branch back to the state before you ran
+them.
+<code>MERGE_HEAD</code> records the commit(s) which you are merging into your branch
+when you run <code>git merge</code>.
+<code>CHERRY_PICK_HEAD</code> records the commit which you are cherry-picking
+when you run <code>git cherry-pick</code>.</p></div>
+<div class="paragraph"><p>Note that any of the <em>refs/*</em> cases above may come either from
+the <code>$GIT_DIR/refs</code> directory or from the <code>$GIT_DIR/packed-refs</code> file.
+While the ref name encoding is unspecified, UTF-8 is preferred as
+some output processing may assume ref names in UTF-8.</p></div>
+</li>
+</ol></div>
+</dd>
+<dt class="hdlist1">
+<em>@</em>
+</dt>
+<dd>
+<p>
+  <em>@</em> alone is a shortcut for <code>HEAD</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>[&lt;refname&gt;]@{&lt;date&gt;}</em>, e.g. <em>master@{yesterday}</em>, <em>HEAD@{5 minutes ago}</em>
+</dt>
+<dd>
+<p>
+  A ref followed by the suffix <em>@</em> with a date specification
+  enclosed in a brace
+  pair (e.g. <em>{yesterday}</em>, <em>{1 month 2 weeks 3 days 1 hour 1
+  second ago}</em> or <em>{1979-02-26 18:30:00}</em>) specifies the value
+  of the ref at a prior point in time.  This suffix may only be
+  used immediately following a ref name and the ref must have an
+  existing log (<em>$GIT_DIR/logs/&lt;ref&gt;</em>). Note that this looks up the state
+  of your <strong>local</strong> ref at a given time; e.g., what was in your local
+  <em>master</em> branch last week. If you want to look at commits made during
+  certain times, see <code>--since</code> and <code>--until</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;refname&gt;@{&lt;n&gt;}</em>, e.g. <em>master@{1}</em>
+</dt>
+<dd>
+<p>
+  A ref followed by the suffix <em>@</em> with an ordinal specification
+  enclosed in a brace pair (e.g. <em>{1}</em>, <em>{15}</em>) specifies
+  the n-th prior value of that ref.  For example <em>master@{1}</em>
+  is the immediate prior value of <em>master</em> while <em>master@{5}</em>
+  is the 5th prior value of <em>master</em>. This suffix may only be used
+  immediately following a ref name and the ref must have an existing
+  log (<em>$GIT_DIR/logs/&lt;refname&gt;</em>).
+</p>
+</dd>
+<dt class="hdlist1">
+<em>@{&lt;n&gt;}</em>, e.g. <em>@{1}</em>
+</dt>
+<dd>
+<p>
+  You can use the <em>@</em> construct with an empty ref part to get at a
+  reflog entry of the current branch. For example, if you are on
+  branch <em>blabla</em> then <em>@{1}</em> means the same as <em>blabla@{1}</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>@{-&lt;n&gt;}</em>, e.g. <em>@{-1}</em>
+</dt>
+<dd>
+<p>
+  The construct <em>@{-&lt;n&gt;}</em> means the &lt;n&gt;th branch/commit checked out
+  before the current one.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>[&lt;branchname&gt;]@{upstream}</em>, e.g. <em>master@{upstream}</em>, <em>@{u}</em>
+</dt>
+<dd>
+<p>
+  The suffix <em>@{upstream}</em> to a branchname (short form <em>&lt;branchname&gt;@{u}</em>)
+  refers to the branch that the branch specified by branchname is set to build on
+  top of (configured with <code>branch.&lt;name&gt;.remote</code> and
+  <code>branch.&lt;name&gt;.merge</code>).  A missing branchname defaults to the
+  current one. These suffixes are also accepted when spelled in uppercase, and
+  they mean the same thing no matter the case.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>[&lt;branchname&gt;]@{push}</em>, e.g. <em>master@{push}</em>, <em>@{push}</em>
+</dt>
+<dd>
+<p>
+  The suffix <em>@{push}</em> reports the branch "where we would push to" if
+  <code>git push</code> were run while <code>branchname</code> was checked out (or the current
+  <code>HEAD</code> if no branchname is specified). Since our push destination is
+  in a remote repository, of course, we report the local tracking branch
+  that corresponds to that branch (i.e., something in <code>refs/remotes/</code>).
+</p>
+<div class="paragraph"><p>Here&#8217;s an example to make it more clear:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config push.default current
+$ git config remote.pushdefault myfork
+$ git switch -c mybranch origin/master
+
+$ git rev-parse --symbolic-full-name @{upstream}
+refs/remotes/origin/master
+
+$ git rev-parse --symbolic-full-name @{push}
+refs/remotes/myfork/mybranch</code></pre>
+</div></div>
+<div class="paragraph"><p>Note in the example that we set up a triangular workflow, where we pull
+from one location and push to another. In a non-triangular workflow,
+<em>@{push}</em> is the same as <em>@{upstream}</em>, and there is no need for it.</p></div>
+<div class="paragraph"><p>This suffix is also accepted when spelled in uppercase, and means the same
+thing no matter the case.</p></div>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#94;[&lt;n&gt;]</em>, e.g. <em>HEAD&#94;, v1.5.1&#94;0</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>&#94;</em> to a revision parameter means the first parent of
+  that commit object.  <em>&#94;&lt;n&gt;</em> means the &lt;n&gt;th parent (i.e.
+  <em>&lt;rev&gt;&#94;</em>
+  is equivalent to <em>&lt;rev&gt;&#94;1</em>).  As a special rule,
+  <em>&lt;rev&gt;&#94;0</em> means the commit itself and is used when <em>&lt;rev&gt;</em> is the
+  object name of a tag object that refers to a commit object.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#126;[&lt;n&gt;]</em>, e.g. <em>HEAD&#126;, master&#126;3</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>&#126;</em> to a revision parameter means the first parent of
+  that commit object.
+  A suffix <em>&#126;&lt;n&gt;</em> to a revision parameter means the commit
+  object that is the &lt;n&gt;th generation ancestor of the named
+  commit object, following only the first parents.  I.e. <em>&lt;rev&gt;&#126;3</em> is
+  equivalent to <em>&lt;rev&gt;&#94;&#94;&#94;</em> which is equivalent to
+  <em>&lt;rev&gt;&#94;1&#94;1&#94;1</em>.  See below for an illustration of
+  the usage of this form.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#94;{&lt;type&gt;}</em>, e.g. <em>v0.99.8&#94;{commit}</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>&#94;</em> followed by an object type name enclosed in
+  brace pair means dereference the object at <em>&lt;rev&gt;</em> recursively until
+  an object of type <em>&lt;type&gt;</em> is found or the object cannot be
+  dereferenced anymore (in which case, barf).
+  For example, if <em>&lt;rev&gt;</em> is a commit-ish, <em>&lt;rev&gt;&#94;{commit}</em>
+  describes the corresponding commit object.
+  Similarly, if <em>&lt;rev&gt;</em> is a tree-ish, <em>&lt;rev&gt;&#94;{tree}</em>
+  describes the corresponding tree object.
+  <em>&lt;rev&gt;&#94;0</em>
+  is a short-hand for <em>&lt;rev&gt;&#94;{commit}</em>.
+</p>
+<div class="paragraph"><p><em>&lt;rev&gt;&#94;{object}</em> can be used to make sure <em>&lt;rev&gt;</em> names an
+object that exists, without requiring <em>&lt;rev&gt;</em> to be a tag, and
+without dereferencing <em>&lt;rev&gt;</em>; because a tag is already an object,
+it does not have to be dereferenced even once to get to an object.</p></div>
+<div class="paragraph"><p><em>&lt;rev&gt;&#94;{tag}</em> can be used to ensure that <em>&lt;rev&gt;</em> identifies an
+existing tag object.</p></div>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#94;{}</em>, e.g. <em>v0.99.8&#94;{}</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>&#94;</em> followed by an empty brace pair
+  means the object could be a tag,
+  and dereference the tag recursively until a non-tag object is
+  found.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#94;{/&lt;text&gt;}</em>, e.g. <em>HEAD^{/fix nasty bug}</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>&#94;</em> to a revision parameter, followed by a brace
+  pair that contains a text led by a slash,
+  is the same as the <em>:/fix nasty bug</em> syntax below except that
+  it returns the youngest matching commit which is reachable from
+  the <em>&lt;rev&gt;</em> before <em>&#94;</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>:/&lt;text&gt;</em>, e.g. <em>:/fix nasty bug</em>
+</dt>
+<dd>
+<p>
+  A colon, followed by a slash, followed by a text, names
+  a commit whose commit message matches the specified regular expression.
+  This name returns the youngest matching commit which is
+  reachable from any ref, including HEAD.
+  The regular expression can match any part of the
+  commit message. To match messages starting with a string, one can use
+  e.g. <em>:/^foo</em>. The special sequence <em>:/!</em> is reserved for modifiers to what
+  is matched. <em>:/!-foo</em> performs a negative match, while <em>:/!!foo</em> matches a
+  literal <em>!</em> character, followed by <em>foo</em>. Any other sequence beginning with
+  <em>:/!</em> is reserved for now.
+  Depending on the given text, the shell&#8217;s word splitting rules might
+  require additional quoting.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;:&lt;path&gt;</em>, e.g. <em>HEAD:README</em>, <em>master:./README</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>:</em> followed by a path names the blob or tree
+  at the given path in the tree-ish object named by the part
+  before the colon.
+  A path starting with <em>./</em> or <em>../</em> is relative to the current working directory.
+  The given path will be converted to be relative to the working tree&#8217;s root directory.
+  This is most useful to address a blob or tree from a commit or tree that has
+  the same tree structure as the working tree.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>:[&lt;n&gt;:]&lt;path&gt;</em>, e.g. <em>:0:README</em>, <em>:README</em>
+</dt>
+<dd>
+<p>
+  A colon, optionally followed by a stage number (0 to 3) and a
+  colon, followed by a path, names a blob object in the
+  index at the given path. A missing stage number (and the colon
+  that follows it) names a stage 0 entry. During a merge, stage
+  1 is the common ancestor, stage 2 is the target branch&#8217;s version
+  (typically the current branch), and stage 3 is the version from
+  the branch which is being merged.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Here is an illustration, by Jon Loeliger.  Both commit nodes B
+and C are parents of commit node A.  Parent commits are ordered
+left-to-right.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>G   H   I   J
+ \ /     \ /
+  D   E   F
+   \  |  / \
+    \ | /   |
+     \|/    |
+      B     C
+       \   /
+        \ /
+         A</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>A =      = A^0
+B = A^   = A^1     = A~1
+C = A^2  = A^2
+D = A^^  = A^1^1   = A~2
+E = B^2  = A^^2
+F = B^3  = A^^3
+G = A^^^ = A^1^1^1 = A~3
+H = D^2  = B^^2    = A^^^2  = A~2^2
+I = F^   = B^3^    = A^^3^
+J = F^2  = B^3^2   = A^^3^2</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_specifying_ranges">SPECIFYING RANGES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>History traversing commands such as <code>git log</code> operate on a set
+of commits, not just a single commit.</p></div>
+<div class="paragraph"><p>For these commands,
+specifying a single revision, using the notation described in the
+previous section, means the set of commits <code>reachable</code> from the given
+commit.</p></div>
+<div class="paragraph"><p>A commit&#8217;s reachable set is the commit itself and the commits in
+its ancestry chain.</p></div>
+<div class="sect2">
+<h3 id="_commit_exclusions">Commit Exclusions</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>&#94;&lt;rev&gt;</em> (caret) Notation
+</dt>
+<dd>
+<p>
+ To exclude commits reachable from a commit, a prefix <em>&#94;</em>
+ notation is used.  E.g. <em>&#94;r1 r2</em> means commits reachable
+ from <em>r2</em> but exclude the ones reachable from <em>r1</em> (i.e. <em>r1</em> and
+ its ancestors).
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_dotted_range_notations">Dotted Range Notations</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+The <em>..</em> (two-dot) Range Notation
+</dt>
+<dd>
+<p>
+ The <em>&#94;r1 r2</em> set operation appears so often that there is a shorthand
+ for it.  When you have two commits <em>r1</em> and <em>r2</em> (named according
+ to the syntax explained in SPECIFYING REVISIONS above), you can ask
+ for commits that are reachable from r2 excluding those that are reachable
+ from r1 by <em>&#94;r1 r2</em> and it can be written as <em>r1..r2</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+The <em>&#8230;</em> (three-dot) Symmetric Difference Notation
+</dt>
+<dd>
+<p>
+ A similar notation <em>r1...r2</em> is called symmetric difference
+ of <em>r1</em> and <em>r2</em> and is defined as
+ <em>r1 r2 --not $(git merge-base --all r1 r2)</em>.
+ It is the set of commits that are reachable from either one of
+ <em>r1</em> (left side) or <em>r2</em> (right side) but not from both.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>In these two shorthand notations, you can omit one end and let it default to HEAD.
+For example, <em>origin..</em> is a shorthand for <em>origin..HEAD</em> and asks "What
+did I do since I forked from the origin branch?"  Similarly, <em>..origin</em>
+is a shorthand for <em>HEAD..origin</em> and asks "What did the origin do since
+I forked from them?"  Note that <em>..</em> would mean <em>HEAD..HEAD</em> which is an
+empty range that is both reachable and unreachable from HEAD.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_other_lt_rev_gt_94_parent_shorthand_notations">Other &lt;rev&gt;&#94; Parent Shorthand Notations</h3>
+<div class="paragraph"><p>Three other shorthands exist, particularly useful for merge commits,
+for naming a set that is formed by a commit and its parent commits.</p></div>
+<div class="paragraph"><p>The <em>r1&#94;@</em> notation means all parents of <em>r1</em>.</p></div>
+<div class="paragraph"><p>The <em>r1&#94;!</em> notation includes commit <em>r1</em> but excludes all of its parents.
+By itself, this notation denotes the single commit <em>r1</em>.</p></div>
+<div class="paragraph"><p>The <em>&lt;rev&gt;&#94;-[&lt;n&gt;]</em> notation includes <em>&lt;rev&gt;</em> but excludes the &lt;n&gt;th
+parent (i.e. a shorthand for <em>&lt;rev&gt;&#94;&lt;n&gt;..&lt;rev&gt;</em>), with <em>&lt;n&gt;</em> = 1 if
+not given. This is typically useful for merge commits where you
+can just pass <em>&lt;commit&gt;&#94;-</em> to get all the commits in the branch
+that was merged in merge commit <em>&lt;commit&gt;</em> (including <em>&lt;commit&gt;</em>
+itself).</p></div>
+<div class="paragraph"><p>While <em>&lt;rev&gt;&#94;&lt;n&gt;</em> was about specifying a single commit parent, these
+three notations also consider its parents. For example you can say
+<em>HEAD&#94;2&#94;@</em>, however you cannot say <em>HEAD&#94;@&#94;2</em>.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_revision_range_summary">Revision Range Summary</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>&lt;rev&gt;</em>
+</dt>
+<dd>
+<p>
+        Include commits that are reachable from &lt;rev&gt; (i.e. &lt;rev&gt; and its
+        ancestors).
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&#94;&lt;rev&gt;</em>
+</dt>
+<dd>
+<p>
+        Exclude commits that are reachable from &lt;rev&gt; (i.e. &lt;rev&gt; and its
+        ancestors).
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev1&gt;..&lt;rev2&gt;</em>
+</dt>
+<dd>
+<p>
+        Include commits that are reachable from &lt;rev2&gt; but exclude
+        those that are reachable from &lt;rev1&gt;.  When either &lt;rev1&gt; or
+        &lt;rev2&gt; is omitted, it defaults to <code>HEAD</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev1&gt;...&lt;rev2&gt;</em>
+</dt>
+<dd>
+<p>
+        Include commits that are reachable from either &lt;rev1&gt; or
+        &lt;rev2&gt; but exclude those that are reachable from both.  When
+        either &lt;rev1&gt; or &lt;rev2&gt; is omitted, it defaults to <code>HEAD</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#94;@</em>, e.g. <em>HEAD&#94;@</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>&#94;</em> followed by an at sign is the same as listing
+  all parents of <em>&lt;rev&gt;</em> (meaning, include anything reachable from
+  its parents, but not the commit itself).
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#94;!</em>, e.g. <em>HEAD&#94;!</em>
+</dt>
+<dd>
+<p>
+  A suffix <em>&#94;</em> followed by an exclamation mark is the same
+  as giving commit <em>&lt;rev&gt;</em> and then all its parents prefixed with
+  <em>&#94;</em> to exclude them (and their ancestors).
+</p>
+</dd>
+<dt class="hdlist1">
+<em>&lt;rev&gt;&#94;-&lt;n&gt;</em>, e.g. <em>HEAD&#94;-, HEAD&#94;-2</em>
+</dt>
+<dd>
+<p>
+        Equivalent to <em>&lt;rev&gt;&#94;&lt;n&gt;..&lt;rev&gt;</em>, with <em>&lt;n&gt;</em> = 1 if not
+        given.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Here are a handful of examples using the Loeliger illustration above,
+with each step in the notation&#8217;s expansion and selection carefully
+spelt out:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>   Args   Expanded arguments    Selected commits
+   D                            G H D
+   D F                          G H I J D F
+   ^G D                         H D
+   ^D B                         E I J F B
+   ^D B C                       E I J F B C
+   C                            I J F C
+   B..C   = ^B C                C
+   B...C  = B ^F C              G H D E B C
+   B^-    = B^..B
+          = ^B^1 B              E I J F B
+   C^@    = C^1
+          = F                   I J F
+   B^@    = B^1 B^2 B^3
+          = D E F               D G H E F I J
+   C^!    = C ^C^@
+          = C ^C^1
+          = C ^F                C
+   B^!    = B ^B^@
+          = B ^B^1 ^B^2 ^B^3
+          = B ^D ^E ^F          B
+   F^! D  = F ^I ^J D           G H D F</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_parseopt">PARSEOPT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In <code>--parseopt</code> mode, <em>git rev-parse</em> helps massaging options to bring to shell
+scripts the same facilities C builtins have. It works as an option normalizer
+(e.g. splits single switches aggregate values), a bit like <code>getopt(1)</code> does.</p></div>
+<div class="paragraph"><p>It takes on the standard input the specification of the options to parse and
+understand, and echoes on the standard output a string suitable for <code>sh(1)</code> <code>eval</code>
+to replace the arguments with normalized ones.  In case of error, it outputs
+usage on the standard error stream, and exits with code 129.</p></div>
+<div class="paragraph"><p>Note: Make sure you quote the result when passing it to <code>eval</code>.  See
+below for an example.</p></div>
+<div class="sect2">
+<h3 id="_input_format">Input Format</h3>
+<div class="paragraph"><p><em>git rev-parse --parseopt</em> input format is fully text based. It has two parts,
+separated by a line that contains only <code>--</code>. The lines before the separator
+(should be one or more) are used for the usage.
+The lines after the separator describe the options.</p></div>
+<div class="paragraph"><p>Each line of options has this format:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;opt-spec&gt;&lt;flags&gt;*&lt;arg-hint&gt;? SP+ help LF</code></pre>
+</div></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>&lt;opt-spec&gt;</code>
+</dt>
+<dd>
+<p>
+        its format is the short option character, then the long option name
+        separated by a comma. Both parts are not required, though at least one
+        is necessary. May not contain any of the <code>&lt;flags&gt;</code> characters.
+        <code>h,help</code>, <code>dry-run</code> and <code>f</code> are examples of correct <code>&lt;opt-spec&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>&lt;flags&gt;</code>
+</dt>
+<dd>
+<p>
+        <code>&lt;flags&gt;</code> are of <code>*</code>, <code>=</code>, <code>?</code> or <code>!</code>.
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+Use <code>=</code> if the option takes an argument.
+</p>
+</li>
+<li>
+<p>
+Use <code>?</code> to mean that the option takes an optional argument. You
+          probably want to use the <code>--stuck-long</code> mode to be able to
+          unambiguously parse the optional argument.
+</p>
+</li>
+<li>
+<p>
+Use <code>*</code> to mean that this option should not be listed in the usage
+          generated for the <code>-h</code> argument. It&#8217;s shown for <code>--help-all</code> as
+          documented in <a href="gitcli.html">gitcli(7)</a>.
+</p>
+</li>
+<li>
+<p>
+Use <code>!</code> to not make the corresponding negated long option available.
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
+<code>&lt;arg-hint&gt;</code>
+</dt>
+<dd>
+<p>
+        <code>&lt;arg-hint&gt;</code>, if specified, is used as a name of the argument in the
+        help output, for options that take arguments. <code>&lt;arg-hint&gt;</code> is
+        terminated by the first whitespace.  It is customary to use a
+        dash to separate words in a multi-word argument hint.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The remainder of the line, after stripping the spaces, is used
+as the help associated to the option.</p></div>
+<div class="paragraph"><p>Blank lines are ignored, and lines that don&#8217;t match this specification are used
+as option group headers (start the line with a space to create such
+lines on purpose).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_example">Example</h3>
+<div class="listingblock">
+<div class="content">
+<pre><code>OPTS_SPEC="\
+some-command [&lt;options&gt;] &lt;args&gt;...
+
+some-command does foo and bar!
+--
+h,help    show the help
+
+foo       some nifty option --foo
+bar=      some cool option --bar with an argument
+baz=arg   another cool option --baz with a named argument
+qux?path  qux may take a path argument but has meaning by itself
+
+  An option group Header
+C?        option C with an optional argument"
+
+eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_usage_text">Usage text</h3>
+<div class="paragraph"><p>When <code>"$@"</code> is <code>-h</code> or <code>--help</code> in the above example, the following
+usage text would be shown:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>usage: some-command [&lt;options&gt;] &lt;args&gt;...
+
+    some-command does foo and bar!
+
+    -h, --help            show the help
+    --foo                 some nifty option --foo
+    --bar ...             some cool option --bar with an argument
+    --baz &lt;arg&gt;           another cool option --baz with a named argument
+    --qux[=&lt;path&gt;]        qux may take a path argument but has meaning by itself
+
+An option group Header
+    -C[...]               option C with an optional argument</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sq_quote">SQ-QUOTE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In <code>--sq-quote</code> mode, <em>git rev-parse</em> echoes on the standard output a
+single line suitable for <code>sh(1)</code> <code>eval</code>. This line is made by
+normalizing the arguments following <code>--sq-quote</code>. Nothing other than
+quoting the arguments is done.</p></div>
+<div class="paragraph"><p>If you want command input to still be interpreted as usual by
+<em>git rev-parse</em> before the output is shell quoted, see the <code>--sq</code>
+option.</p></div>
+<div class="sect2">
+<h3 id="_example_2">Example</h3>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat &gt;your-git-script.sh &lt;&lt;\EOF
+#!/bin/sh
+args=$(git rev-parse --sq-quote "$@")   # quote user-supplied arguments
+command="git frotz -n24 $args"          # and use it inside a handcrafted
+                                        # command line
+eval "$command"
+EOF
+
+$ sh your-git-script.sh "a b'c"</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Print the object name of the current commit:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git rev-parse --verify HEAD</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Print the commit object name from the revision in the $REV shell variable:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git rev-parse --verify $REV^{commit}</code></pre>
+</div></div>
+<div class="paragraph"><p>This will error out if $REV is empty or not a valid revision.</p></div>
+</li>
+<li>
+<p>
+Similar to above:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git rev-parse --default master --verify $REV</code></pre>
+</div></div>
+<div class="paragraph"><p>but if $REV is empty, the commit object name from master will be printed.</p></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

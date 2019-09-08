@@ -1,0 +1,1114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-stash(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-stash(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-stash -
+   Stash the changes in a dirty working directory away
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git stash</em> list [&lt;options&gt;]
+<em>git stash</em> show [&lt;options&gt;] [&lt;stash&gt;]
+<em>git stash</em> drop [-q|--quiet] [&lt;stash&gt;]
+<em>git stash</em> ( pop | apply ) [--index] [-q|--quiet] [&lt;stash&gt;]
+<em>git stash</em> branch &lt;branchname&gt; [&lt;stash&gt;]
+<em>git stash</em> [push [-p|--patch] [-k|--[no-]keep-index] [-q|--quiet]
+             [-u|--include-untracked] [-a|--all] [-m|--message &lt;message&gt;]
+             [--] [&lt;pathspec&gt;&#8230;]]
+<em>git stash</em> clear
+<em>git stash</em> create [&lt;message&gt;]
+<em>git stash</em> store [-m|--message &lt;message&gt;] [-q|--quiet] &lt;commit&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Use <code>git stash</code> when you want to record the current state of the
+working directory and the index, but want to go back to a clean
+working directory.  The command saves your local modifications away
+and reverts the working directory to match the <code>HEAD</code> commit.</p></div>
+<div class="paragraph"><p>The modifications stashed away by this command can be listed with
+<code>git stash list</code>, inspected with <code>git stash show</code>, and restored
+(potentially on top of a different commit) with <code>git stash apply</code>.
+Calling <code>git stash</code> without any arguments is equivalent to <code>git stash push</code>.
+A stash is by default listed as "WIP on <em>branchname</em> &#8230;", but
+you can give a more descriptive message on the command line when
+you create one.</p></div>
+<div class="paragraph"><p>The latest stash you created is stored in <code>refs/stash</code>; older
+stashes are found in the reflog of this reference and can be named using
+the usual reflog syntax (e.g. <code>stash@{0}</code> is the most recently
+created stash, <code>stash@{1}</code> is the one before it, <code>stash@{2.hours.ago}</code>
+is also possible). Stashes may also be referenced by specifying just the
+stash index (e.g. the integer <code>n</code> is equivalent to <code>stash@{n}</code>).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+push [-p|--patch] [-k|--[no-]keep-index] [-u|--include-untracked] [-a|--all] [-q|--quiet] [-m|--message &lt;message&gt;] [--] [&lt;pathspec&gt;&#8230;]
+</dt>
+<dd>
+<p>
+        Save your local modifications to a new <em>stash entry</em> and roll them
+        back to HEAD (in the working tree and in the index).
+        The &lt;message&gt; part is optional and gives
+        the description along with the stashed state.
+</p>
+<div class="paragraph"><p>For quickly making a snapshot, you can omit "push".  In this mode,
+non-option arguments are not allowed to prevent a misspelled
+subcommand from making an unwanted stash entry.  The two exceptions to this
+are <code>stash -p</code> which acts as alias for <code>stash push -p</code> and pathspecs,
+which are allowed after a double hyphen <code>--</code> for disambiguation.</p></div>
+<div class="paragraph"><p>When pathspec is given to <em>git stash push</em>, the new stash entry records the
+modified states only for the files that match the pathspec.  The index
+entries and working tree files are then rolled back to the state in
+HEAD only for these files, too, leaving files that do not match the
+pathspec intact.</p></div>
+<div class="paragraph"><p>If the <code>--keep-index</code> option is used, all changes already added to the
+index are left intact.</p></div>
+<div class="paragraph"><p>If the <code>--include-untracked</code> option is used, all untracked files are also
+stashed and then cleaned up with <code>git clean</code>, leaving the working directory
+in a very clean state. If the <code>--all</code> option is used instead then the
+ignored files are stashed and cleaned in addition to the untracked files.</p></div>
+<div class="paragraph"><p>With <code>--patch</code>, you can interactively select hunks from the diff
+between HEAD and the working tree to be stashed.  The stash entry is
+constructed such that its index state is the same as the index state
+of your repository, and its worktree contains only the changes you
+selected interactively.  The selected changes are then rolled back
+from your worktree. See the &#8220;Interactive Mode&#8221; section of
+<a href="git-add.html">git-add(1)</a> to learn how to operate the <code>--patch</code> mode.</p></div>
+<div class="paragraph"><p>The <code>--patch</code> option implies <code>--keep-index</code>.  You can use
+<code>--no-keep-index</code> to override this.</p></div>
+</dd>
+<dt class="hdlist1">
+save [-p|--patch] [-k|--[no-]keep-index] [-u|--include-untracked] [-a|--all] [-q|--quiet] [&lt;message&gt;]
+</dt>
+<dd>
+<p>
+        This option is deprecated in favour of <em>git stash push</em>.  It
+        differs from "stash push" in that it cannot take pathspecs,
+        and any non-option arguments form the message.
+</p>
+</dd>
+<dt class="hdlist1">
+list [&lt;options&gt;]
+</dt>
+<dd>
+<p>
+        List the stash entries that you currently have.  Each <em>stash entry</em> is
+        listed with its name (e.g. <code>stash@{0}</code> is the latest entry, <code>stash@{1}</code> is
+        the one before, etc.), the name of the branch that was current when the
+        entry was made, and a short description of the commit the entry was
+        based on.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>stash@{0}: WIP on submit: 6ebd0e2... Update git-stash documentation
+stash@{1}: On master: 9cc0589... Add git-stash</code></pre>
+</div></div>
+<div class="paragraph"><p>The command takes options applicable to the <em>git log</em>
+command to control what is shown and how. See <a href="git-log.html">git-log(1)</a>.</p></div>
+</dd>
+<dt class="hdlist1">
+show [&lt;options&gt;] [&lt;stash&gt;]
+</dt>
+<dd>
+<p>
+        Show the changes recorded in the stash entry as a diff between the
+        stashed contents and the commit back when the stash entry was first
+        created. When no <code>&lt;stash&gt;</code> is given, it shows the latest one.
+        By default, the command shows the diffstat, but it will accept any
+        format known to <em>git diff</em> (e.g., <code>git stash show -p stash@{1}</code>
+        to view the second most recent entry in patch form).
+        You can use stash.showStat and/or stash.showPatch config variables
+        to change the default behavior.
+</p>
+</dd>
+<dt class="hdlist1">
+pop [--index] [-q|--quiet] [&lt;stash&gt;]
+</dt>
+<dd>
+<p>
+        Remove a single stashed state from the stash list and apply it
+        on top of the current working tree state, i.e., do the inverse
+        operation of <code>git stash push</code>. The working directory must
+        match the index.
+</p>
+<div class="paragraph"><p>Applying the state can fail with conflicts; in this case, it is not
+removed from the stash list. You need to resolve the conflicts by hand
+and call <code>git stash drop</code> manually afterwards.</p></div>
+<div class="paragraph"><p>If the <code>--index</code> option is used, then tries to reinstate not only the working
+tree&#8217;s changes, but also the index&#8217;s ones. However, this can fail, when you
+have conflicts (which are stored in the index, where you therefore can no
+longer apply the changes as they were originally).</p></div>
+<div class="paragraph"><p>When no <code>&lt;stash&gt;</code> is given, <code>stash@{0}</code> is assumed, otherwise <code>&lt;stash&gt;</code> must
+be a reference of the form <code>stash@{&lt;revision&gt;}</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+apply [--index] [-q|--quiet] [&lt;stash&gt;]
+</dt>
+<dd>
+<p>
+        Like <code>pop</code>, but do not remove the state from the stash list. Unlike <code>pop</code>,
+        <code>&lt;stash&gt;</code> may be any commit that looks like a commit created by
+        <code>stash push</code> or <code>stash create</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+branch &lt;branchname&gt; [&lt;stash&gt;]
+</dt>
+<dd>
+<p>
+        Creates and checks out a new branch named <code>&lt;branchname&gt;</code> starting from
+        the commit at which the <code>&lt;stash&gt;</code> was originally created, applies the
+        changes recorded in <code>&lt;stash&gt;</code> to the new working tree and index.
+        If that succeeds, and <code>&lt;stash&gt;</code> is a reference of the form
+        <code>stash@{&lt;revision&gt;}</code>, it then drops the <code>&lt;stash&gt;</code>. When no <code>&lt;stash&gt;</code>
+        is given, applies the latest one.
+</p>
+<div class="paragraph"><p>This is useful if the branch on which you ran <code>git stash push</code> has
+changed enough that <code>git stash apply</code> fails due to conflicts. Since
+the stash entry is applied on top of the commit that was HEAD at the
+time <code>git stash</code> was run, it restores the originally stashed state
+with no conflicts.</p></div>
+</dd>
+<dt class="hdlist1">
+clear
+</dt>
+<dd>
+<p>
+        Remove all the stash entries. Note that those entries will then
+        be subject to pruning, and may be impossible to recover (see
+        <em>Examples</em> below for a possible strategy).
+</p>
+</dd>
+<dt class="hdlist1">
+drop [-q|--quiet] [&lt;stash&gt;]
+</dt>
+<dd>
+<p>
+        Remove a single stash entry from the list of stash entries.
+        When no <code>&lt;stash&gt;</code> is given, it removes the latest one.
+        i.e. <code>stash@{0}</code>, otherwise <code>&lt;stash&gt;</code> must be a valid stash
+        log reference of the form <code>stash@{&lt;revision&gt;}</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+create
+</dt>
+<dd>
+<p>
+        Create a stash entry (which is a regular commit object) and
+        return its object name, without storing it anywhere in the ref
+        namespace.
+        This is intended to be useful for scripts.  It is probably not
+        the command you want to use; see "push" above.
+</p>
+</dd>
+<dt class="hdlist1">
+store
+</dt>
+<dd>
+<p>
+        Store a given stash created via <em>git stash create</em> (which is a
+        dangling merge commit) in the stash ref, updating the stash
+        reflog.  This is intended to be useful for scripts.  It is
+        probably not the command you want to use; see "push" above.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_discussion">DISCUSSION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>A stash entry is represented as a commit whose tree records the state
+of the working directory, and its first parent is the commit at <code>HEAD</code>
+when the entry was created.  The tree of the second parent records the
+state of the index when the entry is made, and it is made a child of
+the <code>HEAD</code> commit.  The ancestry graph looks like this:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>       .----W
+      /    /
+-----H----I</code></pre>
+</div></div>
+<div class="paragraph"><p>where <code>H</code> is the <code>HEAD</code> commit, <code>I</code> is a commit that records the state
+of the index, and <code>W</code> is a commit that records the state of the working
+tree.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Pulling into a dirty tree
+</dt>
+<dd>
+<p>
+When you are in the middle of something, you learn that there are
+upstream changes that are possibly relevant to what you are
+doing.  When your local changes do not conflict with the changes in
+the upstream, a simple <code>git pull</code> will let you move forward.
+</p>
+<div class="paragraph"><p>However, there are cases in which your local changes do conflict with
+the upstream changes, and <code>git pull</code> refuses to overwrite your
+changes.  In such a case, you can stash your changes away,
+perform a pull, and then unstash, like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git pull
+ ...
+file foobar not up to date, cannot merge.
+$ git stash
+$ git pull
+$ git stash pop</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+Interrupted workflow
+</dt>
+<dd>
+<p>
+When you are in the middle of something, your boss comes in and
+demands that you fix something immediately.  Traditionally, you would
+make a commit to a temporary branch to store your changes away, and
+return to your original branch to make the emergency fix, like this:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code># ... hack hack hack ...
+$ git switch -c my_wip
+$ git commit -a -m "WIP"
+$ git switch master
+$ edit emergency fix
+$ git commit -a -m "Fix in a hurry"
+$ git switch my_wip
+$ git reset --soft HEAD^
+# ... continue hacking ...</code></pre>
+</div></div>
+<div class="paragraph"><p>You can use <em>git stash</em> to simplify the above, like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code># ... hack hack hack ...
+$ git stash
+$ edit emergency fix
+$ git commit -a -m "Fix in a hurry"
+$ git stash pop
+# ... continue hacking ...</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+Testing partial commits
+</dt>
+<dd>
+<p>
+You can use <code>git stash push --keep-index</code> when you want to make two or
+more commits out of the changes in the work tree, and you want to test
+each change before committing:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code># ... hack hack hack ...
+$ git add --patch foo            # add just first part to the index
+$ git stash push --keep-index    # save all other changes to the stash
+$ edit/build/test first part
+$ git commit -m 'First part'     # commit fully tested change
+$ git stash pop                  # prepare to work on all other changes
+# ... repeat above five steps until one commit remains ...
+$ edit/build/test remaining parts
+$ git commit foo -m 'Remaining parts'</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+Recovering stash entries that were cleared/dropped erroneously
+</dt>
+<dd>
+<p>
+If you mistakenly drop or clear stash entries, they cannot be recovered
+through the normal safety mechanisms.  However, you can try the
+following incantation to get a list of stash entries that are still in
+your repository, but not reachable any more:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git fsck --unreachable |
+grep commit | cut -d\  -f3 |
+xargs git log --merges --no-walk --grep=WIP</code></pre>
+</div></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-checkout.html">git-checkout(1)</a>,
+<a href="git-commit.html">git-commit(1)</a>,
+<a href="git-reflog.html">git-reflog(1)</a>,
+<a href="git-reset.html">git-reset(1)</a>,
+<a href="git-switch.html">git-switch(1)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-read-tree(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-read-tree(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-read-tree -
+   Reads tree information into the index
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git read-tree</em> [[-m [--trivial] [--aggressive] | --reset | --prefix=&lt;prefix&gt;]
+                [-u [--exclude-per-directory=&lt;gitignore&gt;] | -i]]
+                [--index-output=&lt;file&gt;] [--no-sparse-checkout]
+                (--empty | &lt;tree-ish1&gt; [&lt;tree-ish2&gt; [&lt;tree-ish3&gt;]])</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Reads the tree information given by &lt;tree-ish&gt; into the index,
+but does not actually <strong>update</strong> any of the files it "caches". (see:
+<a href="git-checkout-index.html">git-checkout-index(1)</a>)</p></div>
+<div class="paragraph"><p>Optionally, it can merge a tree into the index, perform a
+fast-forward (i.e. 2-way) merge, or a 3-way merge, with the <code>-m</code>
+flag.  When used with <code>-m</code>, the <code>-u</code> flag causes it to also update
+the files in the work tree with the result of the merge.</p></div>
+<div class="paragraph"><p>Trivial merges are done by <em>git read-tree</em> itself.  Only conflicting paths
+will be in unmerged state when <em>git read-tree</em> returns.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-m
+</dt>
+<dd>
+<p>
+        Perform a merge, not just a read.  The command will
+        refuse to run if your index file has unmerged entries,
+        indicating that you have not finished previous merge you
+        started.
+</p>
+</dd>
+<dt class="hdlist1">
+--reset
+</dt>
+<dd>
+<p>
+        Same as -m, except that unmerged entries are discarded instead
+        of failing. When used with <code>-u</code>, updates leading to loss of
+        working tree changes will not abort the operation.
+</p>
+</dd>
+<dt class="hdlist1">
+-u
+</dt>
+<dd>
+<p>
+        After a successful merge, update the files in the work
+        tree with the result of the merge.
+</p>
+</dd>
+<dt class="hdlist1">
+-i
+</dt>
+<dd>
+<p>
+        Usually a merge requires the index file as well as the
+        files in the working tree to be up to date with the
+        current head commit, in order not to lose local
+        changes.  This flag disables the check with the working
+        tree and is meant to be used when creating a merge of
+        trees that are not directly related to the current
+        working tree status into a temporary index file.
+</p>
+</dd>
+<dt class="hdlist1">
+-n
+</dt>
+<dt class="hdlist1">
+--dry-run
+</dt>
+<dd>
+<p>
+        Check if the command would error out, without updating the index
+        or the files in the working tree for real.
+</p>
+</dd>
+<dt class="hdlist1">
+-v
+</dt>
+<dd>
+<p>
+        Show the progress of checking files out.
+</p>
+</dd>
+<dt class="hdlist1">
+--trivial
+</dt>
+<dd>
+<p>
+        Restrict three-way merge by <em>git read-tree</em> to happen
+        only if there is no file-level merging required, instead
+        of resolving merge for trivial cases and leaving
+        conflicting files unresolved in the index.
+</p>
+</dd>
+<dt class="hdlist1">
+--aggressive
+</dt>
+<dd>
+<p>
+        Usually a three-way merge by <em>git read-tree</em> resolves
+        the merge for really trivial cases and leaves other
+        cases unresolved in the index, so that porcelains can
+        implement different merge policies.  This flag makes the
+        command resolve a few more cases internally:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+when one side removes a path and the other side leaves the path
+  unmodified.  The resolution is to remove that path.
+</p>
+</li>
+<li>
+<p>
+when both sides remove a path.  The resolution is to remove that path.
+</p>
+</li>
+<li>
+<p>
+when both sides add a path identically.  The resolution
+  is to add that path.
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
+--prefix=&lt;prefix&gt;
+</dt>
+<dd>
+<p>
+        Keep the current index contents, and read the contents
+        of the named tree-ish under the directory at <code>&lt;prefix&gt;</code>.
+        The command will refuse to overwrite entries that already
+        existed in the original index file.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude-per-directory=&lt;gitignore&gt;
+</dt>
+<dd>
+<p>
+        When running the command with <code>-u</code> and <code>-m</code> options, the
+        merge result may need to overwrite paths that are not
+        tracked in the current branch.  The command usually
+        refuses to proceed with the merge to avoid losing such a
+        path.  However this safety valve sometimes gets in the
+        way.  For example, it often happens that the other
+        branch added a file that used to be a generated file in
+        your branch, and the safety valve triggers when you try
+        to switch to that branch after you ran <code>make</code> but before
+        running <code>make clean</code> to remove the generated file.  This
+        option tells the command to read per-directory exclude
+        file (usually <em>.gitignore</em>) and allows such an untracked
+        but explicitly ignored file to be overwritten.
+</p>
+</dd>
+<dt class="hdlist1">
+--index-output=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Instead of writing the results out to <code>$GIT_INDEX_FILE</code>,
+        write the resulting index in the named file.  While the
+        command is operating, the original index file is locked
+        with the same mechanism as usual.  The file must allow
+        to be rename(2)ed into from a temporary file that is
+        created next to the usual index file; typically this
+        means it needs to be on the same filesystem as the index
+        file itself, and you need write permission to the
+        directories the index file and index output file are
+        located in.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]recurse-submodules
+</dt>
+<dd>
+<p>
+        Using --recurse-submodules will update the content of all initialized
+        submodules according to the commit recorded in the superproject by
+        calling read-tree recursively, also setting the submodules HEAD to be
+        detached at that commit.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-sparse-checkout
+</dt>
+<dd>
+<p>
+        Disable sparse checkout support even if <code>core.sparseCheckout</code>
+        is true.
+</p>
+</dd>
+<dt class="hdlist1">
+--empty
+</dt>
+<dd>
+<p>
+        Instead of reading tree object(s) into the index, just empty
+        it.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Quiet, suppress feedback messages.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;tree-ish#&gt;
+</dt>
+<dd>
+<p>
+        The id of the tree object(s) to be read/merged.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_merging">MERGING</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If <code>-m</code> is specified, <em>git read-tree</em> can perform 3 kinds of
+merge, a single tree merge if only 1 tree is given, a
+fast-forward merge with 2 trees, or a 3-way merge if 3 or more trees are
+provided.</p></div>
+<div class="sect2">
+<h3 id="_single_tree_merge">Single Tree Merge</h3>
+<div class="paragraph"><p>If only 1 tree is specified, <em>git read-tree</em> operates as if the user did not
+specify <code>-m</code>, except that if the original index has an entry for a
+given pathname, and the contents of the path match with the tree
+being read, the stat info from the index is used. (In other words, the
+index&#8217;s stat()s take precedence over the merged tree&#8217;s).</p></div>
+<div class="paragraph"><p>That means that if you do a <code>git read-tree -m &lt;newtree&gt;</code> followed by a
+<code>git checkout-index -f -u -a</code>, the <em>git checkout-index</em> only checks out
+the stuff that really changed.</p></div>
+<div class="paragraph"><p>This is used to avoid unnecessary false hits when <em>git diff-files</em> is
+run after <em>git read-tree</em>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_two_tree_merge">Two Tree Merge</h3>
+<div class="paragraph"><p>Typically, this is invoked as <code>git read-tree -m $H $M</code>, where $H
+is the head commit of the current repository, and $M is the head
+of a foreign tree, which is simply ahead of $H (i.e. we are in a
+fast-forward situation).</p></div>
+<div class="paragraph"><p>When two trees are specified, the user is telling <em>git read-tree</em>
+the following:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The current index and work tree is derived from $H, but
+        the user may have local changes in them since $H.
+</p>
+</li>
+<li>
+<p>
+The user wants to fast-forward to $M.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>In this case, the <code>git read-tree -m $H $M</code> command makes sure
+that no local change is lost as the result of this "merge".
+Here are the "carry forward" rules, where "I" denotes the index,
+"clean" means that index and work tree coincide, and "exists"/"nothing"
+refer to the presence of a path in the specified commit:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>        I                   H        M        Result
+       -------------------------------------------------------
+     0  nothing             nothing  nothing  (does not happen)
+     1  nothing             nothing  exists   use M
+     2  nothing             exists   nothing  remove path from index
+     3  nothing             exists   exists,  use M if "initial checkout",
+                                     H == M   keep index otherwise
+                                     exists,  fail
+                                     H != M
+
+        clean I==H  I==M
+       ------------------
+     4  yes   N/A   N/A     nothing  nothing  keep index
+     5  no    N/A   N/A     nothing  nothing  keep index
+
+     6  yes   N/A   yes     nothing  exists   keep index
+     7  no    N/A   yes     nothing  exists   keep index
+     8  yes   N/A   no      nothing  exists   fail
+     9  no    N/A   no      nothing  exists   fail
+
+     10 yes   yes   N/A     exists   nothing  remove path from index
+     11 no    yes   N/A     exists   nothing  fail
+     12 yes   no    N/A     exists   nothing  fail
+     13 no    no    N/A     exists   nothing  fail
+
+        clean (H==M)
+       ------
+     14 yes                 exists   exists   keep index
+     15 no                  exists   exists   keep index
+
+        clean I==H  I==M (H!=M)
+       ------------------
+     16 yes   no    no      exists   exists   fail
+     17 no    no    no      exists   exists   fail
+     18 yes   no    yes     exists   exists   keep index
+     19 no    no    yes     exists   exists   keep index
+     20 yes   yes   no      exists   exists   use M
+     21 no    yes   no      exists   exists   fail</code></pre>
+</div></div>
+<div class="paragraph"><p>In all "keep index" cases, the index entry stays as in the
+original index file.  If the entry is not up to date,
+<em>git read-tree</em> keeps the copy in the work tree intact when
+operating under the -u flag.</p></div>
+<div class="paragraph"><p>When this form of <em>git read-tree</em> returns successfully, you can
+see which of the "local changes" that you made were carried forward by running
+<code>git diff-index --cached $M</code>.  Note that this does not
+necessarily match what <code>git diff-index --cached $H</code> would have
+produced before such a two tree merge.  This is because of cases
+18 and 19 --- if you already had the changes in $M (e.g. maybe
+you picked it up via e-mail in a patch form), <code>git diff-index
+--cached $H</code> would have told you about the change before this
+merge, but it would not show in <code>git diff-index --cached $M</code>
+output after the two-tree merge.</p></div>
+<div class="paragraph"><p>Case 3 is slightly tricky and needs explanation.  The result from this
+rule logically should be to remove the path if the user staged the removal
+of the path and then switching to a new branch.  That however will prevent
+the initial checkout from happening, so the rule is modified to use M (new
+tree) only when the content of the index is empty.  Otherwise the removal
+of the path is kept as long as $H and $M are the same.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_3_way_merge">3-Way Merge</h3>
+<div class="paragraph"><p>Each "index" entry has two bits worth of "stage" state. stage 0 is the
+normal one, and is the only one you&#8217;d see in any kind of normal use.</p></div>
+<div class="paragraph"><p>However, when you do <em>git read-tree</em> with three trees, the "stage"
+starts out at 1.</p></div>
+<div class="paragraph"><p>This means that you can do</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git read-tree -m &lt;tree1&gt; &lt;tree2&gt; &lt;tree3&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>and you will end up with an index with all of the &lt;tree1&gt; entries in
+"stage1", all of the &lt;tree2&gt; entries in "stage2" and all of the
+&lt;tree3&gt; entries in "stage3".  When performing a merge of another
+branch into the current branch, we use the common ancestor tree
+as &lt;tree1&gt;, the current branch head as &lt;tree2&gt;, and the other
+branch head as &lt;tree3&gt;.</p></div>
+<div class="paragraph"><p>Furthermore, <em>git read-tree</em> has special-case logic that says: if you see
+a file that matches in all respects in the following states, it
+"collapses" back to "stage0":</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+stage 2 and 3 are the same; take one or the other (it makes no
+     difference - the same work has been done on our branch in
+     stage 2 and their branch in stage 3)
+</p>
+</li>
+<li>
+<p>
+stage 1 and stage 2 are the same and stage 3 is different; take
+     stage 3 (our branch in stage 2 did not do anything since the
+     ancestor in stage 1 while their branch in stage 3 worked on
+     it)
+</p>
+</li>
+<li>
+<p>
+stage 1 and stage 3 are the same and stage 2 is different take
+     stage 2 (we did something while they did nothing)
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The <em>git write-tree</em> command refuses to write a nonsensical tree, and it
+will complain about unmerged entries if it sees a single entry that is not
+stage 0.</p></div>
+<div class="paragraph"><p>OK, this all sounds like a collection of totally nonsensical rules,
+but it&#8217;s actually exactly what you want in order to do a fast
+merge. The different stages represent the "result tree" (stage 0, aka
+"merged"), the original tree (stage 1, aka "orig"), and the two trees
+you are trying to merge (stage 2 and 3 respectively).</p></div>
+<div class="paragraph"><p>The order of stages 1, 2 and 3 (hence the order of three
+&lt;tree-ish&gt; command-line arguments) are significant when you
+start a 3-way merge with an index file that is already
+populated.  Here is an outline of how the algorithm works:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+if a file exists in identical format in all three trees, it will
+  automatically collapse to "merged" state by <em>git read-tree</em>.
+</p>
+</li>
+<li>
+<p>
+a file that has <em>any</em> difference what-so-ever in the three trees
+  will stay as separate entries in the index. It&#8217;s up to "porcelain
+  policy" to determine how to remove the non-0 stages, and insert a
+  merged version.
+</p>
+</li>
+<li>
+<p>
+the index file saves and restores with all this information, so you
+  can merge things incrementally, but as long as it has entries in
+  stages 1/2/3 (i.e., "unmerged entries") you can&#8217;t write the result. So
+  now the merge algorithm ends up being really simple:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+you walk the index in order, and ignore all entries of stage 0,
+    since they&#8217;ve already been done.
+</p>
+</li>
+<li>
+<p>
+if you find a "stage1", but no matching "stage2" or "stage3", you
+    know it&#8217;s been removed from both trees (it only existed in the
+    original tree), and you remove that entry.
+</p>
+</li>
+<li>
+<p>
+if you find a matching "stage2" and "stage3" tree, you remove one
+    of them, and turn the other into a "stage0" entry. Remove any
+    matching "stage1" entry if it exists too.  .. all the normal
+    trivial rules ..
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+<div class="paragraph"><p>You would normally use <em>git merge-index</em> with supplied
+<em>git merge-one-file</em> to do this last step.  The script updates
+the files in the working tree as it merges each path and at the
+end of a successful merge.</p></div>
+<div class="paragraph"><p>When you start a 3-way merge with an index file that is already
+populated, it is assumed that it represents the state of the
+files in your work tree, and you can even have files with
+changes unrecorded in the index file.  It is further assumed
+that this state is "derived" from the stage 2 tree.  The 3-way
+merge refuses to run if it finds an entry in the original index
+file that does not match stage 2.</p></div>
+<div class="paragraph"><p>This is done to prevent you from losing your work-in-progress
+changes, and mixing your random changes in an unrelated merge
+commit.  To illustrate, suppose you start from what has been
+committed last to your repository:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ JC=`git rev-parse --verify "HEAD^0"`
+$ git checkout-index -f -u -a $JC</code></pre>
+</div></div>
+<div class="paragraph"><p>You do random edits, without running <em>git update-index</em>.  And then
+you notice that the tip of your "upstream" tree has advanced
+since you pulled from him:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git fetch git://.... linus
+$ LT=`git rev-parse FETCH_HEAD`</code></pre>
+</div></div>
+<div class="paragraph"><p>Your work tree is still based on your HEAD ($JC), but you have
+some edits since.  Three-way merge makes sure that you have not
+added or modified index entries since $JC, and if you haven&#8217;t,
+then does the right thing.  So with the following sequence:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git read-tree -m -u `git merge-base $JC $LT` $JC $LT
+$ git merge-index git-merge-one-file -a
+$ echo "Merge with Linus" | \
+  git commit-tree `git write-tree` -p $JC -p $LT</code></pre>
+</div></div>
+<div class="paragraph"><p>what you would commit is a pure merge between $JC and $LT without
+your work-in-progress changes, and your work tree would be
+updated to the result of the merge.</p></div>
+<div class="paragraph"><p>However, if you have local changes in the working tree that
+would be overwritten by this merge, <em>git read-tree</em> will refuse
+to run to prevent your changes from being lost.</p></div>
+<div class="paragraph"><p>In other words, there is no need to worry about what exists only
+in the working tree.  When you have local changes in a part of
+the project that is not involved in the merge, your changes do
+not interfere with the merge, and are kept intact.  When they
+<strong>do</strong> interfere, the merge does not even start (<em>git read-tree</em>
+complains loudly and fails without modifying anything).  In such
+a case, you can simply continue doing what you were in the
+middle of doing, and when your working tree is ready (i.e. you
+have finished your work-in-progress), attempt the merge again.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sparse_checkout">SPARSE CHECKOUT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>"Sparse checkout" allows populating the working directory sparsely.
+It uses the skip-worktree bit (see <a href="git-update-index.html">git-update-index(1)</a>) to tell
+Git whether a file in the working directory is worth looking at.</p></div>
+<div class="paragraph"><p><em>git read-tree</em> and other merge-based commands (<em>git merge</em>, <em>git
+checkout</em>&#8230;) can help maintaining the skip-worktree bitmap and working
+directory update. <code>$GIT_DIR/info/sparse-checkout</code> is used to
+define the skip-worktree reference bitmap. When <em>git read-tree</em> needs
+to update the working directory, it resets the skip-worktree bit in the index
+based on this file, which uses the same syntax as .gitignore files.
+If an entry matches a pattern in this file, skip-worktree will not be
+set on that entry. Otherwise, skip-worktree will be set.</p></div>
+<div class="paragraph"><p>Then it compares the new skip-worktree value with the previous one. If
+skip-worktree turns from set to unset, it will add the corresponding
+file back. If it turns from unset to set, that file will be removed.</p></div>
+<div class="paragraph"><p>While <code>$GIT_DIR/info/sparse-checkout</code> is usually used to specify what
+files are in, you can also specify what files are <em>not</em> in, using
+negate patterns. For example, to remove the file <code>unwanted</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>/*
+!unwanted</code></pre>
+</div></div>
+<div class="paragraph"><p>Another tricky thing is fully repopulating the working directory when you
+no longer want sparse checkout. You cannot just disable "sparse
+checkout" because skip-worktree bits are still in the index and your working
+directory is still sparsely populated. You should re-populate the working
+directory with the <code>$GIT_DIR/info/sparse-checkout</code> file content as
+follows:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>/*</code></pre>
+</div></div>
+<div class="paragraph"><p>Then you can disable sparse checkout. Sparse checkout support in <em>git
+read-tree</em> and similar commands is disabled by default. You need to
+turn <code>core.sparseCheckout</code> on in order to have sparse checkout
+support.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-write-tree.html">git-write-tree(1)</a>; <a href="git-ls-files.html">git-ls-files(1)</a>;
+<a href="gitignore.html">gitignore(5)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

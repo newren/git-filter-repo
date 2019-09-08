@@ -1,0 +1,1090 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-receive-pack(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-receive-pack(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-receive-pack -
+   Receive what is pushed into the repository
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git-receive-pack</em> &lt;directory&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Invoked by <em>git send-pack</em> and updates the repository with the
+information fed from the remote end.</p></div>
+<div class="paragraph"><p>This command is usually not invoked directly by the end user.
+The UI for the protocol is on the <em>git send-pack</em> side, and the
+program pair is meant to be used to push updates to remote
+repository.  For pull operations, see <a href="git-fetch-pack.html">git-fetch-pack(1)</a>.</p></div>
+<div class="paragraph"><p>The command allows for creation and fast-forwarding of sha1 refs
+(heads/tags) on the remote end (strictly speaking, it is the
+local end <em>git-receive-pack</em> runs, but to the user who is sitting at
+the send-pack end, it is updating the remote.  Confused?)</p></div>
+<div class="paragraph"><p>There are other real-world examples of using update and
+post-update hooks found in the Documentation/howto directory.</p></div>
+<div class="paragraph"><p><em>git-receive-pack</em> honours the receive.denyNonFastForwards config
+option, which tells it if updates to a ref should be denied if they
+are not fast-forwards.</p></div>
+<div class="paragraph"><p>A number of other receive.* config options are available to tweak
+its behavior, see <a href="git-config.html">git-config(1)</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+&lt;directory&gt;
+</dt>
+<dd>
+<p>
+        The repository to sync into.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pre_receive_hook">PRE-RECEIVE HOOK</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Before any ref is updated, if $GIT_DIR/hooks/pre-receive file exists
+and is executable, it will be invoked once with no parameters.  The
+standard input of the hook will be one line per ref to be updated:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>sha1-old SP sha1-new SP refname LF</code></pre>
+</div></div>
+<div class="paragraph"><p>The refname value is relative to $GIT_DIR; e.g. for the master
+head this is "refs/heads/master".  The two sha1 values before
+each refname are the object names for the refname before and after
+the update.  Refs to be created will have sha1-old equal to 0{40},
+while refs to be deleted will have sha1-new equal to 0{40}, otherwise
+sha1-old and sha1-new should be valid objects in the repository.</p></div>
+<div class="paragraph"><p>When accepting a signed push (see <a href="git-push.html">git-push(1)</a>), the signed
+push certificate is stored in a blob and an environment variable
+<code>GIT_PUSH_CERT</code> can be consulted for its object name.  See the
+description of <code>post-receive</code> hook for an example.  In addition, the
+certificate is verified using GPG and the result is exported with
+the following environment variables:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>GIT_PUSH_CERT_SIGNER</code>
+</dt>
+<dd>
+<p>
+        The name and the e-mail address of the owner of the key that
+        signed the push certificate.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_PUSH_CERT_KEY</code>
+</dt>
+<dd>
+<p>
+        The GPG key ID of the key that signed the push certificate.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_PUSH_CERT_STATUS</code>
+</dt>
+<dd>
+<p>
+        The status of GPG verification of the push certificate,
+        using the same mnemonic as used in <code>%G?</code> format of <code>git log</code>
+        family of commands (see <a href="git-log.html">git-log(1)</a>).
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_PUSH_CERT_NONCE</code>
+</dt>
+<dd>
+<p>
+        The nonce string the process asked the signer to include
+        in the push certificate.  If this does not match the value
+        recorded on the "nonce" header in the push certificate, it
+        may indicate that the certificate is a valid one that is
+        being replayed from a separate "git push" session.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_PUSH_CERT_NONCE_STATUS</code>
+</dt>
+<dd>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>UNSOLICITED</code>
+</dt>
+<dd>
+<p>
+        "git push --signed" sent a nonce when we did not ask it to
+        send one.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>MISSING</code>
+</dt>
+<dd>
+<p>
+        "git push --signed" did not send any nonce header.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>BAD</code>
+</dt>
+<dd>
+<p>
+        "git push --signed" sent a bogus nonce.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>OK</code>
+</dt>
+<dd>
+<p>
+        "git push --signed" sent the nonce we asked it to send.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>SLOP</code>
+</dt>
+<dd>
+<p>
+        "git push --signed" sent a nonce different from what we
+        asked it to send now, but in a previous session.  See
+        <code>GIT_PUSH_CERT_NONCE_SLOP</code> environment variable.
+</p>
+</dd>
+</dl></div>
+</dd>
+<dt class="hdlist1">
+<code>GIT_PUSH_CERT_NONCE_SLOP</code>
+</dt>
+<dd>
+<p>
+        "git push --signed" sent a nonce different from what we
+        asked it to send now, but in a different session whose
+        starting time is different by this many seconds from the
+        current session.  Only meaningful when
+        <code>GIT_PUSH_CERT_NONCE_STATUS</code> says <code>SLOP</code>.
+        Also read about <code>receive.certNonceSlop</code> variable in
+        <a href="git-config.html">git-config(1)</a>.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>This hook is called before any refname is updated and before any
+fast-forward checks are performed.</p></div>
+<div class="paragraph"><p>If the pre-receive hook exits with a non-zero exit status no updates
+will be performed, and the update, post-receive and post-update
+hooks will not be invoked either.  This can be useful to quickly
+bail out if the update is not to be supported.</p></div>
+<div class="paragraph"><p>See the notes on the quarantine environment below.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_update_hook">UPDATE HOOK</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Before each ref is updated, if $GIT_DIR/hooks/update file exists
+and is executable, it is invoked once per ref, with three parameters:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$GIT_DIR/hooks/update refname sha1-old sha1-new</code></pre>
+</div></div>
+<div class="paragraph"><p>The refname parameter is relative to $GIT_DIR; e.g. for the master
+head this is "refs/heads/master".  The two sha1 arguments are
+the object names for the refname before and after the update.
+Note that the hook is called before the refname is updated,
+so either sha1-old is 0{40} (meaning there is no such ref yet),
+or it should match what is recorded in refname.</p></div>
+<div class="paragraph"><p>The hook should exit with non-zero status if it wants to disallow
+updating the named ref.  Otherwise it should exit with zero.</p></div>
+<div class="paragraph"><p>Successful execution (a zero exit status) of this hook does not
+ensure the ref will actually be updated, it is only a prerequisite.
+As such it is not a good idea to send notices (e.g. email) from
+this hook.  Consider using the post-receive hook instead.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_post_receive_hook">POST-RECEIVE HOOK</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>After all refs were updated (or attempted to be updated), if any
+ref update was successful, and if $GIT_DIR/hooks/post-receive
+file exists and is executable, it will be invoked once with no
+parameters.  The standard input of the hook will be one line
+for each successfully updated ref:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>sha1-old SP sha1-new SP refname LF</code></pre>
+</div></div>
+<div class="paragraph"><p>The refname value is relative to $GIT_DIR; e.g. for the master
+head this is "refs/heads/master".  The two sha1 values before
+each refname are the object names for the refname before and after
+the update.  Refs that were created will have sha1-old equal to
+0{40}, while refs that were deleted will have sha1-new equal to
+0{40}, otherwise sha1-old and sha1-new should be valid objects in
+the repository.</p></div>
+<div class="paragraph"><p>The <code>GIT_PUSH_CERT*</code> environment variables can be inspected, just as
+in <code>pre-receive</code> hook, after accepting a signed push.</p></div>
+<div class="paragraph"><p>Using this hook, it is easy to generate mails describing the updates
+to the repository.  This example script sends one mail message per
+ref listing the commits pushed to the repository, and logs the push
+certificates of signed pushes with good signatures to a logger
+service:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>#!/bin/sh
+# mail out commit update information.
+while read oval nval ref
+do
+        if expr "$oval" : '0*$' &gt;/dev/null
+        then
+                echo "Created a new ref, with the following commits:"
+                git rev-list --pretty "$nval"
+        else
+                echo "New commits:"
+                git rev-list --pretty "$nval" "^$oval"
+        fi |
+        mail -s "Changes to ref $ref" commit-list@mydomain
+done
+# log signed push certificate, if any
+if test -n "${GIT_PUSH_CERT-}" &amp;&amp; test ${GIT_PUSH_CERT_STATUS} = G
+then
+        (
+                echo expected nonce is ${GIT_PUSH_NONCE}
+                git cat-file blob ${GIT_PUSH_CERT}
+        ) | mail -s "push certificate from $GIT_PUSH_CERT_SIGNER" push-log@mydomain
+fi
+exit 0</code></pre>
+</div></div>
+<div class="paragraph"><p>The exit code from this hook invocation is ignored, however a
+non-zero exit code will generate an error message.</p></div>
+<div class="paragraph"><p>Note that it is possible for refname to not have sha1-new when this
+hook runs.  This can easily occur if another user modifies the ref
+after it was updated by <em>git-receive-pack</em>, but before the hook was able
+to evaluate it.  It is recommended that hooks rely on sha1-new
+rather than the current value of refname.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_post_update_hook">POST-UPDATE HOOK</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>After all other processing, if at least one ref was updated, and
+if $GIT_DIR/hooks/post-update file exists and is executable, then
+post-update will be called with the list of refs that have been updated.
+This can be used to implement any repository wide cleanup tasks.</p></div>
+<div class="paragraph"><p>The exit code from this hook invocation is ignored; the only thing
+left for <em>git-receive-pack</em> to do at that point is to exit itself
+anyway.</p></div>
+<div class="paragraph"><p>This hook can be used, for example, to run <code>git update-server-info</code>
+if the repository is packed and is served via a dumb transport.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>#!/bin/sh
+exec git update-server-info</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quarantine_environment">QUARANTINE ENVIRONMENT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When <code>receive-pack</code> takes in objects, they are placed into a temporary
+"quarantine" directory within the <code>$GIT_DIR/objects</code> directory and
+migrated into the main object store only after the <code>pre-receive</code> hook
+has completed. If the push fails before then, the temporary directory is
+removed entirely.</p></div>
+<div class="paragraph"><p>This has a few user-visible effects and caveats:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Pushes which fail due to problems with the incoming pack, missing
+     objects, or due to the <code>pre-receive</code> hook will not leave any
+     on-disk data. This is usually helpful to prevent repeated failed
+     pushes from filling up your disk, but can make debugging more
+     challenging.
+</p>
+</li>
+<li>
+<p>
+Any objects created by the <code>pre-receive</code> hook will be created in
+     the quarantine directory (and migrated only if it succeeds).
+</p>
+</li>
+<li>
+<p>
+The <code>pre-receive</code> hook MUST NOT update any refs to point to
+     quarantined objects. Other programs accessing the repository will
+     not be able to see the objects (and if the pre-receive hook fails,
+     those refs would become corrupted). For safety, any ref updates
+     from within <code>pre-receive</code> are automatically rejected.
+</p>
+</li>
+</ol></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-send-pack.html">git-send-pack(1)</a>, <a href="gitnamespaces.html">gitnamespaces(7)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

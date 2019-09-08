@@ -1,0 +1,1251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-worktree(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-worktree(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-worktree -
+   Manage multiple working trees
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git worktree add</em> [-f] [--detach] [--checkout] [--lock] [-b &lt;new-branch&gt;] &lt;path&gt; [&lt;commit-ish&gt;]
+<em>git worktree list</em> [--porcelain]
+<em>git worktree lock</em> [--reason &lt;string&gt;] &lt;worktree&gt;
+<em>git worktree move</em> &lt;worktree&gt; &lt;new-path&gt;
+<em>git worktree prune</em> [-n] [-v] [--expire &lt;expire&gt;]
+<em>git worktree remove</em> [-f] &lt;worktree&gt;
+<em>git worktree unlock</em> &lt;worktree&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Manage multiple working trees attached to the same repository.</p></div>
+<div class="paragraph"><p>A git repository can support multiple working trees, allowing you to check
+out more than one branch at a time.  With <code>git worktree add</code> a new working
+tree is associated with the repository.  This new working tree is called a
+"linked working tree" as opposed to the "main working tree" prepared by "git
+init" or "git clone".  A repository has one main working tree (if it&#8217;s not a
+bare repository) and zero or more linked working trees. When you are done
+with a linked working tree, remove it with <code>git worktree remove</code>.</p></div>
+<div class="paragraph"><p>If a working tree is deleted without using <code>git worktree remove</code>, then
+its associated administrative files, which reside in the repository
+(see "DETAILS" below), will eventually be removed automatically (see
+<code>gc.worktreePruneExpire</code> in <a href="git-config.html">git-config(1)</a>), or you can run
+<code>git worktree prune</code> in the main or any linked working tree to
+clean up any stale administrative files.</p></div>
+<div class="paragraph"><p>If a linked working tree is stored on a portable device or network share
+which is not always mounted, you can prevent its administrative files from
+being pruned by issuing the <code>git worktree lock</code> command, optionally
+specifying <code>--reason</code> to explain why the working tree is locked.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_commands">COMMANDS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+add &lt;path&gt; [&lt;commit-ish&gt;]
+</dt>
+<dd>
+<p>
+Create <code>&lt;path&gt;</code> and checkout <code>&lt;commit-ish&gt;</code> into it. The new working directory
+is linked to the current repository, sharing everything except working
+directory specific files such as HEAD, index, etc. <code>-</code> may also be
+specified as <code>&lt;commit-ish&gt;</code>; it is synonymous with <code>@{-1}</code>.
+</p>
+<div class="paragraph"><p>If &lt;commit-ish&gt; is a branch name (call it <code>&lt;branch&gt;</code>) and is not found,
+and neither <code>-b</code> nor <code>-B</code> nor <code>--detach</code> are used, but there does
+exist a tracking branch in exactly one remote (call it <code>&lt;remote&gt;</code>)
+with a matching name, treat as equivalent to:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git worktree add --track -b &lt;branch&gt; &lt;path&gt; &lt;remote&gt;/&lt;branch&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>If the branch exists in multiple remotes and one of them is named by
+the <code>checkout.defaultRemote</code> configuration variable, we&#8217;ll use that
+one for the purposes of disambiguation, even if the <code>&lt;branch&gt;</code> isn&#8217;t
+unique across all remotes. Set it to
+e.g. <code>checkout.defaultRemote=origin</code> to always checkout remote
+branches from there if <code>&lt;branch&gt;</code> is ambiguous but exists on the
+<em>origin</em> remote. See also <code>checkout.defaultRemote</code> in
+<a href="git-config.html">git-config(1)</a>.</p></div>
+<div class="paragraph"><p>If <code>&lt;commit-ish&gt;</code> is omitted and neither <code>-b</code> nor <code>-B</code> nor <code>--detach</code> used,
+then, as a convenience, the new worktree is associated with a branch
+(call it <code>&lt;branch&gt;</code>) named after <code>$(basename &lt;path&gt;)</code>.  If <code>&lt;branch&gt;</code>
+doesn&#8217;t exist, a new branch based on HEAD is automatically created as
+if <code>-b &lt;branch&gt;</code> was given.  If <code>&lt;branch&gt;</code> does exist, it will be
+checked out in the new worktree, if it&#8217;s not checked out anywhere
+else, otherwise the command will refuse to create the worktree (unless
+<code>--force</code> is used).</p></div>
+</dd>
+<dt class="hdlist1">
+list
+</dt>
+<dd>
+<p>
+List details of each worktree.  The main worktree is listed first, followed by
+each of the linked worktrees.  The output details include if the worktree is
+bare, the revision currently checked out, and the branch currently checked out
+(or <em>detached HEAD</em> if none).
+</p>
+</dd>
+<dt class="hdlist1">
+lock
+</dt>
+<dd>
+<p>
+If a working tree is on a portable device or network share which
+is not always mounted, lock it to prevent its administrative
+files from being pruned automatically. This also prevents it from
+being moved or deleted. Optionally, specify a reason for the lock
+with <code>--reason</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+move
+</dt>
+<dd>
+<p>
+Move a working tree to a new location. Note that the main working tree
+or linked working trees containing submodules cannot be moved.
+</p>
+</dd>
+<dt class="hdlist1">
+prune
+</dt>
+<dd>
+<p>
+Prune working tree information in $GIT_DIR/worktrees.
+</p>
+</dd>
+<dt class="hdlist1">
+remove
+</dt>
+<dd>
+<p>
+Remove a working tree. Only clean working trees (no untracked files
+and no modification in tracked files) can be removed. Unclean working
+trees or ones with submodules can be removed with <code>--force</code>. The main
+working tree cannot be removed.
+</p>
+</dd>
+<dt class="hdlist1">
+unlock
+</dt>
+<dd>
+<p>
+Unlock a working tree, allowing it to be pruned, moved or deleted.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-f
+</dt>
+<dt class="hdlist1">
+--force
+</dt>
+<dd>
+<p>
+        By default, <code>add</code> refuses to create a new working tree when
+        <code>&lt;commit-ish&gt;</code> is a branch name and is already checked out by
+        another working tree, or if <code>&lt;path&gt;</code> is already assigned to some
+        working tree but is missing (for instance, if <code>&lt;path&gt;</code> was deleted
+        manually). This option overrides these safeguards. To add a missing but
+        locked working tree path, specify <code>--force</code> twice.
+</p>
+<div class="paragraph"><p><code>move</code> refuses to move a locked working tree unless <code>--force</code> is specified
+twice.</p></div>
+<div class="paragraph"><p><code>remove</code> refuses to remove an unclean working tree unless <code>--force</code> is used.
+To remove a locked working tree, specify <code>--force</code> twice.</p></div>
+</dd>
+<dt class="hdlist1">
+-b &lt;new-branch&gt;
+</dt>
+<dt class="hdlist1">
+-B &lt;new-branch&gt;
+</dt>
+<dd>
+<p>
+        With <code>add</code>, create a new branch named <code>&lt;new-branch&gt;</code> starting at
+        <code>&lt;commit-ish&gt;</code>, and check out <code>&lt;new-branch&gt;</code> into the new working tree.
+        If <code>&lt;commit-ish&gt;</code> is omitted, it defaults to HEAD.
+        By default, <code>-b</code> refuses to create a new branch if it already
+        exists. <code>-B</code> overrides this safeguard, resetting <code>&lt;new-branch&gt;</code> to
+        <code>&lt;commit-ish&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--detach
+</dt>
+<dd>
+<p>
+        With <code>add</code>, detach HEAD in the new working tree. See "DETACHED HEAD"
+        in <a href="git-checkout.html">git-checkout(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]checkout
+</dt>
+<dd>
+<p>
+        By default, <code>add</code> checks out <code>&lt;commit-ish&gt;</code>, however, <code>--no-checkout</code> can
+        be used to suppress checkout in order to make customizations,
+        such as configuring sparse-checkout. See "Sparse checkout"
+        in <a href="git-read-tree.html">git-read-tree(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]guess-remote
+</dt>
+<dd>
+<p>
+        With <code>worktree add &lt;path&gt;</code>, without <code>&lt;commit-ish&gt;</code>, instead
+        of creating a new branch from HEAD, if there exists a tracking
+        branch in exactly one remote matching the basename of <code>&lt;path&gt;</code>,
+        base the new branch on the remote-tracking branch, and mark
+        the remote-tracking branch as "upstream" from the new branch.
+</p>
+<div class="paragraph"><p>This can also be set up as the default behaviour by using the
+<code>worktree.guessRemote</code> config option.</p></div>
+</dd>
+<dt class="hdlist1">
+--[no-]track
+</dt>
+<dd>
+<p>
+        When creating a new branch, if <code>&lt;commit-ish&gt;</code> is a branch,
+        mark it as "upstream" from the new branch.  This is the
+        default if <code>&lt;commit-ish&gt;</code> is a remote-tracking branch.  See
+        "--track" in <a href="git-branch.html">git-branch(1)</a> for details.
+</p>
+</dd>
+<dt class="hdlist1">
+--lock
+</dt>
+<dd>
+<p>
+        Keep the working tree locked after creation. This is the
+        equivalent of <code>git worktree lock</code> after <code>git worktree add</code>,
+        but without race condition.
+</p>
+</dd>
+<dt class="hdlist1">
+-n
+</dt>
+<dt class="hdlist1">
+--dry-run
+</dt>
+<dd>
+<p>
+        With <code>prune</code>, do not remove anything; just report what it would
+        remove.
+</p>
+</dd>
+<dt class="hdlist1">
+--porcelain
+</dt>
+<dd>
+<p>
+        With <code>list</code>, output in an easy-to-parse format for scripts.
+        This format will remain stable across Git versions and regardless of user
+        configuration.  See below for details.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        With <em>add</em>, suppress feedback messages.
+</p>
+</dd>
+<dt class="hdlist1">
+-v
+</dt>
+<dt class="hdlist1">
+--verbose
+</dt>
+<dd>
+<p>
+        With <code>prune</code>, report all removals.
+</p>
+</dd>
+<dt class="hdlist1">
+--expire &lt;time&gt;
+</dt>
+<dd>
+<p>
+        With <code>prune</code>, only expire unused working trees older than &lt;time&gt;.
+</p>
+</dd>
+<dt class="hdlist1">
+--reason &lt;string&gt;
+</dt>
+<dd>
+<p>
+        With <code>lock</code>, an explanation why the working tree is locked.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;worktree&gt;
+</dt>
+<dd>
+<p>
+        Working trees can be identified by path, either relative or
+        absolute.
+</p>
+<div class="paragraph"><p>If the last path components in the working tree&#8217;s path is unique among
+working trees, it can be used to identify worktrees. For example if
+you only have two working trees, at "/abc/def/ghi" and "/abc/def/ggg",
+then "ghi" or "def/ghi" is enough to point to the former working tree.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_refs">REFS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In multiple working trees, some refs may be shared between all working
+trees, some refs are local. One example is HEAD is different for all
+working trees. This section is about the sharing rules and how to access
+refs of one working tree from another.</p></div>
+<div class="paragraph"><p>In general, all pseudo refs are per working tree and all refs starting
+with "refs/" are shared. Pseudo refs are ones like HEAD which are
+directly under GIT_DIR instead of inside GIT_DIR/refs. There is one
+exception to this: refs inside refs/bisect and refs/worktree is not
+shared.</p></div>
+<div class="paragraph"><p>Refs that are per working tree can still be accessed from another
+working tree via two special paths, main-worktree and worktrees. The
+former gives access to per-worktree refs of the main working tree,
+while the latter to all linked working trees.</p></div>
+<div class="paragraph"><p>For example, main-worktree/HEAD or main-worktree/refs/bisect/good
+resolve to the same value as the main working tree&#8217;s HEAD and
+refs/bisect/good respectively. Similarly, worktrees/foo/HEAD or
+worktrees/bar/refs/bisect/bad are the same as
+GIT_COMMON_DIR/worktrees/foo/HEAD and
+GIT_COMMON_DIR/worktrees/bar/refs/bisect/bad.</p></div>
+<div class="paragraph"><p>To access refs, it&#8217;s best not to look inside GIT_DIR directly. Instead
+use commands such as <a href="git-rev-parse.html">git-rev-parse(1)</a> or <a href="git-update-ref.html">git-update-ref(1)</a>
+which will handle refs correctly.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration_file">CONFIGURATION FILE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>By default, the repository "config" file is shared across all working
+trees. If the config variables <code>core.bare</code> or <code>core.worktree</code> are
+already present in the config file, they will be applied to the main
+working trees only.</p></div>
+<div class="paragraph"><p>In order to have configuration specific to working trees, you can turn
+on "worktreeConfig" extension, e.g.:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config extensions.worktreeConfig true</code></pre>
+</div></div>
+<div class="paragraph"><p>In this mode, specific configuration stays in the path pointed by <code>git
+rev-parse --git-path config.worktree</code>. You can add or update
+configuration in this file with <code>git config --worktree</code>. Older Git
+versions will refuse to access repositories with this extension.</p></div>
+<div class="paragraph"><p>Note that in this file, the exception for <code>core.bare</code> and <code>core.worktree</code>
+is gone. If you have them in $GIT_DIR/config before, you must move
+them to the <code>config.worktree</code> of the main working tree. You may also
+take this opportunity to review and move other configuration that you
+do not want to share to all working trees:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>core.worktree</code> and <code>core.bare</code> should never be shared
+</p>
+</li>
+<li>
+<p>
+<code>core.sparseCheckout</code> is recommended per working tree, unless you
+   are sure you always use sparse checkout for all working trees.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_details">DETAILS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Each linked working tree has a private sub-directory in the repository&#8217;s
+$GIT_DIR/worktrees directory.  The private sub-directory&#8217;s name is usually
+the base name of the linked working tree&#8217;s path, possibly appended with a
+number to make it unique.  For example, when <code>$GIT_DIR=/path/main/.git</code> the
+command <code>git worktree add /path/other/test-next next</code> creates the linked
+working tree in <code>/path/other/test-next</code> and also creates a
+<code>$GIT_DIR/worktrees/test-next</code> directory (or <code>$GIT_DIR/worktrees/test-next1</code>
+if <code>test-next</code> is already taken).</p></div>
+<div class="paragraph"><p>Within a linked working tree, $GIT_DIR is set to point to this private
+directory (e.g. <code>/path/main/.git/worktrees/test-next</code> in the example) and
+$GIT_COMMON_DIR is set to point back to the main working tree&#8217;s $GIT_DIR
+(e.g. <code>/path/main/.git</code>). These settings are made in a <code>.git</code> file located at
+the top directory of the linked working tree.</p></div>
+<div class="paragraph"><p>Path resolution via <code>git rev-parse --git-path</code> uses either
+$GIT_DIR or $GIT_COMMON_DIR depending on the path. For example, in the
+linked working tree <code>git rev-parse --git-path HEAD</code> returns
+<code>/path/main/.git/worktrees/test-next/HEAD</code> (not
+<code>/path/other/test-next/.git/HEAD</code> or <code>/path/main/.git/HEAD</code>) while <code>git
+rev-parse --git-path refs/heads/master</code> uses
+$GIT_COMMON_DIR and returns <code>/path/main/.git/refs/heads/master</code>,
+since refs are shared across all working trees, except refs/bisect and
+refs/worktree.</p></div>
+<div class="paragraph"><p>See <a href="gitrepository-layout.html">gitrepository-layout(5)</a> for more information. The rule of
+thumb is do not make any assumption about whether a path belongs to
+$GIT_DIR or $GIT_COMMON_DIR when you need to directly access something
+inside $GIT_DIR. Use <code>git rev-parse --git-path</code> to get the final path.</p></div>
+<div class="paragraph"><p>If you manually move a linked working tree, you need to update the <em>gitdir</em> file
+in the entry&#8217;s directory. For example, if a linked working tree is moved
+to <code>/newpath/test-next</code> and its <code>.git</code> file points to
+<code>/path/main/.git/worktrees/test-next</code>, then update
+<code>/path/main/.git/worktrees/test-next/gitdir</code> to reference <code>/newpath/test-next</code>
+instead.</p></div>
+<div class="paragraph"><p>To prevent a $GIT_DIR/worktrees entry from being pruned (which
+can be useful in some situations, such as when the
+entry&#8217;s working tree is stored on a portable device), use the
+<code>git worktree lock</code> command, which adds a file named
+<em>locked</em> to the entry&#8217;s directory. The file contains the reason in
+plain text. For example, if a linked working tree&#8217;s <code>.git</code> file points
+to <code>/path/main/.git/worktrees/test-next</code> then a file named
+<code>/path/main/.git/worktrees/test-next/locked</code> will prevent the
+<code>test-next</code> entry from being pruned.  See
+<a href="gitrepository-layout.html">gitrepository-layout(5)</a> for details.</p></div>
+<div class="paragraph"><p>When extensions.worktreeConfig is enabled, the config file
+<code>.git/worktrees/&lt;id&gt;/config.worktree</code> is read after <code>.git/config</code> is.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_list_output_format">LIST OUTPUT FORMAT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The worktree list command has two output formats.  The default format shows the
+details on a single line with columns.  For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git worktree list
+/path/to/bare-source            (bare)
+/path/to/linked-worktree        abcd1234 [master]
+/path/to/other-linked-worktree  1234abc  (detached HEAD)</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_porcelain_format">Porcelain Format</h3>
+<div class="paragraph"><p>The porcelain format has a line per attribute.  Attributes are listed with a
+label and value separated by a single space.  Boolean attributes (like <em>bare</em>
+and <em>detached</em>) are listed as a label only, and are only present if and only
+if the value is true.  The first attribute of a worktree is always <code>worktree</code>,
+an empty line indicates the end of the record.  For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git worktree list --porcelain
+worktree /path/to/bare-source
+bare
+
+worktree /path/to/linked-worktree
+HEAD abcd1234abcd1234abcd1234abcd1234abcd1234
+branch refs/heads/master
+
+worktree /path/to/other-linked-worktree
+HEAD 1234abc1234abc1234abc1234abc1234abc1234a
+detached</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>You are in the middle of a refactoring session and your boss comes in and
+demands that you fix something immediately. You might typically use
+<a href="git-stash.html">git-stash(1)</a> to store your changes away temporarily, however, your
+working tree is in such a state of disarray (with new, moved, and removed
+files, and other bits and pieces strewn around) that you don&#8217;t want to risk
+disturbing any of it. Instead, you create a temporary linked working tree to
+make the emergency fix, remove it when done, and then resume your earlier
+refactoring session.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git worktree add -b emergency-fix ../temp master
+$ pushd ../temp
+# ... hack hack hack ...
+$ git commit -a -m 'emergency fix for boss'
+$ popd
+$ git worktree remove ../temp</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bugs">BUGS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Multiple checkout in general is still experimental, and the support
+for submodules is incomplete. It is NOT recommended to make multiple
+checkouts of a superproject.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>

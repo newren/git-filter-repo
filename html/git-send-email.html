@@ -1,0 +1,1634 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-send-email(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-send-email(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-send-email -
+   Send a collection of patches as emails
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git send-email</em> [&lt;options&gt;] &lt;file|directory|rev-list options&gt;&#8230;
+<em>git send-email</em> --dump-aliases</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Takes the patches given on the command line and emails them out.
+Patches can be specified as files, directories (which will send all
+files in the directory), or directly as a revision list.  In the
+last case, any format accepted by <a href="git-format-patch.html">git-format-patch(1)</a> can
+be passed to git send-email.</p></div>
+<div class="paragraph"><p>The header of the email is configurable via command-line options.  If not
+specified on the command line, the user will be prompted with a ReadLine
+enabled interface to provide the necessary information.</p></div>
+<div class="paragraph"><p>There are two formats accepted for patch files:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+mbox format files
+</p>
+<div class="paragraph"><p>This is what <a href="git-format-patch.html">git-format-patch(1)</a> generates.  Most headers and MIME
+formatting are ignored.</p></div>
+</li>
+<li>
+<p>
+The original format used by Greg Kroah-Hartman&#8217;s <em>send_lots_of_email.pl</em>
+   script
+</p>
+<div class="paragraph"><p>This format expects the first line of the file to contain the "Cc:" value
+and the "Subject:" of the message as the second line.</p></div>
+</li>
+</ol></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_composing">Composing</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--annotate
+</dt>
+<dd>
+<p>
+        Review and edit each patch you&#8217;re about to send. Default is the value
+        of <code>sendemail.annotate</code>. See the CONFIGURATION section for
+        <code>sendemail.multiEdit</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--bcc=&lt;address&gt;,&#8230;
+</dt>
+<dd>
+<p>
+        Specify a "Bcc:" value for each email. Default is the value of
+        <code>sendemail.bcc</code>.
+</p>
+<div class="paragraph"><p>This option may be specified multiple times.</p></div>
+</dd>
+<dt class="hdlist1">
+--cc=&lt;address&gt;,&#8230;
+</dt>
+<dd>
+<p>
+        Specify a starting "Cc:" value for each email.
+        Default is the value of <code>sendemail.cc</code>.
+</p>
+<div class="paragraph"><p>This option may be specified multiple times.</p></div>
+</dd>
+<dt class="hdlist1">
+--compose
+</dt>
+<dd>
+<p>
+        Invoke a text editor (see GIT_EDITOR in <a href="git-var.html">git-var(1)</a>)
+        to edit an introductory message for the patch series.
+</p>
+<div class="paragraph"><p>When <code>--compose</code> is used, git send-email will use the From, Subject, and
+In-Reply-To headers specified in the message. If the body of the message
+(what you type after the headers and a blank line) only contains blank
+(or Git: prefixed) lines, the summary won&#8217;t be sent, but From, Subject,
+and In-Reply-To headers will be used unless they are removed.</p></div>
+<div class="paragraph"><p>Missing From or In-Reply-To headers will be prompted for.</p></div>
+<div class="paragraph"><p>See the CONFIGURATION section for <code>sendemail.multiEdit</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+--from=&lt;address&gt;
+</dt>
+<dd>
+<p>
+        Specify the sender of the emails.  If not specified on the command line,
+        the value of the <code>sendemail.from</code> configuration option is used.  If
+        neither the command-line option nor <code>sendemail.from</code> are set, then the
+        user will be prompted for the value.  The default for the prompt will be
+        the value of GIT_AUTHOR_IDENT, or GIT_COMMITTER_IDENT if that is not
+        set, as returned by "git var -l".
+</p>
+</dd>
+<dt class="hdlist1">
+--reply-to=&lt;address&gt;
+</dt>
+<dd>
+<p>
+        Specify the address where replies from recipients should go to.
+        Use this if replies to messages should go to another address than what
+        is specified with the --from parameter.
+</p>
+</dd>
+<dt class="hdlist1">
+--in-reply-to=&lt;identifier&gt;
+</dt>
+<dd>
+<p>
+        Make the first mail (or all the mails with <code>--no-thread</code>) appear as a
+        reply to the given Message-Id, which avoids breaking threads to
+        provide a new patch series.
+        The second and subsequent emails will be sent as replies according to
+        the <code>--[no-]chain-reply-to</code> setting.
+</p>
+<div class="paragraph"><p>So for example when <code>--thread</code> and <code>--no-chain-reply-to</code> are specified, the
+second and subsequent patches will be replies to the first one like in the
+illustration below where <code>[PATCH v2 0/3]</code> is in reply to <code>[PATCH 0/2]</code>:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[PATCH 0/2] Here is what I did...
+  [PATCH 1/2] Clean up and tests
+  [PATCH 2/2] Implementation
+  [PATCH v2 0/3] Here is a reroll
+    [PATCH v2 1/3] Clean up
+    [PATCH v2 2/3] New tests
+    [PATCH v2 3/3] Implementation</code></pre>
+</div></div>
+<div class="paragraph"><p>Only necessary if --compose is also set.  If --compose
+is not set, this will be prompted for.</p></div>
+</dd>
+<dt class="hdlist1">
+--subject=&lt;string&gt;
+</dt>
+<dd>
+<p>
+        Specify the initial subject of the email thread.
+        Only necessary if --compose is also set.  If --compose
+        is not set, this will be prompted for.
+</p>
+</dd>
+<dt class="hdlist1">
+--to=&lt;address&gt;,&#8230;
+</dt>
+<dd>
+<p>
+        Specify the primary recipient of the emails generated. Generally, this
+        will be the upstream maintainer of the project involved. Default is the
+        value of the <code>sendemail.to</code> configuration value; if that is unspecified,
+        and --to-cmd is not specified, this will be prompted for.
+</p>
+<div class="paragraph"><p>This option may be specified multiple times.</p></div>
+</dd>
+<dt class="hdlist1">
+--8bit-encoding=&lt;encoding&gt;
+</dt>
+<dd>
+<p>
+        When encountering a non-ASCII message or subject that does not
+        declare its encoding, add headers/quoting to indicate it is
+        encoded in &lt;encoding&gt;.  Default is the value of the
+        <em>sendemail.assume8bitEncoding</em>; if that is unspecified, this
+        will be prompted for if any non-ASCII files are encountered.
+</p>
+<div class="paragraph"><p>Note that no attempts whatsoever are made to validate the encoding.</p></div>
+</dd>
+<dt class="hdlist1">
+--compose-encoding=&lt;encoding&gt;
+</dt>
+<dd>
+<p>
+        Specify encoding of compose message. Default is the value of the
+        <em>sendemail.composeencoding</em>; if that is unspecified, UTF-8 is assumed.
+</p>
+</dd>
+<dt class="hdlist1">
+--transfer-encoding=(7bit|8bit|quoted-printable|base64|auto)
+</dt>
+<dd>
+<p>
+        Specify the transfer encoding to be used to send the message over SMTP.
+        7bit will fail upon encountering a non-ASCII message.  quoted-printable
+        can be useful when the repository contains files that contain carriage
+        returns, but makes the raw patch email file (as saved from a MUA) much
+        harder to inspect manually.  base64 is even more fool proof, but also
+        even more opaque.  auto will use 8bit when possible, and quoted-printable
+        otherwise.
+</p>
+<div class="paragraph"><p>Default is the value of the <code>sendemail.transferEncoding</code> configuration
+value; if that is unspecified, default to <code>auto</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+--xmailer
+</dt>
+<dt class="hdlist1">
+--no-xmailer
+</dt>
+<dd>
+<p>
+        Add (or prevent adding) the "X-Mailer:" header.  By default,
+        the header is added, but it can be turned off by setting the
+        <code>sendemail.xmailer</code> configuration variable to <code>false</code>.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_sending">Sending</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--envelope-sender=&lt;address&gt;
+</dt>
+<dd>
+<p>
+        Specify the envelope sender used to send the emails.
+        This is useful if your default address is not the address that is
+        subscribed to a list. In order to use the <em>From</em> address, set the
+        value to "auto". If you use the sendmail binary, you must have
+        suitable privileges for the -f parameter.  Default is the value of the
+        <code>sendemail.envelopeSender</code> configuration variable; if that is
+        unspecified, choosing the envelope sender is left to your MTA.
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-encryption=&lt;encryption&gt;
+</dt>
+<dd>
+<p>
+        Specify the encryption to use, either <em>ssl</em> or <em>tls</em>.  Any other
+        value reverts to plain SMTP.  Default is the value of
+        <code>sendemail.smtpEncryption</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-domain=&lt;FQDN&gt;
+</dt>
+<dd>
+<p>
+        Specifies the Fully Qualified Domain Name (FQDN) used in the
+        HELO/EHLO command to the SMTP server.  Some servers require the
+        FQDN to match your IP address.  If not set, git send-email attempts
+        to determine your FQDN automatically.  Default is the value of
+        <code>sendemail.smtpDomain</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-auth=&lt;mechanisms&gt;
+</dt>
+<dd>
+<p>
+        Whitespace-separated list of allowed SMTP-AUTH mechanisms. This setting
+        forces using only the listed mechanisms. Example:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git send-email --smtp-auth="PLAIN LOGIN GSSAPI" ...</code></pre>
+</div></div>
+<div class="paragraph"><p>If at least one of the specified mechanisms matches the ones advertised by the
+SMTP server and if it is supported by the utilized SASL library, the mechanism
+is used for authentication. If neither <em>sendemail.smtpAuth</em> nor <code>--smtp-auth</code>
+is specified, all mechanisms supported by the SASL library can be used. The
+special value <em>none</em> maybe specified to completely disable authentication
+independently of <code>--smtp-user</code></p></div>
+</dd>
+<dt class="hdlist1">
+--smtp-pass[=&lt;password&gt;]
+</dt>
+<dd>
+<p>
+        Password for SMTP-AUTH. The argument is optional: If no
+        argument is specified, then the empty string is used as
+        the password. Default is the value of <code>sendemail.smtpPass</code>,
+        however <code>--smtp-pass</code> always overrides this value.
+</p>
+<div class="paragraph"><p>Furthermore, passwords need not be specified in configuration files
+or on the command line. If a username has been specified (with
+<code>--smtp-user</code> or a <code>sendemail.smtpUser</code>), but no password has been
+specified (with <code>--smtp-pass</code> or <code>sendemail.smtpPass</code>), then
+a password is obtained using <em>git-credential</em>.</p></div>
+</dd>
+<dt class="hdlist1">
+--no-smtp-auth
+</dt>
+<dd>
+<p>
+        Disable SMTP authentication. Short hand for <code>--smtp-auth=none</code>
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-server=&lt;host&gt;
+</dt>
+<dd>
+<p>
+        If set, specifies the outgoing SMTP server to use (e.g.
+        <code>smtp.example.com</code> or a raw IP address).  Alternatively it can
+        specify a full pathname of a sendmail-like program instead;
+        the program must support the <code>-i</code> option.  Default value can
+        be specified by the <code>sendemail.smtpServer</code> configuration
+        option; the built-in default is to search for <code>sendmail</code> in
+        <code>/usr/sbin</code>, <code>/usr/lib</code> and $PATH if such program is
+        available, falling back to <code>localhost</code> otherwise.
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-server-port=&lt;port&gt;
+</dt>
+<dd>
+<p>
+        Specifies a port different from the default port (SMTP
+        servers typically listen to smtp port 25, but may also listen to
+        submission port 587, or the common SSL smtp port 465);
+        symbolic port names (e.g. "submission" instead of 587)
+        are also accepted. The port can also be set with the
+        <code>sendemail.smtpServerPort</code> configuration variable.
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-server-option=&lt;option&gt;
+</dt>
+<dd>
+<p>
+        If set, specifies the outgoing SMTP server option to use.
+        Default value can be specified by the <code>sendemail.smtpServerOption</code>
+        configuration option.
+</p>
+<div class="paragraph"><p>The --smtp-server-option option must be repeated for each option you want
+to pass to the server. Likewise, different lines in the configuration files
+must be used for each option.</p></div>
+</dd>
+<dt class="hdlist1">
+--smtp-ssl
+</dt>
+<dd>
+<p>
+        Legacy alias for <em>--smtp-encryption ssl</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-ssl-cert-path
+</dt>
+<dd>
+<p>
+        Path to a store of trusted CA certificates for SMTP SSL/TLS
+        certificate validation (either a directory that has been processed
+        by <em>c_rehash</em>, or a single file containing one or more PEM format
+        certificates concatenated together: see verify(1) -CAfile and
+        -CApath for more information on these). Set it to an empty string
+        to disable certificate verification. Defaults to the value of the
+        <code>sendemail.smtpsslcertpath</code> configuration variable, if set, or the
+        backing SSL library&#8217;s compiled-in default otherwise (which should
+        be the best choice on most platforms).
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-user=&lt;user&gt;
+</dt>
+<dd>
+<p>
+        Username for SMTP-AUTH. Default is the value of <code>sendemail.smtpUser</code>;
+        if a username is not specified (with <code>--smtp-user</code> or <code>sendemail.smtpUser</code>),
+        then authentication is not attempted.
+</p>
+</dd>
+<dt class="hdlist1">
+--smtp-debug=0|1
+</dt>
+<dd>
+<p>
+        Enable (1) or disable (0) debug output. If enabled, SMTP
+        commands and replies will be printed. Useful to debug TLS
+        connection and authentication problems.
+</p>
+</dd>
+<dt class="hdlist1">
+--batch-size=&lt;num&gt;
+</dt>
+<dd>
+<p>
+        Some email servers (e.g. smtp.163.com) limit the number emails to be
+        sent per session (connection) and this will lead to a failure when
+        sending many messages.  With this option, send-email will disconnect after
+        sending $&lt;num&gt; messages and wait for a few seconds (see --relogin-delay)
+        and reconnect, to work around such a limit.  You may want to
+        use some form of credential helper to avoid having to retype
+        your password every time this happens.  Defaults to the
+        <code>sendemail.smtpBatchSize</code> configuration variable.
+</p>
+</dd>
+<dt class="hdlist1">
+--relogin-delay=&lt;int&gt;
+</dt>
+<dd>
+<p>
+        Waiting $&lt;int&gt; seconds before reconnecting to SMTP server. Used together
+        with --batch-size option.  Defaults to the <code>sendemail.smtpReloginDelay</code>
+        configuration variable.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_automating">Automating</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--no-[to|cc|bcc]
+</dt>
+<dd>
+<p>
+        Clears any list of "To:", "Cc:", "Bcc:" addresses previously
+        set via config.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-identity
+</dt>
+<dd>
+<p>
+        Clears the previously read value of <code>sendemail.identity</code> set
+        via config, if any.
+</p>
+</dd>
+<dt class="hdlist1">
+--to-cmd=&lt;command&gt;
+</dt>
+<dd>
+<p>
+        Specify a command to execute once per patch file which
+        should generate patch file specific "To:" entries.
+        Output of this command must be single email address per line.
+        Default is the value of <em>sendemail.tocmd</em> configuration value.
+</p>
+</dd>
+<dt class="hdlist1">
+--cc-cmd=&lt;command&gt;
+</dt>
+<dd>
+<p>
+        Specify a command to execute once per patch file which
+        should generate patch file specific "Cc:" entries.
+        Output of this command must be single email address per line.
+        Default is the value of <code>sendemail.ccCmd</code> configuration value.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]chain-reply-to
+</dt>
+<dd>
+<p>
+        If this is set, each email will be sent as a reply to the previous
+        email sent.  If disabled with "--no-chain-reply-to", all emails after
+        the first will be sent as replies to the first email sent.  When using
+        this, it is recommended that the first file given be an overview of the
+        entire patch series. Disabled by default, but the <code>sendemail.chainReplyTo</code>
+        configuration variable can be used to enable it.
+</p>
+</dd>
+<dt class="hdlist1">
+--identity=&lt;identity&gt;
+</dt>
+<dd>
+<p>
+        A configuration identity. When given, causes values in the
+        <em>sendemail.&lt;identity&gt;</em> subsection to take precedence over
+        values in the <em>sendemail</em> section. The default identity is
+        the value of <code>sendemail.identity</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]signed-off-by-cc
+</dt>
+<dd>
+<p>
+        If this is set, add emails found in Signed-off-by: or Cc: lines to the
+        cc list. Default is the value of <code>sendemail.signedoffbycc</code> configuration
+        value; if that is unspecified, default to --signed-off-by-cc.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]cc-cover
+</dt>
+<dd>
+<p>
+        If this is set, emails found in Cc: headers in the first patch of
+        the series (typically the cover letter) are added to the cc list
+        for each email set. Default is the value of <em>sendemail.cccover</em>
+        configuration value; if that is unspecified, default to --no-cc-cover.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]to-cover
+</dt>
+<dd>
+<p>
+        If this is set, emails found in To: headers in the first patch of
+        the series (typically the cover letter) are added to the to list
+        for each email set. Default is the value of <em>sendemail.tocover</em>
+        configuration value; if that is unspecified, default to --no-to-cover.
+</p>
+</dd>
+<dt class="hdlist1">
+--suppress-cc=&lt;category&gt;
+</dt>
+<dd>
+<p>
+        Specify an additional category of recipients to suppress the
+        auto-cc of:
+</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+<em>author</em> will avoid including the patch author.
+</p>
+</li>
+<li>
+<p>
+<em>self</em> will avoid including the sender.
+</p>
+</li>
+<li>
+<p>
+<em>cc</em> will avoid including anyone mentioned in Cc lines in the patch header
+  except for self (use <em>self</em> for that).
+</p>
+</li>
+<li>
+<p>
+<em>bodycc</em> will avoid including anyone mentioned in Cc lines in the
+  patch body (commit message) except for self (use <em>self</em> for that).
+</p>
+</li>
+<li>
+<p>
+<em>sob</em> will avoid including anyone mentioned in Signed-off-by lines except
+  for self (use <em>self</em> for that).
+</p>
+</li>
+<li>
+<p>
+<em>misc-by</em> will avoid including anyone mentioned in Acked-by,
+  Reviewed-by, Tested-by and other "-by" lines in the patch body,
+  except Signed-off-by (use <em>sob</em> for that).
+</p>
+</li>
+<li>
+<p>
+<em>cccmd</em> will avoid running the --cc-cmd.
+</p>
+</li>
+<li>
+<p>
+<em>body</em> is equivalent to <em>sob</em> + <em>bodycc</em> + <em>misc-by</em>.
+</p>
+</li>
+<li>
+<p>
+<em>all</em> will suppress all auto cc values.
+</p>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>Default is the value of <code>sendemail.suppresscc</code> configuration value; if
+that is unspecified, default to <em>self</em> if --suppress-from is
+specified, as well as <em>body</em> if --no-signed-off-cc is specified.</p></div>
+</dd>
+<dt class="hdlist1">
+--[no-]suppress-from
+</dt>
+<dd>
+<p>
+        If this is set, do not add the From: address to the cc: list.
+        Default is the value of <code>sendemail.suppressFrom</code> configuration
+        value; if that is unspecified, default to --no-suppress-from.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]thread
+</dt>
+<dd>
+<p>
+        If this is set, the In-Reply-To and References headers will be
+        added to each email sent.  Whether each mail refers to the
+        previous email (<code>deep</code> threading per <em>git format-patch</em>
+        wording) or to the first email (<code>shallow</code> threading) is
+        governed by "--[no-]chain-reply-to".
+</p>
+<div class="paragraph"><p>If disabled with "--no-thread", those headers will not be added
+(unless specified with --in-reply-to).  Default is the value of the
+<code>sendemail.thread</code> configuration value; if that is unspecified,
+default to --thread.</p></div>
+<div class="paragraph"><p>It is up to the user to ensure that no In-Reply-To header already
+exists when <em>git send-email</em> is asked to add it (especially note that
+<em>git format-patch</em> can be configured to do the threading itself).
+Failure to do so may not produce the expected result in the
+recipient&#8217;s MUA.</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_administering">Administering</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--confirm=&lt;mode&gt;
+</dt>
+<dd>
+<p>
+        Confirm just before sending:
+</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+<em>always</em> will always confirm before sending
+</p>
+</li>
+<li>
+<p>
+<em>never</em> will never confirm before sending
+</p>
+</li>
+<li>
+<p>
+<em>cc</em> will confirm before sending when send-email has automatically
+  added addresses from the patch to the Cc list
+</p>
+</li>
+<li>
+<p>
+<em>compose</em> will confirm before sending the first message when using --compose.
+</p>
+</li>
+<li>
+<p>
+<em>auto</em> is equivalent to <em>cc</em> + <em>compose</em>
+</p>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>Default is the value of <code>sendemail.confirm</code> configuration value; if that
+is unspecified, default to <em>auto</em> unless any of the suppress options
+have been specified, in which case default to <em>compose</em>.</p></div>
+</dd>
+<dt class="hdlist1">
+--dry-run
+</dt>
+<dd>
+<p>
+        Do everything except actually send the emails.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]format-patch
+</dt>
+<dd>
+<p>
+        When an argument may be understood either as a reference or as a file name,
+        choose to understand it as a format-patch argument (<code>--format-patch</code>)
+        or as a file name (<code>--no-format-patch</code>). By default, when such a conflict
+        occurs, git send-email will fail.
+</p>
+</dd>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Make git-send-email less verbose.  One line per email should be
+        all that is output.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]validate
+</dt>
+<dd>
+<p>
+        Perform sanity checks on patches.
+        Currently, validation means the following:
+</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+Invoke the sendemail-validate hook if present (see <a href="githooks.html">githooks(5)</a>).
+</p>
+</li>
+<li>
+<p>
+Warn of patches that contain lines longer than
+                        998 characters unless a suitable transfer encoding
+                        (<em>auto</em>, <em>base64</em>, or <em>quoted-printable</em>) is used;
+                        this is due to SMTP limits as described by
+                        <a href="http://www.ietf.org/rfc/rfc5322.txt">http://www.ietf.org/rfc/rfc5322.txt</a>.
+</p>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>Default is the value of <code>sendemail.validate</code>; if this is not set,
+default to <code>--validate</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+--force
+</dt>
+<dd>
+<p>
+        Send emails even if safety checks would prevent it.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_information">Information</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--dump-aliases
+</dt>
+<dd>
+<p>
+        Instead of the normal operation, dump the shorthand alias names from
+        the configured alias file(s), one per line in alphabetical order. Note,
+        this only includes the alias name and not its expanded email addresses.
+        See <em>sendemail.aliasesfile</em> for more information about aliases.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+sendemail.aliasesFile
+</dt>
+<dd>
+<p>
+        To avoid typing long email addresses, point this to one or more
+        email aliases files.  You must also supply <code>sendemail.aliasFileType</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+sendemail.aliasFileType
+</dt>
+<dd>
+<p>
+        Format of the file(s) specified in sendemail.aliasesFile. Must be
+        one of <em>mutt</em>, <em>mailrc</em>, <em>pine</em>, <em>elm</em>, or <em>gnus</em>, or <em>sendmail</em>.
+</p>
+<div class="paragraph"><p>What an alias file in each format looks like can be found in
+the documentation of the email program of the same name. The
+differences and limitations from the standard formats are
+described below:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+sendmail
+</dt>
+<dd>
+<div class="ulist"><ul>
+<li>
+<p>
+Quoted aliases and quoted addresses are not supported: lines that
+        contain a <code>"</code> symbol are ignored.
+</p>
+</li>
+<li>
+<p>
+Redirection to a file (<code>/path/name</code>) or pipe (<code>|command</code>) is not
+        supported.
+</p>
+</li>
+<li>
+<p>
+File inclusion (<code>:include: /path/name</code>) is not supported.
+</p>
+</li>
+<li>
+<p>
+Warnings are printed on the standard error output for any
+        explicitly unsupported constructs, and any other lines that are not
+        recognized by the parser.
+</p>
+</li>
+</ul></div>
+</dd>
+</dl></div>
+</div></div>
+</dd>
+<dt class="hdlist1">
+sendemail.multiEdit
+</dt>
+<dd>
+<p>
+        If true (default), a single editor instance will be spawned to edit
+        files you have to edit (patches when <code>--annotate</code> is used, and the
+        summary when <code>--compose</code> is used). If false, files will be edited one
+        after the other, spawning a new editor each time.
+</p>
+</dd>
+<dt class="hdlist1">
+sendemail.confirm
+</dt>
+<dd>
+<p>
+        Sets the default for whether to confirm before sending. Must be
+        one of <em>always</em>, <em>never</em>, <em>cc</em>, <em>compose</em>, or <em>auto</em>. See <code>--confirm</code>
+        in the previous section for the meaning of these values.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_use_gmail_as_the_smtp_server">Use gmail as the smtp server</h3>
+<div class="paragraph"><p>To use <em>git send-email</em> to send your patches through the GMail SMTP server,
+edit ~/.gitconfig to specify your account settings:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[sendemail]
+        smtpEncryption = tls
+        smtpServer = smtp.gmail.com
+        smtpUser = yourname@gmail.com
+        smtpServerPort = 587</code></pre>
+</div></div>
+<div class="paragraph"><p>If you have multifactor authentication setup on your gmail account, you will
+need to generate an app-specific password for use with <em>git send-email</em>. Visit
+<a href="https://security.google.com/settings/security/apppasswords">https://security.google.com/settings/security/apppasswords</a> to create it.</p></div>
+<div class="paragraph"><p>Once your commits are ready to be sent to the mailing list, run the
+following commands:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$ git format-patch --cover-letter -M origin/master -o outgoing/
+$ edit outgoing/0000-*
+$ git send-email outgoing/*</code></pre>
+</div></div>
+<div class="paragraph"><p>The first time you run it, you will be prompted for your credentials.  Enter the
+app-specific or your regular password as appropriate.  If you have credential
+helper configured (see <a href="git-credential.html">git-credential(1)</a>), the password will be saved in
+the credential store so you won&#8217;t have to type it the next time.</p></div>
+<div class="paragraph"><p>Note: the following core Perl modules that may be installed with your
+distribution of Perl are required:
+MIME::Base64, MIME::QuotedPrint, Net::Domain and Net::SMTP.
+These additional Perl modules are also required:
+Authen::SASL and Mail::Address.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-format-patch.html">git-format-patch(1)</a>, <a href="git-imap-send.html">git-imap-send(1)</a>, mbox(5)</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-06 15:39:22 PDT
+</div>
+</div>
+</body>
+</html>

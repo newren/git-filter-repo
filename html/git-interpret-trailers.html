@@ -1,0 +1,1261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>git-interpret-trailers(1)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+git-interpret-trailers(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-interpret-trailers -
+   Add or parse structured information in commit messages
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content"><em>git interpret-trailers</em> [&lt;options&gt;] [(--trailer &lt;token&gt;[(=|:)&lt;value&gt;])&#8230;] [&lt;file&gt;&#8230;]
+<em>git interpret-trailers</em> [&lt;options&gt;] [--parse] [&lt;file&gt;&#8230;]</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Help parsing or adding <em>trailers</em> lines, that look similar to RFC 822 e-mail
+headers, at the end of the otherwise free-form part of a commit
+message.</p></div>
+<div class="paragraph"><p>This command reads some patches or commit messages from either the
+&lt;file&gt; arguments or the standard input if no &lt;file&gt; is specified. If
+<code>--parse</code> is specified, the output consists of the parsed trailers.</p></div>
+<div class="paragraph"><p>Otherwise, this command applies the arguments passed using the
+<code>--trailer</code> option, if any, to the commit message part of each input
+file. The result is emitted on the standard output.</p></div>
+<div class="paragraph"><p>Some configuration variables control the way the <code>--trailer</code> arguments
+are applied to each commit message and the way any existing trailer in
+the commit message is changed. They also make it possible to
+automatically add some trailers.</p></div>
+<div class="paragraph"><p>By default, a <em>&lt;token&gt;=&lt;value&gt;</em> or <em>&lt;token&gt;:&lt;value&gt;</em> argument given
+using <code>--trailer</code> will be appended after the existing trailers only if
+the last trailer has a different (&lt;token&gt;, &lt;value&gt;) pair (or if there
+is no existing trailer). The &lt;token&gt; and &lt;value&gt; parts will be trimmed
+to remove starting and trailing whitespace, and the resulting trimmed
+&lt;token&gt; and &lt;value&gt; will appear in the message like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>token: value</code></pre>
+</div></div>
+<div class="paragraph"><p>This means that the trimmed &lt;token&gt; and &lt;value&gt; will be separated by
+<code>': '</code> (one colon followed by one space).</p></div>
+<div class="paragraph"><p>By default the new trailer will appear at the end of all the existing
+trailers. If there is no existing trailer, the new trailer will appear
+after the commit message part of the output, and, if there is no line
+with only spaces at the end of the commit message part, one blank line
+will be added before the new trailer.</p></div>
+<div class="paragraph"><p>Existing trailers are extracted from the input message by looking for
+a group of one or more lines that (i) is all trailers, or (ii) contains at
+least one Git-generated or user-configured trailer and consists of at
+least 25% trailers.
+The group must be preceded by one or more empty (or whitespace-only) lines.
+The group must either be at the end of the message or be the last
+non-whitespace lines before a line that starts with <em>---</em> (followed by a
+space or the end of the line). Such three minus signs start the patch
+part of the message. See also <code>--no-divider</code> below.</p></div>
+<div class="paragraph"><p>When reading trailers, there can be whitespaces after the
+token, the separator and the value. There can also be whitespaces
+inside the token and the value. The value may be split over multiple lines with
+each subsequent line starting with whitespace, like the "folding" in RFC 822.</p></div>
+<div class="paragraph"><p>Note that <em>trailers</em> do not follow and are not intended to follow many
+rules for RFC 822 headers. For example they do not follow
+the encoding rules and probably many other rules.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--in-place
+</dt>
+<dd>
+<p>
+        Edit the files in place.
+</p>
+</dd>
+<dt class="hdlist1">
+--trim-empty
+</dt>
+<dd>
+<p>
+        If the &lt;value&gt; part of any trailer contains only whitespace,
+        the whole trailer will be removed from the resulting message.
+        This applies to existing trailers as well as new trailers.
+</p>
+</dd>
+<dt class="hdlist1">
+--trailer &lt;token&gt;[(=|:)&lt;value&gt;]
+</dt>
+<dd>
+<p>
+        Specify a (&lt;token&gt;, &lt;value&gt;) pair that should be applied as a
+        trailer to the input messages. See the description of this
+        command.
+</p>
+</dd>
+<dt class="hdlist1">
+--where &lt;placement&gt;
+</dt>
+<dt class="hdlist1">
+--no-where
+</dt>
+<dd>
+<p>
+        Specify where all new trailers will be added.  A setting
+        provided with <em>--where</em> overrides all configuration variables
+        and applies to all <em>--trailer</em> options until the next occurrence of
+        <em>--where</em> or <em>--no-where</em>. Possible values are <code>after</code>, <code>before</code>,
+        <code>end</code> or <code>start</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--if-exists &lt;action&gt;
+</dt>
+<dt class="hdlist1">
+--no-if-exists
+</dt>
+<dd>
+<p>
+        Specify what action will be performed when there is already at
+        least one trailer with the same &lt;token&gt; in the message.  A setting
+        provided with <em>--if-exists</em> overrides all configuration variables
+        and applies to all <em>--trailer</em> options until the next occurrence of
+        <em>--if-exists</em> or <em>--no-if-exists</em>. Possible actions are <code>addIfDifferent</code>,
+        <code>addIfDifferentNeighbor</code>, <code>add</code>, <code>replace</code> and <code>doNothing</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--if-missing &lt;action&gt;
+</dt>
+<dt class="hdlist1">
+--no-if-missing
+</dt>
+<dd>
+<p>
+        Specify what action will be performed when there is no other
+        trailer with the same &lt;token&gt; in the message.  A setting
+        provided with <em>--if-missing</em> overrides all configuration variables
+        and applies to all <em>--trailer</em> options until the next occurrence of
+        <em>--if-missing</em> or <em>--no-if-missing</em>. Possible actions are <code>doNothing</code>
+        or <code>add</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--only-trailers
+</dt>
+<dd>
+<p>
+        Output only the trailers, not any other parts of the input.
+</p>
+</dd>
+<dt class="hdlist1">
+--only-input
+</dt>
+<dd>
+<p>
+        Output only trailers that exist in the input; do not add any
+        from the command-line or by following configured <code>trailer.*</code>
+        rules.
+</p>
+</dd>
+<dt class="hdlist1">
+--unfold
+</dt>
+<dd>
+<p>
+        Remove any whitespace-continuation in trailers, so that each
+        trailer appears on a line by itself with its full content.
+</p>
+</dd>
+<dt class="hdlist1">
+--parse
+</dt>
+<dd>
+<p>
+        A convenience alias for <code>--only-trailers --only-input
+        --unfold</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-divider
+</dt>
+<dd>
+<p>
+        Do not treat <code>---</code> as the end of the commit message. Use this
+        when you know your input contains just the commit message itself
+        (and not an email or the output of <code>git format-patch</code>).
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration_variables">CONFIGURATION VARIABLES</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+trailer.separators
+</dt>
+<dd>
+<p>
+        This option tells which characters are recognized as trailer
+        separators. By default only <em>:</em> is recognized as a trailer
+        separator, except that <em>=</em> is always accepted on the command
+        line for compatibility with other git commands.
+</p>
+<div class="paragraph"><p>The first character given by this option will be the default character
+used when another separator is not specified in the config for this
+trailer.</p></div>
+<div class="paragraph"><p>For example, if the value for this option is "%=$", then only lines
+using the format <em>&lt;token&gt;&lt;sep&gt;&lt;value&gt;</em> with &lt;sep&gt; containing <em>%</em>, <em>=</em>
+or <em>$</em> and then spaces will be considered trailers. And <em>%</em> will be
+the default separator used, so by default trailers will appear like:
+<em>&lt;token&gt;% &lt;value&gt;</em> (one percent sign and one space will appear between
+the token and the value).</p></div>
+</dd>
+<dt class="hdlist1">
+trailer.where
+</dt>
+<dd>
+<p>
+        This option tells where a new trailer will be added.
+</p>
+<div class="paragraph"><p>This can be <code>end</code>, which is the default, <code>start</code>, <code>after</code> or <code>before</code>.</p></div>
+<div class="paragraph"><p>If it is <code>end</code>, then each new trailer will appear at the end of the
+existing trailers.</p></div>
+<div class="paragraph"><p>If it is <code>start</code>, then each new trailer will appear at the start,
+instead of the end, of the existing trailers.</p></div>
+<div class="paragraph"><p>If it is <code>after</code>, then each new trailer will appear just after the
+last trailer with the same &lt;token&gt;.</p></div>
+<div class="paragraph"><p>If it is <code>before</code>, then each new trailer will appear just before the
+first trailer with the same &lt;token&gt;.</p></div>
+</dd>
+<dt class="hdlist1">
+trailer.ifexists
+</dt>
+<dd>
+<p>
+        This option makes it possible to choose what action will be
+        performed when there is already at least one trailer with the
+        same &lt;token&gt; in the message.
+</p>
+<div class="paragraph"><p>The valid values for this option are: <code>addIfDifferentNeighbor</code> (this
+is the default), <code>addIfDifferent</code>, <code>add</code>, <code>replace</code> or <code>doNothing</code>.</p></div>
+<div class="paragraph"><p>With <code>addIfDifferentNeighbor</code>, a new trailer will be added only if no
+trailer with the same (&lt;token&gt;, &lt;value&gt;) pair is above or below the line
+where the new trailer will be added.</p></div>
+<div class="paragraph"><p>With <code>addIfDifferent</code>, a new trailer will be added only if no trailer
+with the same (&lt;token&gt;, &lt;value&gt;) pair is already in the message.</p></div>
+<div class="paragraph"><p>With <code>add</code>, a new trailer will be added, even if some trailers with
+the same (&lt;token&gt;, &lt;value&gt;) pair are already in the message.</p></div>
+<div class="paragraph"><p>With <code>replace</code>, an existing trailer with the same &lt;token&gt; will be
+deleted and the new trailer will be added. The deleted trailer will be
+the closest one (with the same &lt;token&gt;) to the place where the new one
+will be added.</p></div>
+<div class="paragraph"><p>With <code>doNothing</code>, nothing will be done; that is no new trailer will be
+added if there is already one with the same &lt;token&gt; in the message.</p></div>
+</dd>
+<dt class="hdlist1">
+trailer.ifmissing
+</dt>
+<dd>
+<p>
+        This option makes it possible to choose what action will be
+        performed when there is not yet any trailer with the same
+        &lt;token&gt; in the message.
+</p>
+<div class="paragraph"><p>The valid values for this option are: <code>add</code> (this is the default) and
+<code>doNothing</code>.</p></div>
+<div class="paragraph"><p>With <code>add</code>, a new trailer will be added.</p></div>
+<div class="paragraph"><p>With <code>doNothing</code>, nothing will be done.</p></div>
+</dd>
+<dt class="hdlist1">
+trailer.&lt;token&gt;.key
+</dt>
+<dd>
+<p>
+        This <code>key</code> will be used instead of &lt;token&gt; in the trailer. At
+        the end of this key, a separator can appear and then some
+        space characters. By default the only valid separator is <em>:</em>,
+        but this can be changed using the <code>trailer.separators</code> config
+        variable.
+</p>
+<div class="paragraph"><p>If there is a separator, then the key will be used instead of both the
+&lt;token&gt; and the default separator when adding the trailer.</p></div>
+</dd>
+<dt class="hdlist1">
+trailer.&lt;token&gt;.where
+</dt>
+<dd>
+<p>
+        This option takes the same values as the <em>trailer.where</em>
+        configuration variable and it overrides what is specified by
+        that option for trailers with the specified &lt;token&gt;.
+</p>
+</dd>
+<dt class="hdlist1">
+trailer.&lt;token&gt;.ifexists
+</dt>
+<dd>
+<p>
+        This option takes the same values as the <em>trailer.ifexists</em>
+        configuration variable and it overrides what is specified by
+        that option for trailers with the specified &lt;token&gt;.
+</p>
+</dd>
+<dt class="hdlist1">
+trailer.&lt;token&gt;.ifmissing
+</dt>
+<dd>
+<p>
+        This option takes the same values as the <em>trailer.ifmissing</em>
+        configuration variable and it overrides what is specified by
+        that option for trailers with the specified &lt;token&gt;.
+</p>
+</dd>
+<dt class="hdlist1">
+trailer.&lt;token&gt;.command
+</dt>
+<dd>
+<p>
+        This option can be used to specify a shell command that will
+        be called to automatically add or modify a trailer with the
+        specified &lt;token&gt;.
+</p>
+<div class="paragraph"><p>When this option is specified, the behavior is as if a special
+<em>&lt;token&gt;=&lt;value&gt;</em> argument were added at the beginning of the command
+line, where &lt;value&gt; is taken to be the standard output of the
+specified command with any leading and trailing whitespace trimmed
+off.</p></div>
+<div class="paragraph"><p>If the command contains the <code>$ARG</code> string, this string will be
+replaced with the &lt;value&gt; part of an existing trailer with the same
+&lt;token&gt;, if any, before the command is launched.</p></div>
+<div class="paragraph"><p>If some <em>&lt;token&gt;=&lt;value&gt;</em> arguments are also passed on the command
+line, when a <em>trailer.&lt;token&gt;.command</em> is configured, the command will
+also be executed for each of these arguments. And the &lt;value&gt; part of
+these arguments, if any, will be used to replace the <code>$ARG</code> string in
+the command.</p></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Configure a <em>sign</em> trailer with a <em>Signed-off-by</em> key, and then
+  add two of these trailers to a message:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config trailer.sign.key "Signed-off-by"
+$ cat msg.txt
+subject
+
+message
+$ cat msg.txt | git interpret-trailers --trailer 'sign: Alice &lt;alice@example.com&gt;' --trailer 'sign: Bob &lt;bob@example.com&gt;'
+subject
+
+message
+
+Signed-off-by: Alice &lt;alice@example.com&gt;
+Signed-off-by: Bob &lt;bob@example.com&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Use the <code>--in-place</code> option to edit a message file in place:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat msg.txt
+subject
+
+message
+
+Signed-off-by: Bob &lt;bob@example.com&gt;
+$ git interpret-trailers --trailer 'Acked-by: Alice &lt;alice@example.com&gt;' --in-place msg.txt
+$ cat msg.txt
+subject
+
+message
+
+Signed-off-by: Bob &lt;bob@example.com&gt;
+Acked-by: Alice &lt;alice@example.com&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Extract the last commit as a patch, and add a <em>Cc</em> and a
+  <em>Reviewed-by</em> trailer to it:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git format-patch -1
+0001-foo.patch
+$ git interpret-trailers --trailer 'Cc: Alice &lt;alice@example.com&gt;' --trailer 'Reviewed-by: Bob &lt;bob@example.com&gt;' 0001-foo.patch &gt;0001-bar.patch</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Configure a <em>sign</em> trailer with a command to automatically add a
+  'Signed-off-by: ' with the author information only if there is no
+  'Signed-off-by: ' already, and show how it works:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config trailer.sign.key "Signed-off-by: "
+$ git config trailer.sign.ifmissing add
+$ git config trailer.sign.ifexists doNothing
+$ git config trailer.sign.command 'echo "$(git config user.name) &lt;$(git config user.email)&gt;"'
+$ git interpret-trailers &lt;&lt;EOF
+&gt; EOF
+
+Signed-off-by: Bob &lt;bob@example.com&gt;
+$ git interpret-trailers &lt;&lt;EOF
+&gt; Signed-off-by: Alice &lt;alice@example.com&gt;
+&gt; EOF
+
+Signed-off-by: Alice &lt;alice@example.com&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Configure a <em>fix</em> trailer with a key that contains a <em>#</em> and no
+  space after this character, and show how it works:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config trailer.separators ":#"
+$ git config trailer.fix.key "Fix #"
+$ echo "subject" | git interpret-trailers --trailer fix=42
+subject
+
+Fix #42</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Configure a <em>see</em> trailer with a command to show the subject of a
+  commit that is related, and show how it works:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git config trailer.see.key "See-also: "
+$ git config trailer.see.ifExists "replace"
+$ git config trailer.see.ifMissing "doNothing"
+$ git config trailer.see.command "git log -1 --oneline --format=\"%h (%s)\" --abbrev-commit --abbrev=14 \$ARG"
+$ git interpret-trailers &lt;&lt;EOF
+&gt; subject
+&gt;
+&gt; message
+&gt;
+&gt; see: HEAD~2
+&gt; EOF
+subject
+
+message
+
+See-also: fe3187489d69c4 (subject of related commit)</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Configure a commit template with some trailers with empty values
+  (using sed to show and keep the trailing spaces at the end of the
+  trailers), then configure a commit-msg hook that uses
+  <em>git interpret-trailers</em> to remove trailers with empty values and
+  to add a <em>git-version</em> trailer:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ sed -e 's/ Z$/ /' &gt;commit_template.txt &lt;&lt;EOF
+&gt; ***subject***
+&gt;
+&gt; ***message***
+&gt;
+&gt; Fixes: Z
+&gt; Cc: Z
+&gt; Reviewed-by: Z
+&gt; Signed-off-by: Z
+&gt; EOF
+$ git config commit.template commit_template.txt
+$ cat &gt;.git/hooks/commit-msg &lt;&lt;EOF
+&gt; #!/bin/sh
+&gt; git interpret-trailers --trim-empty --trailer "git-version: \$(git describe)" "\$1" &gt; "\$1.new"
+&gt; mv "\$1.new" "\$1"
+&gt; EOF
+$ chmod +x .git/hooks/commit-msg</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-commit.html">git-commit(1)</a>, <a href="git-format-patch.html">git-format-patch(1)</a>, <a href="git-config.html">git-config(1)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2019-09-03 16:07:56 PDT
+</div>
+</div>
+</body>
+</html>
