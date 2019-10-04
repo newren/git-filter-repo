@@ -438,7 +438,7 @@ class _GitElement(object):
 
   def __bytes__(self):
     """
-    Convert GitElement to string; used for debugging
+    Convert GitElement to bytestring; used for debugging
     """
     old_dumped = self.dumped
     writeme = io.BytesIO()
@@ -503,6 +503,8 @@ class Blob(_GitElementWithId):
     Write this blob element to a file.
     """
     self.dumped = 1
+    HASH_TO_ID[self.original_id] = self.id
+    ID_TO_HASH[self.id] = self.original_id
 
     file_.write(b'blob\n')
     file_.write(b'mark :%d\n' % self.id)
@@ -665,6 +667,8 @@ class Commit(_GitElementWithId):
     Write this commit element to a file.
     """
     self.dumped = 1
+    HASH_TO_ID[self.original_id] = self.id
+    ID_TO_HASH[self.id] = self.original_id
 
     # Make output to fast-import slightly easier for humans to read if the
     # message has no trailing newline of its own; cosmetic, but a nice touch...
@@ -754,6 +758,8 @@ class Tag(_GitElementWithId):
     """
 
     self.dumped = 1
+    HASH_TO_ID[self.original_id] = self.id
+    ID_TO_HASH[self.id] = self.original_id
 
     file_.write(b'tag %s\n' % self.ref)
     if (write_marks and self.id):
@@ -1426,6 +1432,8 @@ def record_id_rename(old_id, new_id):
 # Internal globals
 _IDS = _IDs()
 _SKIPPED_COMMITS = set()
+HASH_TO_ID = {}
+ID_TO_HASH = {}
 
 class GitUtils(object):
   @staticmethod
@@ -1512,6 +1520,31 @@ class GitUtils(object):
     if not quiet:
       blob_size_progress.finish()
     return unpacked_size, packed_size
+
+  @staticmethod
+  def get_file_changes(repo, parent_hash, commit_hash):
+    """
+    Return a FileChanges list with the differences between parent_hash
+    and commit_hash
+    """
+    file_changes = []
+
+    cmd = ["git", "diff-tree", "-r", parent_hash, commit_hash]
+    output = subprocess.check_output(cmd, cwd=repo)
+    for line in output.splitlines():
+      fileinfo, path = line.split(b'\t', 1)
+      if path.startswith(b'"'):
+        path = PathQuoting.dequote(path)
+      oldmode, mode, oldhash, newhash, changetype = fileinfo.split()
+      if changetype == b'D':
+        file_changes.append(FileChange(b'D', path))
+      elif changetype in (b'A', b'M'):
+        identifier = HASH_TO_ID.get(newhash, newhash)
+        file_changes.append(FileChange(b'M', path, identifier, mode))
+      else: # pragma: no cover
+        raise SystemExit("Unknown change type for line {}".format(line))
+
+    return file_changes
 
 class FilteringOptions(object):
   class AppendFilter(argparse.Action):
@@ -3203,8 +3236,16 @@ class RepoFilter(object):
     self._orig_graph.add_commit_and_parents(commit.old_id, orig_parents)
 
     # Prune parents (due to pruning of empty commits) if relevant
+    old_1st_parent = parents[0] if parents else None
     parents, new_1st_parent = self._trim_extra_parents(orig_parents, parents)
     commit.parents = parents
+
+    # If parents were pruned, then we need our file changes to be relative
+    # to the new first parent
+    if parents and old_1st_parent != parents[0]:
+      commit.file_changes = GitUtils.get_file_changes(self._repo_working_dir,
+                                                      ID_TO_HASH[parents[0]],
+                                                      commit.original_id)
 
     # Call the user-defined callback, if any
     if self._commit_callback:

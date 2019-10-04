@@ -1309,4 +1309,33 @@ test_expect_success '--state-branch with expanding paths and refs' '
 	)
 '
 
+test_expect_success 'degenerate merge with non-matching filenames' '
+	test_create_repo degenerate_merge_differing_filenames &&
+	(
+		cd degenerate_merge_differing_filenames &&
+
+		touch "foo \"quote\" bar" &&
+		git add "foo \"quote\" bar" &&
+		git commit -m "Add foo \"quote\" bar"
+		git branch A &&
+
+		git checkout --orphan B &&
+		git reset --hard &&
+		mkdir -p pkg/list &&
+		test_commit pkg/list/whatever &&
+
+		git checkout A &&
+		git merge --allow-unrelated-histories --no-commit B &&
+		>pkg/list/wanted &&
+		git add pkg/list/wanted &&
+		git rm -f pkg/list/whatever.t &&
+		git commit &&
+
+		git filter-repo --force --path pkg/list &&
+		! test_path_is_file pkg/list/whatever.t &&
+		git ls-files >files &&
+		! grep pkg/list/whatever.t files
+	)
+'
+
 test_done
