@@ -400,7 +400,7 @@ class BFG_ish:
                                             stdin = subprocess.PIPE,
                                             stdout = subprocess.PIPE)
     self.args = bfg_args
-    # Setting source and target to anything prevents:
+    # Setting partial prevents:
     #   * remapping origin remote tracking branches to regular branches
     #   * deletion of the origin remote
     #   * nuking unused refs
@@ -411,9 +411,8 @@ class BFG_ish:
     # The third is irrelevant since BFG has no mechanism for renaming refs,
     # and we'll manually add the fourth and fifth back in below by calling
     # RepoFilter.cleanup().
-    fr_args = fr.FilteringOptions.parse_args(['--source', '.',
-                                              '--target', '.',
-                                              '--force'] + extra_args)
+    fr_args = fr.FilteringOptions.parse_args(['--partial', '--force'] +
+                                             extra_args)
     self.filter = fr.RepoFilter(fr_args, commit_callback=self.commit_update)
     self.filter.run()
     if new_replace_file:

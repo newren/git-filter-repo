@@ -1673,10 +1673,6 @@ EXAMPLES
                "useful in determining what to filter in a subsequent run. "
                "Will not modify your repo."))
 
-    refs = parser.add_argument_group(title=_("Git References"))
-    refs.add_argument('--refs', nargs='*', default=['--all'],
-                      help=argparse.SUPPRESS)
-
     path = parser.add_argument_group(title=_("Filtering based on paths "
                                              "(see also --filename-callback)"))
     path.add_argument('--invert-paths', action='store_false', dest='inclusive',
@@ -1846,9 +1842,10 @@ EXAMPLES
                "CALLBACKS section below."))
 
     desc = _(
-      "Specifying alternate source or target locations will disable some \n"
-      "auxiliary steps such as disconnecting the origin remote, and avoiding\n"
-      "mixing new and old history.")
+      "Specifying alternate source or target locations implies --partial,\n"
+      "except that the normal default for --replace-refs is used.  However,\n"
+      "unlike normal uses of --partial, this doesn't risk mixing old and new\n"
+      "history since the old and new histories are in different repositories.")
     location = parser.add_argument_group(title=_("Location to filter from/to"),
                                          description=desc)
     location.add_argument('--source', type=os.fsencode,
@@ -1862,6 +1859,29 @@ EXAMPLES
     misc.add_argument('--force', '-f', action='store_true',
         help=_("Rewrite history even if the current repo does not look "
                "like a fresh clone."))
+    misc.add_argument('--partial', action='store_true',
+        help=_("Do a partial history rewrite, resulting in the mixture of "
+               "old and new history.  This implies a default of "
+               "update-no-add for --replace-refs, disables rewriting "
+               "refs/remotes/origin/* to refs/heads/*, disables removing "
+               "of the 'origin' remote, disables removing unexported refs, "
+               "disables expiring the reflog, and disables the automatic "
+               "post-filter gc.  Also, this modifies --tag-rename and "
+               "--refname-callback options such that instead of replacing "
+               "old refs with new refnames, it will instead create new "
+               "refs and keep the old ones around.  Use with caution."))
+    # WARNING: --refs presents a problem with become-degenerate pruning:
+    #   * Excluding a commit also excludes its ancestors so when some other
+    #     commit has an excluded ancestor as a parent we have no way of
+    #     knowing what it is an ancestor of without doing a special
+    #     full-graph walk.
+    misc.add_argument('--refs', nargs='+',
+        help=_("Limit history rewriting to the specified refs.  Implies "
+               "--partial.  In addition to the normal caveats of --partial "
+               "(mixing old and new history, no automatic remapping of "
+               "refs/remotes/origin/* to refs/heads/*, etc.), this also may "
+               "cause problems for pruning of degenerate empty merge "
+               "commits when negative revisions are specified."))
 
     misc.add_argument('--dry-run', action='store_true',
         help=_("Do not change the repository.  Run `git fast-export` and "
@@ -2065,6 +2085,12 @@ EXAMPLES
         args.strip_blobs_with_ids = set(f.read().split())
     else:
       args.strip_blobs_with_ids = set()
+    if (args.partial or args.refs) and not args.replace_refs:
+      args.replace_refs = 'update-no-add'
+    if args.refs or args.source or args.target:
+      args.partial = True
+    if not args.refs:
+      args.refs = ['--all']
     return args
 
 class RepoAnalyze(object):
@@ -3475,8 +3501,6 @@ class RepoFilter(object):
             .format(decode(self._fe_filt)))
 
   def _migrate_origin_to_heads(self):
-    if self._args.dry_run or self._args.source or self._args.target:
-      return
     refs_to_migrate = set(x for x in self._orig_refs
                           if x.startswith(b'refs/remotes/origin/'))
     if not refs_to_migrate:
@@ -3532,7 +3556,7 @@ class RepoFilter(object):
     # Remove unused refs
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
     refs_to_nuke = exported_refs - imported_refs
-    if self._args.source or self._args.target:
+    if self._args.partial:
       refs_to_nuke = set()
     if refs_to_nuke and self._args.debug:
       print("[DEBUG] Deleting the following refs:\n  "+
@@ -3690,7 +3714,8 @@ class RepoFilter(object):
     start = time.time()
     if not self._input and not self._output:
       self._run_sanity_checks()
-      self._migrate_origin_to_heads()
+      if not self._args.dry_run and not self._args.partial:
+        self._migrate_origin_to_heads()
       self._setup_input(use_done_feature = True)
       self._setup_output()
     assert self._sanity_checks_handled
@@ -3725,7 +3750,7 @@ class RepoFilter(object):
       self._save_marks_files()
 
     # Notify user how long it took, before doing a gc and such
-    repack = (not self._args.source and not self._args.target)
+    repack = (not self._args.partial)
     msg = "New history written in {:.2f} seconds..."
     if repack:
       msg = "New history written in {:.2f} seconds; now repacking/cleaning..."
@@ -3749,7 +3774,7 @@ class RepoFilter(object):
       # Write out data about run
       self._record_metadata(self.results_tmp_dir(), self._orig_refs)
 
-    # Nuke the reflogs and repack
+    # If repack, then nuke the reflogs and repack.  If reset, do a reset --hard
     reset = not GitUtils.is_repository_bare(target_working_dir)
     RepoFilter.cleanup(target_working_dir, repack, reset,
                        run_quietly=self._args.quiet,

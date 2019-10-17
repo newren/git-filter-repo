@@ -256,9 +256,10 @@ Generic callback code snippets
 Location to filter from/to
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NOTE: Specifying alternate source or target locations will disable some
-auxiliary steps such as disconnecting the origin remote, and avoiding
-mixing new and old history.
+NOTE: Specifying alternate source or target locations implies --partial
+except that the normal default for --replace-refs is used.  However, unlike
+normal uses of --partial, this doesn't risk mixing old and new history
+since the old and new histories are in different repositories.
 
 --source <source>::
 	Git repository to read from
@@ -277,6 +278,25 @@ Miscellaneous options
 -f::
 	Rewrite history even if the current repo does not look like a fresh
 	clone.
+
+--partial:
+	Do a partial history rewrite, resulting in the mixture of old and
+	new history.  This implies a default of update-no-add for
+	--replace-refs, disables rewriting refs/remotes/origin/* to
+	refs/heads/*, disables removing of the 'origin' remote, disables
+	removing unexported refs, disables expiring the reflog, and
+	disables the automatic post-filter gc.  Also, this modifies
+	--tag-rename and --refname-callback options such that instead of
+	replacing old refs with new refnames, it will instead create new
+	refs and keep the old ones around.  Use with caution.
+
+--refs <refs+>::
+	Limit history rewriting to the specified refs.  Implies --partial.
+        In addition to the normal caveats of --partial (mixing old and new
+        history, no automatic remapping of refs/remotes/origin/* to
+        refs/heads/*, etc.), this also may cause problems for pruning of
+        degenerate empty merge commits when negative revisions are
+        specified.
 
 --dry-run::
 	Do not change the repository. Run `git fast-export` and filter its
@@ -699,6 +719,23 @@ The reason to specify --force is two-fold: filter-repo will error out
 if no arguments are specified, and the new graft commit would
 otherwise trigger the not-a-fresh-clone check.
 
+Partial history rewrites
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To rewrite the history on just one branch (which may cause it to no longer
+share any common history with other branches), use `--refs`.  For example,
+to remove a file named 'extraneous.txt' from the 'master' branch:
+
+--------------------------------------------------
+git filter-repo --invert-paths --path extraneous.txt --refs master
+--------------------------------------------------
+
+To rewrite just some recent commits:
+
+--------------------------------------------------
+git filter-repo --invert-paths --path extraneous.txt --refs master~3..master
+--------------------------------------------------
+
 [[CALLBACKS]]
 CALLBACKS
 ---------
@@ -946,8 +983,11 @@ Some notes or exceptions on each of the above:
      are that they've only rewritten trees and commits and maybe a few
      blobs, so `--aggressive` isn't needed and would be too slow.)
 
-Information about these steps is printed out when `--debug` is passed to
-filter-repo.
+Information about these steps is printed out when `--debug` is passed
+to filter-repo.  When doing a `--partial` history rewrite, steps 2, 3,
+7, and 8 are unconditionally skipped, step 5 is skipped if
+`--replace-refs` is `update-no-add`, and just the nuke-unused-refs
+portion of step 5 is skipped if `--replace-refs` is something else.
 
 Limitations
 ~~~~~~~~~~~
@@ -1041,18 +1081,16 @@ Issues specific to filter-repo
     such as `-M` or `-C` would break assumptions used in other places of
     filter-repo.
 
-  * Partial-repo filtering does not mesh well with filter-repo's "avoid
-    mixing old and new history" design.  filter-repo has some capability
-    in this area but it is intentionally underdocumented and mostly left
-    for use by external scripts which import filter-repo as a module
-    (some examples in contrib/filter-repo-demos/ do use this).  The only
-    real usecases I've seen for partial repo filtering, though, are
-    sidestepping filter-branch's insanely slow execution on commits that
-    would not be changed by the filters in question anyway (which is
-    largely irrelevant since filter-repo is multiple orders of magnitude
-    faster), or to do operations better suited to linkgit:git-rebase[1]
-    and which rebase grew special options for years ago (e.g. the
-    `--signoff` option).
+  * Partial-repo filtering, while supported, runs counter to filter-repo's
+    "avoid mixing old and new history" design.  This support has required
+    improvements to core git as well (e.g. it depends upon the
+    `--reference-excluded-parents` option to fast-export that was added
+    specifically for this usage within filter-repo).  The `--partial` and
+    `--refs` options will continue to be supported since there are people
+    with usecases for them; however, I am concerned that this inconsistency
+    about mixing old and new history seems likely to lead to user mistakes.
+    For now, I just hope that long explanations of caveats in the
+    documentation of these options suffice to curtail any such problems.
 
 Comments on reversibility
 ^^^^^^^^^^^^^^^^^^^^^^^^^
