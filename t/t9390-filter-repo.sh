@@ -1338,4 +1338,18 @@ test_expect_success 'degenerate merge with non-matching filenames' '
 	)
 '
 
+test_expect_success 'tweaking just a tag' '
+	test_create_repo tweaking_just_a_tag &&
+	(
+		cd tweaking_just_a_tag &&
+
+		test_commit foo &&
+		git tag -a -m "Here is a tag" mytag &&
+
+		git filter-repo --force --refs mytag ^mytag^{commit} --name-callback "return name.replace(b\"Mitter\", b\"L D\")" &&
+
+		git cat-file -p mytag | grep C.O.L.D
+	)
+'
+
 test_done
