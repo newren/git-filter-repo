@@ -318,6 +318,25 @@ Work on filter-repo and its predecessor has also driven numerous
 improvements to fast-export and fast-import (and occasionally other
 commands) in core git:
 
+  * git-2.24.0
+    * [fast-export: handle nested tags](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=941790d7de)
+    * [t9350: add tests for tags of things other than a commit](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=8d7d33c1ce)
+    * [fast-export: allow user to request tags be marked with --mark-tags](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=a1638cfe12)
+    * [fast-export: add support for --import-marks-if-exists](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=208d69246e)
+    * [fast-import: add support for new 'alias' command](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=b8f50e5b60)
+    * [fast-import: allow tags to be identified by mark labels](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=f73b2aba05)
+    * [fast-import: fix handling of deleted tags](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=3164e6bd24)
+    * [fast-export: fix exporting a tag and nothing else](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=af2abd870b)
+    * [git-fast-import.txt: clarify that multiple merge commits are allowed](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=d1387d3895)
   * git-2.23.0
     * [t9350: fix encoding test to actually test reencoding](
       https://git.kernel.org/pub/scm/git/git.git/commit/?id=32615ce762)
