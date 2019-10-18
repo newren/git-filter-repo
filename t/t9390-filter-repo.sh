@@ -1352,4 +1352,10 @@ test_expect_success 'tweaking just a tag' '
 	)
 '
 
+test_expect_success '--version' '
+	git filter-repo --version >actual &&
+	git hash-object ../../git-filter-repo | colrm 13 >expect &&
+	test_cmp expect actual
+'
+
 test_done
