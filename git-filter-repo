@@ -36,6 +36,7 @@ import fnmatch
 import gettext
 import io
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -1435,6 +1436,29 @@ _SKIPPED_COMMITS = set()
 HASH_TO_ID = {}
 ID_TO_HASH = {}
 
+class SubprocessWrapper(object):
+  @staticmethod
+  def call(*args, **kwargs):
+    if 'cwd' in kwargs:
+      kwargs['cwd'] = decode(kwargs['cwd'])
+    return subprocess.call(*args, **kwargs)
+
+  @staticmethod
+  def check_output(*args, **kwargs):
+    if 'cwd' in kwargs:
+      kwargs['cwd'] = decode(kwargs['cwd'])
+    return subprocess.check_output(*args, **kwargs)
+
+  @staticmethod
+  def Popen(*args, **kwargs):
+    if 'cwd' in kwargs:
+      kwargs['cwd'] = decode(kwargs['cwd'])
+    return subprocess.Popen(*args, **kwargs)
+
+subproc = subprocess
+if platform.system() == 'Windows' or 'PRETEND_UNICODE_FILENAMES' in os.environ:
+  subproc = SubprocessWrapper
+
 class GitUtils(object):
   @staticmethod
   def get_commit_count(repo, *args):
@@ -1445,11 +1469,11 @@ class GitUtils(object):
       args = ['--all']
     if len(args) == 1 and isinstance(args[0], list):
       args = args[0]
-    p1 = subprocess.Popen(["git", "rev-list"] + args,
-                          bufsize=-1,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                          cwd=repo)
-    p2 = subprocess.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    p1 = subproc.Popen(["git", "rev-list"] + args,
+                       bufsize=-1,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                       cwd=repo)
+    p2 = subproc.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
     count = int(p2.communicate()[0])
     if p1.poll() != 0:
       raise SystemExit(_("%s does not appear to be a valid git repository")
@@ -1461,7 +1485,7 @@ class GitUtils(object):
     """
     Return the number of objects (both packed and unpacked)
     """
-    p1 = subprocess.Popen(["git", "count-objects", "-v"],
+    p1 = subproc.Popen(["git", "count-objects", "-v"],
                           stdout=subprocess.PIPE, cwd=repo)
     lines = p1.stdout.read().splitlines()
     # Return unpacked objects + packed-objects
@@ -1469,14 +1493,14 @@ class GitUtils(object):
 
   @staticmethod
   def is_repository_bare(repo_working_dir):
-    out = subprocess.check_output('git rev-parse --is-bare-repository'.split(),
-                                  cwd=repo_working_dir)
+    out = subproc.check_output('git rev-parse --is-bare-repository'.split(),
+                               cwd=repo_working_dir)
     return (out.strip() == b'true')
 
   @staticmethod
   def determine_git_dir(repo_working_dir):
-    d = subprocess.check_output('git rev-parse --git-dir'.split(),
-                                cwd=repo_working_dir).strip()
+    d = subproc.check_output('git rev-parse --git-dir'.split(),
+                             cwd=repo_working_dir).strip()
     if repo_working_dir==b'.' or d.startswith(b'/'):
       return d
     return os.path.join(repo_working_dir, d)
@@ -1484,8 +1508,8 @@ class GitUtils(object):
   @staticmethod
   def get_refs(repo_working_dir):
     try:
-      output = subprocess.check_output('git show-ref'.split(),
-                                       cwd=repo_working_dir)
+      output = subproc.check_output('git show-ref'.split(),
+                                    cwd=repo_working_dir)
     except subprocess.CalledProcessError as e:
       # If error code is 1, there just aren't any refs; i.e. new repo.
       # If error code is other than 1, some other error (e.g. not a git repo)
@@ -1502,9 +1526,9 @@ class GitUtils(object):
     # Get sizes of blobs by sha1
     cmd = '--batch-check=%(objectname) %(objecttype) ' + \
           '%(objectsize) %(objectsize:disk)'
-    cf = subprocess.Popen(['git', 'cat-file', '--batch-all-objects', cmd],
-                          bufsize = -1,
-                          stdout = subprocess.PIPE)
+    cf = subproc.Popen(['git', 'cat-file', '--batch-all-objects', cmd],
+                       bufsize = -1,
+                       stdout = subprocess.PIPE)
     unpacked_size = {}
     packed_size = {}
     for line in cf.stdout:
@@ -1530,7 +1554,7 @@ class GitUtils(object):
     file_changes = []
 
     cmd = ["git", "diff-tree", "-r", parent_hash, commit_hash]
-    output = subprocess.check_output(cmd, cwd=repo)
+    output = subproc.check_output(cmd, cwd=repo)
     for line in output.splitlines():
       fileinfo, path = line.split(b'\t', 1)
       if path.startswith(b'"'):
@@ -1556,7 +1580,7 @@ class GitUtils(object):
                       br'\1@@LOCALEDIR@@"', contents)
 
     cmd = 'git hash-object --stdin'.split()
-    version = subprocess.check_output(cmd, input=contents).strip()
+    version = subproc.check_output(cmd, input=contents).strip()
     print(decode(version[0:12]))
 
 class FilteringOptions(object):
@@ -1961,8 +1985,8 @@ EXAMPLES
                              "incompatible."))
     # Also throw some sanity checks on git version here;
     # PERF: remove these checks once new enough git versions are common
-    p = subprocess.Popen('git fast-export -h'.split(),
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subproc.Popen('git fast-export -h'.split(),
+                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     p.wait()
     output = p.stdout.read()
     if b'--mark-tags' not in output: # pragma: no cover
@@ -1982,8 +2006,8 @@ EXAMPLES
         args.preserve_commit_encoding = None
       # If we don't have fast-exoprt --reencode, we may also be missing
       # diff-tree --combined-all-paths, which is even more important...
-      p = subprocess.Popen('git diff-tree -h'.split(),
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      p = subproc.Popen('git diff-tree -h'.split(),
+                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
       p.wait()
       output = p.stdout.read()
       if b'--combined-all-paths' not in output:
@@ -2231,7 +2255,7 @@ class RepoAnalyze(object):
     cmd = ('git rev-list --topo-order --reverse {}'.format(' '.join(args.refs)) +
            ' | git diff-tree --stdin --always --root --format=%H%n%P%n%cd' +
            ' --date=short -M -t -c --raw --combined-all-paths')
-    dtp = subprocess.Popen(cmd, shell=True, bufsize=-1, stdout=subprocess.PIPE)
+    dtp = subproc.Popen(cmd, shell=True, bufsize=-1, stdout=subprocess.PIPE)
     f = dtp.stdout
     line = f.readline()
     if not line:
@@ -2775,7 +2799,7 @@ class RepoFilter(object):
           "To override, use --force.") % reason)
 
     # Make sure repo is fully packed, just like a fresh clone would be
-    output = subprocess.check_output('git count-objects -v'.split())
+    output = subproc.check_output('git count-objects -v'.split())
     stats = dict(x.split(b': ') for x in output.splitlines())
     num_packs = int(stats[b'packs'])
     if stats[b'count'] != b'0' or num_packs > 1:
@@ -2783,7 +2807,7 @@ class RepoFilter(object):
 
     # Make sure there is precisely one remote, named "origin"...or that this
     # is a new bare repo with no packs and no remotes
-    output = subprocess.check_output('git remote'.split()).strip()
+    output = subproc.check_output('git remote'.split()).strip()
     if not (output == b"origin" or (num_packs == 0 and not output)):
       abort(_("expected one remote, origin"))
 
@@ -2813,11 +2837,11 @@ class RepoFilter(object):
     # Do extra checks in non-bare repos
     if not is_bare:
       # Avoid uncommitted, unstaged, or untracked changes
-      if subprocess.call('git diff --staged --quiet'.split()):
+      if subproc.call('git diff --staged --quiet'.split()):
         abort(_("you have uncommitted changes"))
-      if subprocess.call('git diff --quiet'.split()):
+      if subproc.call('git diff --quiet'.split()):
         abort(_("you have unstaged changes"))
-      if len(subprocess.check_output('git ls-files -o'.split())) > 0:
+      if len(subproc.check_output('git ls-files -o'.split())) > 0:
         abort(_("you have untracked changes"))
 
       # Avoid unpushed changes
@@ -2833,7 +2857,7 @@ class RepoFilter(object):
                                              decode(origin_ref)))
 
       # Make sure there is only one worktree
-      output = subprocess.check_output('git worktree list'.split())
+      output = subproc.check_output('git worktree list'.split())
       if len(output.splitlines()) > 1:
         abort(_('you have multiple worktrees'))
 
@@ -2858,7 +2882,7 @@ class RepoFilter(object):
     for cmd in cleanup_cmds:
       if show_debuginfo:
         print("[DEBUG] Running{}: {}".format(location_info, ' '.join(cmd)))
-      subprocess.call(cmd, cwd=repo)
+      subproc.call(cmd, cwd=repo)
 
   def _get_rename(self, old_hash):
     # If we already know the rename, just return it
@@ -3377,11 +3401,11 @@ class RepoFilter(object):
     working_dir = self._args.target or b'.'
     cmd = ['git', '-C', working_dir, 'show-ref', full_branch]
     contents = b''
-    if subprocess.call(cmd, stdout=subprocess.DEVNULL) == 0:
+    if subproc.call(cmd, stdout=subprocess.DEVNULL) == 0:
       cmd = ['git', '-C', working_dir, 'show',
              '%s:%s' % (full_branch, decode(marks_basename))]
       try:
-        contents = subprocess.check_output(cmd)
+        contents = subproc.check_output(cmd)
       except subprocess.CalledProcessError as e: # pragma: no cover
         raise SystemExit(_("Failed loading %s from %s") %
                          (decode(marks_basename), branch))
@@ -3400,7 +3424,7 @@ class RepoFilter(object):
     parent = []
     full_branch = 'refs/heads/{}'.format(self._args.state_branch)
     cmd = ['git', '-C', working_dir, 'show-ref', full_branch]
-    if subprocess.call(cmd, stdout=subprocess.DEVNULL) == 0:
+    if subproc.call(cmd, stdout=subprocess.DEVNULL) == 0:
       parent = ['-p', full_branch]
 
     # Run 'git hash-object $MARKS_FILE' for each marks file, save result
@@ -3411,11 +3435,11 @@ class RepoFilter(object):
         raise SystemExit(_("Failed to find %s to save to %s")
                          % (marks_file, self._args.state_branch))
       cmd = ['git', '-C', working_dir, 'hash-object', '-w', marks_file]
-      blob_hashes[marks_basename] = subprocess.check_output(cmd).strip()
+      blob_hashes[marks_basename] = subproc.check_output(cmd).strip()
 
     # Run 'git mktree' to create a tree out of it
-    p = subprocess.Popen(['git', '-C', working_dir, 'mktree'],
-                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    p = subproc.Popen(['git', '-C', working_dir, 'mktree'],
+                      stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     for b in basenames:
       p.stdin.write(b'100644 blob %s\t%s\n' % (blob_hashes[b], b))
     p.stdin.close()
@@ -3425,9 +3449,8 @@ class RepoFilter(object):
     # Create the new commit
     cmd = (['git', '-C', working_dir, 'commit-tree', '-m', 'New mark files',
             tree] + parent)
-    commit = subprocess.check_output(cmd).strip()
-    subprocess.call(['git', '-C', working_dir, 'update-ref',
-                     full_branch, commit])
+    commit = subproc.check_output(cmd).strip()
+    subproc.call(['git', '-C', working_dir, 'update-ref', full_branch, commit])
 
   def importer_only(self):
     self._run_sanity_checks()
@@ -3479,7 +3502,7 @@ class RepoFilter(object):
                  '--signed-tags=strip', '--tag-of-filtered-object=rewrite',
                  '--fake-missing-tagger', '--reference-excluded-parents'
                  ] + extra_flags + self._args.refs
-      self._fep = subprocess.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
+      self._fep = subproc.Popen(fep_cmd, bufsize=-1, stdout=subprocess.PIPE)
       self._input = self._fep.stdout
       if self._args.dry_run or self._args.debug:
         self._fe_orig = os.path.join(self.results_tmp_dir(),
@@ -3500,10 +3523,8 @@ class RepoFilter(object):
         target_marks_file = self._load_marks_file(b'target-marks')
         fip_cmd.extend([b'--export-marks='+target_marks_file,
                         b'--import-marks='+target_marks_file])
-      self._fip = subprocess.Popen(fip_cmd,
-                                   bufsize=-1,
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE)
+      self._fip = subproc.Popen(fip_cmd, bufsize=-1,
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
       self._import_pipes = (self._fip.stdin, self._fip.stdout)
     if self._args.dry_run or self._args.debug:
       self._fe_filt = os.path.join(self.results_tmp_dir(),
@@ -3526,9 +3547,8 @@ class RepoFilter(object):
     if self._args.debug:
       print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
     target_working_dir = self._args.target or b'.'
-    p = subprocess.Popen('git update-ref --no-deref --stdin'.split(),
-                         stdin=subprocess.PIPE,
-                         cwd=target_working_dir)
+    p = subproc.Popen('git update-ref --no-deref --stdin'.split(),
+                      stdin=subprocess.PIPE, cwd=target_working_dir)
     for ref in refs_to_migrate:
       if ref == b'refs/remotes/origin/HEAD':
         p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
@@ -3548,7 +3568,7 @@ class RepoFilter(object):
     if self._args.debug:
       print("[DEBUG] Removing 'origin' remote (rewritten history will no ")
       print("        longer be related; consider re-pushing it elsewhere.")
-    subprocess.call('git remote rm origin'.split(), cwd=target_working_dir)
+    subproc.call('git remote rm origin'.split(), cwd=target_working_dir)
 
   def _final_commands(self):
     self._finalize_handled = True
@@ -3559,9 +3579,9 @@ class RepoFilter(object):
 
   def _ref_update(self, target_working_dir):
     # Start the update-ref process
-    p = subprocess.Popen('git update-ref --no-deref --stdin'.split(),
-                         stdin=subprocess.PIPE,
-                         cwd=target_working_dir)
+    p = subproc.Popen('git update-ref --no-deref --stdin'.split(),
+                      stdin=subprocess.PIPE,
+                      cwd=target_working_dir)
 
     # Remove replace_refs from _orig_refs
     replace_refs = {k:v for k, v in self._orig_refs.items()
@@ -3636,10 +3656,10 @@ class RepoFilter(object):
           if not batch_check_process:
             cmd = 'git cat-file --batch-check'.split()
             target_working_dir = self._args.target or b'.'
-            batch_check_process = subprocess.Popen(cmd,
-                                                   stdin=subprocess.PIPE,
-                                                   stdout=subprocess.PIPE,
-                                                   cwd=target_working_dir)
+            batch_check_process = subproc.Popen(cmd,
+                                                stdin=subprocess.PIPE,
+                                                stdout=subprocess.PIPE,
+                                                cwd=target_working_dir)
           batch_check_process.stdin.write(refname+b"\n")
           batch_check_process.stdin.flush()
           line = batch_check_process.stdout.readline()
