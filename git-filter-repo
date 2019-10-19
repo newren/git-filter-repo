@@ -2745,7 +2745,7 @@ class RepoFilter(object):
       print("[DEBUG] Passed arguments:\n{}".format(self._args))
 
     # Determine basic repository information
-    target_working_dir = self._args.target or '.'
+    target_working_dir = self._args.target or b'.'
     self._orig_refs = GitUtils.get_refs(target_working_dir)
     is_bare = GitUtils.is_repository_bare(target_working_dir)
 
@@ -3525,7 +3525,7 @@ class RepoFilter(object):
       return
     if self._args.debug:
       print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
-    target_working_dir = self._args.target or '.'
+    target_working_dir = self._args.target or b'.'
     p = subprocess.Popen('git update-ref --no-deref --stdin'.split(),
                          stdin=subprocess.PIPE,
                          cwd=target_working_dir)
@@ -3635,7 +3635,7 @@ class RepoFilter(object):
         else: # Must be either an annotated tag, or a ref whose tip was pruned
           if not batch_check_process:
             cmd = 'git cat-file --batch-check'.split()
-            target_working_dir = self._args.target or '.'
+            target_working_dir = self._args.target or b'.'
             batch_check_process = subprocess.Popen(cmd,
                                                    stdin=subprocess.PIPE,
                                                    stdout=subprocess.PIPE,

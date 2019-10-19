@@ -11,8 +11,8 @@ import git_filter_repo as fr
 
 if len(sys.argv) != 3:
   raise SystemExit("Syntax:\n  %s SOURCE_REPO TARGET_REPO")
-source_repo = sys.argv[1]
-target_repo = sys.argv[2]
+source_repo = sys.argv[1].encode()
+target_repo = sys.argv[2].encode()
 
 total_objects = fr.GitUtils.get_total_objects(source_repo) # blobs+trees
 total_commits = fr.GitUtils.get_commit_count(source_repo)
