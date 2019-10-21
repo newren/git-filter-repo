@@ -1242,9 +1242,10 @@ provides an option to analyze a repository and generate reports that
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">Specifying alternate source or target locations will disable some
-auxiliary steps such as disconnecting the origin remote, and avoiding
-mixing new and old history.</td>
+<td class="content">Specifying alternate source or target locations implies --partial
+except that the normal default for --replace-refs is used.  However, unlike
+normal uses of --partial, this doesn&#8217;t risk mixing old and new history
+since the old and new histories are in different repositories.</td>
 </tr></table>
 </div>
 <div class="dlist"><dl>
@@ -1290,6 +1291,31 @@ mixing new and old history.</td>
 <p>
         Rewrite history even if the current repo does not look like a fresh
         clone.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>--partial:
+        Do a partial history rewrite, resulting in the mixture of old and
+        new history.  This implies a default of update-no-add for
+        --replace-refs, disables rewriting refs/remotes/origin/* to
+        refs/heads/*, disables removing of the <em>origin</em> remote, disables
+        removing unexported refs, disables expiring the reflog, and
+        disables the automatic post-filter gc.  Also, this modifies
+        --tag-rename and --refname-callback options such that instead of
+        replacing old refs with new refnames, it will instead create new
+        refs and keep the old ones around.  Use with caution.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--refs &lt;refs+&gt;
+</dt>
+<dd>
+<p>
+        Limit history rewriting to the specified refs.  Implies --partial.
+        In addition to the normal caveats of --partial (mixing old and new
+        history, no automatic remapping of refs/remotes/origin/* to
+        refs/heads/*, etc.), this also may cause problems for pruning of
+        degenerate empty merge commits when negative revisions are
+        specified.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1778,6 +1804,21 @@ git filter-repo --force</code></pre>
 if no arguments are specified, and the new graft commit would
 otherwise trigger the not-a-fresh-clone check.</p></div>
 </div>
+<div class="sect2">
+<h3 id="_partial_history_rewrites">Partial history rewrites</h3>
+<div class="paragraph"><p>To rewrite the history on just one branch (which may cause it to no longer
+share any common history with other branches), use <code>--refs</code>.  For example,
+to remove a file named <em>extraneous.txt</em> from the <em>master</em> branch:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git filter-repo --invert-paths --path extraneous.txt --refs master</code></pre>
+</div></div>
+<div class="paragraph"><p>To rewrite just some recent commits:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git filter-repo --invert-paths --path extraneous.txt --refs master~3..master</code></pre>
+</div></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -2000,7 +2041,7 @@ Verify we&#8217;re in a fresh clone
 </li>
 <li>
 <p>
-<code>git fast-export --show-original-ids --reference-excluded-parents --fake-missing-tagger --signed-tags=strip --tag-of-filtered-object=rewrite --use-done-feature --no-data --reencode=yes --all | filter | git fast-import --force --quiet</code>
+<code>git fast-export --show-original-ids --reference-excluded-parents --fake-missing-tagger --signed-tags=strip --tag-of-filtered-object=rewrite --use-done-feature --no-data --reencode=yes --mark-tags --all | filter | git fast-import --force --quiet</code>
 </p>
 </li>
 <li>
@@ -2091,8 +2132,11 @@ We need to gc to avoid mixing new and old history.  Also, it shrinks
 </p>
 </li>
 </ol></div>
-<div class="paragraph"><p>Information about these steps is printed out when <code>--debug</code> is passed to
-filter-repo.</p></div>
+<div class="paragraph"><p>Information about these steps is printed out when <code>--debug</code> is passed
+to filter-repo.  When doing a <code>--partial</code> history rewrite, steps 2, 3,
+7, and 8 are unconditionally skipped, step 5 is skipped if
+<code>--replace-refs</code> is <code>update-no-add</code>, and just the nuke-unused-refs
+portion of step 5 is skipped if <code>--replace-refs</code> is something else.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_limitations">Limitations</h3>
@@ -2115,9 +2159,11 @@ commits get rewritten meaning they will have new hashes; therefore,
 </li>
 <li>
 <p>
-tags of commits are supported; tags of anything else (blobs, trees, or
-    tags) are not.  (fast-export aborts on tags of blobs and tags of tags,
-    and simply ignores tags of trees with a warning.)
+tags of commits are supported.  Prior to git-2.24.0, tags of blobs and
+    tags of tags are not supported (fast-export would die on such tags).
+    tags of trees are not supported in any git version (since fast-export
+    ignores tags of trees with a warning and fast-import provides no way to
+    import them).
 </p>
 </li>
 <li>
@@ -2152,9 +2198,9 @@ tags without a tagger will be given a fake tagger
 <li>
 <p>
 references that include commit cycles in their history (which can be
-    created with <a href="git-replace.html">git-replace(1)</a>) will not be flagged to the user as an
-    error but will be silently deleted by fast-export as though the branch
-    or tag contained no interesting files
+    created with <a href="git-replace.html">git-replace(1)</a>) will not be flagged to the user as
+    an error but will be silently deleted by fast-export as though the
+    branch or tag contained no interesting files
 </p>
 </li>
 </ul></div>
@@ -2166,7 +2212,10 @@ Trying to insert additional files into the stream can be tricky; since
     fast-export only lists file changes in a merge relative to its first
     parent, if you insert additional files into a commit that is in the
     second (or third or fourth) parent history of a merge, then you also
-    need to add it to the merge manually.
+    need to add it to the merge manually.  (Similarly, if you change which
+    parent is the first parent in a merge commit, you need to manually
+    update the list of file changes to be relative to the new first
+    parent.)
 </p>
 </li>
 <li>
@@ -2258,18 +2307,16 @@ There is no mechanism for directly controlling which flags are passed
 </li>
 <li>
 <p>
-Partial-repo filtering does not mesh well with filter-repo&#8217;s "avoid
-    mixing old and new history" design.  filter-repo has some capability
-    in this area but it is intentionally underdocumented and mostly left
-    for use by external scripts which import filter-repo as a module
-    (some examples in contrib/filter-repo-demos/ do use this).  The only
-    real usecases I&#8217;ve seen for partial repo filtering, though, are
-    sidestepping filter-branch&#8217;s insanely slow execution on commits that
-    would not be changed by the filters in question anyway (which is
-    largely irrelevant since filter-repo is multiple orders of magnitude
-    faster), or to do operations better suited to <a href="git-rebase.html">git-rebase(1)</a>
-    and which rebase grew special options for years ago (e.g. the
-    <code>--signoff</code> option).
+Partial-repo filtering, while supported, runs counter to filter-repo&#8217;s
+    "avoid mixing old and new history" design.  This support has required
+    improvements to core git as well (e.g. it depends upon the
+    <code>--reference-excluded-parents</code> option to fast-export that was added
+    specifically for this usage within filter-repo).  The <code>--partial</code> and
+    <code>--refs</code> options will continue to be supported since there are people
+    with usecases for them; however, I am concerned that this inconsistency
+    about mixing old and new history seems likely to lead to user mistakes.
+    For now, I just hope that long explanations of caveats in the
+    documentation of these options suffice to curtail any such problems.
 </p>
 </li>
 </ul></div>
@@ -2342,7 +2389,7 @@ I assume that people use filter-repo for one-shot conversions, not
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-08-26 10:06:32 PDT
+ 2019-10-19 13:58:35 PDT
 </div>
 </div>
 </body>

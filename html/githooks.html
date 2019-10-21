@@ -827,6 +827,24 @@ to modify the commit message.</p></div>
 the use of non-ASCII filenames.</p></div>
 </div>
 <div class="sect2">
+<h3 id="_pre_merge_commit">pre-merge-commit</h3>
+<div class="paragraph"><p>This hook is invoked by <a href="git-merge.html">git-merge(1)</a>, and can be bypassed
+with the <code>--no-verify</code> option.  It takes no parameters, and is
+invoked after the merge has been carried out successfully and before
+obtaining the proposed commit log message to
+make a commit.  Exiting with a non-zero status from this script
+causes the <code>git merge</code> command to abort before creating a commit.</p></div>
+<div class="paragraph"><p>The default <em>pre-merge-commit</em> hook, when enabled, runs the
+<em>pre-commit</em> hook, if the latter is enabled.</p></div>
+<div class="paragraph"><p>This hook is invoked with the environment variable
+<code>GIT_EDITOR=:</code> if the command will not bring up an editor
+to modify the commit message.</p></div>
+<div class="paragraph"><p>If the merge cannot be carried out automatically, the conflicts
+need to be resolved and the result committed separately (see
+<a href="git-merge.html">git-merge(1)</a>). At that point, this hook will not be executed,
+but the <em>pre-commit</em> hook will, if it is enabled.</p></div>
+</div>
+<div class="sect2">
 <h3 id="_prepare_commit_msg">prepare-commit-msg</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-commit.html">git-commit(1)</a> right after preparing the
 default log message, and before the editor is started.</p></div>
@@ -1206,7 +1224,7 @@ running passing "1", "1" should not be possible.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-07 21:50:10 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

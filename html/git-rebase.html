@@ -748,8 +748,8 @@ git-rebase(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git rebase</em> [-i | --interactive] [&lt;options&gt;] [--exec &lt;cmd&gt;] [--onto &lt;newbase&gt;]
-        [&lt;upstream&gt; [&lt;branch&gt;]]
+<pre class="content"><em>git rebase</em> [-i | --interactive] [&lt;options&gt;] [--exec &lt;cmd&gt;]
+        [--onto &lt;newbase&gt; | --keep-base] [&lt;upstream&gt; [&lt;branch&gt;]]
 <em>git rebase</em> [-i | --interactive] [&lt;options&gt;] [--exec &lt;cmd&gt;] [--onto &lt;newbase&gt;]
         --root [&lt;branch&gt;]
 <em>git rebase</em> (--continue | --skip | --abort | --quit | --edit-todo | --show-current-patch)</pre>
@@ -1055,6 +1055,26 @@ merge base of A and B if there is exactly one merge base. You can
 leave out at most one of A and B, in which case it defaults to HEAD.</p></div>
 </dd>
 <dt class="hdlist1">
+--keep-base
+</dt>
+<dd>
+<p>
+        Set the starting point at which to create the new commits to the
+        merge base of &lt;upstream&gt; &lt;branch&gt;. Running
+        <em>git rebase --keep-base &lt;upstream&gt; &lt;branch&gt;</em> is equivalent to
+        running <em>git rebase --onto &lt;upstream&gt;&#8230; &lt;upstream&gt;</em>.
+</p>
+<div class="paragraph"><p>This option is useful in the case where one is developing a feature on
+top of an upstream branch. While the feature is being worked on, the
+upstream branch may advance and it may not be the best idea to keep
+rebasing on top of the upstream but to keep the base commit as-is.</p></div>
+<div class="paragraph"><p>Although both this option and --fork-point find the merge base between
+&lt;upstream&gt; and &lt;branch&gt;, this option uses the merge base as the <em>starting
+point</em> on which new commits will be created, whereas --fork-point uses
+the merge base to determine the <em>set of commits</em> which will be rebased.</p></div>
+<div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
+</dd>
+<dt class="hdlist1">
 &lt;upstream&gt;
 </dt>
 <dd>
@@ -1337,6 +1357,9 @@ details).</p></div>
 ends up being empty, the &lt;upstream&gt; will be used as a fallback.</p></div>
 <div class="paragraph"><p>If either &lt;upstream&gt; or --root is given on the command line, then the
 default is <code>--no-fork-point</code>, otherwise the default is <code>--fork-point</code>.</p></div>
+<div class="paragraph"><p>If your branch was based on &lt;upstream&gt; but &lt;upstream&gt; was rewound and
+your branch contains commits which were dropped, this option can be used
+with <code>--keep-base</code> in order to drop those commits from your branch.</p></div>
 </dd>
 <dt class="hdlist1">
 --ignore-whitespace
@@ -1654,12 +1677,12 @@ used to override and disable this setting.</p></div>
 </li>
 <li>
 <p>
---rebase-merges and --strategy
+--keep-base and --onto
 </p>
 </li>
 <li>
 <p>
---rebase-merges and --strategy-option
+--keep-base and --root
 </p>
 </li>
 </ul></div>
@@ -2271,7 +2294,7 @@ correspond to the ones before the rebase.</p></div>
 </tr></table>
 </div>
 <div class="paragraph"><p>The idea is to manually tell <em>git rebase</em> "where the old <em>subsystem</em>
-ended and your <em>topic</em> began", that is, what the old merge-base
+ended and your <em>topic</em> began", that is, what the old merge base
 between them was.  You will have to find a way to name the last commit
 of the old <em>subsystem</em>, for example:</p></div>
 <div class="ulist"><ul>
@@ -2461,7 +2484,7 @@ Use <code>--rebase-merges</code> in such scenarios instead.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-07 21:50:10 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

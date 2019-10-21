@@ -1047,11 +1047,14 @@ documented in <a href="git-config.html">git-config(1)</a>.</p></div>
 </dt>
 <dd>
 <p>
-        Number of parallel children to be used for fetching submodules.
-        Each will fetch from different submodules, such that fetching many
-        submodules will be faster. By default submodules will be fetched
-        one at a time.
+        Number of parallel children to be used for all forms of fetching.
 </p>
+<div class="paragraph"><p>If the <code>--multiple</code> option was specified, the different remotes will be fetched
+in parallel. If multiple submodules are fetched, they will be fetched in
+parallel. To control them independently, use the config settings
+<code>fetch.parallel</code> and <code>submodule.fetchJobs</code> (see <a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>Typically, parallel recursive and multi-remote fetches will be faster. By
+default fetches are performed sequentially, not in parallel.</p></div>
 </dd>
 <dt class="hdlist1">
 --no-recurse-submodules
@@ -1060,6 +1063,18 @@ documented in <a href="git-config.html">git-config(1)</a>.</p></div>
 <p>
         Disable recursive fetching of submodules (this has the same effect as
         using the <code>--recurse-submodules=no</code> option).
+</p>
+</dd>
+<dt class="hdlist1">
+--set-upstream
+</dt>
+<dd>
+<p>
+        If the remote is fetched successfully, pull and add upstream
+        (tracking) reference, used by argument-less
+        <a href="git-pull.html">git-pull(1)</a> and other commands. For more information,
+        see <code>branch.&lt;name&gt;.merge</code> and <code>branch.&lt;name&gt;.remote</code> in
+        <a href="git-config.html">git-config(1)</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1898,7 +1913,7 @@ version.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-06 15:39:22 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

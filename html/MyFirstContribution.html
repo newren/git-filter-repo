@@ -834,8 +834,8 @@ point for your command in a function matching the style and signature:</p></div>
 <pre><code>int cmd_psuh(int argc, const char **argv, const char *prefix)</code></pre>
 </div></div>
 <div class="paragraph"><p>We&#8217;ll also need to add the declaration of psuh; open up <code>builtin.h</code>, find the
-declaration for <code>cmd_push</code>, and add a new line for <code>psuh</code> immediately before it,
-in order to keep the declarations sorted:</p></div>
+declaration for <code>cmd_pull</code>, and add a new line for <code>psuh</code> immediately before it,
+in order to keep the declarations alphabetically sorted:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>int cmd_psuh(int argc, const char **argv, const char *prefix);</code></pre>
@@ -863,7 +863,7 @@ should also do so when writing your user-facing commands in the future.</td>
         return 0;
 }</code></pre>
 </div></div>
-<div class="paragraph"><p>Let&#8217;s try to build it.  Open <code>Makefile</code>, find where <code>builtin/push.o</code> is added
+<div class="paragraph"><p>Let&#8217;s try to build it.  Open <code>Makefile</code>, find where <code>builtin/pull.o</code> is added
 to <code>BUILTIN_OBJS</code>, and add <code>builtin/psuh.o</code> in the same way next to it in
 alphabetical order. Once you&#8217;ve done so, move to the top-level directory and
 build simply with <code>make</code>. Also add the <code>DEVELOPER=1</code> variable to turn on
@@ -899,7 +899,7 @@ a <code>cmd_struct</code> to the <code>commands[]</code> array. <code>struct cmd
 with the command name, a function pointer to the command implementation, and a
 setup option flag. For now, let&#8217;s keep mimicking <code>push</code>. Find the line where
 <code>cmd_push</code> is registered, copy it, and modify it for <code>cmd_psuh</code>, placing the new
-line in alphabetical order.</p></div>
+line in alphabetical order (immediately before <code>cmd_pull</code>).</p></div>
 <div class="paragraph"><p>The options are documented in <code>builtin.h</code> under "Adding a new built-in." Since
 we hope to print some data about the user&#8217;s current workspace context later,
 we need a Git directory, so choose <code>RUN_SETUP</code> as your only option.</p></div>
@@ -913,7 +913,7 @@ and see if it works. There&#8217;s a binary you can use to test with in the
 <div class="paragraph"><p>Check it out! You&#8217;ve got a command! Nice work! Let&#8217;s commit this.</p></div>
 <div class="paragraph"><p><code>git status</code> reveals modified <code>Makefile</code>, <code>builtin.h</code>, and <code>git.c</code> as well as
 untracked <code>builtin/psuh.c</code> and <code>git-psuh</code>. First, let&#8217;s take care of the binary,
-which should be ignored. Open <code>.gitignore</code> in your editor, find <code>/git-push</code>, and
+which should be ignored. Open <code>.gitignore</code> in your editor, find <code>/git-pull</code>, and
 add an entry for your new command in alphabetical order:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1813,7 +1813,7 @@ should generate your diffs from <code>&lt;topic&gt;..&lt;mybranch&gt;</code> and
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-06 15:39:22 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

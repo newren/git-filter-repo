@@ -1313,38 +1313,30 @@ GIT_CONFIG_NOSYSTEM
 <h2 id="EXAMPLES">EXAMPLES</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Given a .git/config like this:</p></div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
 <pre><code>#
 # This is the config file, and
 # a '#' or ';' character indicates
 # a comment
-#</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; core variables
+#
+
+; core variables
 [core]
         ; Don't trust file modes
-        filemode = false</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; Our diff algorithm
+        filemode = false
+
+; Our diff algorithm
 [diff]
         external = /usr/local/bin/diff-wrapper
-        renames = true</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; Proxy settings
+        renames = true
+
+; Proxy settings
 [core]
         gitproxy=proxy-command for kernel.org
-        gitproxy=default-proxy ; for all the rest</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; HTTP
+        gitproxy=default-proxy ; for all the rest
+
+; HTTP
 [http]
         sslVerify
 [http "https://weak.example.com"]
@@ -1633,61 +1625,45 @@ Note that "../" is not special and will match literally, which is
 </div>
 <div class="sect2">
 <h3 id="_example">Example</h3>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
 <pre><code># Core variables
 [core]
         ; Don't trust file modes
-        filemode = false</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code># Our diff algorithm
+        filemode = false
+
+# Our diff algorithm
 [diff]
         external = /usr/local/bin/diff-wrapper
-        renames = true</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>[branch "devel"]
+        renames = true
+
+[branch "devel"]
         remote = origin
-        merge = refs/heads/devel</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code># Proxy settings
+        merge = refs/heads/devel
+
+# Proxy settings
 [core]
         gitProxy="ssh" for "kernel.org"
-        gitProxy=default-proxy ; for the rest</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>[include]
+        gitProxy=default-proxy ; for the rest
+
+[include]
         path = /path/to/foo.inc ; include by absolute path
         path = foo.inc ; find "foo.inc" relative to the current file
-        path = ~/foo.inc ; find "foo.inc" in your `$HOME` directory</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; include if $GIT_DIR is /path/to/foo/.git
+        path = ~/foo.inc ; find "foo.inc" in your `$HOME` directory
+
+; include if $GIT_DIR is /path/to/foo/.git
 [includeIf "gitdir:/path/to/foo/.git"]
-        path = /path/to/foo.inc</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; include for all repositories inside /path/to/group
+        path = /path/to/foo.inc
+
+; include for all repositories inside /path/to/group
 [includeIf "gitdir:/path/to/group/"]
-        path = /path/to/foo.inc</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; include for all repositories inside $HOME/to/group
+        path = /path/to/foo.inc
+
+; include for all repositories inside $HOME/to/group
 [includeIf "gitdir:~/to/group/"]
-        path = /path/to/foo.inc</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; relative paths are always relative to the including
+        path = /path/to/foo.inc
+
+; relative paths are always relative to the including
 ; file (if the condition is true); their location is not
 ; affected by the condition
 [includeIf "gitdir:/path/to/group/"]
@@ -2202,7 +2178,9 @@ core.untrackedCache
         it will automatically be removed, if set to <code>false</code>. Before
         setting it to <code>true</code>, you should check that mtime is working
         properly on your system.
-        See <a href="git-update-index.html">git-update-index(1)</a>. <code>keep</code> by default.
+        See <a href="git-update-index.html">git-update-index(1)</a>. <code>keep</code> by default, unless
+        <code>feature.manyFiles</code> is enabled which sets this setting to
+        <code>true</code> by default.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2898,7 +2876,7 @@ core.commitGraph
 <dd>
 <p>
         If true, then git will read the commit-graph file (if it exists)
-        to parse the graph structure of commits. Defaults to false. See
+        to parse the graph structure of commits. Defaults to true. See
         <a href="git-commit-graph.html">git-commit-graph(1)</a> for more information.
 </p>
 </dd>
@@ -4445,7 +4423,7 @@ diff.indentHeuristic
 </dt>
 <dd>
 <p>
-        Set this option to <code>true</code> to enable experimental heuristics
+        Set this option to <code>false</code> to disable the default heuristics
         that shift diff hunk boundaries to make patches easier to read.
 </p>
 </dd>
@@ -4577,6 +4555,78 @@ fastimport.unpackLimit
 </p>
 </dd>
 <dt class="hdlist1">
+feature.*
+</dt>
+<dd>
+<p>
+        The config settings that start with <code>feature.</code> modify the defaults of
+        a group of other config settings. These groups are created by the Git
+        developer community as recommended defaults and are subject to change.
+        In particular, new config options may be added with different defaults.
+</p>
+</dd>
+<dt class="hdlist1">
+feature.experimental
+</dt>
+<dd>
+<p>
+        Enable config options that are new to Git, and are being considered for
+        future defaults. Config settings included here may be added or removed
+        with each release, including minor version updates. These settings may
+        have unintended interactions since they are so new. Please enable this
+        setting if you are interested in providing feedback on experimental
+        features. The new default values are:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>pack.useSparse=true</code> uses a new algorithm when constructing a pack-file
+which can improve <code>git push</code> performance in repos with many files.
+</p>
+</li>
+<li>
+<p>
+<code>fetch.negotiationAlgorithm=skipping</code> may improve fetch negotiation times by
+skipping more commits at a time, reducing the number of round trips.
+</p>
+</li>
+<li>
+<p>
+<code>fetch.writeCommitGraph=true</code> writes a commit-graph after every <code>git fetch</code>
+command that downloads a pack-file from a remote. Using the <code>--split</code> option,
+most executions will create a very small commit-graph file on top of the
+existing commit-graph file(s). Occasionally, these files will merge and the
+write may take longer. Having an updated commit-graph file helps performance
+of many Git commands, including <code>git merge-base</code>, <code>git push -f</code>, and
+<code>git log --graph</code>.
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
+feature.manyFiles
+</dt>
+<dd>
+<p>
+        Enable config options that optimize for repos with many files in the
+        working directory. With many files, commands such as <code>git status</code> and
+        <code>git checkout</code> may be slow and these new defaults improve performance:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>index.version=4</code> enables path-prefix compression in the index.
+</p>
+</li>
+<li>
+<p>
+<code>core.untrackedCache=true</code> enables the untracked cache. This setting assumes
+that mtime is working on your machine.
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
 fetch.recurseSubmodules
 </dt>
 <dd>
@@ -4681,7 +4731,8 @@ fetch.negotiationAlgorithm
         effort to converge faster, but may result in a larger-than-necessary
         packfile; The default is "default" which instructs Git to use the default algorithm
         that never skips commits (unless the server has acknowledged it or one
-        of its descendants).
+        of its descendants). If <code>feature.experimental</code> is enabled, then this
+        setting defaults to "skipping".
         Unknown values will cause <em>git fetch</em> to error out.
 </p>
 <div class="paragraph"><p>See also the <code>--negotiation-tip</code> option for <a href="git-fetch.html">git-fetch(1)</a>.</p></div>
@@ -4694,6 +4745,34 @@ fetch.showForcedUpdates
         Set to false to enable <code>--no-show-forced-updates</code> in
         <a href="git-fetch.html">git-fetch(1)</a> and <a href="git-pull.html">git-pull(1)</a> commands.
         Defaults to true.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.parallel
+</dt>
+<dd>
+<p>
+        Specifies the maximal number of fetch operations to be run in parallel
+        at a time (submodules, or remotes when the <code>--multiple</code> option of
+        <a href="git-fetch.html">git-fetch(1)</a> is in effect).
+</p>
+<div class="paragraph"><p>A value of 0 will give some reasonable default. If unset, it defaults to 1.</p></div>
+<div class="paragraph"><p>For submodules, this setting can be overridden using the <code>submodule.fetchJobs</code>
+config setting.</p></div>
+</dd>
+<dt class="hdlist1">
+fetch.writeCommitGraph
+</dt>
+<dd>
+<p>
+        Set to true to write a commit-graph after every <code>git fetch</code> command
+        that downloads a pack-file from a remote. Using the <code>--split</code> option,
+        most executions will create a very small commit-graph file on top of
+        the existing commit-graph file(s). Occasionally, these files will
+        merge and the write may take longer. Having an updated commit-graph
+        file helps performance of many Git commands, including <code>git merge-base</code>,
+        <code>git push -f</code>, and <code>git log --graph</code>. Defaults to false, unless
+        <code>feature.experimental</code> is true.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -4841,6 +4920,7 @@ format.coverLetter
         A boolean that controls whether to generate a cover-letter when
         format-patch is invoked, but in addition can be set to "auto", to
         generate a cover-letter only when there&#8217;s more than one patch.
+        Default is false.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -4849,7 +4929,7 @@ format.outputDirectory
 <dd>
 <p>
         Set a custom directory to store the resulting files instead of the
-        current working directory.
+        current working directory. All directory components will be created.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -5060,7 +5140,7 @@ gc.writeCommitGraph
         If true, then gc will rewrite the commit-graph file when
         <a href="git-gc.html">git-gc(1)</a> is run. When using <code>git gc --auto</code>
         the commit-graph will be updated if housekeeping is
-        required. Default is false. See <a href="git-commit-graph.html">git-commit-graph(1)</a>
+        required. Default is true. See <a href="git-commit-graph.html">git-commit-graph(1)</a>
         for details.
 </p>
 </dd>
@@ -6361,6 +6441,7 @@ index.version
 <p>
         Specify the version with which new index files should be
         initialized.  This does not affect existing repositories.
+        If <code>feature.manyFiles</code> is enabled, then the default is 4.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -7283,7 +7364,8 @@ pack.useSparse
         objects. This can have significant performance benefits when
         computing a pack to send a small change. However, it is possible
         that extra objects are added to the pack-file if the included
-        commits contain certain types of direct renames.
+        commits contain certain types of direct renames. Default is <code>false</code>
+        unless <code>feature.experimental</code> is enabled.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -8128,6 +8210,24 @@ remote.&lt;name&gt;.pruneTags
 <a href="git-fetch.html">git-fetch(1)</a>.</p></div>
 </dd>
 <dt class="hdlist1">
+remote.&lt;name&gt;.promisor
+</dt>
+<dd>
+<p>
+        When set to true, this remote will be used to fetch promisor
+        objects.
+</p>
+</dd>
+<dt class="hdlist1">
+remote.&lt;name&gt;.partialclonefilter
+</dt>
+<dd>
+<p>
+        The filter that will be applied when fetching from this
+        promisor remote.
+</p>
+</dd>
+<dt class="hdlist1">
 remotes.&lt;group&gt;
 </dt>
 <dd>
@@ -8896,7 +8996,9 @@ trace2.eventTarget
 </li>
 <li>
 <p>
-<code>&lt;absolute-pathname&gt;</code> - Writes to the file in append mode.
+<code>&lt;absolute-pathname&gt;</code> - Writes to the file in append mode. If the target
+already exists and is a directory, the traces will be written to files (one
+per process) underneath the given directory.
 </p>
 </li>
 <li>
@@ -8974,6 +9076,17 @@ trace2.destinationDebug
         By default, these errors are suppressed and tracing is
         silently disabled.  May be overridden by the
         <code>GIT_TRACE2_DST_DEBUG</code> environment variable.
+</p>
+</dd>
+<dt class="hdlist1">
+trace2.maxFiles
+</dt>
+<dd>
+<p>
+        Integer.  When writing trace files to a target directory, do not
+        write additional traces if we would exceed this many files. Instead,
+        write a sentinel file that will block further tracing to this
+        directory. Defaults to 0, which disables this check.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -9374,7 +9487,7 @@ looks like</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-03 16:07:56 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

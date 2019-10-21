@@ -906,33 +906,28 @@ set to <code>no</code> at the beginning of them.</p></div>
 <dt class="hdlist1">
 --ff
 </dt>
-<dd>
-<p>
-        When the merge resolves as a fast-forward, only update the branch
-        pointer, without creating a merge commit.  This is the default
-        behavior.
-</p>
-</dd>
 <dt class="hdlist1">
 --no-ff
 </dt>
-<dd>
-<p>
-        Create a merge commit even when the merge resolves as a
-        fast-forward.  This is the default behaviour when merging an
-        annotated (and possibly signed) tag that is not stored in
-        its natural place in <em>refs/tags/</em> hierarchy.
-</p>
-</dd>
 <dt class="hdlist1">
 --ff-only
 </dt>
 <dd>
 <p>
-        Refuse to merge and exit with a non-zero status unless the
-        current <code>HEAD</code> is already up to date or the merge can be
-        resolved as a fast-forward.
+        Specifies how a merge is handled when the merged-in history is
+        already a descendant of the current history.  <code>--ff</code> is the
+        default unless merging an annotated (and possibly signed) tag
+        that is not stored in its natural place in the <code>refs/tags/</code>
+        hierarchy, in which case <code>--no-ff</code> is assumed.
 </p>
+<div class="paragraph"><p>With <code>--ff</code>, when possible resolve the merge as a fast-forward (only
+update the branch pointer to match the merged branch; do not create a
+merge commit).  When not possible (when the merged-in history is not a
+descendant of the current history), create a merge commit.</p></div>
+<div class="paragraph"><p>With <code>--no-ff</code>, create a merge commit in all cases, even when the merge
+could instead be resolved as a fast-forward.</p></div>
+<div class="paragraph"><p>With <code>--ff-only</code>, resolve the merge as a fast-forward when possible.
+When not possible, refuse to merge and exit with a non-zero status.</p></div>
 </dd>
 <dt class="hdlist1">
 -S[&lt;keyid&gt;]
@@ -1015,6 +1010,15 @@ merge.</p></div>
 <div class="paragraph"><p>With --no-squash perform the merge and commit the result. This
 option can be used to override --squash.</p></div>
 <div class="paragraph"><p>With --squash, --commit is not allowed, and will fail.</p></div>
+</dd>
+<dt class="hdlist1">
+--no-verify
+</dt>
+<dd>
+<p>
+        This option bypasses the pre-merge and commit-msg hooks.
+        See also <a href="githooks.html">githooks(5)</a>.
+</p>
 </dd>
 <dt class="hdlist1">
 -s &lt;strategy&gt;
@@ -2126,7 +2130,7 @@ version.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-06 15:39:22 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

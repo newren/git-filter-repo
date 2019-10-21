@@ -756,9 +756,9 @@ git-format-patch(1) Manual Page
                    [--signature-file=&lt;file&gt;]
                    [-n | --numbered | -N | --no-numbered]
                    [--start-number &lt;n&gt;] [--numbered-files]
-                   [--in-reply-to=Message-Id] [--suffix=.&lt;sfx&gt;]
+                   [--in-reply-to=&lt;message id&gt;] [--suffix=.&lt;sfx&gt;]
                    [--ignore-if-in-upstream]
-                   [--rfc] [--subject-prefix=Subject-Prefix]
+                   [--rfc] [--subject-prefix=&lt;subject prefix&gt;]
                    [(--reroll-count|-v) &lt;n&gt;]
                    [--to=&lt;email&gt;] [--cc=&lt;email&gt;]
                    [--[no-]cover-letter] [--quiet]
@@ -812,7 +812,8 @@ they are created in the current working directory. The default path
 can be set with the <code>format.outputDirectory</code> configuration option.
 The <code>-o</code> option takes precedence over <code>format.outputDirectory</code>.
 To store patches in the current working directory even when
-<code>format.outputDirectory</code> points elsewhere, use <code>-o .</code>.</p></div>
+<code>format.outputDirectory</code> points elsewhere, use <code>-o .</code>. All directory
+components will be created.</p></div>
 <div class="paragraph"><p>By default, the subject of a single patch is "[PATCH] " followed by
 the concatenation of lines from the commit message up to the first blank
 line (see the DISCUSSION section of <a href="git-commit.html">git-commit(1)</a>).</p></div>
@@ -1685,12 +1686,12 @@ itself.  If you want <code>git format-patch</code> to take care of threading, yo
 will want to ensure that threading is disabled for <code>git send-email</code>.</p></div>
 </dd>
 <dt class="hdlist1">
---in-reply-to=Message-Id
+--in-reply-to=&lt;message id&gt;
 </dt>
 <dd>
 <p>
         Make the first mail (or all the mails with <code>--no-thread</code>) appear as a
-        reply to the given Message-Id, which avoids breaking threads to
+        reply to the given &lt;message id&gt;, which avoids breaking threads to
         provide a new patch series.
 </p>
 </dd>
@@ -1707,12 +1708,12 @@ will want to ensure that threading is disabled for <code>git send-email</code>.<
 </p>
 </dd>
 <dt class="hdlist1">
---subject-prefix=&lt;Subject-Prefix&gt;
+--subject-prefix=&lt;subject prefix&gt;
 </dt>
 <dd>
 <p>
         Instead of the standard <em>[PATCH]</em> prefix in the subject
-        line, instead use <em>[&lt;Subject-Prefix&gt;]</em>. This
+        line, instead use <em>[&lt;subject prefix&gt;]</em>. This
         allows for useful naming of a patch series, and can be
         combined with the <code>--numbered</code> option.
 </p>
@@ -1946,7 +1947,8 @@ you can use <code>--suffix=-patch</code> to get <code>0001-description-of-my-cha
 <p>
         Record the base tree information to identify the state the
         patch series applies to.  See the BASE TREE INFORMATION section
-        below for details.
+        below for details. If &lt;commit&gt; is "auto", a base commit is
+        automatically chosen.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1977,8 +1979,9 @@ you can use <code>--suffix=-patch</code> to get <code>0001-description-of-my-cha
 <div class="sectionbody">
 <div class="paragraph"><p>You can specify extra mail header lines to be added to each message,
 defaults for the subject prefix and file suffix, number patches when
-outputting more than one patch, add "To" or "Cc:" headers, configure
-attachments, and sign off patches with configuration variables.</p></div>
+outputting more than one patch, add "To:" or "Cc:" headers, configure
+attachments, change the patch output directory, and sign off patches
+with configuration variables.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>[format]
@@ -1990,7 +1993,8 @@ attachments, and sign off patches with configuration variables.</p></div>
         cc = &lt;email&gt;
         attach [ = mime-boundary-string ]
         signOff = true
-        coverletter = auto</code></pre>
+        outputDirectory = &lt;directory&gt;
+        coverLetter = auto</code></pre>
 </div></div>
 </div>
 </div>
@@ -2416,7 +2420,7 @@ Extract three topmost commits from the current branch and format them
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-06 15:39:22 PDT
+ 2019-10-21 12:59:56 PDT
 </div>
 </div>
 </body>

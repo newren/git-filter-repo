@@ -774,10 +774,12 @@ are affected.</p></div>
 </dt>
 <dd>
 <p>
-        Remove untracked directories in addition to untracked files.
-        If an untracked directory is managed by a different Git
-        repository, it is not removed by default.  Use -f option twice
-        if you really want to remove such a directory.
+        Normally, when no &lt;path&gt; is specified, git clean will not
+        recurse into untracked directories to avoid removing too much.
+        Specify -d to have it recurse into such directories as well.
+        If any paths are specified, -d is irrelevant; all untracked
+        files matching the specified paths (with exceptions for nested
+        git directories mentioned under <code>--force</code>) will be removed.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -790,9 +792,9 @@ are affected.</p></div>
 <p>
         If the Git configuration variable clean.requireForce is not set
         to false, <em>git clean</em> will refuse to delete files or directories
-        unless given -f, -n or -i. Git will refuse to delete directories
-        with .git sub directory or file unless a second -f
-        is given.
+        unless given -f or -i.  Git will refuse to modify untracked
+        nested git repositories (directories with a .git subdirectory)
+        unless a second -f is given.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -970,7 +972,7 @@ help
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-06 15:39:22 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

@@ -1193,6 +1193,18 @@ and control the current import process.  More detailed discussion
 </p>
 </dd>
 <dt class="hdlist1">
+<code>alias</code>
+</dt>
+<dd>
+<p>
+        Record that a mark refers to a given object without first
+        creating any new object.  Using --import-marks and referring
+        to missing marks will cause fast-import to fail, so aliases
+        can provide a way to set otherwise pruned commits to a valid
+        value (e.g. the nearest non-pruned ancestor).
+</p>
+</dd>
+<dt class="hdlist1">
 <code>checkpoint</code>
 </dt>
 <dd>
@@ -1714,6 +1726,7 @@ lightweight (non-annotated) tags see the <code>reset</code> command below.</p></
 <div class="literalblock">
 <div class="content">
 <pre><code>        'tag' SP &lt;name&gt; LF
+        mark?
         'from' SP &lt;commit-ish&gt; LF
         original-oid?
         'tagger' (SP &lt;name&gt;)? SP LT &lt;email&gt; GT SP &lt;when&gt; LF
@@ -1850,6 +1863,19 @@ a data chunk which does not have an LF as its last byte.</p></div>
 <div class="paragraph"><p>The <code>LF</code> after <code>&lt;delim&gt; LF</code> is optional (it used to be required).</p></div>
 </dd>
 </dl></div>
+</div>
+<div class="sect2">
+<h3 id="_code_alias_code"><code>alias</code></h3>
+<div class="paragraph"><p>Record that a mark refers to a given object without first creating any
+new object.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>        'alias' LF
+        mark
+        'to' SP &lt;commit-ish&gt; LF
+        LF?</code></pre>
+</div></div>
+<div class="paragraph"><p>For a detailed description of <code>&lt;commit-ish&gt;</code> see above under <code>from</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_code_checkpoint_code"><code>checkpoint</code></h3>
@@ -2528,7 +2554,7 @@ compression.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-07 21:50:10 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.9" />
-<title>git-remote-helpers</title>
+<title>git-sparse-checkout(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -731,17 +731,179 @@ asciidoc.install();
 /*]]>*/
 </script>
 </head>
-<body class="article">
+<body class="manpage">
 <div id="header">
-<h1>git-remote-helpers</h1>
+<h1>
+git-sparse-checkout(1) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>git-sparse-checkout -
+   Initialize and modify the sparse-checkout configuration, which reduces the checkout to a set of directories given by a list of prefixes.
+</p>
+</div>
 </div>
 <div id="content">
-<div id="preamble">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This document has been moved to <a href="gitremote-helpers.html">gitremote-helpers(7)</a>.</p></div>
-<div class="paragraph"><p>Please let the owners of the referring site know so that they can update the
-link you clicked to get here.</p></div>
-<div class="paragraph"><p>Thanks.</p></div>
+<div class="verseblock">
+<pre class="content"><em>git sparse-checkout &lt;subcommand&gt; [options]</em></pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Initialize and modify the sparse-checkout configuration, which reduces
+the checkout to a set of directories given by a list of prefixes.</p></div>
+<div class="paragraph"><p>THIS COMMAND IS EXPERIMENTAL. THE BEHAVIOR MAY CHANGE.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_commands">COMMANDS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>list</em>
+</dt>
+<dd>
+<p>
+        Provide a list of the contents in the sparse-checkout file.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>init</em>
+</dt>
+<dd>
+<p>
+        Enable the <code>core.sparseCheckout</code> setting. If the
+        sparse-checkout file does not exist, then populate it with
+        patterns that match every file in the root directory and
+        no other directories, then will remove all directories tracked
+        by Git. Add patterns to the sparse-checkout file to
+        repopulate the working directory.
+</p>
+<div class="paragraph"><p>To avoid interfering with other worktrees, it first enables the
+<code>extensions.worktreeConfig</code> setting and makes sure to set the
+<code>core.sparseCheckout</code> setting in the worktree-specific config file.</p></div>
+</dd>
+<dt class="hdlist1">
+<em>set</em>
+</dt>
+<dd>
+<p>
+        Write a set of patterns to the sparse-checkout file, as given as
+        a list of arguments following the <em>set</em> subcommand. Update the
+        working directory to match the new patterns.
+</p>
+</dd>
+<dt class="hdlist1">
+<em>disable</em>
+</dt>
+<dd>
+<p>
+        Remove the sparse-checkout file, set <code>core.sparseCheckout</code> to
+        <code>false</code>, and restore the working directory to include all files.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sparse_checkout">SPARSE CHECKOUT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>"Sparse checkout" allows populating the working directory sparsely.
+It uses the skip-worktree bit (see <a href="git-update-index.html">git-update-index(1)</a>) to tell
+Git whether a file in the working directory is worth looking at. If
+the skip-worktree bit is set, then the file is ignored in the working
+directory. Git will not populate the contents of those files, which
+makes a sparse checkout helpful when working in a repository with many
+files, but only a few are important to the current user.</p></div>
+<div class="paragraph"><p>The <code>$GIT_DIR/info/sparse-checkout</code> file is used to define the
+skip-worktree reference bitmap. When Git updates the working
+directory, it updates the skip-worktree bits in the index based
+on this file. The files matching the patterns in the file will
+appear in the working directory, and the rest will not.</p></div>
+<div class="paragraph"><p>To enable the sparse-checkout feature, run <code>git sparse-checkout init</code> to
+initialize a simple sparse-checkout file and enable the <code>core.sparseCheckout</code>
+config setting. Then, run <code>git sparse-checkout set</code> to modify the patterns in
+the sparse-checkout file.</p></div>
+<div class="paragraph"><p>To repopulate the working directory with all files, use the
+<code>git sparse-checkout disable</code> command.</p></div>
+<div class="paragraph"><p>## FULL PATTERN SET</p></div>
+<div class="paragraph"><p>By default, the sparse-checkout file uses the same syntax as <code>.gitignore</code>
+files.</p></div>
+<div class="paragraph"><p>While <code>$GIT_DIR/info/sparse-checkout</code> is usually used to specify what
+files are included, you can also specify what files are <em>not</em> included,
+using negative patterns. For example, to remove the file <code>unwanted</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>/*
+!unwanted</code></pre>
+</div></div>
+<div class="paragraph"><p>## CONE PATTERN SET</p></div>
+<div class="paragraph"><p>The full pattern set allows for arbitrary pattern matches and complicated
+inclusion/exclusion rules. These can result in O(N*M) pattern matches when
+updating the index, where N is the number of patterns and M is the number
+of paths in the index. To combat this performance issue, a more restricted
+pattern set is allowed when <code>core.spareCheckoutCone</code> is enabled.</p></div>
+<div class="paragraph"><p>The accepted patterns in the cone pattern set are:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+<strong>Recursive:</strong> All paths inside a directory are included.
+</p>
+</li>
+<li>
+<p>
+<strong>Parent:</strong> All files immediately inside a directory are included.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>In addition to the above two patterns, we also expect that all files in the
+root directory are included. If a recursive pattern is added, then all
+leading directories are added as parent patterns.</p></div>
+<div class="paragraph"><p>By default, when running <code>git sparse-checkout init</code>, the root directory is
+added as a parent pattern. At this point, the sparse-checkout file contains
+the following patterns:</p></div>
+<div class="paragraph"><p>```
+/*
+!/*/
+```</p></div>
+<div class="paragraph"><p>This says "include everything in root, but nothing two levels below root."
+If we then add the folder <code>A/B/C</code> as a recursive pattern, the folders <code>A</code> and
+<code>A/B</code> are added as parent patterns. The resulting sparse-checkout file is
+now</p></div>
+<div class="paragraph"><p>```
+/*
+!/<strong>/
+/A/
+!/A/</strong>/
+/A/B/
+!/A/B/*/
+/A/B/C/
+```</p></div>
+<div class="paragraph"><p>Here, order matters, so the negative patterns are overridden by the positive
+patterns that appear lower in the file.</p></div>
+<div class="paragraph"><p>If <code>core.sparseCheckoutCone=true</code>, then Git will parse the sparse-checkout file
+expecting patterns of these types. Git will warn if the patterns do not match.
+If the patterns do match the expected format, then Git will use faster hash-
+based algorithms to compute inclusion in the sparse-checkout.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-read-tree.html">git-read-tree(1)</a>
+<a href="gitignore.html">gitignore(5)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
 </div>
 </div>
 </div>
@@ -749,7 +911,7 @@ link you clicked to get here.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-26 15:25:57 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>

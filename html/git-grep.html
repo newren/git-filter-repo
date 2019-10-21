@@ -1300,6 +1300,19 @@ providing this option will cause it to die.</p></div>
 <p>
         Read patterns from &lt;file&gt;, one per line.
 </p>
+<div class="paragraph"><p>Passing the pattern via &lt;file&gt; allows for providing a search pattern
+containing a \0.</p></div>
+<div class="paragraph"><p>Not all pattern types support patterns containing \0. Git will error
+out if a given pattern type can&#8217;t support such a pattern. The
+<code>--perl-regexp</code> pattern type when compiled against the PCRE v2 backend
+has the widest support for these types of patterns.</p></div>
+<div class="paragraph"><p>In versions of Git before 2.23.0 patterns containing \0 would be
+silently considered fixed. This was never documented, there were also
+odd and undocumented interactions between e.g. non-ASCII patterns
+containing \0 and <code>--ignore-case</code>.</p></div>
+<div class="paragraph"><p>In future versions we may learn to support patterns containing \0 for
+more search backends, until then we&#8217;ll die when the pattern type in
+question doesn&#8217;t support them.</p></div>
 </dd>
 <dt class="hdlist1">
 -e
@@ -1439,7 +1452,7 @@ in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-03 16:07:56 PDT
+ 2019-10-16 13:05:44 PDT
 </div>
 </div>
 </body>
