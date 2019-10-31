@@ -318,9 +318,11 @@ one of the last four traits as well:
 
 # Upstream Improvements
 
-Work on filter-repo and its predecessor has also driven numerous
-improvements to fast-export and fast-import (and occasionally other
-commands) in core git, based on things filter-repo needs to do its work:
+Work on filter-repo and [its
+predecessor](https://public-inbox.org/git/51419b2c0904072035u1182b507o836a67ac308d32b9@mail.gmail.com/)
+has also driven numerous improvements to fast-export and fast-import
+(and occasionally other commands) in core git, based on things
+filter-repo needs to do its work:
 
   * git-2.24.0
     * [fast-export: handle nested tags](
