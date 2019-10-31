@@ -14,6 +14,10 @@ contains a library for creating history rewriting tools.  As such, users
 with specialized needs can leverage it to quickly create [entirely new
 history rewriting tools](contrib/filter-repo-demos).
 
+filter-repo requires a fairly [recent version of
+git](#upstream-improvements) (git >= 2.22.0 at a minimum, newer versions
+are needed for some features).
+
 filter-repo is a single-file python script, depending only on the python
 standard library (and execution of git commands), all of which is designed
 to make build/installation trivial: just copy it into your $PATH.
@@ -316,7 +320,7 @@ one of the last four traits as well:
 
 Work on filter-repo and its predecessor has also driven numerous
 improvements to fast-export and fast-import (and occasionally other
-commands) in core git:
+commands) in core git, based on things filter-repo needs to do its work:
 
   * git-2.24.0
     * [fast-export: handle nested tags](
