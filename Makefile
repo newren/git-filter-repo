@@ -98,7 +98,7 @@ release: update_docs
 		| xz -c >$(FILEBASE).tar.xz
 	rm $$GIT_INDEX_FILE
 	# Make GitHub mark our new tag as an official release
-	curl -s -H "Authorization: token $(TOKEN)" -X POST \
+	curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -X POST \
 		https://api.github.com/repos/newren/git-filter-repo/releases \
 		--data "{                                  \
 		  \"tag_name\": \"$(TAGNAME)\",            \
@@ -107,7 +107,7 @@ release: update_docs
 		  \"body\": \"filter-repo $(TAGNAME)\"     \
 		}" | jq -r .id >asset_id
 	# Upload our tarball
-	cat asset_id | xargs -I ASSET_ID curl -s -H "Authorization: token $(TOKEN)" -H "Content-Type: application/octet-stream" --data-binary @$(FILEBASE).tar.xz https://uploads.github.com/repos/newren/git-filter-repo/releases/ASSET_ID/assets?name=$(FILEBASE).tar.xz
+	cat asset_id | xargs -I ASSET_ID curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -H "Content-Type: application/octet-stream" --data-binary @$(FILEBASE).tar.xz https://uploads.github.com/repos/newren/git-filter-repo/releases/ASSET_ID/assets?name=$(FILEBASE).tar.xz
 	# Remove temporary file(s)
 	rm asset_id
 	# Notify of completion
