@@ -26,12 +26,12 @@ fixup_locale:
 snag_docs: Documentation/man1/git-filter-repo.1 Documentation/html/git-filter-repo.html
 
 Documentation/man1/git-filter-repo.1:
-	mkdir -p man1
-	git show docs:man1/git-filter-repo.1 >Documentation/man1/git-filter-repo.1
+	mkdir -p Documentation/man1
+	git show origin/docs:man1/git-filter-repo.1 >Documentation/man1/git-filter-repo.1
 
 Documentation/html/git-filter-repo.html:
-	mkdir -p html
-	git show docs:html/git-filter-repo.html >Documentation/html/git-filter-repo.html
+	mkdir -p Documentation/html
+	git show origin/docs:html/git-filter-repo.html >Documentation/html/git-filter-repo.html
 
 install: snag_docs #fixup_locale
 	cp -a git-filter-repo $(bindir)/
