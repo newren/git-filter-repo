@@ -34,10 +34,10 @@ Documentation/html/git-filter-repo.html:
 	git show origin/docs:html/git-filter-repo.html >Documentation/html/git-filter-repo.html
 
 install: snag_docs #fixup_locale
-	cp -a git-filter-repo $(bindir)/
-	ln -s $(bindir)/git-filter-repo $(pythondir)/git_filter_repo.py
-	cp -a Documentation/man1/git-filter-repo.1 $(mandir)/man1/git-filter-repo.1
-	cp -a Documentation/html/git-filter-repo.html $(htmldir)/git-filter-repo.html
+	cp -a git-filter-repo "$(bindir)/"
+	ln -sf "$(bindir)/git-filter-repo" "$(pythondir)/git_filter_repo.py"
+	cp -a Documentation/man1/git-filter-repo.1 "$(mandir)/man1/git-filter-repo.1"
+	cp -a Documentation/html/git-filter-repo.html "$(htmldir)/git-filter-repo.html"
 
 
 #
