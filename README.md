@@ -41,7 +41,7 @@ manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo
 If you prefer learning from examples, the [simple
 example](#simple-example-with-comparisons) below may be of interest,
 and the user manual has an extensive [examples
-section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES).
+section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES). See [INSTALL](INSTALL) for installation instructions.
 
 # Why filter-repo instead of other alternatives?
 
