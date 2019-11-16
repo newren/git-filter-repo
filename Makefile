@@ -110,6 +110,9 @@ release: update_docs
 	cat asset_id | xargs -I ASSET_ID curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -H "Content-Type: application/octet-stream" --data-binary @$(FILEBASE).tar.xz https://uploads.github.com/repos/newren/git-filter-repo/releases/ASSET_ID/assets?name=$(FILEBASE).tar.xz
 	# Remove temporary file(s)
 	rm asset_id
+	# Upload to PyPI, automatically picking up the new tag
+	cd release && python3 setup.py sdist bdist_wheel
+	twine upload release/dist/*
 	# Notify of completion
 	@echo
 	@echo === filter-repo $(TAGNAME) created and uploaded to GitHub ===
