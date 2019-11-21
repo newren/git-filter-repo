@@ -334,6 +334,17 @@ one of the last four traits as well:
 
   1. [Speed] Filtering should be reasonably fast
 
+# How do I contribute?
+
+See the [contributing guidelines](Documentation/Contributing.md).
+
+# Is there a Code of Conduct?
+
+Participants in the filter-repo community are expected to adhere to
+the same standards as for the git project, so the [git Code of
+Conduct](https://git.kernel.org/pub/scm/git/git.git/tree/CODE_OF_CONDUCT.md)
+applies.
+
 # Upstream Improvements
 
 Work on filter-repo and [its
