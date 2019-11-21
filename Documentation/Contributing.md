@@ -1,8 +1,27 @@
-Welcome to the community!  Contributions to filter-repo generally
-should follow the same [guidelines for contribution to
-git.git](https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/SubmittingPatches).
+Welcome to the community!
 
-Exceptions:
+There are a few filter-repo specific guidelines to keep in mind:
+
+  * Please test line coverage if you add or modify code
+
+    * `make test` will run the testsuite under
+      [coverage3](https://pypi.org/project/coverage/) (which you will
+      need to install), and report on line coverage.  Line coverage of
+      git-filter-repo needs to remain at 100%.
+
+  * Please do not be intimidated by detailed feedback:
+
+    * In the git community, I have been contributing for years and
+      have had hundreds of patches accepted but I still find that even
+      when I try to make patches perfect I am not surprised when I
+      have to spend as much or more time fixing up patches after
+      submitting them than I did figuring out the patches in the first
+      place.  git folks tend to do thorough reviews, which has taught
+      me a lot, and I try to do the same for filter-repo.
+
+Other than those specific notes, contributions to filter-repo should
+generally follow the same [guidelines for contribution to
+git.git](https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/SubmittingPatches).  Exceptions:
 
   * While I
     [hate](https://public-inbox.org/git/CABPp-BG2SkH0GrRYpHLfp2Wey91ThwQoTgf9UmPa9f5Szn+v3Q@mail.gmail.com/)
@@ -45,13 +64,3 @@ Exceptions:
       8](https://www.python.org/dev/peps/pep-0008/), but have used
       two-space indents for years anyway -- and expect contributions
       to do the same.
-
-Also, please do not be intimidated by detailed feedback:
-
- * In the git community, I have been contributing for years and have
-   had hundreds of patches accepted but I still find that even when I
-   try to make patches perfect I am not surprised when I have to spend
-   as much or more time fixing up patches after submitting them than I
-   did figuring out the patches in the first place.  git folks tend to
-   do thorough reviews, which has taught me a lot, and I try to do the
-   same for filter-repo.
