@@ -46,6 +46,7 @@ installation for basic use trivial: just copy it into your $PATH.
 See [INSTALL](INSTALL) for things beyond basic usage or special cases.
 The more involved instructions are needed if you
 
+  * are working with a python3 executable named something other than "python3"
   * want to install documentation
   * want to run some of the [contrib](contrib/filter-repo-demos/) examples
   * want to create your own python filtering scripts using filter-repo as a

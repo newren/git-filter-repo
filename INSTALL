@@ -5,6 +5,11 @@ filter-repo only consists of a few files that need to be installed:
     This can be installed in the directory pointed to by `git --exec-path`,
     or placed anywhere in $PATH.  This is the only thing needed for basic use.
 
+    If your python3 executable is named "python" instead of "python3"
+    (this particularly appears to affect a number of Windows users),
+    then you'll also need to modify the first line of git-filter-repo
+    to replace "python3" with "python".
+
   * git_filter_repo.py
 
     If you want to make use of one of the scripts in contrib/filter-repo-demos/,
@@ -28,3 +33,7 @@ that prefer it.  However, usage of the Makefile really requires overridding
 at least a couple of the directories with sane values, e.g.
 
     $ make prefix=/usr pythondir=/usr/lib64/python3.8/site-packages install
+
+Also, the Makefile will not edit the shebang line (the first line) of
+git-filter-repo if your python executable is not named "python3";
+you'll still need to do that yourself.
