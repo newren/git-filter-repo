@@ -14,16 +14,10 @@ contains a library for creating history rewriting tools.  As such, users
 with specialized needs can leverage it to quickly create [entirely new
 history rewriting tools](contrib/filter-repo-demos).
 
-filter-repo requires a fairly [recent version of
-git](#upstream-improvements) (git >= 2.22.0 at a minimum, newer versions
-are needed for some features).
-
-filter-repo is a single-file python script, depending only on the python
-standard library (and execution of git commands), all of which is designed
-to make build/installation trivial: just copy it into your $PATH.
-
 # Table of Contents
 
+  * [Prerequisites](#prerequisites)
+  * [How do I install it?](#how-do-i-install-it)
   * [How do I use it?](#how-do-i-use-it)
   * [Why filter-repo instead of other alternatives?](#why-filter-repo-instead-of-other-alternatives)
     * [filter-branch](#filter-branch)
@@ -32,7 +26,30 @@ to make build/installation trivial: just copy it into your $PATH.
     * [Solving this with filter-repo](#solving-this-with-filter-repo)
     * [Solving this with other filtering tools](#solving-this-with-other-filtering-tools)
   * [Design rationale behind filter-repo](#design-rationale-behind-filter-repo)
+  * [How do I contribute?](#how-do-i-contribute)
+  * [Is there a Code of Conduct?](#is-there-a-code-of-conduct)
   * [Upstream Improvements](#upstream-improvements)
+
+# Prerequisites
+
+filter-repo requires:
+
+  * a fairly [recent version of git](#upstream-improvements) (git >=
+    2.22.0 at a minimum, newer versions are needed for some features)
+  * python3 (python >= 3.5)
+
+# How do I install it?
+
+git-filter-repo is a single-file python script, which was done to make
+installation for basic use trivial: just copy it into your $PATH.
+
+See [INSTALL](INSTALL) for things beyond basic usage or special cases.
+The more involved instructions are needed if you
+
+  * want to install documentation
+  * want to run some of the [contrib](contrib/filter-repo-demos/) examples
+  * want to create your own python filtering scripts using filter-repo as a
+    module/library
 
 # How do I use it?
 
