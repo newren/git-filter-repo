@@ -1584,6 +1584,8 @@ class GitUtils(object):
       contents = f.read()
     # If people replaced @@LOCALEDIR@@ string to point at their local
     # directory, undo it so we can get original source version.
+    contents = re.sub(br'^#\!/usr/bin/env python.*',
+                      br'#!/usr/bin/env python3', contents)
     contents = re.sub(br'(\("GIT_TEXTDOMAINDIR"\) or ").*"',
                       br'\1@@LOCALEDIR@@"', contents)
 
