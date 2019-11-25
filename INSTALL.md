@@ -1,3 +1,5 @@
+# What/why/where to install things
+
 filter-repo only consists of a few files that need to be installed:
 
   * git-filter-repo
@@ -28,6 +30,8 @@ filter-repo only consists of a few files that need to be installed:
     version of the same page is provided for those who prefer it.  Place it
     where ever you like; I have no idea where such a thing should go.
 
+# Installation via Makefile
+
 Installing should be doable by hand, but a Makefile is provided for those
 that prefer it.  However, usage of the Makefile really requires overridding
 at least a couple of the directories with sane values, e.g.
@@ -37,3 +41,29 @@ at least a couple of the directories with sane values, e.g.
 Also, the Makefile will not edit the shebang line (the first line) of
 git-filter-repo if your python executable is not named "python3";
 you'll still need to do that yourself.
+
+# Installation via [pip](https://pip.pypa.io/)
+
+Coming soon; see [PR #16](https://github.com/newren/git-filter-repo/pull/16).
+
+# Installation via Package Manager
+
+There are [package
+managers](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
+for most operating systems; from
+[dnf](https://github.com/rpm-software-management/dnf) or
+[yum](http://yum.baseurl.org/) or
+[apt-get](https://www.debian.org/doc/manuals/debian-reference/ch02.en.html)
+or whatever for Linux, to [brew](https://brew.sh/) for Mac OS X, to
+[scoop](https://scoop.sh/) for Windows.  Nearly any of these tools
+will reduce the installation instructions down to
+
+    $ PACKAGE_TOOL install git-filter-repo
+
+I have no interest in tracking all these pre-built packages (nor
+whether those who packaged git-filter-repo have made modifications or
+left parts of it out), but apparently https://repology.org is willing
+to track who has packaged it.  So, using repology's packaging status
+link, the following package managers have packaged git-filter-repo:
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/git-filter-repo.svg)](https://repology.org/project/git-filter-repo/versions)
