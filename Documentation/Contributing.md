@@ -61,6 +61,7 @@ git.git](https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/Submittin
       broadly in the code base multiple times; but it's just a bad
       idea to use an abstraction that doesn't fit the data.
     * I generally like [PEP
-      8](https://www.python.org/dev/peps/pep-0008/), but have used
-      two-space indents for years anyway -- and expect contributions
-      to do the same.
+      8](https://www.python.org/dev/peps/pep-0008/), but used
+      two-space indents for years before learning of it and have just
+      continued that habit.  For consistency, contributions should also
+      use two-space indents and otherwise generally follow PEP 8.
