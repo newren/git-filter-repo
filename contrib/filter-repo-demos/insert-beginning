@@ -14,7 +14,7 @@ near the top of git-filter-repo.
 """
 
 # Technically, this program could be replaced by a one-liner:
-#    git filter-repo --force --commit-callback "if not commit.parents: commit.file_changes.append(FileChange(b'M', $PATHNAME, $(git hash-object -w $FILENAME), 100644))"
+#    git filter-repo --force --commit-callback "if not commit.parents: commit.file_changes.append(FileChange(b'M', $RELATIVE_TO_PROJECT_ROOT_PATHNAME, b'$(git hash-object -w $FILENAME)', b'100644'))"
 # but let's do it as a full-fledged program that imports git_filter_repo
 # anyway...
 
@@ -29,7 +29,7 @@ except ImportError:
 parser = argparse.ArgumentParser(
           description='Add a file to the root commit(s) of history')
 parser.add_argument('--file', type=os.fsencode,
-        help=("Path to file whose contents should be added to root commit(s)"))
+        help=("Relative-path to file whose contents should be added to root commit(s)"))
 args = parser.parse_args()
 if not args.file:
   raise SystemExit("Error: Need to specify the --file option")
