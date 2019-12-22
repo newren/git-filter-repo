@@ -884,7 +884,7 @@ class FastExportParser(object):
                tag_callback = None,   commit_callback = None,
                blob_callback = None,  progress_callback = None,
                reset_callback = None, checkpoint_callback = None,
-               done_callback = None):
+               done_callback = None,  callback_data = None):
     # Members below simply store callback functions for the various git
     # elements
     self._tag_callback        = tag_callback
@@ -894,6 +894,8 @@ class FastExportParser(object):
     self._progress_callback   = progress_callback
     self._checkpoint_callback = checkpoint_callback
     self._done_callback       = done_callback
+
+    self._callback_data       = callback_data
 
     # Keep track of which refs appear from the export, and which make it to
     # the import (pruning of empty commits, renaming of refs, and creating
@@ -1114,7 +1116,7 @@ class FastExportParser(object):
 
     # Call any user callback to allow them to use/modify the blob
     if self._blob_callback:
-      self._blob_callback(blob)
+      self._blob_callback(blob, self._callback_data)
 
     # Now print the resulting blob
     if not blob.dumped:
@@ -1149,7 +1151,7 @@ class FastExportParser(object):
 
     # Call any user callback to allow them to modify the reset
     if self._reset_callback:
-      self._reset_callback(reset)
+      self._reset_callback(reset, self._callback_data)
 
     # Update metadata
     self._latest_commit[reset.ref] = reset.from_ref
@@ -1246,7 +1248,7 @@ class FastExportParser(object):
     aux_info = {'orig_parents': orig_parents,
                 'had_file_changes': had_file_changes}
     if self._commit_callback:
-      self._commit_callback(commit, aux_info)
+      self._commit_callback(commit, aux_info, self._callback_data)
 
     # Now print the resulting commit, or if prunable skip it
     self._latest_orig_commit[branch] = commit.id
@@ -1294,7 +1296,7 @@ class FastExportParser(object):
 
     # Call any user callback to allow them to modify the tag
     if self._tag_callback:
-      self._tag_callback(tag)
+      self._tag_callback(tag, self._callback_data)
 
     # The tag might not point at anything that still exists (self.from_ref
     # will be None if the commit it pointed to and all its ancestors were
@@ -1323,7 +1325,7 @@ class FastExportParser(object):
 
     # Call any user callback to allow them to modify the progress messsage
     if self._progress_callback:
-      self._progress_callback(progress)
+      self._progress_callback(progress, self._callback_data)
 
     # NOTE: By default, we do NOT print the progress message; git
     # fast-import would write it to fast_import_pipes which could mess with
@@ -1349,7 +1351,7 @@ class FastExportParser(object):
 
     # Call any user callback to allow them to drop the checkpoint
     if self._checkpoint_callback:
-      self._checkpoint_callback(checkpoint)
+      self._checkpoint_callback(checkpoint, self._callback_data)
 
     # NOTE: By default, we do NOT print the checkpoint message; although it
     # we would only realistically get them with --stdin, the fact that we
@@ -1406,7 +1408,7 @@ class FastExportParser(object):
         self._parse_literal_command()
       elif self._currentline.startswith(b'done'):
         if self._done_callback:
-          self._done_callback()
+          self._done_callback(self._callback_data)
         self._parse_literal_command()
         # Prevent confusion from others writing additional stuff that'll just
         # be ignored
@@ -2640,7 +2642,8 @@ class RepoFilter(object):
                commit_callback = None,
                tag_callback = None,
                reset_callback = None,
-               done_callback = None):
+               done_callback = None,
+               callback_data = None):
 
     self._args = args
 
@@ -2660,6 +2663,10 @@ class RepoFilter(object):
     self._name_callback        = name_callback      # author, committer, tagger
     self._email_callback       = email_callback     # author, committer, tagger
     self._refname_callback     = refname_callback   # from commit/tag/reset
+
+    # User data pointer
+    self._callback_data = callback_data
+
     self._handle_arg_callbacks()
 
     # Defaults for input
@@ -3159,9 +3166,9 @@ class RepoFilter(object):
         blob.data = regex.sub(replacement, blob.data)
 
     if self._blob_callback:
-      self._blob_callback(blob, self.callback_metadata())
+      self._blob_callback(blob, self.callback_metadata(), self._callback_data)
 
-  def _tweak_commit(self, commit, aux_info):
+  def _tweak_commit(self, commit, aux_info, callback_data):
     def filename_matches(path_expression, pathname):
       ''' Returns whether path_expression matches pathname or a leading
           directory thereof, allowing path_expression to not have a trailing
@@ -3207,7 +3214,7 @@ class RepoFilter(object):
       commit.message = self._hash_re.sub(self._translate_commit_hash,
                                          commit.message)
     if self._message_callback:
-      commit.message = self._message_callback(commit.message)
+      commit.message = self._message_callback(commit.message, self._callback_data)
 
     # Change the author & committer according to mailmap rules
     args = self._args
@@ -3218,18 +3225,18 @@ class RepoFilter(object):
           args.mailmap.translate(commit.committer_name, commit.committer_email)
     # Change author & committer according to callbacks
     if self._name_callback:
-      commit.author_name = self._name_callback(commit.author_name)
-      commit.committer_name = self._name_callback(commit.committer_name)
+      commit.author_name = self._name_callback(commit.author_name, self._callback_data)
+      commit.committer_name = self._name_callback(commit.committer_name, self._callback_data)
     if self._email_callback:
-      commit.author_email = self._email_callback(commit.author_email)
-      commit.committer_email = self._email_callback(commit.committer_email)
+      commit.author_email = self._email_callback(commit.author_email, self._callback_data)
+      commit.committer_email = self._email_callback(commit.committer_email, self._callback_data)
 
     # Sometimes the 'branch' given is a tag; if so, rename it as requested so
     # we don't get any old tagnames
     if self._args.tag_rename:
       commit.branch = RepoFilter._do_tag_rename(args.tag_rename, commit.branch)
     if self._refname_callback:
-      commit.branch = self._refname_callback(commit.branch)
+      commit.branch = self._refname_callback(commit.branch, self._callback_data)
 
     # Filter or rename the list of file changes
     orig_file_changes = set(commit.file_changes)
@@ -3249,7 +3256,7 @@ class RepoFilter(object):
         change.filename = newname(args.path_changes, change.filename,
                                   args.use_base_name, args.inclusive)
         if self._filename_callback:
-          change.filename = self._filename_callback(change.filename)
+          change.filename = self._filename_callback(change.filename, self._callback_data)
         self._newnames[change.filename] = change.filename
       if not change.filename:
         continue # Filtering criteria excluded this file; move on to next one
@@ -3327,7 +3334,7 @@ class RepoFilter(object):
 
     # Call the user-defined callback, if any
     if self._commit_callback:
-      self._commit_callback(commit, self.callback_metadata(aux_info))
+      self._commit_callback(commit, self.callback_metadata(aux_info), self._callback_data)
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
@@ -3387,7 +3394,7 @@ class RepoFilter(object):
 
     # Call general purpose tag callback
     if self._tag_callback:
-      self._tag_callback(tag, self.callback_metadata())
+      self._tag_callback(tag, self.callback_metadata(), self._callback_data)
 
   def _tweak_reset(self, reset):
     if self._args.tag_rename:
@@ -3395,7 +3402,7 @@ class RepoFilter(object):
     if self._refname_callback:
       reset.ref = self._refname_callback(reset.ref)
     if self._reset_callback:
-      self._reset_callback(reset, self.callback_metadata())
+      self._reset_callback(reset, self.callback_metadata(), self._callback_data)
 
   def results_tmp_dir(self, create_if_missing=True):
     target_working_dir = self._args.target or b'.'
@@ -3580,9 +3587,9 @@ class RepoFilter(object):
       print("        longer be related; consider re-pushing it elsewhere.")
     subproc.call('git remote rm origin'.split(), cwd=target_working_dir)
 
-  def _final_commands(self):
+  def _final_commands(self, callback_data):
     self._finalize_handled = True
-    self._done_callback and self._done_callback()
+    self._done_callback and self._done_callback(self._callback_data)
 
     if not self._args.quiet:
       self._progress_writer.finish()
