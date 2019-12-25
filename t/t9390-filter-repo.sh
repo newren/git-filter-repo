@@ -1323,6 +1323,7 @@ test_expect_success 'degenerate merge with non-matching filenames' '
 		git reset --hard &&
 		mkdir -p pkg/list &&
 		test_commit pkg/list/whatever &&
+		test_commit unwanted_file &&
 
 		git checkout A &&
 		git merge --allow-unrelated-histories --no-commit B &&
@@ -1333,8 +1334,9 @@ test_expect_success 'degenerate merge with non-matching filenames' '
 
 		git filter-repo --force --path pkg/list &&
 		! test_path_is_file pkg/list/whatever.t &&
-		git ls-files >files &&
-		! grep pkg/list/whatever.t files
+		git ls-files >actual
+		echo pkg/list/wanted >expect &&
+		test_cmp expect actual
 	)
 '
 
