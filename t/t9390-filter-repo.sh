@@ -1028,7 +1028,10 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_i18ngrep "renaming globs makes no sense" err &&
 
 		test_must_fail git filter-repo --strip-blobs-bigger-than 3GiB 2>err &&
-		test_i18ngrep "could not parse.*3GiB" err
+		test_i18ngrep "could not parse.*3GiB" err &&
+
+		test_must_fail git filter-repo --path-rename foo/bar:. 2>err &&
+		test_i18ngrep "Invalid path component .\.. found in .foo/bar:\." err
 
 	)
 '

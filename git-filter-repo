@@ -1602,6 +1602,7 @@ class GitUtils(object):
 class FilteringOptions(object):
   class AppendFilter(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
+      user_path = values
       suffix = option_string[len('--path-'):] or 'match'
       if suffix.startswith('rename'):
         mod_type = 'rename'
@@ -1612,9 +1613,15 @@ class FilteringOptions(object):
           raise SystemExit(_("Error: With --path-rename, if OLD_NAME and "
                              "NEW_NAME are both non-empty and either ends "
                              "with a slash then both must."))
+        components = values[0].split(b'/') + values[1].split(b'/')
       else:
         mod_type = 'filter'
         match_type = suffix
+        components = values.split(b'/')
+      for illegal_path in [b'.', b'..', b'.git']:
+        if illegal_path in components:
+          raise SystemExit(_("Error: Invalid path component '%s' found in '%s'")
+                           % (decode(illegal_path), decode(user_path)))
       if match_type == 'regex':
         values = re.compile(values)
       items = getattr(namespace, self.dest, []) or []
