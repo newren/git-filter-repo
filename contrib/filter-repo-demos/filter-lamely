@@ -113,6 +113,8 @@ try:
 except ImportError:
   raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
 
+subproc = fr.subproc
+
 class UserInterfaceNightmare:
   def __init__(self):
     args = UserInterfaceNightmare.parse_args()
@@ -258,7 +260,7 @@ class UserInterfaceNightmare:
     # does.
     cur_refs = {}
     cmd = 'git show-ref --head --dereference'
-    output = subprocess.check_output(cmd.split())
+    output = subproc.check_output(cmd.split())
     for line in output.splitlines():
       objhash, refname = line.split()
       if refname.endswith(b'^{}'):
@@ -273,8 +275,8 @@ class UserInterfaceNightmare:
         cmds = b''.join([b"delete %s\n" % r
                          for r in sorted(self._orig_refs)
                          if r.startswith(self.args.original)])
-        subprocess.check_output('git update-ref --no-deref --stdin'.split(),
-                                input = cmds)
+        subproc.check_output('git update-ref --no-deref --stdin'.split(),
+                             input = cmds)
       else:
         raise SystemExit("Error: {} already exists.  Force overwriting with -f"
                          .format(fr.decode(self.args.original)))
@@ -289,8 +291,8 @@ class UserInterfaceNightmare:
                                             self._orig_refs[r])
                      for r in sorted(overwritten)
                      if r not in new_refs or self._orig_refs[r] != new_refs[r]])
-    subprocess.check_output('git update-ref --no-deref --stdin'.split(),
-                            input = cmds)
+    subproc.check_output('git update-ref --no-deref --stdin'.split(),
+                         input = cmds)
 
   def _setup(self):
     if self.args.force and os.path.exists(self.args.d):
@@ -333,11 +335,11 @@ class UserInterfaceNightmare:
     # filter-branch treats --tag-name-filter as an implicit "follow-tags"-ish
     # behavior.  So, we need to determine which tags point to commits we are
     # rewriting.
-    output = subprocess.check_output(['git', 'rev-list'] + self.args.refs)
+    output = subproc.check_output(['git', 'rev-list'] + self.args.refs)
     all_commits = set(output.splitlines())
 
     cmd = 'git show-ref --tags --dereference'.split()
-    output = subprocess.check_output(cmd)
+    output = subproc.check_output(cmd)
 
     # In ideal world, follow_tags would be a list of tags which point at one
     # of the commits in all_commits.  But since filter-branch is insane and
@@ -375,16 +377,16 @@ class UserInterfaceNightmare:
     return self.args.refs + list(follow_tags.values())
 
   def _populate_full_index(self, commit):
-    subprocess.check_call(['git', 'read-tree', commit])
+    subproc.check_call(['git', 'read-tree', commit])
 
   def _populate_index(self, file_changes):
-    subprocess.check_call('git read-tree --empty'.split())
+    subproc.check_call('git read-tree --empty'.split())
     # [BUG-COMPAT??] filter-branch tests are weird, and filter-branch itself
     # manually sets GIT_ALLOW_NULL_SHA1, so to pass the same tests we need to
     # as well.
     os.environ['GIT_ALLOW_NULL_SHA1'] = '1'
-    p = subprocess.Popen('git update-index --index-info'.split(),
-                         stdin = subprocess.PIPE)
+    p = subproc.Popen('git update-index --index-info'.split(),
+                      stdin = subprocess.PIPE)
     for change in file_changes:
       if change.type == b'D':
         # We need to write something out to the index for the delete in
@@ -403,7 +405,7 @@ class UserInterfaceNightmare:
 
   def _update_file_changes_from_index(self, commit):
     new_changes = {}
-    output = subprocess.check_output('git ls-files -s'.split())
+    output = subproc.check_output('git ls-files -s'.split())
     for line in output.splitlines():
       mode_thru_stage, filename = line.split(b'\t', 1)
       mode, objid, stage = mode_thru_stage.split(b' ')
@@ -433,8 +435,8 @@ class UserInterfaceNightmare:
 
   def fixup_commit(self, commit, metadata):
     if self.args.msg_filter:
-      commit.message = subprocess.check_output(self.args.msg_filter, shell=True,
-                                               input = commit.message)
+      commit.message = subproc.check_output(self.args.msg_filter, shell=True,
+                                            input = commit.message)
 
     if self.args.env_filter and not self.args.commit_filter:
       envvars = self._env_variables(commit)
@@ -447,7 +449,7 @@ class UserInterfaceNightmare:
         echo "${GIT_COMMITTER_DATE}"
         '''
       shell_snippet = envvars + self.args.env_filter.encode() + echo_results
-      output = subprocess.check_output(['/bin/sh', '-c', shell_snippet]).strip()
+      output = subproc.check_output(['/bin/sh', '-c', shell_snippet]).strip()
       last = output.splitlines()[-6:]
       commit.author_name     = last[0]
       commit.author_email    = last[1]
@@ -487,13 +489,13 @@ class UserInterfaceNightmare:
           shutil.rmtree(self.tmp_tree)
         os.makedirs(self.tmp_tree)
         # Put the files there
-        subprocess.check_call('git checkout-index --all'.split())
+        subproc.check_call('git checkout-index --all'.split())
         # Call the tree filter
-        subprocess.call(self.args.tree_filter, shell=True, cwd=self.tmp_tree)
+        subproc.call(self.args.tree_filter, shell=True, cwd=self.tmp_tree)
         # Add the files, then move out of the directory
-        subprocess.check_call('git add -A'.split())
+        subproc.check_call('git add -A'.split())
       if self.args.index_filter:
-        subprocess.call(self.args.index_filter, shell=True, cwd=self.tmp_tree)
+        subproc.call(self.args.index_filter, shell=True, cwd=self.tmp_tree)
       self._update_file_changes_from_index(commit)
       if full_tree:
         commit.file_changes.insert(0, fr.FileChange(b'DELETEALL'))
@@ -511,7 +513,7 @@ class UserInterfaceNightmare:
           with open(os.path.join(realdir, basename), 'bw') as f:
             f.write(change.filename)
         # Call the tree filter
-        subprocess.call(self.args.tree_filter, shell=True, cwd=self.tmp_tree)
+        subproc.call(self.args.tree_filter, shell=True, cwd=self.tmp_tree)
         # Get the updated file deletions
         updated_deletion_paths = set()
         for dirname, subdirs, files in os.walk(self.tmp_tree):
@@ -533,7 +535,7 @@ class UserInterfaceNightmare:
 
       # Get tree and parents we need to pass
       cmd = b'git rev-parse %s^{tree}' % commit.original_id
-      tree = subprocess.check_output(cmd.split()).strip()
+      tree = subproc.check_output(cmd.split()).strip()
       parent_pairs = zip(['-p']*len(commit.parents), commit.parents)
 
       # Define the command to run
@@ -543,7 +545,7 @@ class UserInterfaceNightmare:
       cmd += [item for pair in parent_pairs for item in pair]
 
       # Run it and get the new commit
-      new_commit = subprocess.check_output(cmd, input = commit.message).strip()
+      new_commit = subproc.check_output(cmd, input = commit.message).strip()
       commit.skip(new_commit)
 
       reset = fr.Reset(commit.branch, new_commit)
@@ -555,8 +557,8 @@ class UserInterfaceNightmare:
     if not self.args.tag_name_filter or not refname.startswith(b'refs/tags/'):
       return refname
 
-    newname = subprocess.check_output(self.args.tag_name_filter, shell=True,
-                                      input=refname[10:]).strip()
+    newname = subproc.check_output(self.args.tag_name_filter, shell=True,
+                                   input=refname[10:]).strip()
     return b'refs/tags/' + newname
 
   def deref_tags(self, tag, metadata):

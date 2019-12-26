@@ -1458,6 +1458,12 @@ class SubprocessWrapper(object):
     return subprocess.check_output(SubprocessWrapper.decodify(*args), **kwargs)
 
   @staticmethod
+  def check_call(*args, **kwargs): # pragma: no cover  # used by filter-lamely
+    if 'cwd' in kwargs:
+      kwargs['cwd'] = decode(kwargs['cwd'])
+    return subprocess.check_call(SubprocessWrapper.decodify(*args), **kwargs)
+
+  @staticmethod
   def Popen(*args, **kwargs):
     if 'cwd' in kwargs:
       kwargs['cwd'] = decode(kwargs['cwd'])
