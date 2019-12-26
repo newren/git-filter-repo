@@ -104,6 +104,8 @@ try:
 except ImportError:
   raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
 
+subproc = fr.subproc
+
 def java_to_fnmatch_glob(extended_glob):
   if not extended_glob:
     return None
@@ -302,16 +304,16 @@ class BFG_ish:
     if not ref_tips:
       return []
     cmd = 'git rev-parse --symbolic-full-name'.split()
-    p = subprocess.Popen(cmd + ref_tips,
-                         stdout = subprocess.PIPE,
-                         stderr = subprocess.STDOUT)
+    p = subproc.Popen(cmd + ref_tips,
+                      stdout = subprocess.PIPE,
+                      stderr = subprocess.STDOUT)
     ret = p.wait()
     output = p.stdout.read()
     if ret != 0:
       raise SystemExit("Failed to translate --preserve-ref-tips arguments into refs\n"+fr.decode(output))
     refs = output.splitlines()
     ref_trees = [b'%s^{tree}' % ref for ref in refs]
-    output = subprocess.check_output(['git', 'rev-parse'] + ref_trees)
+    output = subproc.check_output(['git', 'rev-parse'] + ref_trees)
     trees = output.splitlines()
     return dict(zip(refs, trees))
 
@@ -325,7 +327,7 @@ class BFG_ish:
     # --preserve-ref-tips/--protect-blobs-from is a design mistake.
     updates = {}
     for ref, tree in preserve_refs.items():
-      output = subprocess.check_output('git cat-file -p'.split()+[ref])
+      output = subproc.check_output('git cat-file -p'.split()+[ref])
       lines = output.splitlines()
       if not lines[0].startswith(b'tree '):
         raise SystemExit("Error: --preserve-ref-tips only works with commit refs")
@@ -348,17 +350,16 @@ class BFG_ish:
       assert lines[num+2] == b''
       commit_msg = b'\n'.join(lines[num+3:])+b'\n'
       p_s = [val for pair in zip(['-p',]*len(parents), parents) for val in pair]
-      p = subprocess.Popen('git commit-tree'.split() + p_s + [tree],
-                           stdin = subprocess.PIPE, stdout = subprocess.PIPE,
-                           env = new_env)
+      p = subproc.Popen('git commit-tree'.split() + p_s + [tree],
+                        stdin = subprocess.PIPE, stdout = subprocess.PIPE,
+                        env = new_env)
       p.stdin.write(commit_msg)
       p.stdin.close()
       if p.wait() != 0:
         raise SystemExit("Error: failed to write preserve commit for {} [{}]"
                          .format(ref, tree))
       updates[ref] = p.stdout.read().strip()
-    p = subprocess.Popen('git update-ref --stdin'.split(),
-                         stdin = subprocess.PIPE)
+    p = subproc.Popen('git update-ref --stdin'.split(), stdin = subprocess.PIPE)
     for ref, newvalue in updates.items():
       p.stdin.write(b'update %s %s\n' % (ref, newvalue))
     p.stdin.close()
@@ -396,9 +397,9 @@ class BFG_ish:
       new_replace_file = self.convert_replace_text(bfg_args.replace_text)
       rules = fr.FilteringOptions.get_replace_text(new_replace_file)
       self.replacement_rules = rules
-      self.cat_file_proc = subprocess.Popen(['git', 'cat-file', '--batch'],
-                                            stdin = subprocess.PIPE,
-                                            stdout = subprocess.PIPE)
+      self.cat_file_proc = subproc.Popen(['git', 'cat-file', '--batch'],
+                                         stdin = subprocess.PIPE,
+                                         stdout = subprocess.PIPE)
     self.args = bfg_args
     # Setting partial prevents:
     #   * remapping origin remote tracking branches to regular branches
