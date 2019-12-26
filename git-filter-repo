@@ -3161,7 +3161,7 @@ class RepoFilter(object):
     if self._blob_callback:
       self._blob_callback(blob, self.callback_metadata())
 
-  def _tweak_commit(self, commit, aux_info):
+  def _filter_files(self, commit):
     def filename_matches(path_expression, pathname):
       ''' Returns whether path_expression matches pathname or a leading
           directory thereof, allowing path_expression to not have a trailing
@@ -3202,37 +3202,7 @@ class RepoFilter(object):
             full_pathname = match.sub(repl, full_pathname)
       return full_pathname if (wanted == filtering_is_inclusive) else None
 
-    # Change the commit message according to callback
-    if not self._args.preserve_commit_hashes:
-      commit.message = self._hash_re.sub(self._translate_commit_hash,
-                                         commit.message)
-    if self._message_callback:
-      commit.message = self._message_callback(commit.message)
-
-    # Change the author & committer according to mailmap rules
     args = self._args
-    if args.mailmap:
-      commit.author_name, commit.author_email = \
-          args.mailmap.translate(commit.author_name, commit.author_email)
-      commit.committer_name, commit.committer_email = \
-          args.mailmap.translate(commit.committer_name, commit.committer_email)
-    # Change author & committer according to callbacks
-    if self._name_callback:
-      commit.author_name = self._name_callback(commit.author_name)
-      commit.committer_name = self._name_callback(commit.committer_name)
-    if self._email_callback:
-      commit.author_email = self._email_callback(commit.author_email)
-      commit.committer_email = self._email_callback(commit.committer_email)
-
-    # Sometimes the 'branch' given is a tag; if so, rename it as requested so
-    # we don't get any old tagnames
-    if self._args.tag_rename:
-      commit.branch = RepoFilter._do_tag_rename(args.tag_rename, commit.branch)
-    if self._refname_callback:
-      commit.branch = self._refname_callback(commit.branch)
-
-    # Filter or rename the list of file changes
-    orig_file_changes = set(commit.file_changes)
     new_file_changes = {}  # Assumes no renames or copies, otherwise collisions
     for change in commit.file_changes:
       # NEEDSWORK: _If_ we ever want to pass `--full-tree` to fast-export and
@@ -3294,13 +3264,39 @@ class RepoFilter(object):
       new_file_changes[change.filename] = change
     commit.file_changes = [v for k,v in sorted(new_file_changes.items())]
 
-    # Find out which files were modified by the callbacks.  Such paths could
-    # lead to sebsequent commits being empty (e.g. if removed a line containing
-    # a password from every version of a file that had the password, and some
-    # later commit did nothing more than remove that line)
-    final_file_changes = set(commit.file_changes)
-    differences = orig_file_changes.symmetric_difference(final_file_changes)
-    self._files_tweaked.update(x.filename for x in differences)
+  def _tweak_commit(self, commit, aux_info):
+    # Change the commit message according to callback
+    if not self._args.preserve_commit_hashes:
+      commit.message = self._hash_re.sub(self._translate_commit_hash,
+                                         commit.message)
+    if self._message_callback:
+      commit.message = self._message_callback(commit.message)
+
+    # Change the author & committer according to mailmap rules
+    args = self._args
+    if args.mailmap:
+      commit.author_name, commit.author_email = \
+          args.mailmap.translate(commit.author_name, commit.author_email)
+      commit.committer_name, commit.committer_email = \
+          args.mailmap.translate(commit.committer_name, commit.committer_email)
+    # Change author & committer according to callbacks
+    if self._name_callback:
+      commit.author_name = self._name_callback(commit.author_name)
+      commit.committer_name = self._name_callback(commit.committer_name)
+    if self._email_callback:
+      commit.author_email = self._email_callback(commit.author_email)
+      commit.committer_email = self._email_callback(commit.committer_email)
+
+    # Sometimes the 'branch' given is a tag; if so, rename it as requested so
+    # we don't get any old tagnames
+    if self._args.tag_rename:
+      commit.branch = RepoFilter._do_tag_rename(args.tag_rename, commit.branch)
+    if self._refname_callback:
+      commit.branch = self._refname_callback(commit.branch)
+
+    # Filter or rename the list of file changes
+    orig_file_changes = set(commit.file_changes)
+    self._filter_files(commit)
 
     # Record ancestry graph
     parents, orig_parents = commit.parents, aux_info['orig_parents']
@@ -3324,6 +3320,16 @@ class RepoFilter(object):
       commit.file_changes = GitUtils.get_file_changes(self._repo_working_dir,
                                                       ID_TO_HASH[parents[0]],
                                                       commit.original_id)
+      orig_file_changes = set(commit.file_changes)
+      self._filter_files(commit)
+
+    # Find out which files were modified by the callbacks.  Such paths could
+    # lead to sebsequent commits being empty (e.g. if removed a line containing
+    # a password from every version of a file that had the password, and some
+    # later commit did nothing more than remove that line)
+    final_file_changes = set(commit.file_changes)
+    differences = orig_file_changes.symmetric_difference(final_file_changes)
+    self._files_tweaked.update(x.filename for x in differences)
 
     # Call the user-defined callback, if any
     if self._commit_callback:
