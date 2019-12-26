@@ -17,11 +17,16 @@ There are a few filter-repo specific guidelines to keep in mind:
       have to spend as much or more time fixing up patches after
       submitting them than I did figuring out the patches in the first
       place.  git folks tend to do thorough reviews, which has taught
-      me a lot, and I try to do the same for filter-repo.
+      me a lot, and I try to do the same for filter-repo.  Plus, as
+      noted below, I want contributions from others to be acceptable
+      in git.git itself.
 
-Other than those specific notes, contributions to filter-repo should
-generally follow the same [guidelines for contribution to
-git.git](https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/SubmittingPatches).  Exceptions:
+Contributions need to meet the bar for inclusion in git.git.  Although
+filter-repo is not part of the git.git repository, I want to leave the
+option open for it to be merged in the future.  As such, any
+contributions need to follow the same [guidelines for contribution to
+git.git](https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/SubmittingPatches),
+with a few exceptions:
 
   * While I
     [hate](https://public-inbox.org/git/CABPp-BG2SkH0GrRYpHLfp2Wey91ThwQoTgf9UmPa9f5Szn+v3Q@mail.gmail.com/)
@@ -35,7 +40,7 @@ git.git](https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/Submittin
       * For more involved changes, if format-patch or send-email give you
         too much trouble, go ahead and open a GitHub PR and just mention
         that email didn't work out.
-  * When emailing the git list:
+  * If emailing patches to the git list:
     * Include "filter-repo" at the start of the subject,
       e.g. "[filter-repo PATCH] Add packaging scripts for uploading to PyPI"
       instead of just "[PATCH] Add packaging scripts for uploading to PyPI"
