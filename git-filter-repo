@@ -3534,7 +3534,8 @@ class RepoFilter(object):
   def _setup_output(self):
     if not self._args.dry_run:
       location = ['-C', self._args.target] if self._args.target else []
-      fip_cmd = ['git'] + location + ['fast-import', '--force', '--quiet']
+      fip_cmd = ['git'] + location + ['-c', 'core.ignorecase=false',
+                                      'fast-import', '--force', '--quiet']
       if self._args.state_branch:
         target_marks_file = self._load_marks_file(b'target-marks')
         fip_cmd.extend([b'--export-marks='+target_marks_file,
