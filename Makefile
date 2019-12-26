@@ -78,10 +78,14 @@ update_docs:
 
 # Call like this:
 #   make GITHUB_COM_TOKEN=$KEY TAGNAME=v2.23.0 release
-release: export FILEBASE=git-filter-repo-$(shell echo $(TAGNAME) | tail -c +2)
-release: export GIT_INDEX_FILE=$(shell mktemp)
-release: export COMMIT=$(shell git rev-parse HEAD)
-release: update_docs
+release: github_release pypi_release
+
+# Call like this:
+#   make GITHUB_COM_TOKEN=$KEY TAGNAME=v2.23.0 github_release
+github_release: export FILEBASE=git-filter-repo-$(shell echo $(TAGNAME) | tail -c +2)
+github_release: export GIT_INDEX_FILE=$(shell mktemp)
+github_release: export COMMIT=$(shell git rev-parse HEAD)
+github_release: update_docs
 	test -n "$(GITHUB_COM_TOKEN)"
 	test -n "$(TAGNAME)"
 	test -n "$$COMMIT"
@@ -110,12 +114,20 @@ release: update_docs
 	cat asset_id | xargs -I ASSET_ID curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -H "Content-Type: application/octet-stream" --data-binary @$(FILEBASE).tar.xz https://uploads.github.com/repos/newren/git-filter-repo/releases/ASSET_ID/assets?name=$(FILEBASE).tar.xz
 	# Remove temporary file(s)
 	rm asset_id
-	# Upload to PyPI, automatically picking up the new tag
-	cd release && python3 setup.py sdist bdist_wheel
-	twine upload release/dist/*
 	# Notify of completion
 	@echo
 	@echo === filter-repo $(TAGNAME) created and uploaded to GitHub ===
+
+pypi_release: # Has an implicit dependency on github_release because...
+	# Upload to PyPI, automatically picking tag created by github_release
+	cd release && python3 -m venv venv
+	cd release && venv/bin/pip3 install --upgrade setuptools pip
+	cd release && venv/bin/pip3 install twine wheel
+	cd release && venv/bin/python3 setup.py sdist bdist_wheel
+	cd release && venv/bin/twine upload dist/*
+	# Remove temporary file(s)
+	cd release && rm -f README.md git-filter-repo git_filter_repo.py
+	cd release && rm -rf .eggs/ build/ venv/ git_filter_repo.egg-info/
 
 # NOTE TO FUTURE SELF: If you accidentally push a bad release, you can remove
 # all but the git-filter-repo-$VERSION.tar.xz asset with
