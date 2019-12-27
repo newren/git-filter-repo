@@ -48,6 +48,7 @@ filter_testcase degenerate degenerate-keepme   --path moduleA/keepme
 filter_testcase degenerate degenerate-moduleA  --path moduleA
 filter_testcase degenerate degenerate-globme   --path-glob *me
 filter_testcase unusual unusual-filtered --path ''
+filter_testcase unusual unusual-mailmap  --mailmap ../t9390/sample-mailmap
 
 test_expect_success 'setup path_rename' '
 	test_create_repo path_rename &&
@@ -422,6 +423,33 @@ test_expect_success '--dry-run' '
 		cd dry_run &&
 
 		git filter-repo --path words --dry-run &&
+
+		git show-ref | grep master >out &&
+		test_line_count = 2 out &&
+		awk "{print \$1}" out | uniq >out2 &&
+		test_line_count = 1 out2 &&
+
+		test $(git rev-list --count HEAD) = 3 &&
+		git cat-file --batch-check --batch-all-objects >all-objs &&
+		test_line_count = 19 all-objs &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		test_line_count = 9 filenames &&
+
+		test_path_is_file .git/filter-repo/fast-export.original &&
+		grep "^commit " .git/filter-repo/fast-export.original >out &&
+		test_line_count = 3 out &&
+		test_path_is_file .git/filter-repo/fast-export.filtered &&
+		grep "^commit " .git/filter-repo/fast-export.filtered >out &&
+		test_line_count = 2 out
+	)
+'
+
+test_expect_success '--dry-run --debug' '
+	(
+		git clone file://"$(pwd)"/metasyntactic dry_run_debug &&
+		cd dry_run_debug &&
+
+		git filter-repo --path words --dry-run --debug &&
 
 		git show-ref | grep master >out &&
 		test_line_count = 2 out &&
