@@ -47,6 +47,7 @@ filter_testcase empty less-empty-keepme --path keepme --prune-empty=never \
 filter_testcase degenerate degenerate-keepme   --path moduleA/keepme
 filter_testcase degenerate degenerate-moduleA  --path moduleA
 filter_testcase degenerate degenerate-globme   --path-glob *me
+filter_testcase degenerate degenerate-keepme-noff --path moduleA/keepme --no-ff
 filter_testcase unusual unusual-filtered --path ''
 filter_testcase unusual unusual-mailmap  --mailmap ../t9390/sample-mailmap
 

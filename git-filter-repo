@@ -1870,6 +1870,11 @@ EXAMPLES
                "merge commits have no file changes, they can be pruned.  The "
                "default ('auto') is to only prune empty merge commits which "
                "become degenerate (not which started as such)."))
+    parents.add_argument('--no-ff', action='store_true',
+        help=_("Even if the first parent is or becomes an ancestor of another "
+               "parent, do not prune it.  This modifies how "
+               "--prune-degenerate behaves, and may be useful in projects who "
+               "always use merge --no-ff."))
 
     callback = parser.add_argument_group(title=_("Generic callback code snippets"))
     callback.add_argument('--filename-callback', metavar="FUNCTION_BODY",
@@ -3033,6 +3038,12 @@ class RepoFilter(object):
         if not always_prune and \
            self._orig_graph.is_ancestor(orig_parents[cur],
                                         orig_parents[other]):
+          continue
+        # Some folks want their history to have all first parents be merge
+        # commits (except for any root commits), and always do a merge --no-ff.
+        # For such folks, don't remove the first parent even if it's an
+        # ancestor of other commits.
+        if self._args.no_ff and cur == 0:
           continue
         # Okay so the cur-th parent is an ancestor of the other-th parent,
         # and it wasn't that way in the original repository; mark the
