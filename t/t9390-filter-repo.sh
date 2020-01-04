@@ -637,7 +637,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 
 		cat >expect <<-EOF &&
 		=== All paths by reverse accumulated size ===
-		Format: unpacked size, packed size, date deleted, pathectory name
+		Format: unpacked size, packed size, date deleted, path name
 		          44         48 2005-04-07 numbers/medium.num
 		           8         38 <present>  words/know
 		          21         37 2005-04-07 numbers/small.num
