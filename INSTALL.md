@@ -44,8 +44,7 @@ you'll still need to do that yourself.
 
 # Installation via [pip](https://pip.pypa.io/)
 
-Coming soon; see [PR #16](https://github.com/newren/git-filter-repo/pull/16).
-Once it's in place, you'll be able to install via
+Install via
 
     $ pip3 install git-filter-repo
 
