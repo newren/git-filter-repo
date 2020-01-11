@@ -3348,11 +3348,14 @@ class RepoFilter(object):
       self._filter_files(commit)
 
     # Find out which files were modified by the callbacks.  Such paths could
-    # lead to sebsequent commits being empty (e.g. if removed a line containing
+    # lead to subsequent commits being empty (e.g. if removing a line containing
     # a password from every version of a file that had the password, and some
     # later commit did nothing more than remove that line)
     final_file_changes = set(commit.file_changes)
-    differences = orig_file_changes.symmetric_difference(final_file_changes)
+    if self._args.replace_text or self._blob_callback:
+      differences = orig_file_changes.union(final_file_changes)
+    else:
+      differences = orig_file_changes.symmetric_difference(final_file_changes)
     self._files_tweaked.update(x.filename for x in differences)
 
     # Call the user-defined callback, if any

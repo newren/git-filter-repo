@@ -1372,6 +1372,27 @@ test_expect_success 'degenerate merge with non-matching filenames' '
 	)
 '
 
+test_expect_success 'Filtering a blob to make it match previous version' '
+	test_create_repo remove_unique_bits_of_blob &&
+	(
+		cd remove_unique_bits_of_blob &&
+
+		test_write_lines foo baz >metasyntactic_names &&
+		git add metasyntactic_names &&
+		git commit -m init &&
+
+		test_write_lines foo bar baz >metasyntactic_names &&
+		git add metasyntactic_names &&
+		git commit -m second &&
+
+		git filter-repo --force --blob-callback "blob.data = blob.data.replace(b\"\\nbar\", b\"\")"
+
+		echo 1 >expect &&
+		git rev-list --count HEAD >actual &&
+		test_cmp expect actual
+	)
+'
+
 test_expect_success 'tweaking just a tag' '
 	test_create_repo tweaking_just_a_tag &&
 	(
