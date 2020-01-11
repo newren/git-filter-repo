@@ -23,12 +23,15 @@ filter-repo only consists of a few files that need to be installed:
 
     If you want `git filter-repo --help` to display the manpage, this needs
     to be copied into $MANDIR/man1/ where $MANDIR is some entry from $MANPATH.
+    (Note that `git filter-repo -h` will show a more limited built-in set of
+    instructions regardless of whether the manpage is installed.)
 
   * git-filter-repo.html
 
     The manpage is good enough for me and my systems, but an html-formatted
     version of the same page is provided for those who prefer it.  Place it
     where ever you like; I have no idea where such a thing should go.
+
 
 # Installation via Makefile
 
@@ -42,19 +45,20 @@ Also, the Makefile will not edit the shebang line (the first line) of
 git-filter-repo if your python executable is not named "python3";
 you'll still need to do that yourself.
 
+
 # Installation via [pip](https://pip.pypa.io/)
 
-Coming soon; see [PR #16](https://github.com/newren/git-filter-repo/pull/16).
-Once it's in place, you'll be able to install via
+For those who prefer to install python packages via pip, you merely need
+to run:
 
     $ pip3 install git-filter-repo
 
 
 # Installation via Package Manager
 
-There are [package
-managers](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
-for most operating systems; from
+For those who prefer to install software via a [package
+manager](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
+for their operating system, there are many choices -- from
 [dnf](https://github.com/rpm-software-management/dnf) or
 [yum](http://yum.baseurl.org/) or
 [apt-get](https://www.debian.org/doc/manuals/debian-reference/ch02.en.html)
