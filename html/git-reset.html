@@ -748,8 +748,9 @@ git-reset(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git reset</em> [-q] [&lt;tree-ish&gt;] [--] &lt;paths&gt;&#8230;
-<em>git reset</em> (--patch | -p) [&lt;tree-ish&gt;] [--] [&lt;paths&gt;&#8230;]
+<pre class="content"><em>git reset</em> [-q] [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
+<em>git reset</em> [-q] [--pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]] [&lt;tree-ish&gt;]
+<em>git reset</em> (--patch | -p) [&lt;tree-ish&gt;] [--] [&lt;pathspec&gt;&#8230;]
 <em>git reset</em> [--soft | --mixed [-N] | --hard | --merge | --keep] [-q] [&lt;commit&gt;]</pre>
 <div class="attribution">
 </div></div>
@@ -758,24 +759,27 @@ git-reset(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>In the first and second form, copy entries from <code>&lt;tree-ish&gt;</code> to the index.
-In the third form, set the current branch head (<code>HEAD</code>) to <code>&lt;commit&gt;</code>,
+<div class="paragraph"><p>In the first three forms, copy entries from <code>&lt;tree-ish&gt;</code> to the index.
+In the last form, set the current branch head (<code>HEAD</code>) to <code>&lt;commit&gt;</code>,
 optionally modifying index and working tree to match.
 The <code>&lt;tree-ish&gt;</code>/<code>&lt;commit&gt;</code> defaults to <code>HEAD</code> in all forms.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<em>git reset</em> [-q] [&lt;tree-ish&gt;] [--] &lt;paths&gt;&#8230;
+<em>git reset</em> [-q] [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
+</dt>
+<dt class="hdlist1">
+<em>git reset</em> [-q] [--pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]] [&lt;tree-ish&gt;]
 </dt>
 <dd>
 <p>
-        This form resets the index entries for all <code>&lt;paths&gt;</code> to their
-        state at <code>&lt;tree-ish&gt;</code>.  (It does not affect the working tree or
-        the current branch.)
+        These forms reset the index entries for all paths that match the
+        <code>&lt;pathspec&gt;</code> to their state at <code>&lt;tree-ish&gt;</code>.  (It does not affect
+        the working tree or the current branch.)
 </p>
-<div class="paragraph"><p>This means that <code>git reset &lt;paths&gt;</code> is the opposite of <code>git add
-&lt;paths&gt;</code>. This command is equivalent to
-<code>git restore [--source=&lt;tree-ish&gt;] --staged &lt;paths&gt;...</code>.</p></div>
-<div class="paragraph"><p>After running <code>git reset &lt;paths&gt;</code> to update the index entry, you can
+<div class="paragraph"><p>This means that <code>git reset &lt;pathspec&gt;</code> is the opposite of <code>git add
+&lt;pathspec&gt;</code>. This command is equivalent to
+<code>git restore [--source=&lt;tree-ish&gt;] --staged &lt;pathspec&gt;...</code>.</p></div>
+<div class="paragraph"><p>After running <code>git reset &lt;pathspec&gt;</code> to update the index entry, you can
 use <a href="git-restore.html">git-restore(1)</a> to check the contents out of the index to
 the working tree. Alternatively, using <a href="git-restore.html">git-restore(1)</a>
 and specifying a commit with <code>--source</code>, you
@@ -783,7 +787,7 @@ can copy the contents of a path out of a commit to the index and to the
 working tree in one go.</p></div>
 </dd>
 <dt class="hdlist1">
-<em>git reset</em> (--patch | -p) [&lt;tree-ish&gt;] [--] [&lt;paths&gt;&#8230;]
+<em>git reset</em> (--patch | -p) [&lt;tree-ish&gt;] [--] [&lt;pathspec&gt;&#8230;]
 </dt>
 <dd>
 <p>
@@ -893,6 +897,46 @@ between the three commands.</p></div>
         <code>reset.quiet</code> config option. <code>--quiet</code> and <code>--no-quiet</code> will
         override the default behavior.
 </p>
+</dd>
+<dt class="hdlist1">
+--pathspec-from-file=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Pathspec is passed in <code>&lt;file&gt;</code> instead of commandline args. If
+        <code>&lt;file&gt;</code> is exactly <code>-</code> then standard input is used. Pathspec
+        elements are separated by LF or CR/LF. Pathspec elements can be
+        quoted as explained for the configuration variable <code>core.quotePath</code>
+        (see <a href="git-config.html">git-config(1)</a>). See also <code>--pathspec-file-nul</code> and
+        global <code>--literal-pathspecs</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--pathspec-file-nul
+</dt>
+<dd>
+<p>
+        Only meaningful with <code>--pathspec-from-file</code>. Pathspec elements are
+        separated with NUL character and all other characters are taken
+        literally (including newlines and quotes).
+</p>
+</dd>
+<dt class="hdlist1">
+--
+</dt>
+<dd>
+<p>
+        Do not interpret any more arguments as options.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;pathspec&gt;&#8230;
+</dt>
+<dd>
+<p>
+        Limits the paths affected by the operation.
+</p>
+<div class="paragraph"><p>For more details, see the <em>pathspec</em> entry in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1443,7 +1487,7 @@ entries:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-11-01 11:46:12 PDT
+ 2020-01-07 09:02:40 PST
 </div>
 </div>
 </body>

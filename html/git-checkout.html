@@ -752,9 +752,9 @@ git-checkout(1) Manual Page
 <em>git checkout</em> [-q] [-f] [-m] --detach [&lt;branch&gt;]
 <em>git checkout</em> [-q] [-f] [-m] [--detach] &lt;commit&gt;
 <em>git checkout</em> [-q] [-f] [-m] [[-b|-B|--orphan] &lt;new_branch&gt;] [&lt;start_point&gt;]
-<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] [--] &lt;paths&gt;&#8230;
-<em>git checkout</em> [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
-<em>git checkout</em> (-p|--patch) [&lt;tree-ish&gt;] [--] [&lt;paths&gt;&#8230;]</pre>
+<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
+<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] --pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]
+<em>git checkout</em> (-p|--patch) [&lt;tree-ish&gt;] [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -763,7 +763,7 @@ git-checkout(1) Manual Page
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Updates files in the working tree to match the version in the index
-or the specified tree.  If no paths are given, <em>git checkout</em> will
+or the specified tree.  If no pathspec was given, <em>git checkout</em> will
 also update <code>HEAD</code> to set the specified branch as the current
 branch.</p></div>
 <div class="dlist"><dl>
@@ -833,15 +833,18 @@ be used to detach <code>HEAD</code> at the tip of the branch (<code>git checkout
 <div class="paragraph"><p>Omitting <code>&lt;branch&gt;</code> detaches <code>HEAD</code> at the tip of the current branch.</p></div>
 </dd>
 <dt class="hdlist1">
-<em>git checkout</em> [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
+<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
+</dt>
+<dt class="hdlist1">
+<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] --pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]
 </dt>
 <dd>
 <p>
-        Overwrite paths in the working tree by replacing with the
-        contents in the index or in the <code>&lt;tree-ish&gt;</code> (most often a
-        commit).  When a <code>&lt;tree-ish&gt;</code> is given, the paths that
-        match the <code>&lt;pathspec&gt;</code> are updated both in the index and in
-        the working tree.
+        Overwrite the contents of the files that match the pathspec.
+        When the <code>&lt;tree-ish&gt;</code> (most often a commit) is not given,
+        overwrite working tree with the contents in the index.
+        When the <code>&lt;tree-ish&gt;</code> is given, overwrite both the index and
+        the working tree with the contents at the <code>&lt;tree-ish&gt;</code>.
 </p>
 <div class="paragraph"><p>The index may contain unmerged entries because of a previous failed merge.
 By default, if you try to check out such an entry from the index, the
@@ -856,11 +859,10 @@ file can be discarded to re-create the original conflicted merge result.</p></di
 </dt>
 <dd>
 <p>
-        This is similar to the "check out paths to the working tree
-        from either the index or from a tree-ish" mode described
-        above, but lets you use the interactive interface to show
-        the "diff" output and choose which hunks to use in the
-        result.  See below for the description of <code>--patch</code> option.
+        This is similar to the previous mode, but lets you use the
+        interactive interface to show the "diff" output and choose which
+        hunks to use in the result.  See below for the description of
+        <code>--patch</code> option.
 </p>
 </dd>
 </dl></div>
@@ -1183,6 +1185,29 @@ section of <a href="git-add.html">git-add(1)</a> to learn how to operate the <co
 </p>
 </dd>
 <dt class="hdlist1">
+--pathspec-from-file=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Pathspec is passed in <code>&lt;file&gt;</code> instead of commandline args. If
+        <code>&lt;file&gt;</code> is exactly <code>-</code> then standard input is used. Pathspec
+        elements are separated by LF or CR/LF. Pathspec elements can be
+        quoted as explained for the configuration variable <code>core.quotePath</code>
+        (see <a href="git-config.html">git-config(1)</a>). See also <code>--pathspec-file-nul</code> and
+        global <code>--literal-pathspecs</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--pathspec-file-nul
+</dt>
+<dd>
+<p>
+        Only meaningful with <code>--pathspec-from-file</code>. Pathspec elements are
+        separated with NUL character and all other characters are taken
+        literally (including newlines and quotes).
+</p>
+</dd>
+<dt class="hdlist1">
 &lt;branch&gt;
 </dt>
 <dd>
@@ -1228,6 +1253,23 @@ leave out at most one of <code>A</code> and <code>B</code>, in which case it def
         Tree to checkout from (when paths are given). If not specified,
         the index will be used.
 </p>
+</dd>
+<dt class="hdlist1">
+--
+</dt>
+<dd>
+<p>
+        Do not interpret any more arguments as options.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;pathspec&gt;&#8230;
+</dt>
+<dd>
+<p>
+        Limits the paths affected by the operation.
+</p>
+<div class="paragraph"><p>For more details, see the <em>pathspec</em> entry in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1509,7 +1551,7 @@ $ git add frotz</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-11-01 11:46:12 PDT
+ 2020-01-07 09:02:40 PST
 </div>
 </div>
 </body>

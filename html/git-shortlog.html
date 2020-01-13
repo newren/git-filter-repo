@@ -869,6 +869,893 @@ them.</p></div>
 options or the revision range, when confusion arises.</p></div>
 </dd>
 </dl></div>
+<div class="sect2">
+<h3 id="_commit_limiting">Commit Limiting</h3>
+<div class="paragraph"><p>Besides specifying a range of commits that should be listed using the
+special notations explained in the description, additional commit
+limiting may be applied.</p></div>
+<div class="paragraph"><p>Using more options generally further limits the output (e.g.
+<code>--since=&lt;date1&gt;</code> limits to commits newer than <code>&lt;date1&gt;</code>, and using it
+with <code>--grep=&lt;pattern&gt;</code> further limits to commits whose log message
+has a line that matches <code>&lt;pattern&gt;</code>), unless otherwise noted.</p></div>
+<div class="paragraph"><p>Note that these are applied before commit
+ordering and formatting options, such as <code>--reverse</code>.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-&lt;number&gt;
+</dt>
+<dt class="hdlist1">
+-n &lt;number&gt;
+</dt>
+<dt class="hdlist1">
+--max-count=&lt;number&gt;
+</dt>
+<dd>
+<p>
+        Limit the number of commits to output.
+</p>
+</dd>
+<dt class="hdlist1">
+--skip=&lt;number&gt;
+</dt>
+<dd>
+<p>
+        Skip <em>number</em> commits before starting to show the commit output.
+</p>
+</dd>
+<dt class="hdlist1">
+--since=&lt;date&gt;
+</dt>
+<dt class="hdlist1">
+--after=&lt;date&gt;
+</dt>
+<dd>
+<p>
+        Show commits more recent than a specific date.
+</p>
+</dd>
+<dt class="hdlist1">
+--until=&lt;date&gt;
+</dt>
+<dt class="hdlist1">
+--before=&lt;date&gt;
+</dt>
+<dd>
+<p>
+        Show commits older than a specific date.
+</p>
+</dd>
+<dt class="hdlist1">
+--author=&lt;pattern&gt;
+</dt>
+<dt class="hdlist1">
+--committer=&lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with author/committer
+        header lines that match the specified pattern (regular
+        expression).  With more than one <code>--author=&lt;pattern&gt;</code>,
+        commits whose author matches any of the given patterns are
+        chosen (similarly for multiple <code>--committer=&lt;pattern&gt;</code>).
+</p>
+</dd>
+<dt class="hdlist1">
+--grep-reflog=&lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with reflog entries that
+        match the specified pattern (regular expression). With
+        more than one <code>--grep-reflog</code>, commits whose reflog message
+        matches any of the given patterns are chosen.  It is an
+        error to use this option unless <code>--walk-reflogs</code> is in use.
+</p>
+</dd>
+<dt class="hdlist1">
+--grep=&lt;pattern&gt;
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with log message that
+        matches the specified pattern (regular expression).  With
+        more than one <code>--grep=&lt;pattern&gt;</code>, commits whose message
+        matches any of the given patterns are chosen (but see
+        <code>--all-match</code>).
+</p>
+<div class="paragraph"><p>When <code>--notes</code> is in effect, the message from the notes is
+matched as if it were part of the log message.</p></div>
+</dd>
+<dt class="hdlist1">
+--all-match
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones that match all given <code>--grep</code>,
+        instead of ones that match at least one.
+</p>
+</dd>
+<dt class="hdlist1">
+--invert-grep
+</dt>
+<dd>
+<p>
+        Limit the commits output to ones with log message that do not
+        match the pattern specified with <code>--grep=&lt;pattern&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-i
+</dt>
+<dt class="hdlist1">
+--regexp-ignore-case
+</dt>
+<dd>
+<p>
+        Match the regular expression limiting patterns without regard to letter
+        case.
+</p>
+</dd>
+<dt class="hdlist1">
+--basic-regexp
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be basic regular expressions;
+        this is the default.
+</p>
+</dd>
+<dt class="hdlist1">
+-E
+</dt>
+<dt class="hdlist1">
+--extended-regexp
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be extended regular expressions
+        instead of the default basic regular expressions.
+</p>
+</dd>
+<dt class="hdlist1">
+-F
+</dt>
+<dt class="hdlist1">
+--fixed-strings
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be fixed strings (don&#8217;t interpret
+        pattern as a regular expression).
+</p>
+</dd>
+<dt class="hdlist1">
+-P
+</dt>
+<dt class="hdlist1">
+--perl-regexp
+</dt>
+<dd>
+<p>
+        Consider the limiting patterns to be Perl-compatible regular
+        expressions.
+</p>
+<div class="paragraph"><p>Support for these types of regular expressions is an optional
+compile-time dependency. If Git wasn&#8217;t compiled with support for them
+providing this option will cause it to die.</p></div>
+</dd>
+<dt class="hdlist1">
+--remove-empty
+</dt>
+<dd>
+<p>
+        Stop when a given path disappears from the tree.
+</p>
+</dd>
+<dt class="hdlist1">
+--merges
+</dt>
+<dd>
+<p>
+        Print only merge commits. This is exactly the same as <code>--min-parents=2</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-merges
+</dt>
+<dd>
+<p>
+        Do not print commits with more than one parent. This is
+        exactly the same as <code>--max-parents=1</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--min-parents=&lt;number&gt;
+</dt>
+<dt class="hdlist1">
+--max-parents=&lt;number&gt;
+</dt>
+<dt class="hdlist1">
+--no-min-parents
+</dt>
+<dt class="hdlist1">
+--no-max-parents
+</dt>
+<dd>
+<p>
+        Show only commits which have at least (or at most) that many parent
+        commits. In particular, <code>--max-parents=1</code> is the same as <code>--no-merges</code>,
+        <code>--min-parents=2</code> is the same as <code>--merges</code>.  <code>--max-parents=0</code>
+        gives all root commits and <code>--min-parents=3</code> all octopus merges.
+</p>
+<div class="paragraph"><p><code>--no-min-parents</code> and <code>--no-max-parents</code> reset these limits (to no limit)
+again.  Equivalent forms are <code>--min-parents=0</code> (any commit has 0 or more
+parents) and <code>--max-parents=-1</code> (negative numbers denote no upper limit).</p></div>
+</dd>
+<dt class="hdlist1">
+--first-parent
+</dt>
+<dd>
+<p>
+        Follow only the first parent commit upon seeing a merge
+        commit.  This option can give a better overview when
+        viewing the evolution of a particular topic branch,
+        because merges into a topic branch tend to be only about
+        adjusting to updated upstream from time to time, and
+        this option allows you to ignore the individual commits
+        brought in to your history by such a merge. Cannot be
+        combined with --bisect.
+</p>
+</dd>
+<dt class="hdlist1">
+--not
+</dt>
+<dd>
+<p>
+        Reverses the meaning of the <em>&#94;</em> prefix (or lack thereof)
+        for all following revision specifiers, up to the next <code>--not</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--all
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/</code>, along with <code>HEAD</code>, are
+        listed on the command line as <em>&lt;commit&gt;</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+--branches[=&lt;pattern&gt;]
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/heads</code> are listed
+        on the command line as <em>&lt;commit&gt;</em>. If <em>&lt;pattern&gt;</em> is given, limit
+        branches to ones matching given shell glob. If pattern lacks <em>?</em>,
+        <em>&#42;</em>, or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--tags[=&lt;pattern&gt;]
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/tags</code> are listed
+        on the command line as <em>&lt;commit&gt;</em>. If <em>&lt;pattern&gt;</em> is given, limit
+        tags to ones matching given shell glob. If pattern lacks <em>?</em>, <em>&#42;</em>,
+        or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--remotes[=&lt;pattern&gt;]
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs in <code>refs/remotes</code> are listed
+        on the command line as <em>&lt;commit&gt;</em>. If <em>&lt;pattern&gt;</em> is given, limit
+        remote-tracking branches to ones matching given shell glob.
+        If pattern lacks <em>?</em>, <em>&#42;</em>, or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--glob=&lt;glob-pattern&gt;
+</dt>
+<dd>
+<p>
+        Pretend as if all the refs matching shell glob <em>&lt;glob-pattern&gt;</em>
+        are listed on the command line as <em>&lt;commit&gt;</em>. Leading <em>refs/</em>,
+        is automatically prepended if missing. If pattern lacks <em>?</em>, <em>&#42;</em>,
+        or <em>[</em>, <em>/&#42;</em> at the end is implied.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude=&lt;glob-pattern&gt;
+</dt>
+<dd>
+<p>
+        Do not include refs matching <em>&lt;glob-pattern&gt;</em> that the next <code>--all</code>,
+        <code>--branches</code>, <code>--tags</code>, <code>--remotes</code>, or <code>--glob</code> would otherwise
+        consider. Repetitions of this option accumulate exclusion patterns
+        up to the next <code>--all</code>, <code>--branches</code>, <code>--tags</code>, <code>--remotes</code>, or
+        <code>--glob</code> option (other options or arguments do not clear
+        accumulated patterns).
+</p>
+<div class="paragraph"><p>The patterns given should not begin with <code>refs/heads</code>, <code>refs/tags</code>, or
+<code>refs/remotes</code> when applied to <code>--branches</code>, <code>--tags</code>, or <code>--remotes</code>,
+respectively, and they must begin with <code>refs/</code> when applied to <code>--glob</code>
+or <code>--all</code>. If a trailing <em>/&#42;</em> is intended, it must be given
+explicitly.</p></div>
+</dd>
+<dt class="hdlist1">
+--reflog
+</dt>
+<dd>
+<p>
+        Pretend as if all objects mentioned by reflogs are listed on the
+        command line as <code>&lt;commit&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--alternate-refs
+</dt>
+<dd>
+<p>
+        Pretend as if all objects mentioned as ref tips of alternate
+        repositories were listed on the command line. An alternate
+        repository is any repository whose object directory is specified
+        in <code>objects/info/alternates</code>.  The set of included objects may
+        be modified by <code>core.alternateRefsCommand</code>, etc. See
+        <a href="git-config.html">git-config(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+--single-worktree
+</dt>
+<dd>
+<p>
+        By default, all working trees will be examined by the
+        following options when there are more than one (see
+        <a href="git-worktree.html">git-worktree(1)</a>): <code>--all</code>, <code>--reflog</code> and
+        <code>--indexed-objects</code>.
+        This option forces them to examine the current working tree
+        only.
+</p>
+</dd>
+<dt class="hdlist1">
+--ignore-missing
+</dt>
+<dd>
+<p>
+        Upon seeing an invalid object name in the input, pretend as if
+        the bad input was not given.
+</p>
+</dd>
+<dt class="hdlist1">
+--bisect
+</dt>
+<dd>
+<p>
+        Pretend as if the bad bisection ref <code>refs/bisect/bad</code>
+        was listed and as if it was followed by <code>--not</code> and the good
+        bisection refs <code>refs/bisect/good-*</code> on the command
+        line. Cannot be combined with --first-parent.
+</p>
+</dd>
+<dt class="hdlist1">
+--stdin
+</dt>
+<dd>
+<p>
+        In addition to the <em>&lt;commit&gt;</em> listed on the command
+        line, read them from the standard input. If a <code>--</code> separator is
+        seen, stop reading commits and start reading paths to limit the
+        result.
+</p>
+</dd>
+<dt class="hdlist1">
+--cherry-mark
+</dt>
+<dd>
+<p>
+        Like <code>--cherry-pick</code> (see below) but mark equivalent commits
+        with <code>=</code> rather than omitting them, and inequivalent ones with <code>+</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--cherry-pick
+</dt>
+<dd>
+<p>
+        Omit any commit that introduces the same change as
+        another commit on the &#8220;other side&#8221; when the set of
+        commits are limited with symmetric difference.
+</p>
+<div class="paragraph"><p>For example, if you have two branches, <code>A</code> and <code>B</code>, a usual way
+to list all commits on only one side of them is with
+<code>--left-right</code> (see the example below in the description of
+the <code>--left-right</code> option). However, it shows the commits that were
+cherry-picked from the other branch (for example, &#8220;3rd on b&#8221; may be
+cherry-picked from branch A). With this option, such pairs of commits are
+excluded from the output.</p></div>
+</dd>
+<dt class="hdlist1">
+--left-only
+</dt>
+<dt class="hdlist1">
+--right-only
+</dt>
+<dd>
+<p>
+        List only commits on the respective side of a symmetric difference,
+        i.e. only those which would be marked <code>&lt;</code> resp. <code>&gt;</code> by
+        <code>--left-right</code>.
+</p>
+<div class="paragraph"><p>For example, <code>--cherry-pick --right-only A...B</code> omits those
+commits from <code>B</code> which are in <code>A</code> or are patch-equivalent to a commit in
+<code>A</code>. In other words, this lists the <code>+</code> commits from <code>git cherry A B</code>.
+More precisely, <code>--cherry-pick --right-only --no-merges</code> gives the exact
+list.</p></div>
+</dd>
+<dt class="hdlist1">
+--cherry
+</dt>
+<dd>
+<p>
+        A synonym for <code>--right-only --cherry-mark --no-merges</code>; useful to
+        limit the output to the commits on our side and mark those that
+        have been applied to the other side of a forked history with
+        <code>git log --cherry upstream...mybranch</code>, similar to
+        <code>git cherry upstream mybranch</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-g
+</dt>
+<dt class="hdlist1">
+--walk-reflogs
+</dt>
+<dd>
+<p>
+        Instead of walking the commit ancestry chain, walk
+        reflog entries from the most recent one to older ones.
+        When this option is used you cannot specify commits to
+        exclude (that is, <em>&#94;commit</em>, <em>commit1..commit2</em>,
+        and <em>commit1...commit2</em> notations cannot be used).
+</p>
+<div class="paragraph"><p>With <code>--pretty</code> format other than <code>oneline</code> and <code>reference</code> (for obvious reasons),
+this causes the output to have two extra lines of information
+taken from the reflog.  The reflog designator in the output may be shown
+as <code>ref@{Nth}</code> (where <code>Nth</code> is the reverse-chronological index in the
+reflog) or as <code>ref@{timestamp}</code> (with the timestamp for that entry),
+depending on a few rules:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+If the starting point is specified as <code>ref@{Nth}</code>, show the index
+   format.
+</p>
+</li>
+<li>
+<p>
+If the starting point was specified as <code>ref@{now}</code>, show the
+   timestamp format.
+</p>
+</li>
+<li>
+<p>
+If neither was used, but <code>--date</code> was given on the command line, show
+   the timestamp in the format requested by <code>--date</code>.
+</p>
+</li>
+<li>
+<p>
+Otherwise, show the index format.
+</p>
+</li>
+</ol></div>
+</div></div>
+<div class="paragraph"><p>Under <code>--pretty=oneline</code>, the commit message is
+prefixed with this information on the same line.
+This option cannot be combined with <code>--reverse</code>.
+See also <a href="git-reflog.html">git-reflog(1)</a>.</p></div>
+<div class="paragraph"><p>Under <code>--pretty=reference</code>, this information will not be shown at all.</p></div>
+</dd>
+<dt class="hdlist1">
+--merge
+</dt>
+<dd>
+<p>
+        After a failed merge, show refs that touch files having a
+        conflict and don&#8217;t exist on all heads to merge.
+</p>
+</dd>
+<dt class="hdlist1">
+--boundary
+</dt>
+<dd>
+<p>
+        Output excluded boundary commits. Boundary commits are
+        prefixed with <code>-</code>.
+</p>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
+<h3 id="_history_simplification">History Simplification</h3>
+<div class="paragraph"><p>Sometimes you are only interested in parts of the history, for example the
+commits modifying a particular &lt;path&gt;. But there are two parts of
+<em>History Simplification</em>, one part is selecting the commits and the other
+is how to do it, as there are various strategies to simplify the history.</p></div>
+<div class="paragraph"><p>The following options select the commits to be shown:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+&lt;paths&gt;
+</dt>
+<dd>
+<p>
+        Commits modifying the given &lt;paths&gt; are selected.
+</p>
+</dd>
+<dt class="hdlist1">
+--simplify-by-decoration
+</dt>
+<dd>
+<p>
+        Commits that are referred by some branch or tag are selected.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Note that extra commits can be shown to give a meaningful history.</p></div>
+<div class="paragraph"><p>The following options affect the way the simplification is performed:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Default mode
+</dt>
+<dd>
+<p>
+        Simplifies the history to the simplest history explaining the
+        final state of the tree. Simplest because it prunes some side
+        branches if the end result is the same (i.e. merging branches
+        with the same content)
+</p>
+</dd>
+<dt class="hdlist1">
+--full-history
+</dt>
+<dd>
+<p>
+        Same as the default mode, but does not prune some history.
+</p>
+</dd>
+<dt class="hdlist1">
+--dense
+</dt>
+<dd>
+<p>
+        Only the selected commits are shown, plus some to have a
+        meaningful history.
+</p>
+</dd>
+<dt class="hdlist1">
+--sparse
+</dt>
+<dd>
+<p>
+        All commits in the simplified history are shown.
+</p>
+</dd>
+<dt class="hdlist1">
+--simplify-merges
+</dt>
+<dd>
+<p>
+        Additional option to <code>--full-history</code> to remove some needless
+        merges from the resulting history, as there are no selected
+        commits contributing to this merge.
+</p>
+</dd>
+<dt class="hdlist1">
+--ancestry-path
+</dt>
+<dd>
+<p>
+        When given a range of commits to display (e.g. <em>commit1..commit2</em>
+        or <em>commit2 &#94;commit1</em>), only display commits that exist
+        directly on the ancestry chain between the <em>commit1</em> and
+        <em>commit2</em>, i.e. commits that are both descendants of <em>commit1</em>,
+        and ancestors of <em>commit2</em>.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>A more detailed explanation follows.</p></div>
+<div class="paragraph"><p>Suppose you specified <code>foo</code> as the &lt;paths&gt;.  We shall call commits
+that modify <code>foo</code> !TREESAME, and the rest TREESAME.  (In a diff
+filtered for <code>foo</code>, they look different and equal, respectively.)</p></div>
+<div class="paragraph"><p>In the following, we will always refer to the same example history to
+illustrate the differences between simplification settings.  We assume
+that you are filtering for a file <code>foo</code> in this commit graph:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M---N---O---P---Q
+         /     /   /   /   /   /
+        I     B   C   D   E   Y
+         \   /   /   /   /   /
+          `-------------'   X</code></pre>
+</div></div>
+<div class="paragraph"><p>The horizontal line of history A---Q is taken to be the first parent of
+each merge.  The commits are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>I</code> is the initial commit, in which <code>foo</code> exists with contents
+  &#8220;asdf&#8221;, and a file <code>quux</code> exists with contents &#8220;quux&#8221;. Initial
+  commits are compared to an empty tree, so <code>I</code> is !TREESAME.
+</p>
+</li>
+<li>
+<p>
+In <code>A</code>, <code>foo</code> contains just &#8220;foo&#8221;.
+</p>
+</li>
+<li>
+<p>
+<code>B</code> contains the same change as <code>A</code>.  Its merge <code>M</code> is trivial and
+  hence TREESAME to all parents.
+</p>
+</li>
+<li>
+<p>
+<code>C</code> does not change <code>foo</code>, but its merge <code>N</code> changes it to &#8220;foobar&#8221;,
+  so it is not TREESAME to any parent.
+</p>
+</li>
+<li>
+<p>
+<code>D</code> sets <code>foo</code> to &#8220;baz&#8221;. Its merge <code>O</code> combines the strings from
+  <code>N</code> and <code>D</code> to &#8220;foobarbaz&#8221;; i.e., it is not TREESAME to any parent.
+</p>
+</li>
+<li>
+<p>
+<code>E</code> changes <code>quux</code> to &#8220;xyzzy&#8221;, and its merge <code>P</code> combines the
+  strings to &#8220;quux xyzzy&#8221;. <code>P</code> is TREESAME to <code>O</code>, but not to <code>E</code>.
+</p>
+</li>
+<li>
+<p>
+<code>X</code> is an independent root commit that added a new file <code>side</code>, and <code>Y</code>
+  modified it. <code>Y</code> is TREESAME to <code>X</code>. Its merge <code>Q</code> added <code>side</code> to <code>P</code>, and
+  <code>Q</code> is TREESAME to <code>P</code>, but not to <code>Y</code>.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p><code>rev-list</code> walks backwards through history, including or excluding
+commits based on whether <code>--full-history</code> and/or parent rewriting
+(via <code>--parents</code> or <code>--children</code>) are used. The following settings
+are available.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Default mode
+</dt>
+<dd>
+<p>
+        Commits are included if they are not TREESAME to any parent
+        (though this can be changed, see <code>--sparse</code> below).  If the
+        commit was a merge, and it was TREESAME to one parent, follow
+        only that parent.  (Even if there are several TREESAME
+        parents, follow only one of them.)  Otherwise, follow all
+        parents.
+</p>
+<div class="paragraph"><p>This results in:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---N---O
+         /     /   /
+        I---------D</code></pre>
+</div></div>
+<div class="paragraph"><p>Note how the rule to only follow the TREESAME parent, if one is
+available, removed <code>B</code> from consideration entirely.  <code>C</code> was
+considered via <code>N</code>, but is TREESAME.  Root commits are compared to an
+empty tree, so <code>I</code> is !TREESAME.</p></div>
+<div class="paragraph"><p>Parent/child relations are only visible with <code>--parents</code>, but that does
+not affect the commits selected in default mode, so we have shown the
+parent lines.</p></div>
+</dd>
+<dt class="hdlist1">
+--full-history without parent rewriting
+</dt>
+<dd>
+<p>
+        This mode differs from the default in one point: always follow
+        all parents of a merge, even if it is TREESAME to one of them.
+        Even if more than one side of the merge has commits that are
+        included, this does not imply that the merge itself is!  In
+        the example, we get
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>        I  A  B  N  D  O  P  Q</code></pre>
+</div></div>
+<div class="paragraph"><p><code>M</code> was excluded because it is TREESAME to both parents.  <code>E</code>,
+<code>C</code> and <code>B</code> were all walked, but only <code>B</code> was !TREESAME, so the others
+do not appear.</p></div>
+<div class="paragraph"><p>Note that without parent rewriting, it is not really possible to talk
+about the parent/child relationships between the commits, so we show
+them disconnected.</p></div>
+</dd>
+<dt class="hdlist1">
+--full-history with parent rewriting
+</dt>
+<dd>
+<p>
+        Ordinary commits are only included if they are !TREESAME
+        (though this can be changed, see <code>--sparse</code> below).
+</p>
+<div class="paragraph"><p>Merges are always included.  However, their parent list is rewritten:
+Along each parent, prune away commits that are not included
+themselves.  This results in</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M---N---O---P---Q
+         /     /   /   /   /
+        I     B   /   D   /
+         \   /   /   /   /
+          `-------------'</code></pre>
+</div></div>
+<div class="paragraph"><p>Compare to <code>--full-history</code> without rewriting above.  Note that <code>E</code>
+was pruned away because it is TREESAME, but the parent list of P was
+rewritten to contain <code>E</code>'s parent <code>I</code>.  The same happened for <code>C</code> and
+<code>N</code>, and <code>X</code>, <code>Y</code> and <code>Q</code>.</p></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>In addition to the above settings, you can change whether TREESAME
+affects inclusion:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--dense
+</dt>
+<dd>
+<p>
+        Commits that are walked are included if they are not TREESAME
+        to any parent.
+</p>
+</dd>
+<dt class="hdlist1">
+--sparse
+</dt>
+<dd>
+<p>
+        All commits that are walked are included.
+</p>
+<div class="paragraph"><p>Note that without <code>--full-history</code>, this still simplifies merges: if
+one of the parents is TREESAME, we follow only that one, so the other
+sides of the merge are never walked.</p></div>
+</dd>
+<dt class="hdlist1">
+--simplify-merges
+</dt>
+<dd>
+<p>
+        First, build a history graph in the same way that
+        <code>--full-history</code> with parent rewriting does (see above).
+</p>
+<div class="paragraph"><p>Then simplify each commit <code>C</code> to its replacement <code>C'</code> in the final
+history according to the following rules:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+Set <code>C'</code> to <code>C</code>.
+</p>
+</li>
+<li>
+<p>
+Replace each parent <code>P</code> of <code>C'</code> with its simplification <code>P'</code>.  In
+  the process, drop parents that are ancestors of other parents or that are
+  root commits TREESAME to an empty tree, and remove duplicates, but take care
+  to never drop all parents that we are TREESAME to.
+</p>
+</li>
+<li>
+<p>
+If after this parent rewriting, <code>C'</code> is a root or merge commit (has
+  zero or &gt;1 parents), a boundary commit, or !TREESAME, it remains.
+  Otherwise, it is replaced with its only parent.
+</p>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>The effect of this is best shown by way of comparing to
+<code>--full-history</code> with parent rewriting.  The example turns into:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M---N---O
+         /     /       /
+        I     B       D
+         \   /       /
+          `---------'</code></pre>
+</div></div>
+<div class="paragraph"><p>Note the major differences in <code>N</code>, <code>P</code>, and <code>Q</code> over <code>--full-history</code>:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+<code>N</code>'s parent list had <code>I</code> removed, because it is an ancestor of the
+  other parent <code>M</code>.  Still, <code>N</code> remained because it is !TREESAME.
+</p>
+</li>
+<li>
+<p>
+<code>P</code>'s parent list similarly had <code>I</code> removed.  <code>P</code> was then
+  removed completely, because it had one parent and is TREESAME.
+</p>
+</li>
+<li>
+<p>
+<code>Q</code>'s parent list had <code>Y</code> simplified to <code>X</code>. <code>X</code> was then removed, because it
+  was a TREESAME root. <code>Q</code> was then removed completely, because it had one
+  parent and is TREESAME.
+</p>
+</li>
+</ul></div>
+</div></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Finally, there is a fifth simplification mode available:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--ancestry-path
+</dt>
+<dd>
+<p>
+        Limit the displayed commits to those directly on the ancestry
+        chain between the &#8220;from&#8221; and &#8220;to&#8221; commits in the given commit
+        range. I.e. only display commits that are ancestor of the &#8220;to&#8221;
+        commit and descendants of the &#8220;from&#8221; commit.
+</p>
+<div class="paragraph"><p>As an example use case, consider the following commit history:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>            D---E-------F
+           /     \       \
+          B---C---G---H---I---J
+         /                     \
+        A-------K---------------L--M</code></pre>
+</div></div>
+<div class="paragraph"><p>A regular <em>D..M</em> computes the set of commits that are ancestors of <code>M</code>,
+but excludes the ones that are ancestors of <code>D</code>. This is useful to see
+what happened to the history leading to <code>M</code> since <code>D</code>, in the sense
+that &#8220;what does <code>M</code> have that did not exist in <code>D</code>&#8221;. The result in this
+example would be all the commits, except <code>A</code> and <code>B</code> (and <code>D</code> itself,
+of course).</p></div>
+<div class="paragraph"><p>When we want to find out what commits in <code>M</code> are contaminated with the
+bug introduced by <code>D</code> and need fixing, however, we might want to view
+only the subset of <em>D..M</em> that are actually descendants of <code>D</code>, i.e.
+excluding <code>C</code> and <code>K</code>. This is exactly what the <code>--ancestry-path</code>
+option does. Applied to the <em>D..M</em> range, it results in:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>                E-------F
+                 \       \
+                  G---H---I---J
+                               \
+                                L--M</code></pre>
+</div></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The <code>--simplify-by-decoration</code> option allows you to view only the
+big picture of the topology of the history, by omitting commits
+that are not referenced by tags.  Commits are marked as !TREESAME
+(in other words, kept after history simplification rules described
+above) if (1) they are referenced by tags, or (2) they change the
+contents of the paths given on the command line.  All other
+commits are marked as TREESAME (subject to be simplified away).</p></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -974,7 +1861,7 @@ the email address.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-11-01 11:46:12 PDT
+ 2020-01-07 09:02:40 PST
 </div>
 </div>
 </body>

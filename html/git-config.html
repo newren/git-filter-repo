@@ -1574,7 +1574,7 @@ If the pattern ends with <code>/</code>, <code>**</code> will be automatically a
 <dd>
 <p>
         This is the same as <code>gitdir</code> except that matching is done
-        case-insensitively (e.g. on case-insensitive file sytems)
+        case-insensitively (e.g. on case-insensitive file systems)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2041,6 +2041,15 @@ nestedTag
 <dd>
 <p>
                 Advice shown if a user attempts to recursively tag a tag object.
+</p>
+</dd>
+<dt class="hdlist1">
+submoduleAlternateErrorStrategyDie
+</dt>
+<dd>
+<p>
+                Advice shown when a submodule.alternateErrorStrategy option
+                configured to "die" causes a fatal error.
 </p>
 </dd>
 </dl></div>
@@ -2845,6 +2854,17 @@ core.unsetenvvars
 </p>
 </dd>
 <dt class="hdlist1">
+core.restrictinheritedhandles
+</dt>
+<dd>
+<p>
+        Windows-only: override whether spawned processes inherit only standard
+        file handles (<code>stdin</code>, <code>stdout</code> and <code>stderr</code>) or all handles. Can be
+        <code>auto</code>, <code>true</code> or <code>false</code>. Defaults to <code>auto</code>, which means <code>true</code> on
+        Windows 7 and later, and <code>false</code> on older Windows versions.
+</p>
+</dd>
+<dt class="hdlist1">
 core.createObject
 </dt>
 <dd>
@@ -2905,8 +2925,19 @@ core.sparseCheckout
 </dt>
 <dd>
 <p>
-        Enable "sparse checkout" feature. See section "Sparse checkout" in
-        <a href="git-read-tree.html">git-read-tree(1)</a> for more information.
+        Enable "sparse checkout" feature. See <a href="git-sparse-checkout.html">git-sparse-checkout(1)</a>
+        for more information.
+</p>
+</dd>
+<dt class="hdlist1">
+core.sparseCheckoutCone
+</dt>
+<dd>
+<p>
+        Enables the "cone mode" of the sparse checkout feature. When the
+        sparse-checkout file contains a limited set of patterns, then this
+        mode provides significant performance advantages. See
+        <a href="git-sparse-checkout.html">git-sparse-checkout(1)</a> for more information.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2935,6 +2966,16 @@ add.ignore-errors (deprecated)
         option of <a href="git-add.html">git-add(1)</a>.  <code>add.ignore-errors</code> is deprecated,
         as it does not follow the usual naming convention for configuration
         variables.
+</p>
+</dd>
+<dt class="hdlist1">
+add.interactive.useBuiltin
+</dt>
+<dd>
+<p>
+        [EXPERIMENTAL] Set to <code>true</code> to use the experimental built-in
+        implementation of the interactive version of <a href="git-add.html">git-add(1)</a>
+        instead of the Perl script version. Is <code>false</code> by default.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -4846,6 +4887,17 @@ format.subjectPrefix
 </p>
 </dd>
 <dt class="hdlist1">
+format.coverFromDescription
+</dt>
+<dd>
+<p>
+        The default mode for format-patch to determine which parts of
+        the cover letter will be populated using the branch&#8217;s
+        description. See the <code>--cover-from-description</code> option in
+        <a href="git-format-patch.html">git-format-patch(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
 format.signature
 </dt>
 <dd>
@@ -4957,7 +5009,21 @@ format.notes
 <div class="paragraph"><p>If one wishes to use the ref <code>ref/notes/true</code>, please use that literal
 instead.</p></div>
 <div class="paragraph"><p>This configuration can be specified multiple times in order to allow
-multiple notes refs to be included.</p></div>
+multiple notes refs to be included. In that case, it will behave
+similarly to multiple <code>--[no-]notes[=]</code> options passed in. That is, a
+value of <code>true</code> will show the default notes, a value of <code>&lt;ref&gt;</code> will
+also show notes from that notes ref and a value of <code>false</code> will negate
+previous configurations and not show notes.</p></div>
+<div class="paragraph"><p>For example,</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[format]
+        notes = true
+        notes = foo
+        notes = false
+        notes = bar</code></pre>
+</div></div>
+<div class="paragraph"><p>will only show notes from <code>refs/notes/bar</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 filter.&lt;driver&gt;.clean
@@ -8894,7 +8960,9 @@ submodule.alternateErrorStrategy
 <p>
         Specifies how to treat errors with the alternates for a submodule
         as computed via <code>submodule.alternateLocation</code>. Possible values are
-        <code>ignore</code>, <code>info</code>, <code>die</code>. Default is <code>die</code>.
+        <code>ignore</code>, <code>info</code>, <code>die</code>. Default is <code>die</code>. Note that if set to <code>ignore</code>
+        or <code>info</code>, and if there is an error with the computed alternate, the
+        clone proceeds as if no alternate was specified.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -8926,7 +8994,7 @@ tag.gpgSign
         Use of this option when running in an automated script can
         result in a large number of tags being signed. It is therefore
         convenient to use an agent to avoid typing your gpg passphrase
-        several times. Note that this option doesn&#8217;t affects tag signing
+        several times. Note that this option doesn&#8217;t affect tag signing
         behavior enabled by "-u &lt;keyid&gt;" or "--local-user=&lt;keyid&gt;" options.
 </p>
 </dd>
@@ -9487,7 +9555,7 @@ looks like</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-11-01 11:46:12 PDT
+ 2020-01-07 09:02:40 PST
 </div>
 </div>
 </body>

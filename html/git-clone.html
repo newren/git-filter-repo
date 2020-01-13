@@ -754,7 +754,7 @@ git-clone(1) Manual Page
           [--dissociate] [--separate-git-dir &lt;git dir&gt;]
           [--depth &lt;depth&gt;] [--[no-]single-branch] [--no-tags]
           [--recurse-submodules[=&lt;pathspec&gt;]] [--[no-]shallow-submodules]
-          [--[no-]remote-submodules] [--jobs &lt;n&gt;] [--] &lt;repository&gt;
+          [--[no-]remote-submodules] [--jobs &lt;n&gt;] [--sparse] [--] &lt;repository&gt;
           [&lt;directory&gt;]</pre>
 <div class="attribution">
 </div></div>
@@ -959,6 +959,17 @@ objects from the source repository into a pack in the cloned repository.</p></di
 </p>
 </dd>
 <dt class="hdlist1">
+--sparse
+</dt>
+<dd>
+<p>
+        Initialize the sparse-checkout file so the working
+        directory starts with only the files in the root
+        of the repository. The sparse-checkout file can be
+        modified to grow the working directory as needed.
+</p>
+</dd>
+<dt class="hdlist1">
 --mirror
 </dt>
 <dd>
@@ -1138,9 +1149,9 @@ or <code>--mirror</code> is given)</p></div>
 </dt>
 <dd>
 <p>
-        All submodules which are cloned will use the status of the submodule’s
+        All submodules which are cloned will use the status of the submodule&#8217;s
         remote-tracking branch to update the submodule, rather than the
-        superproject’s recorded SHA-1. Equivalent to passing <code>--remote</code> to
+        superproject&#8217;s recorded SHA-1. Equivalent to passing <code>--remote</code> to
         <code>git submodule update</code>.
 </p>
 </dd>
@@ -1275,6 +1286,8 @@ file:///path/to/repo.git/
 </ul></div>
 <div class="paragraph"><p>These two syntaxes are mostly equivalent, except the former implies
 --local option.</p></div>
+<div class="paragraph"><p><em>git clone</em>, <em>git fetch</em> and <em>git pull</em>, but not <em>git push</em>, will also
+accept a suitable bundle file. See <a href="git-bundle.html">git-bundle(1)</a>.</p></div>
 <div class="paragraph"><p>When Git doesn&#8217;t know how to handle a certain transport protocol, it
 attempts to use the <em>remote-&lt;transport&gt;</em> remote helper, if one
 exists. To explicitly request a remote helper, the following syntax
@@ -1386,7 +1399,7 @@ Create a bare repository to publish your changes to the public:
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-11-01 11:46:12 PDT
+ 2020-01-07 09:02:40 PST
 </div>
 </div>
 </body>

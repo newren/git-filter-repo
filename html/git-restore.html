@@ -748,8 +748,9 @@ git-restore(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git restore</em> [&lt;options&gt;] [--source=&lt;tree&gt;] [--staged] [--worktree] &lt;pathspec&gt;&#8230;
-<em>git restore</em> (-p|--patch) [&lt;options&gt;] [--source=&lt;tree&gt;] [--staged] [--worktree] [&lt;pathspec&gt;&#8230;]</pre>
+<pre class="content"><em>git restore</em> [&lt;options&gt;] [--source=&lt;tree&gt;] [--staged] [--worktree] [--] &lt;pathspec&gt;&#8230;
+<em>git restore</em> [&lt;options&gt;] [--source=&lt;tree&gt;] [--staged] [--worktree] --pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]
+<em>git restore</em> (-p|--patch) [&lt;options&gt;] [--source=&lt;tree&gt;] [--staged] [--worktree] [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -928,6 +929,46 @@ in <a href="git-checkout.html">git-checkout(1)</a> for details.</p></div>
         <code>&lt;tree&gt;</code> exactly. The default is no-overlay mode.
 </p>
 </dd>
+<dt class="hdlist1">
+--pathspec-from-file=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Pathspec is passed in <code>&lt;file&gt;</code> instead of commandline args. If
+        <code>&lt;file&gt;</code> is exactly <code>-</code> then standard input is used. Pathspec
+        elements are separated by LF or CR/LF. Pathspec elements can be
+        quoted as explained for the configuration variable <code>core.quotePath</code>
+        (see <a href="git-config.html">git-config(1)</a>). See also <code>--pathspec-file-nul</code> and
+        global <code>--literal-pathspecs</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--pathspec-file-nul
+</dt>
+<dd>
+<p>
+        Only meaningful with <code>--pathspec-from-file</code>. Pathspec elements are
+        separated with NUL character and all other characters are taken
+        literally (including newlines and quotes).
+</p>
+</dd>
+<dt class="hdlist1">
+--
+</dt>
+<dd>
+<p>
+        Do not interpret any more arguments as options.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;pathspec&gt;&#8230;
+</dt>
+<dd>
+<p>
+        Limits the paths affected by the operation.
+</p>
+<div class="paragraph"><p>For more details, see the <em>pathspec</em> entry in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1014,7 +1055,7 @@ as using <a href="git-checkout.html">git-checkout(1)</a>)</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-11-01 11:46:12 PDT
+ 2020-01-07 09:02:40 PST
 </div>
 </div>
 </body>

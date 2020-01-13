@@ -793,7 +793,7 @@ control how the changes the commit introduces are shown.</p></div>
 <p>
         Pretty-print the contents of the commit logs in a given format,
         where <em>&lt;format&gt;</em> can be one of <em>oneline</em>, <em>short</em>, <em>medium</em>,
-        <em>full</em>, <em>fuller</em>, <em>email</em>, <em>raw</em>, <em>format:&lt;string&gt;</em>
+        <em>full</em>, <em>fuller</em>, <em>reference</em>, <em>email</em>, <em>raw</em>, <em>format:&lt;string&gt;</em>
         and <em>tformat:&lt;string&gt;</em>.  When <em>&lt;format&gt;</em> is none of the above,
         and has <em>%placeholder</em> in it, it acts as if
         <em>--pretty=tformat:&lt;format&gt;</em> were given.
@@ -873,7 +873,7 @@ message by 4 spaces (i.e.  <em>medium</em>, which is the default, <em>full</em>,
 and <em>fuller</em>).</p></div>
 </dd>
 <dt class="hdlist1">
---notes[=&lt;treeish&gt;]
+--notes[=&lt;ref&gt;]
 </dt>
 <dd>
 <p>
@@ -886,8 +886,8 @@ and <em>fuller</em>).</p></div>
 <div class="paragraph"><p>By default, the notes shown are from the notes refs listed in the
 <code>core.notesRef</code> and <code>notes.displayRef</code> variables (or corresponding
 environment overrides). See <a href="git-config.html">git-config(1)</a> for more details.</p></div>
-<div class="paragraph"><p>With an optional <em>&lt;treeish&gt;</em> argument, use the treeish to find the notes
-to display.  The treeish can specify the full refname when it begins
+<div class="paragraph"><p>With an optional <em>&lt;ref&gt;</em> argument, use the ref to find the notes
+to display.  The ref can specify the full refname when it begins
 with <code>refs/notes/</code>; when it begins with <code>notes/</code>, <code>refs/</code> and otherwise
 <code>refs/notes/</code> is prefixed to form a full name of the ref.</p></div>
 <div class="paragraph"><p>Multiple --notes options can be combined to control which notes are
@@ -908,7 +908,7 @@ being displayed. Examples: "--notes=foo" will show only notes from
 </p>
 </dd>
 <dt class="hdlist1">
---show-notes[=&lt;treeish&gt;]
+--show-notes[=&lt;ref&gt;]
 </dt>
 <dt class="hdlist1">
 --[no-]standard-notes
@@ -937,7 +937,7 @@ being displayed. Examples: "--notes=foo" will show only notes from
 <div class="paragraph"><p>If the commit is a merge, and if the pretty-format
 is not <em>oneline</em>, <em>email</em> or <em>raw</em>, an additional line is
 inserted before the <em>Author:</em> line.  This line begins with
-"Merge: " and the sha1s of ancestral commits are printed,
+"Merge: " and the hashes of ancestral commits are printed,
 separated by spaces.  Note that the listed commits may not
 necessarily be the list of the <strong>direct</strong> parent commits if you
 have limited your view of history: for example, if you are
@@ -956,7 +956,7 @@ built-in formats:</p></div>
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;sha1&gt; &lt;title line&gt;</code></pre>
+<pre><code>&lt;hash&gt; &lt;title line&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>This is designed to be as compact as possible.</p></div>
 </li>
@@ -966,7 +966,7 @@ built-in formats:</p></div>
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>commit &lt;sha1&gt;
+<pre><code>commit &lt;hash&gt;
 Author: &lt;author&gt;</code></pre>
 </div></div>
 <div class="literalblock">
@@ -980,7 +980,7 @@ Author: &lt;author&gt;</code></pre>
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>commit &lt;sha1&gt;
+<pre><code>commit &lt;hash&gt;
 Author: &lt;author&gt;
 Date:   &lt;author date&gt;</code></pre>
 </div></div>
@@ -999,7 +999,7 @@ Date:   &lt;author date&gt;</code></pre>
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>commit &lt;sha1&gt;
+<pre><code>commit &lt;hash&gt;
 Author: &lt;author&gt;
 Commit: &lt;committer&gt;</code></pre>
 </div></div>
@@ -1018,7 +1018,7 @@ Commit: &lt;committer&gt;</code></pre>
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>commit &lt;sha1&gt;
+<pre><code>commit &lt;hash&gt;
 Author:     &lt;author&gt;
 AuthorDate: &lt;author date&gt;
 Commit:     &lt;committer&gt;
@@ -1035,11 +1035,26 @@ CommitDate: &lt;committer date&gt;</code></pre>
 </li>
 <li>
 <p>
+<em>reference</em>
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;abbrev hash&gt; (&lt;title line&gt;, &lt;short author date&gt;)</code></pre>
+</div></div>
+<div class="paragraph"><p>This format is used to refer to another commit in a commit message and
+is the same as <code>--pretty='format:%C(auto)%h (%s, %ad)'</code>.  By default,
+the date is formatted with <code>--date=short</code> unless another <code>--date</code> option
+is explicitly specified.  As with any <code>format:</code> with format
+placeholders, its output is not affected by other options like
+<code>--decorate</code> and <code>--walk-reflogs</code>.</p></div>
+</li>
+<li>
+<p>
 <em>email</em>
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>From &lt;sha1&gt; &lt;date&gt;
+<pre><code>From &lt;hash&gt; &lt;date&gt;
 From: &lt;author&gt;
 Date: &lt;author date&gt;
 Subject: [PATCH] &lt;title line&gt;</code></pre>
@@ -1054,7 +1069,7 @@ Subject: [PATCH] &lt;title line&gt;</code></pre>
 <em>raw</em>
 </p>
 <div class="paragraph"><p>The <em>raw</em> format shows the entire commit exactly as
-stored in the commit object.  Notably, the SHA-1s are
+stored in the commit object.  Notably, the hashes are
 displayed in full, regardless of whether --abbrev or
 --no-abbrev are used, and <em>parents</em> information show the
 true parent commits, without taking grafts or history
@@ -1331,6 +1346,23 @@ author email (respecting .mailmap, see <a href="git-shortlog.html">git-shortlog(
 </p>
 </dd>
 <dt class="hdlist1">
+<em>%al</em>
+</dt>
+<dd>
+<p>
+author email local-part (the part before the <em>@</em> sign)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%aL</em>
+</dt>
+<dd>
+<p>
+author local-part (see <em>%al</em>) respecting .mailmap, see
+        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
 <em>%ad</em>
 </dt>
 <dd>
@@ -1379,6 +1411,14 @@ author date, strict ISO 8601 format
 </p>
 </dd>
 <dt class="hdlist1">
+<em>%as</em>
+</dt>
+<dd>
+<p>
+author date, short format (<code>YYYY-MM-DD</code>)
+</p>
+</dd>
+<dt class="hdlist1">
 <em>%cn</em>
 </dt>
 <dd>
@@ -1409,6 +1449,23 @@ committer email
 <dd>
 <p>
 committer email (respecting .mailmap, see
+        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cl</em>
+</dt>
+<dd>
+<p>
+author email local-part (the part before the <em>@</em> sign)
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cL</em>
+</dt>
+<dd>
+<p>
+author local-part (see <em>%cl</em>) respecting .mailmap, see
         <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
 </p>
 </dd>
@@ -1458,6 +1515,14 @@ committer date, ISO 8601-like format
 <dd>
 <p>
 committer date, strict ISO 8601 format
+</p>
+</dd>
+<dt class="hdlist1">
+<em>%cs</em>
+</dt>
+<dd>
+<p>
+committer date, short format (<code>YYYY-MM-DD</code>)
 </p>
 </dd>
 <dt class="hdlist1">

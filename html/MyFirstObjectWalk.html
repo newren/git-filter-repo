@@ -1,0 +1,1756 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<title>My First Object Walk</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>My First Object Walk</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_what_8217_s_an_object_walk">What&#8217;s an Object Walk?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The object walk is a key concept in Git - this is the process that underpins
+operations like object transfer and fsck. Beginning from a given commit, the
+list of objects is found by walking parent relationships between commits (commit
+X based on commit W) and containment relationships between objects (tree Y is
+contained within commit X, and blob Z is located within tree Y, giving our
+working tree for commit X something like <code>y/z.txt</code>).</p></div>
+<div class="paragraph"><p>A related concept is the revision walk, which is focused on commit objects and
+their parent relationships and does not delve into other object types. The
+revision walk is used for operations like <code>git log</code>.</p></div>
+<div class="sect2">
+<h3 id="_related_reading">Related Reading</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>Documentation/user-manual.txt</code> under "Hacking Git" contains some coverage of
+  the revision walker in its various incarnations.
+</p>
+</li>
+<li>
+<p>
+<code>revision.h</code>
+</p>
+</li>
+<li>
+<p>
+<a href="https://eagain.net/articles/git-for-computer-scientists/">Git for Computer Scientists</a>
+  gives a good overview of the types of objects in Git and what your object
+  walk is really describing.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up">Setting Up</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Create a new branch from <code>master</code>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git checkout -b revwalk origin/master</code></pre>
+</div></div>
+<div class="paragraph"><p>We&#8217;ll put our fiddling into a new command. For fun, let&#8217;s name it <code>git walken</code>.
+Open up a new file <code>builtin/walken.c</code> and set up the command handler:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>/*
+ * "git walken"
+ *
+ * Part of the "My First Object Walk" tutorial.
+ */
+
+#include "builtin.h"
+
+int cmd_walken(int argc, const char **argv, const char *prefix)
+{
+        trace_printf(_("cmd_walken incoming...\n"));
+        return 0;
+}</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content"><code>trace_printf()</code> differs from <code>printf()</code> in that it can be turned on or
+off at runtime. For the purposes of this tutorial, we will write <code>walken</code> as
+though it is intended for use as a "plumbing" command: that is, a command which
+is used primarily in scripts, rather than interactively by humans (a "porcelain"
+command). So we will send our debug output to <code>trace_printf()</code> instead. When
+running, enable trace output by setting the environment variable <code>GIT_TRACE</code>.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Add usage text and <code>-h</code> handling, like all subcommands should consistently do
+(our test suite will notice and complain if you fail to do so).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
+{
+        const char * const walken_usage[] = {
+                N_("git walken"),
+                NULL,
+        }
+        struct option options[] = {
+                OPT_END()
+        };
+
+        argc = parse_options(argc, argv, prefix, options, walken_usage, 0);
+
+        ...
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Also add the relevant line in <code>builtin.h</code> near <code>cmd_whatchanged()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix);</code></pre>
+</div></div>
+<div class="paragraph"><p>Include the command in <code>git.c</code> in <code>commands[]</code> near the entry for <code>whatchanged</code>,
+maintaining alphabetical ordering:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>{ "walken", cmd_walken, RUN_SETUP },</code></pre>
+</div></div>
+<div class="paragraph"><p>Add it to the <code>Makefile</code> near the line for <code>builtin/worktree.o</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>BUILTIN_OBJS += builtin/walken.o</code></pre>
+</div></div>
+<div class="paragraph"><p>Build and test out your command, without forgetting to ensure the <code>DEVELOPER</code>
+flag is set, and with <code>GIT_TRACE</code> enabled so the debug output can be seen:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ echo DEVELOPER=1 &gt;&gt;config.mak
+$ make
+$ GIT_TRACE=1 ./bin-wrappers/git walken</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">For a more exhaustive overview of the new command process, take a look at
+<code>Documentation/MyFirstContribution.txt</code>.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">A reference implementation can be found at
+<a href="https://github.com/nasamuffin/git/tree/revwalk">https://github.com/nasamuffin/git/tree/revwalk</a>.</td>
+</tr></table>
+</div>
+<div class="sect2">
+<h3 id="_code_struct_rev_cmdline_info_code"><code>struct rev_cmdline_info</code></h3>
+<div class="paragraph"><p>The definition of <code>struct rev_cmdline_info</code> can be found in <code>revision.h</code>.</p></div>
+<div class="paragraph"><p>This struct is contained within the <code>rev_info</code> struct and is used to reflect
+parameters provided by the user over the CLI.</p></div>
+<div class="paragraph"><p><code>nr</code> represents the number of <code>rev_cmdline_entry</code> present in the array.</p></div>
+<div class="paragraph"><p><code>alloc</code> is used by the <code>ALLOC_GROW</code> macro. Check <code>cache.h</code> - this variable is
+used to track the allocated size of the list.</p></div>
+<div class="paragraph"><p>Per entry, we find:</p></div>
+<div class="paragraph"><p><code>item</code> is the object provided upon which to base the object walk. Items in Git
+can be blobs, trees, commits, or tags. (See <code>Documentation/gittutorial-2.txt</code>.)</p></div>
+<div class="paragraph"><p><code>name</code> is the object ID (OID) of the object - a hex string you may be familiar
+with from using Git to organize your source in the past. Check the tutorial
+mentioned above towards the top for a discussion of where the OID can come
+from.</p></div>
+<div class="paragraph"><p><code>whence</code> indicates some information about what to do with the parents of the
+specified object. We&#8217;ll explore this flag more later on; take a look at
+<code>Documentation/revisions.txt</code> to get an idea of what could set the <code>whence</code>
+value.</p></div>
+<div class="paragraph"><p><code>flags</code> are used to hint the beginning of the revision walk and are the first
+block under the <code>#include`s in `revision.h</code>. The most likely ones to be set in
+the <code>rev_cmdline_info</code> are <code>UNINTERESTING</code> and <code>BOTTOM</code>, but these same flags
+can be used during the walk, as well.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_code_struct_rev_info_code"><code>struct rev_info</code></h3>
+<div class="paragraph"><p>This one is quite a bit longer, and many fields are only used during the walk
+by <code>revision.c</code> - not configuration options. Most of the configurable flags in
+<code>struct rev_info</code> have a mirror in <code>Documentation/rev-list-options.txt</code>. It&#8217;s a
+good idea to take some time and read through that document.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basic_commit_walk">Basic Commit Walk</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>First, let&#8217;s see if we can replicate the output of <code>git log --oneline</code>. We&#8217;ll
+refer back to the implementation frequently to discover norms when performing
+an object walk of our own.</p></div>
+<div class="paragraph"><p>To do so, we&#8217;ll first find all the commits, in order, which preceded the current
+commit. We&#8217;ll extract the name and subject of the commit from each.</p></div>
+<div class="paragraph"><p>Ideally, we will also be able to find out which ones are currently at the tip of
+various branches.</p></div>
+<div class="sect2">
+<h3 id="_setting_up_2">Setting Up</h3>
+<div class="paragraph"><p>Preparing for your object walk has some distinct stages.</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Perform default setup for this mode, and others which may be invoked.
+</p>
+</li>
+<li>
+<p>
+Check configuration files for relevant settings.
+</p>
+</li>
+<li>
+<p>
+Set up the <code>rev_info</code> struct.
+</p>
+</li>
+<li>
+<p>
+Tweak the initialized <code>rev_info</code> to suit the current walk.
+</p>
+</li>
+<li>
+<p>
+Prepare the <code>rev_info</code> for the walk.
+</p>
+</li>
+<li>
+<p>
+Iterate over the objects, processing each one.
+</p>
+</li>
+</ol></div>
+<div class="sect3">
+<h4 id="_default_setups">Default Setups</h4>
+<div class="paragraph"><p>Before examining configuration files which may modify command behavior, set up
+default state for switches or options your command may have. If your command
+utilizes other Git components, ask them to set up their default states as well.
+For instance, <code>git log</code> takes advantage of <code>grep</code> and <code>diff</code> functionality, so
+its <code>init_log_defaults()</code> sets its own state (<code>decoration_style</code>) and asks
+<code>grep</code> and <code>diff</code> to initialize themselves by calling each of their
+initialization functions.</p></div>
+<div class="paragraph"><p>For our first example within <code>git walken</code>, we don&#8217;t intend to use any other
+components within Git, and we don&#8217;t have any configuration to do.  However, we
+may want to add some later, so for now, we can add an empty placeholder. Create
+a new function in <code>builtin/walken.c</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void init_walken_defaults(void)
+{
+        /*
+         * We don't actually need the same components `git log` does; leave this
+         * empty for now.
+         */
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Make sure to add a line invoking it inside of <code>cmd_walken()</code>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
+{
+        init_walken_defaults();
+}</code></pre>
+</div></div>
+</div>
+<div class="sect3">
+<h4 id="_configuring_from_code_gitconfig_code">Configuring From <code>.gitconfig</code></h4>
+<div class="paragraph"><p>Next, we should have a look at any relevant configuration settings (i.e.,
+settings readable and settable from <code>git config</code>). This is done by providing a
+callback to <code>git_config()</code>; within that callback, you can also invoke methods
+from other components you may need that need to intercept these options. Your
+callback will be invoked once per each configuration value which Git knows about
+(global, local, worktree, etc.).</p></div>
+<div class="paragraph"><p>Similarly to the default values, we don&#8217;t have anything to do here yet
+ourselves; however, we should call <code>git_default_config()</code> if we aren&#8217;t calling
+any other existing config callbacks.</p></div>
+<div class="paragraph"><p>Add a new function to <code>builtin/walken.c</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static int git_walken_config(const char *var, const char *value, void *cb)
+{
+        /*
+         * For now, we don't have any custom configuration, so fall back to
+         * the default config.
+         */
+        return git_default_config(var, value, cb);
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Make sure to invoke <code>git_config()</code> with it in your <code>cmd_walken()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
+{
+        ...
+
+        git_config(git_walken_config, NULL);
+
+        ...
+}</code></pre>
+</div></div>
+</div>
+<div class="sect3">
+<h4 id="_setting_up_code_rev_info_code">Setting Up <code>rev_info</code></h4>
+<div class="paragraph"><p>Now that we&#8217;ve gathered external configuration and options, it&#8217;s time to
+initialize the <code>rev_info</code> object which we will use to perform the walk. This is
+typically done by calling <code>repo_init_revisions()</code> with the repository you intend
+to target, as well as the <code>prefix</code> argument of <code>cmd_walken</code> and your <code>rev_info</code>
+struct.</p></div>
+<div class="paragraph"><p>Add the <code>struct rev_info</code> and the <code>repo_init_revisions()</code> call:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
+{
+        /* This can go wherever you like in your declarations.*/
+        struct rev_info rev;
+        ...
+
+        /* This should go after the git_config() call. */
+        repo_init_revisions(the_repository, &amp;rev, prefix);
+
+        ...
+}</code></pre>
+</div></div>
+</div>
+<div class="sect3">
+<h4 id="_tweaking_code_rev_info_code_for_the_walk">Tweaking <code>rev_info</code> For the Walk</h4>
+<div class="paragraph"><p>We&#8217;re getting close, but we&#8217;re still not quite ready to go. Now that <code>rev</code> is
+initialized, we can modify it to fit our needs. This is usually done within a
+helper for clarity, so let&#8217;s add one:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void final_rev_info_setup(struct rev_info *rev)
+{
+        /*
+         * We want to mimic the appearance of `git log --oneline`, so let's
+         * force oneline format.
+         */
+        get_commit_format("oneline", rev);
+
+        /* Start our object walk at HEAD. */
+        add_head_to_pending(rev);
+}</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph"><p>Instead of using the shorthand <code>add_head_to_pending()</code>, you could do
+something like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        struct setup_revision_opt opt;
+
+        memset(&amp;opt, 0, sizeof(opt));
+        opt.def = "HEAD";
+        opt.revarg_opt = REVARG_COMMITTISH;
+        setup_revisions(argc, argv, rev, &amp;opt);</code></pre>
+</div></div>
+<div class="paragraph"><p>Using a <code>setup_revision_opt</code> gives you finer control over your walk&#8217;s starting
+point.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Then let&#8217;s invoke <code>final_rev_info_setup()</code> after the call to
+<code>repo_init_revisions()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
+{
+        ...
+
+        final_rev_info_setup(&amp;rev);
+
+        ...
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Later, we may wish to add more arguments to <code>final_rev_info_setup()</code>. But for
+now, this is all we need.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_preparing_code_rev_info_code_for_the_walk">Preparing <code>rev_info</code> For the Walk</h4>
+<div class="paragraph"><p>Now that <code>rev</code> is all initialized and configured, we&#8217;ve got one more setup step
+before we get rolling. We can do this in a helper, which will both prepare the
+<code>rev_info</code> for the walk, and perform the walk itself. Let&#8217;s start the helper
+with the call to <code>prepare_revision_walk()</code>, which can return an error without
+dying on its own:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_commit_walk(struct rev_info *rev)
+{
+        if (prepare_revision_walk(rev))
+                die(_("revision walk setup failed"));
+}</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content"><code>die()</code> prints to <code>stderr</code> and exits the program. Since it will print to
+<code>stderr</code> it&#8217;s likely to be seen by a human, so we will localize it.</td>
+</tr></table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_performing_the_walk">Performing the Walk!</h4>
+<div class="paragraph"><p>Finally! We are ready to begin the walk itself. Now we can see that <code>rev_info</code>
+can also be used as an iterator; we move to the next item in the walk by using
+<code>get_revision()</code> repeatedly. Add the listed variable declarations at the top and
+the walk loop below the <code>prepare_revision_walk()</code> call within your
+<code>walken_commit_walk()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_commit_walk(struct rev_info *rev)
+{
+        struct commit *commit;
+        struct strbuf prettybuf = STRBUF_INIT;
+
+        ...
+
+        while ((commit = get_revision(rev))) {
+                if (!commit)
+                        continue;
+
+                strbuf_reset(&amp;prettybuf);
+                pp_commit_easy(CMIT_FMT_ONELINE, commit, &amp;prettybuf);
+                puts(prettybuf.buf);
+        }
+        strbuf_release(&amp;prettybuf);
+}</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content"><code>puts()</code> prints a <code>char*</code> to <code>stdout</code>. Since this is the part of the
+command we expect to be machine-parsed, we&#8217;re sending it directly to stdout.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Give it a shot.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ make
+$ ./bin-wrappers/git walken</code></pre>
+</div></div>
+<div class="paragraph"><p>You should see all of the subject lines of all the commits in
+your tree&#8217;s history, in order, ending with the initial commit, "Initial revision
+of "git", the information manager from hell". Congratulations! You&#8217;ve written
+your first revision walk. You can play with printing some additional fields
+from each commit if you&#8217;re curious; have a look at the functions available in
+<code>commit.h</code>.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_adding_a_filter">Adding a Filter</h3>
+<div class="paragraph"><p>Next, let&#8217;s try to filter the commits we see based on their author. This is
+equivalent to running <code>git log --author=&lt;pattern&gt;</code>. We can add a filter by
+modifying <code>rev_info.grep_filter</code>, which is a <code>struct grep_opt</code>.</p></div>
+<div class="paragraph"><p>First some setup. Add <code>init_grep_defaults()</code> to <code>init_walken_defaults()</code> and add
+<code>grep_config()</code> to <code>git_walken_config()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void init_walken_defaults(void)
+{
+        init_grep_defaults(the_repository);
+}
+
+...
+
+static int git_walken_config(const char *var, const char *value, void *cb)
+{
+        grep_config(var, value, cb);
+        return git_default_config(var, value, cb);
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Next, we can modify the <code>grep_filter</code>. This is done with convenience functions
+found in <code>grep.h</code>. For fun, we&#8217;re filtering to only commits from folks using a
+<code>gmail.com</code> email address - a not-very-precise guess at who may be working on
+Git as a hobby. Since we&#8217;re checking the author, which is a specific line in the
+header, we&#8217;ll use the <code>append_header_grep_pattern()</code> helper. We can use
+the <code>enum grep_header_field</code> to indicate which part of the commit header we want
+to search.</p></div>
+<div class="paragraph"><p>In <code>final_rev_info_setup()</code>, add your filter line:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void final_rev_info_setup(int argc, const char **argv,
+                const char *prefix, struct rev_info *rev)
+{
+        ...
+
+        append_header_grep_pattern(&amp;rev-&gt;grep_filter, GREP_HEADER_AUTHOR,
+                "gmail");
+        compile_grep_patterns(&amp;rev-&gt;grep_filter);
+
+        ...
+}</code></pre>
+</div></div>
+<div class="paragraph"><p><code>append_header_grep_pattern()</code> adds your new "gmail" pattern to <code>rev_info</code>, but
+it won&#8217;t work unless we compile it with <code>compile_grep_patterns()</code>.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">If you are using <code>setup_revisions()</code> (for example, if you are passing a
+<code>setup_revision_opt</code> instead of using <code>add_head_to_pending()</code>), you don&#8217;t need
+to call <code>compile_grep_patterns()</code> because <code>setup_revisions()</code> calls it for you.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">We could add the same filter via the <code>append_grep_pattern()</code> helper if we
+wanted to, but <code>append_header_grep_pattern()</code> adds the <code>enum grep_context</code> and
+<code>enum grep_pat_token</code> for us.</td>
+</tr></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_changing_the_order">Changing the Order</h3>
+<div class="paragraph"><p>There are a few ways that we can change the order of the commits during a
+revision walk. Firstly, we can use the <code>enum rev_sort_order</code> to choose from some
+typical orderings.</p></div>
+<div class="paragraph"><p><code>topo_order</code> is the same as <code>git log --topo-order</code>: we avoid showing a parent
+before all of its children have been shown, and we avoid mixing commits which
+are in different lines of history. (<code>git help log</code>'s section on <code>--topo-order</code>
+has a very nice diagram to illustrate this.)</p></div>
+<div class="paragraph"><p>Let&#8217;s see what happens when we run with <code>REV_SORT_BY_COMMIT_DATE</code> as opposed to
+<code>REV_SORT_BY_AUTHOR_DATE</code>. Add the following:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void final_rev_info_setup(int argc, const char **argv,
+                const char *prefix, struct rev_info *rev)
+{
+        ...
+
+        rev-&gt;topo_order = 1;
+        rev-&gt;sort_order = REV_SORT_BY_COMMIT_DATE;
+
+        ...
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Let&#8217;s output this into a file so we can easily diff it with the walk sorted by
+author date.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ make
+$ ./bin-wrappers/git walken &gt; commit-date.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>Then, let&#8217;s sort by author date and run it again.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void final_rev_info_setup(int argc, const char **argv,
+                const char *prefix, struct rev_info *rev)
+{
+        ...
+
+        rev-&gt;topo_order = 1;
+        rev-&gt;sort_order = REV_SORT_BY_AUTHOR_DATE;
+
+        ...
+}</code></pre>
+</div></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ make
+$ ./bin-wrappers/git walken &gt; author-date.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>Finally, compare the two. This is a little less helpful without object names or
+dates, but hopefully we get the idea.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ diff -u commit-date.txt author-date.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>This display indicates that commits can be reordered after they&#8217;re written, for
+example with <code>git rebase</code>.</p></div>
+<div class="paragraph"><p>Let&#8217;s try one more reordering of commits. <code>rev_info</code> exposes a <code>reverse</code> flag.
+Set that flag somewhere inside of <code>final_rev_info_setup()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void final_rev_info_setup(int argc, const char **argv, const char *prefix,
+                struct rev_info *rev)
+{
+        ...
+
+        rev-&gt;reverse = 1;
+
+        ...
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Run your walk again and note the difference in order. (If you remove the grep
+pattern, you should see the last commit this call gives you as your current
+HEAD.)</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basic_object_walk">Basic Object Walk</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>So far we&#8217;ve been walking only commits. But Git has more types of objects than
+that! Let&#8217;s see if we can walk <em>all</em> objects, and find out some information
+about each one.</p></div>
+<div class="paragraph"><p>We can base our work on an example. <code>git pack-objects</code> prepares all kinds of
+objects for packing into a bitmap or packfile. The work we are interested in
+resides in <code>builtins/pack-objects.c:get_object_list()</code>; examination of that
+function shows that the all-object walk is being performed by
+<code>traverse_commit_list()</code> or <code>traverse_commit_list_filtered()</code>. Those two
+functions reside in <code>list-objects.c</code>; examining the source shows that, despite
+the name, these functions traverse all kinds of objects. Let&#8217;s have a look at
+the arguments to <code>traverse_commit_list_filtered()</code>, which are a superset of the
+arguments to the unfiltered version.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>struct list_objects_filter_options *filter_options</code>: This is a struct which
+  stores a filter-spec as outlined in <code>Documentation/rev-list-options.txt</code>.
+</p>
+</li>
+<li>
+<p>
+<code>struct rev_info *revs</code>: This is the <code>rev_info</code> used for the walk.
+</p>
+</li>
+<li>
+<p>
+<code>show_commit_fn show_commit</code>: A callback which will be used to handle each
+  individual commit object.
+</p>
+</li>
+<li>
+<p>
+<code>show_object_fn show_object</code>: A callback which will be used to handle each
+  non-commit object (so each blob, tree, or tag).
+</p>
+</li>
+<li>
+<p>
+<code>void *show_data</code>: A context buffer which is passed in turn to <code>show_commit</code>
+  and <code>show_object</code>.
+</p>
+</li>
+<li>
+<p>
+<code>struct oidset *omitted</code>: A linked-list of object IDs which the provided
+  filter caused to be omitted.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>It looks like this <code>traverse_commit_list_filtered()</code> uses callbacks we provide
+instead of needing us to call it repeatedly ourselves. Cool! Let&#8217;s add the
+callbacks first.</p></div>
+<div class="paragraph"><p>For the sake of this tutorial, we&#8217;ll simply keep track of how many of each kind
+of object we find. At file scope in <code>builtin/walken.c</code> add the following
+tracking variables:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static int commit_count;
+static int tag_count;
+static int blob_count;
+static int tree_count;</code></pre>
+</div></div>
+<div class="paragraph"><p>Commits are handled by a different callback than other objects; let&#8217;s do that
+one first:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_show_commit(struct commit *cmt, void *buf)
+{
+        commit_count++;
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>The <code>cmt</code> argument is fairly self-explanatory. But it&#8217;s worth mentioning that
+the <code>buf</code> argument is actually the context buffer that we can provide to the
+traversal calls - <code>show_data</code>, which we mentioned a moment ago.</p></div>
+<div class="paragraph"><p>Since we have the <code>struct commit</code> object, we can look at all the same parts that
+we looked at in our earlier commit-only walk. For the sake of this tutorial,
+though, we&#8217;ll just increment the commit counter and move on.</p></div>
+<div class="paragraph"><p>The callback for non-commits is a little different, as we&#8217;ll need to check
+which kind of object we&#8217;re dealing with:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_show_object(struct object *obj, const char *str, void *buf)
+{
+        switch (obj-&gt;type) {
+        case OBJ_TREE:
+                tree_count++;
+                break;
+        case OBJ_BLOB:
+                blob_count++;
+                break;
+        case OBJ_TAG:
+                tag_count++;
+                break;
+        case OBJ_COMMIT:
+                BUG("unexpected commit object in walken_show_object\n");
+        default:
+                BUG("unexpected object type %s in walken_show_object\n",
+                        type_name(obj-&gt;type));
+        }
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>Again, <code>obj</code> is fairly self-explanatory, and we can guess that <code>buf</code> is the same
+context pointer that <code>walken_show_commit()</code> receives: the <code>show_data</code> argument
+to <code>traverse_commit_list()</code> and <code>traverse_commit_list_filtered()</code>. Finally,
+<code>str</code> contains the name of the object, which ends up being something like
+<code>foo.txt</code> (blob), <code>bar/baz</code> (tree), or <code>v1.2.3</code> (tag).</p></div>
+<div class="paragraph"><p>To help assure us that we aren&#8217;t double-counting commits, we&#8217;ll include some
+complaining if a commit object is routed through our non-commit callback; we&#8217;ll
+also complain if we see an invalid object type. Since those two cases should be
+unreachable, and would only change in the event of a semantic change to the Git
+codebase, we complain by using <code>BUG()</code> - which is a signal to a developer that
+the change they made caused unintended consequences, and the rest of the
+codebase needs to be updated to understand that change. <code>BUG()</code> is not intended
+to be seen by the public, so it is not localized.</p></div>
+<div class="paragraph"><p>Our main object walk implementation is substantially different from our commit
+walk implementation, so let&#8217;s make a new function to perform the object walk. We
+can perform setup which is applicable to all objects here, too, to keep separate
+from setup which is applicable to commit-only walks.</p></div>
+<div class="paragraph"><p>We&#8217;ll start by enabling all types of objects in the <code>struct rev_info</code>.  We&#8217;ll
+also turn on <code>tree_blobs_in_commit_order</code>, which means that we will walk a
+commit&#8217;s tree and everything it points to immediately after we find each commit,
+as opposed to waiting for the end and walking through all trees after the commit
+history has been discovered. With the appropriate settings configured, we are
+ready to call <code>prepare_revision_walk()</code>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_object_walk(struct rev_info *rev)
+{
+        rev-&gt;tree_objects = 1;
+        rev-&gt;blob_objects = 1;
+        rev-&gt;tag_objects = 1;
+        rev-&gt;tree_blobs_in_commit_order = 1;
+
+        if (prepare_revision_walk(rev))
+                die(_("revision walk setup failed"));
+
+        commit_count = 0;
+        tag_count = 0;
+        blob_count = 0;
+        tree_count = 0;</code></pre>
+</div></div>
+<div class="paragraph"><p>Let&#8217;s start by calling just the unfiltered walk and reporting our counts.
+Complete your implementation of <code>walken_object_walk()</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        traverse_commit_list(rev, walken_show_commit, walken_show_object, NULL);
+
+        printf("commits %d\nblobs %d\ntags %d\ntrees %d\n", commit_count,
+                blob_count, tag_count, tree_count);
+}</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">This output is intended to be machine-parsed. Therefore, we are not
+sending it to <code>trace_printf()</code>, and we are not localizing it - we need scripts
+to be able to count on the formatting to be exactly the way it is shown here.
+If we were intending this output to be read by humans, we would need to localize
+it with <code>_()</code>.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Finally, we&#8217;ll ask <code>cmd_walken()</code> to use the object walk instead. Discussing
+command line options is out of scope for this tutorial, so we&#8217;ll just hardcode
+a branch we can change at compile time. Where you call <code>final_rev_info_setup()</code>
+and <code>walken_commit_walk()</code>, instead branch like so:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        if (1) {
+                add_head_to_pending(&amp;rev);
+                walken_object_walk(&amp;rev);
+        } else {
+                final_rev_info_setup(argc, argv, prefix, &amp;rev);
+                walken_commit_walk(&amp;rev);
+        }</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">For simplicity, we&#8217;ve avoided all the filters and sorts we applied in
+<code>final_rev_info_setup()</code> and simply added <code>HEAD</code> to our pending queue. If you
+want, you can certainly use the filters we added before by moving
+<code>final_rev_info_setup()</code> out of the conditional and removing the call to
+<code>add_head_to_pending()</code>.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Now we can try to run our command! It should take noticeably longer than the
+commit walk, but an examination of the output will give you an idea why. Your
+output should look similar to this example, but with different counts:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Object walk completed. Found 55733 commits, 100274 blobs, 0 tags, and 104210 trees.</code></pre>
+</div></div>
+<div class="paragraph"><p>This makes sense. We have more trees than commits because the Git project has
+lots of subdirectories which can change, plus at least one tree per commit. We
+have no tags because we started on a commit (<code>HEAD</code>) and while tags can point to
+commits, commits can&#8217;t point to tags.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">You will have different counts when you run this yourself! The number of
+objects grows along with the Git project.</td>
+</tr></table>
+</div>
+<div class="sect2">
+<h3 id="_adding_a_filter_2">Adding a Filter</h3>
+<div class="paragraph"><p>There are a handful of filters that we can apply to the object walk laid out in
+<code>Documentation/rev-list-options.txt</code>. These filters are typically useful for
+operations such as creating packfiles or performing a partial clone. They are
+defined in <code>list-objects-filter-options.h</code>. For the purposes of this tutorial we
+will use the "tree:1" filter, which causes the walk to omit all trees and blobs
+which are not directly referenced by commits reachable from the commit in
+<code>pending</code> when the walk begins. (<code>pending</code> is the list of objects which need to
+be traversed during a walk; you can imagine a breadth-first tree traversal to
+help understand. In our case, that means we omit trees and blobs not directly
+referenced by <code>HEAD</code> or <code>HEAD</code>'s history, because we begin the walk with only
+<code>HEAD</code> in the <code>pending</code> list.)</p></div>
+<div class="paragraph"><p>First, we&#8217;ll need to <code>#include "list-objects-filter-options.h</code>" and set up the
+<code>struct list_objects_filter_options</code> at the top of the function.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_object_walk(struct rev_info *rev)
+{
+        struct list_objects_filter_options filter_options = {};
+
+        ...</code></pre>
+</div></div>
+<div class="paragraph"><p>For now, we are not going to track the omitted objects, so we&#8217;ll replace those
+parameters with <code>NULL</code>. For the sake of simplicity, we&#8217;ll add a simple
+build-time branch to use our filter or not. Replace the line calling
+<code>traverse_commit_list()</code> with the following, which will remind us which kind of
+walk we&#8217;ve just performed:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        if (0) {
+                /* Unfiltered: */
+                trace_printf(_("Unfiltered object walk.\n"));
+                traverse_commit_list(rev, walken_show_commit,
+                                walken_show_object, NULL);
+        } else {
+                trace_printf(
+                        _("Filtered object walk with filterspec 'tree:1'.\n"));
+                parse_list_objects_filter(&amp;filter_options, "tree:1");
+
+                traverse_commit_list_filtered(&amp;filter_options, rev,
+                        walken_show_commit, walken_show_object, NULL, NULL);
+        }</code></pre>
+</div></div>
+<div class="paragraph"><p><code>struct list_objects_filter_options</code> is usually built directly from a command
+line argument, so the module provides an easy way to build one from a string.
+Even though we aren&#8217;t taking user input right now, we can still build one with
+a hardcoded string using <code>parse_list_objects_filter()</code>.</p></div>
+<div class="paragraph"><p>With the filter spec "tree:1", we are expecting to see <em>only</em> the root tree for
+each commit; therefore, the tree object count should be less than or equal to
+the number of commits. (For an example of why that&#8217;s true: <code>git commit --revert</code>
+points to the same tree object as its grandparent.)</p></div>
+</div>
+<div class="sect2">
+<h3 id="_counting_omitted_objects">Counting Omitted Objects</h3>
+<div class="paragraph"><p>We also have the capability to enumerate all objects which were omitted by a
+filter, like with <code>git log --filter=&lt;spec&gt; --filter-print-omitted</code>. Asking
+<code>traverse_commit_list_filtered()</code> to populate the <code>omitted</code> list means that our
+object walk does not perform any better than an unfiltered object walk; all
+reachable objects are walked in order to populate the list.</p></div>
+<div class="paragraph"><p>First, add the <code>struct oidset</code> and related items we will use to iterate it:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_object_walk(
+        ...
+
+        struct oidset omitted;
+        struct oidset_iter oit;
+        struct object_id *oid = NULL;
+        int omitted_count = 0;
+        oidset_init(&amp;omitted, 0);
+
+        ...</code></pre>
+</div></div>
+<div class="paragraph"><p>Modify the call to <code>traverse_commit_list_filtered()</code> to include your <code>omitted</code>
+object:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        ...
+
+                traverse_commit_list_filtered(&amp;filter_options, rev,
+                        walken_show_commit, walken_show_object, NULL, &amp;omitted);
+
+        ...</code></pre>
+</div></div>
+<div class="paragraph"><p>Then, after your traversal, the <code>oidset</code> traversal is pretty straightforward.
+Count all the objects within and modify the print statement:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        /* Count the omitted objects. */
+        oidset_iter_init(&amp;omitted, &amp;oit);
+
+        while ((oid = oidset_iter_next(&amp;oit)))
+                omitted_count++;
+
+        printf("commits %d\nblobs %d\ntags %d\ntrees%d\nomitted %d\n",
+                commit_count, blob_count, tag_count, tree_count, omitted_count);</code></pre>
+</div></div>
+<div class="paragraph"><p>By running your walk with and without the filter, you should find that the total
+object count in each case is identical. You can also time each invocation of
+the <code>walken</code> subcommand, with and without <code>omitted</code> being passed in, to confirm
+to yourself the runtime impact of tracking all omitted objects.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_changing_the_order_2">Changing the Order</h3>
+<div class="paragraph"><p>Finally, let&#8217;s demonstrate that you can also reorder walks of all objects, not
+just walks of commits. First, we&#8217;ll make our handlers chattier - modify
+<code>walken_show_commit()</code> and <code>walken_show_object()</code> to print the object as they
+go:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>static void walken_show_commit(struct commit *cmt, void *buf)
+{
+        trace_printf("commit: %s\n", oid_to_hex(&amp;cmt-&gt;object.oid));
+        commit_count++;
+}
+
+static void walken_show_object(struct object *obj, const char *str, void *buf)
+{
+        trace_printf("%s: %s\n", type_name(obj-&gt;type), oid_to_hex(&amp;obj-&gt;oid));
+
+        ...
+}</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Since we will be examining this output directly as humans, we&#8217;ll use
+<code>trace_printf()</code> here. Additionally, since this change introduces a significant
+number of printed lines, using <code>trace_printf()</code> will allow us to easily silence
+those lines without having to recompile.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>(Leave the counter increment logic in place.)</p></div>
+<div class="paragraph"><p>With only that change, run again (but save yourself some scrollback):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ GIT_TRACE=1 ./bin-wrappers/git walken | head -n 10</code></pre>
+</div></div>
+<div class="paragraph"><p>Take a look at the top commit with <code>git show</code> and the object ID you printed; it
+should be the same as the output of <code>git show HEAD</code>.</p></div>
+<div class="paragraph"><p>Next, let&#8217;s change a setting on our <code>struct rev_info</code> within
+<code>walken_object_walk()</code>. Find where you&#8217;re changing the other settings on <code>rev</code>,
+such as <code>rev-&gt;tree_objects</code> and <code>rev-&gt;tree_blobs_in_commit_order</code>, and add the
+<code>reverse</code> setting at the bottom:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        ...
+
+        rev-&gt;tree_objects = 1;
+        rev-&gt;blob_objects = 1;
+        rev-&gt;tag_objects = 1;
+        rev-&gt;tree_blobs_in_commit_order = 1;
+        rev-&gt;reverse = 1;
+
+        ...</code></pre>
+</div></div>
+<div class="paragraph"><p>Now, run again, but this time, let&#8217;s grab the last handful of objects instead
+of the first handful:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ make
+$ GIT_TRACE=1 ./bin-wrappers git walken | tail -n 10</code></pre>
+</div></div>
+<div class="paragraph"><p>The last commit object given should have the same OID as the one we saw at the
+top before, and running <code>git show &lt;oid&gt;</code> with that OID should give you again
+the same results as <code>git show HEAD</code>. Furthermore, if you run and examine the
+first ten lines again (with <code>head</code> instead of <code>tail</code> like we did before applying
+the <code>reverse</code> setting), you should see that now the first commit printed is the
+initial commit, <code>e83c5163</code>.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_wrapping_up">Wrapping Up</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Let&#8217;s review. In this tutorial, we:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Built a commit walk from the ground up
+</p>
+</li>
+<li>
+<p>
+Enabled a grep filter for that commit walk
+</p>
+</li>
+<li>
+<p>
+Changed the sort order of that filtered commit walk
+</p>
+</li>
+<li>
+<p>
+Built an object walk (tags, commits, trees, and blobs) from the ground up
+</p>
+</li>
+<li>
+<p>
+Learned how to add a filter-spec to an object walk
+</p>
+</li>
+<li>
+<p>
+Changed the display order of the filtered object walk
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2020-01-07 09:02:40 PST
+</div>
+</div>
+</body>
+</html>

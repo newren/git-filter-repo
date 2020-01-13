@@ -748,8 +748,8 @@ git-bundle(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git bundle</em> create &lt;file&gt; &lt;git-rev-list-args&gt;
-<em>git bundle</em> verify &lt;file&gt;
+<pre class="content"><em>git bundle</em> create [-q | --quiet | --progress | --all-progress] [--all-progress-implied] &lt;file&gt; &lt;git-rev-list-args&gt;
+<em>git bundle</em> verify [-q | --quiet] &lt;file&gt;
 <em>git bundle</em> list-heads &lt;file&gt; [&lt;refname&gt;&#8230;]
 <em>git bundle</em> unbundle &lt;file&gt; [&lt;refname&gt;&#8230;]</pre>
 <div class="attribution">
@@ -762,11 +762,12 @@ git-bundle(1) Manual Page
 <div class="paragraph"><p>Some workflows require that one or more branches of development on one
 machine be replicated on another machine, but the two machines cannot
 be directly connected, and therefore the interactive Git protocols (git,
-ssh, http) cannot be used.  This command provides support for
-<em>git fetch</em> and <em>git pull</em> to operate by packaging objects and references
-in an archive at the originating machine, then importing those into
-another repository using <em>git fetch</em> and <em>git pull</em>
-after moving the archive by some means (e.g., by sneakernet).  As no
+ssh, http) cannot be used.</p></div>
+<div class="paragraph"><p>The <em>git bundle</em> command packages objects and references in an archive
+at the originating machine, which can then be imported into another
+repository using <em>git fetch</em>, <em>git pull</em>, or <em>git clone</em>,
+after moving the archive by some means (e.g., by sneakernet).</p></div>
+<div class="paragraph"><p>As no
 direct connection between the repositories exists, the user must specify a
 basis for the bundle that is held by the destination repository: the
 bundle assumes that all objects in the basis are already in the
@@ -778,12 +779,14 @@ destination repository.</p></div>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-create &lt;file&gt;
+create [options] &lt;file&gt; &lt;git-rev-list-args&gt;
 </dt>
 <dd>
 <p>
         Used to create a bundle named <em>file</em>.  This requires the
-        <em>git-rev-list-args</em> arguments to define the bundle contents.
+        <em>&lt;git-rev-list-args&gt;</em> arguments to define the bundle contents.
+        <em>options</em> contains the options specific to the <em>git bundle create</em>
+        subcommand.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -848,6 +851,55 @@ unbundle &lt;file&gt;
         like <em>git fetch-pack</em>).
 </p>
 </dd>
+<dt class="hdlist1">
+--progress
+</dt>
+<dd>
+<p>
+        Progress status is reported on the standard error stream
+        by default when it is attached to a terminal, unless -q
+        is specified. This flag forces progress status even if
+        the standard error stream is not directed to a terminal.
+</p>
+</dd>
+<dt class="hdlist1">
+--all-progress
+</dt>
+<dd>
+<p>
+        When --stdout is specified then progress report is
+        displayed during the object count and compression phases
+        but inhibited during the write-out phase. The reason is
+        that in some cases the output stream is directly linked
+        to another command which may wish to display progress
+        status of its own as it processes incoming pack data.
+        This flag is like --progress except that it forces progress
+        report for the write-out phase as well even if --stdout is
+        used.
+</p>
+</dd>
+<dt class="hdlist1">
+--all-progress-implied
+</dt>
+<dd>
+<p>
+        This is used to imply --all-progress whenever progress display
+        is activated.  Unlike --all-progress this flag doesn&#8217;t actually
+        force any progress display by itself.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        This flag makes the command not to report its progress
+        on the standard error stream.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -866,6 +918,13 @@ specified explicitly (e.g. <code>^master~10</code>), or implicitly (e.g.
 It is okay to err on the side of caution, causing the bundle file
 to contain objects already in the destination, as these are ignored
 when unpacking at the destination.</p></div>
+<div class="paragraph"><p><code>git clone</code> can use any bundle created without negative refspecs
+(e.g., <code>new</code>, but not <code>old..new</code>).
+If you want to match <code>git clone --mirror</code>, which would include your
+refs such as <code>refs/remotes/*</code>, use <code>--all</code>.
+If you want to provide the same set of refs that a clone directly
+from the source repository would get, use <code>--branches --tags</code> for
+the <code>&lt;git-rev-list-args&gt;</code>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -974,7 +1033,7 @@ references when fetching:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-11-01 11:46:12 PDT
+ 2020-01-07 09:02:40 PST
 </div>
 </div>
 </body>
