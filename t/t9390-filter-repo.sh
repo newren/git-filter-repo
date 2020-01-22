@@ -246,12 +246,30 @@ test_expect_success '--subdirectory-filter' '
 	)
 '
 
+test_expect_success '--subdirectory-filter with trailing slash' '
+	(
+		git clone file://"$(pwd)"/metasyntactic subdir_filter_2 &&
+		cd subdir_filter_2 &&
+		git filter-repo \
+			--subdirectory-filter words/ &&
+		git cat-file --batch-check --batch-all-objects >all-objs &&
+		test_line_count = 10 all-objs &&
+		git log --format=%n --name-only | sort | uniq >filenames &&
+		test_line_count = 6 filenames &&
+		grep ^important$ filenames &&
+		test_must_fail git cat-file -t v1.0 &&
+		test_must_fail git cat-file -t v1.1 &&
+		test $(git cat-file -t v2.0) = commit &&
+		test $(git cat-file -t v3.0) = tag
+	)
+'
+
 test_expect_success '--to-subdirectory-filter' '
 	(
 		git clone file://"$(pwd)"/metasyntactic to_subdir_filter &&
 		cd to_subdir_filter &&
 		git filter-repo \
-			--to-subdirectory-filter mysubdir &&
+			--to-subdirectory-filter mysubdir/ &&
 		git cat-file --batch-check --batch-all-objects >all-objs &&
 		test_line_count = 22 all-objs &&
 		git log --format=%n --name-only | sort | uniq >filenames &&
