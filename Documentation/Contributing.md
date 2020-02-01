@@ -1,26 +1,5 @@
 Welcome to the community!
 
-There are a few filter-repo specific guidelines to keep in mind:
-
-  * Please test line coverage if you add or modify code
-
-    * `make test` will run the testsuite under
-      [coverage3](https://pypi.org/project/coverage/) (which you will
-      need to install), and report on line coverage.  Line coverage of
-      git-filter-repo needs to remain at 100%.
-
-  * Please do not be intimidated by detailed feedback:
-
-    * In the git community, I have been contributing for years and
-      have had hundreds of patches accepted but I still find that even
-      when I try to make patches perfect I am not surprised when I
-      have to spend as much or more time fixing up patches after
-      submitting them than I did figuring out the patches in the first
-      place.  git folks tend to do thorough reviews, which has taught
-      me a lot, and I try to do the same for filter-repo.  Plus, as
-      noted below, I want contributions from others to be acceptable
-      in git.git itself.
-
 Contributions need to meet the bar for inclusion in git.git.  Although
 filter-repo is not part of the git.git repository, I want to leave the
 option open for it to be merged in the future.  As such, any
@@ -70,3 +49,24 @@ with a few exceptions:
       two-space indents for years before learning of it and have just
       continued that habit.  For consistency, contributions should also
       use two-space indents and otherwise generally follow PEP 8.
+
+There are a few extra things I would like folks to keep in mind:
+
+  * Please test line coverage if you add or modify code
+
+    * `make test` will run the testsuite under
+      [coverage3](https://pypi.org/project/coverage/) (which you will
+      need to install), and report on line coverage.  Line coverage of
+      git-filter-repo needs to remain at 100%.
+
+  * Please do not be intimidated by detailed feedback:
+
+    * In the git community, I have been contributing for years and
+      have had hundreds of patches accepted but I still find that even
+      when I try to make patches perfect I am not surprised when I
+      have to spend as much or more time fixing up patches after
+      submitting them than I did figuring out the patches in the first
+      place.  git folks tend to do thorough reviews, which has taught
+      me a lot, and I try to do the same for filter-repo.  Plus, as
+      noted above, I want contributions from others to be acceptable
+      in git.git itself.
