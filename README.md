@@ -6,7 +6,9 @@ filter-branch](https://git-scm.com/docs/git-filter-branch) but without the
 capitulation-inducing poor
 [performance](https://public-inbox.org/git/CABPp-BGOz8nks0+Tdw5GyGqxeYR-3FF6FT5JcgVqZDYVRQ6qog@mail.gmail.com/),
 with far more capabilities, and with a design that scales usability-wise
-beyond trivial rewriting cases.
+beyond trivial rewriting cases.  [git filter-repo is now recommended by the
+git project](https://git-scm.com/docs/git-filter-branch#_warning) instead
+of git filter-branch.
 
 While most users will probably just use filter-repo as a simple command
 line tool (and likely only use a few of its flags), at its core filter-repo
@@ -72,19 +74,24 @@ but some highlights for the main competitors:
   * filter-branch is [extremely to unusably
     slow](https://public-inbox.org/git/CABPp-BGOz8nks0+Tdw5GyGqxeYR-3FF6FT5JcgVqZDYVRQ6qog@mail.gmail.com/)
     ([multiple orders of magnitude slower than it should
-    be](https://htmlpreview.github.io/?https://raw.githubusercontent.com/newren/git-filter-repo/docs/html/git-filter-branch.html#PERFORMANCE))
+    be](https://git-scm.com/docs/git-filter-branch#PERFORMANCE))
     for non-trivial repositories.
 
   * [filter-branch is riddled with
-    gotchas](https://htmlpreview.github.io/?https://raw.githubusercontent.com/newren/git-filter-repo/docs/html/git-filter-branch.html#SAFETY)
-    that can silently corrupt your rewrite or at least thwart your
-    "cleanup" efforts by giving you something more problematic and messy
-    than what you started with.
+    gotchas](https://git-scm.com/docs/git-filter-branch#SAFETY) that can
+    silently corrupt your rewrite or at least thwart your "cleanup"
+    efforts by giving you something more problematic and messy than what
+    you started with.
 
   * filter-branch is [very onerous](#simple-example-with-comparisons)
     [to
     use](https://github.com/newren/git-filter-repo/blob/a6a6a1b0f62d365bbe2e76f823e1621857ec4dbd/contrib/filter-repo-demos/filter-lamely#L9-L61)
     for any rewrite which is even slightly non-trivial.
+
+  * the git project has stated that the above issues with filter-branch
+    cannot be backward compatibly fixed; they recommend that you [stop
+    using
+    filter-branch](https://git-scm.com/docs/git-filter-branch#_warning)
 
   * die-hard fans of filter-branch may be interested in
     [filter-lamely](contrib/filter-repo-demos/filter-lamely)
