@@ -59,6 +59,8 @@ def lint_with_real_filenames(commit, metadata):
   for change in commit.file_changes:
     if change.blob_id in blobs_handled:
       change.blob_id = blobs_handled[change.blob_id]
+    elif change.type == b'D':
+      continue
     else:
       # Get the old blob contents
       cat_file_process.stdin.write(change.blob_id + b'\n')
