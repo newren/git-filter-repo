@@ -529,6 +529,7 @@ test_expect_success 'setup analyze_me' '
 		test_tick &&
 		git commit -m initial &&
 
+		git branch modify-fickle &&
 		git branch other &&
 		git mv fickle capricious &&
 		test_tick &&
@@ -568,6 +569,21 @@ test_expect_success 'setup analyze_me' '
 		test_tick &&
 		git commit --allow-empty -m "Final commit, empty" &&
 
+		git checkout modify-fickle &&
+		echo "more stuff" >>fickle &&
+		test_tick &&
+		git commit -am "another more stuff commit" &&
+
+		git checkout modify-fickle &&
+		echo "more stuff" >>fickle &&
+		test_tick &&
+		git commit -am "another more stuff commit" &&
+
+		test_tick &&
+		git commit --allow-empty -m "Final commit, empty" &&
+
+		git checkout master &&
+
 		# Add a random extra unreferenced object
 		echo foobar | git hash-object --stdin -w
 	)
@@ -596,13 +612,13 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 
 		cat >expect <<-EOF &&
 		== Overall Statistics ==
-		  Number of commits: 9
+		  Number of commits: 12
 		  Number of filenames: 10
 		  Number of directories: 4
 		  Number of file extensions: 2
 
-		  Total unpacked size (bytes): 147
-		  Total packed size (bytes): 306
+		  Total unpacked size (bytes): 206
+		  Total packed size (bytes): 387
 
 		EOF
 		head -n 9 README >actual &&
@@ -612,6 +628,8 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		=== Files by sha and associated pathnames in reverse size ===
 		Format: sha, unpacked size, packed size, filename(s) object stored as
 		  a89c82a2d4b713a125a4323d25adda062cc0013d         44         48 numbers/medium.num
+		  c58ae2ffaf8352bd9860bf4bbb6ea78238dca846         35         41 fickle
+		  ccff62141ec7bae42e01a3dcb7615b38aa9fa5b3         24         40 fickle
 		  f00c965d8307308469e537302baa73048488f162         21         37 numbers/small.num
 		  2aa69a2a708eed00cb390e30f6bcc3eed773f390         20         36 whatever
 		  51b95456de9274c9a95f756742808dfd480b9b35         13         29 [capricious, fickle, mercurial]
@@ -624,7 +642,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		cat >expect <<-EOF &&
 		=== All directories by reverse size ===
 		Format: unpacked size, packed size, date deleted, directory name
-		         147        306 <present>  <toplevel>
+		         206        387 <present>  <toplevel>
 		          65         85 2005-04-07 numbers
 		          13         58 <present>  words
 		          10         40 <present>  sequence
@@ -641,7 +659,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		cat >expect <<-EOF &&
 		=== All extensions by reverse size ===
 		Format: unpacked size, packed size, date deleted, extension name
-		          82        221 <present>  <no extension>
+		         141        302 <present>  <no extension>
 		          65         85 2005-04-07 .num
 		EOF
 		test_cmp expect extensions-all-sizes.txt &&
@@ -656,12 +674,12 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		cat >expect <<-EOF &&
 		=== All paths by reverse accumulated size ===
 		Format: unpacked size, packed size, date deleted, path name
+		          72        110 <present>  fickle
 		          44         48 2005-04-07 numbers/medium.num
 		           8         38 <present>  words/know
 		          21         37 2005-04-07 numbers/small.num
 		          20         36 <present>  whatever
 		          13         29 <present>  mercurial
-		          13         29 <present>  fickle
 		          13         29 <present>  capricious
 		           5         20 <present>  words/to
 		           5         20 <present>  sequence/to

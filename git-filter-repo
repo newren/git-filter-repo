@@ -210,6 +210,9 @@ class AncestryGraph(object):
     # than the max depth of any of its ancestors.
     self.graph = {}
 
+    # Cached results from previous calls to is_ancestor().
+    self._cached_is_ancestor = {}
+
   def record_external_commits(self, external_commits):
     """
     Record in graph that each commit in external_commits exists, and is
@@ -245,20 +248,29 @@ class AncestryGraph(object):
     Return whether possible_ancestor is an ancestor of check
     """
     a, b = self.value[possible_ancestor], self.value[check]
+    original_pair = (a,b)
     a_depth = self.graph[a][0]
     ancestors = [b]
     visited = set()
     while ancestors:
       ancestor = ancestors.pop()
+      prev_pair = (a, ancestor)
+      if prev_pair in self._cached_is_ancestor:
+        if not self._cached_is_ancestor[prev_pair]:
+          continue
+        self._cached_is_ancestor[original_pair] = True
+        return True
       if ancestor in visited:
         continue
       visited.add(ancestor)
       depth, more_ancestors = self.graph[ancestor]
       if ancestor == a:
+        self._cached_is_ancestor[original_pair] = True
         return True
       elif depth <= a_depth:
         continue
       ancestors.extend(more_ancestors)
+    self._cached_is_ancestor[original_pair] = False
     return False
 
 class MailmapInfo(object):
