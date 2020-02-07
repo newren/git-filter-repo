@@ -1536,6 +1536,7 @@ class GitUtils(object):
   def get_blob_sizes(quiet = False):
     blob_size_progress = ProgressWriter()
     num_blobs = 0
+    processed_blobs_msg = _("Processed %d blob sizes")
 
     # Get sizes of blobs by sha1
     cmd = '--batch-check=%(objectname) %(objecttype) ' + \
@@ -1553,7 +1554,7 @@ class GitUtils(object):
         packed_size[sha] = objdisksize
       num_blobs += 1
       if not quiet:
-        blob_size_progress.show(_("Processed %d blob sizes") % num_blobs)
+        blob_size_progress.show(processed_blobs_msg % num_blobs)
     cf.wait()
     if not quiet:
       blob_size_progress.finish()
@@ -2278,6 +2279,7 @@ class RepoAnalyze(object):
              'num_commits': 0}
 
     # Setup the rev-list/diff-tree process
+    processed_commits_msg = _("Processed %d commits")
     commit_parse_progress = ProgressWriter()
     num_commits = 0
     cmd = ('git rev-list --topo-order --reverse {}'.format(' '.join(args.refs)) +
@@ -2329,7 +2331,7 @@ class RepoAnalyze(object):
       RepoAnalyze.analyze_commit(stats, graph, commit, parents, date,
                                  file_changes)
       num_commits += 1
-      commit_parse_progress.show(_("Processed %d commits") % num_commits)
+      commit_parse_progress.show(processed_commits_msg % num_commits)
 
     # Show the final commits processed message and record the number of commits
     commit_parse_progress.finish()
