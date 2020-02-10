@@ -3254,11 +3254,12 @@ class RepoFilter(object):
       if change.filename in self._newnames:
         change.filename = self._newnames[change.filename]
       else:
+        original_filename = change.filename
         change.filename = newname(args.path_changes, change.filename,
                                   args.use_base_name, args.inclusive)
         if self._filename_callback:
           change.filename = self._filename_callback(change.filename)
-        self._newnames[change.filename] = change.filename
+        self._newnames[original_filename] = change.filename
       if not change.filename:
         continue # Filtering criteria excluded this file; move on to next one
       if change.filename in new_file_changes:
