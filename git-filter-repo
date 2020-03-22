@@ -2339,6 +2339,12 @@ class RepoAnalyze(object):
           filenames = [PathQuoting.dequote(x) for x in splits[1:]]
           file_changes.append([modes, shas, change_types, filenames])
 
+      # If someone is trying to analyze a subset of the history, make sure
+      # to avoid dying on commits with parents that we haven't seen before
+      if args.refs:
+        graph.record_external_commits([p for p in parents
+                                       if not p in graph.value])
+
       # Analyze this commit and update progress
       RepoAnalyze.analyze_commit(stats, graph, commit, parents, date,
                                  file_changes)
