@@ -2846,11 +2846,17 @@ class RepoFilter(object):
           "  (%s)\n"
           "To override, use --force.") % reason)
 
-    # Make sure repo is fully packed, just like a fresh clone would be
+    # Make sure repo is fully packed, just like a fresh clone would be.
+    # Note that transfer.unpackLimit defaults to 100, meaning that a
+    # repository with no packs and less than 100 objects should be considered
+    # fully packed.
     output = subproc.check_output('git count-objects -v'.split())
     stats = dict(x.split(b': ') for x in output.splitlines())
     num_packs = int(stats[b'packs'])
-    if stats[b'count'] != b'0' or num_packs > 1:
+    num_loose_objects = int(stats[b'count'])
+    if num_packs > 1 or \
+       (num_packs == 1 and num_loose_objects > 0) or \
+       num_loose_objects >= 100:
       abort(_("expected freshly packed repo"))
 
     # Make sure there is precisely one remote, named "origin"...or that this
