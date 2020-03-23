@@ -1402,7 +1402,7 @@ test_expect_success 'degenerate merge with non-matching filenames' '
 
 		git filter-repo --force --path pkg/list &&
 		! test_path_is_file pkg/list/whatever.t &&
-		git ls-files >actual
+		git ls-files >actual &&
 		echo pkg/list/wanted >expect &&
 		test_cmp expect actual
 	)
