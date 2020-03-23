@@ -7,6 +7,7 @@ test_description='Usage of git-filter-repo as a library'
 export PYTHONPATH=$(dirname $TEST_DIRECTORY):$PYTHONPATH
 # Avoid writing git_filter_repo.pyc file
 export PYTHONDONTWRITEBYTECODE=1
+export CONTRIB_DIR=$TEST_DIRECTORY/../contrib/filter-repo-demos
 
 setup()
 {
@@ -160,6 +161,29 @@ test_expect_success 'other error cases' '
 
 		! python3 -c "import git_filter_repo as fr; fr.GitUtils.get_commit_count(b\".\", [\"HEAD\"])" 2>err &&
 		test_i18ngrep ". does not appear to be a valid git repository" err
+	)
+'
+
+test_expect_success 'lint-history' '
+	test_create_repo lint-history &&
+	(
+		cd lint-history &&
+		echo initial >content &&
+		git add content &&
+		git commit -m "initial" &&
+
+		printf "CRLF is stupid\r\n" >content &&
+		git add content &&
+		git commit -m "make a statement" &&
+
+		printf "CRLF is stupid\n" >content &&
+		git add content &&
+		git commit -m "oops, that was embarassing" &&
+
+		$CONTRIB_DIR/lint-history --filenames-important dos2unix &&
+		echo 2 >expect &&
+		git rev-list --count HEAD >actual &&
+		test_cmp expect actual
 	)
 '
 

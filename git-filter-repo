@@ -372,6 +372,12 @@ class _IDs(object):
     # A map of new-ids to every old-id that points to the new-id (1:N map)
     self._reverse_translation = {}
 
+  def has_renames(self):
+    """
+    Return whether there have been ids remapped to new values
+    """
+    return bool(self._translation)
+
   def new(self):
     """
     Should be called whenever a new blob or commit object is created. The
@@ -3121,12 +3127,16 @@ class RepoFilter(object):
     if not self._import_pipes:
       return False
 
-    # non-merge commits can only be empty if blob/file-change editing caused
-    # all file changes in the commit to have the same file contents as
-    # the parent.
-    changed_files = set(change.filename for change in commit.file_changes)
-    if len(orig_parents) < 2 and changed_files - self._files_tweaked:
-      return False
+    # If there have not been renames/remappings of IDs (due to insertion of
+    # new blobs), then we can sometimes know things aren't prunable with a
+    # simple check
+    if not _IDS.has_renames():
+      # non-merge commits can only be empty if blob/file-change editing caused
+      # all file changes in the commit to have the same file contents as
+      # the parent.
+      changed_files = set(change.filename for change in commit.file_changes)
+      if len(orig_parents) < 2 and changed_files - self._files_tweaked:
+        return False
 
     # Finally, the hard case: due to either blob rewriting, or due to pruning
     # of empty commits wiping out the first parent history back to the merge
