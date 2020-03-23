@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 8.6.10" />
 <title>git-rm(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -748,7 +749,9 @@ git-rm(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git rm</em> [-f | --force] [-n] [-r] [--cached] [--ignore-unmatch] [--quiet] [--] &lt;file&gt;&#8230;</pre>
+<pre class="content"><em>git rm</em> [-f | --force] [-n] [-r] [--cached] [--ignore-unmatch]
+          [--quiet] [--pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]]
+          [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -756,12 +759,12 @@ git-rm(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Remove files from the index, or from the working tree and the index.
-<code>git rm</code> will not remove a file from just your working directory.
-(There is no option to remove a file only from the working tree
-and yet keep it in the index; use <code>/bin/rm</code> if you want to do that.)
-The files being removed have to be identical to the tip of the branch,
-and no updates to their contents can be staged in the index,
+<div class="paragraph"><p>Remove files matching pathspec from the index, or from the working tree
+and the index. <code>git rm</code> will not remove a file from just your working
+directory. (There is no option to remove a file only from the working
+tree and yet keep it in the index; use <code>/bin/rm</code> if you want to do
+that.) The files being removed have to be identical to the tip of the
+branch, and no updates to their contents can be staged in the index,
 though that default behavior can be overridden with the <code>-f</code> option.
 When <code>--cached</code> is given, the staged content has to
 match either the tip of the branch or the file on disk,
@@ -773,19 +776,21 @@ allowing the file to be removed from just the index.</p></div>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-&lt;file&gt;&#8230;
+&lt;pathspec&gt;&#8230;
 </dt>
 <dd>
 <p>
-        Files to remove.  Fileglobs (e.g. <code>*.c</code>) can be given to
-        remove all matching files.  If you want Git to expand
-        file glob characters, you may need to shell-escape them.
-        A leading directory name
-        (e.g. <code>dir</code> to remove <code>dir/file1</code> and <code>dir/file2</code>) can be
-        given to remove all files in the directory, and recursively
-        all sub-directories,
-        but this requires the <code>-r</code> option to be explicitly given.
+        Files to remove.  A leading directory name (e.g. <code>dir</code> to remove
+        <code>dir/file1</code> and <code>dir/file2</code>) can be given to remove all files in
+        the directory, and recursively all sub-directories, but this
+        requires the <code>-r</code> option to be explicitly given.
 </p>
+<div class="paragraph"><p>The command removes only the paths that are known to Git.</p></div>
+<div class="paragraph"><p>File globbing matches across directory boundaries.  Thus, given two
+directories <code>d</code> and <code>d2</code>, there is a difference between using
+<code>git rm 'd*'</code> and <code>git rm 'd/*'</code>, as the former will also remove all
+of directory <code>d2</code>.</p></div>
+<div class="paragraph"><p>For more details, see the <em>pathspec</em> entry in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
 </dd>
 <dt class="hdlist1">
 -f
@@ -860,20 +865,30 @@ allowing the file to be removed from just the index.</p></div>
         for each file removed. This option suppresses that output.
 </p>
 </dd>
+<dt class="hdlist1">
+--pathspec-from-file=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Pathspec is passed in <code>&lt;file&gt;</code> instead of commandline args. If
+        <code>&lt;file&gt;</code> is exactly <code>-</code> then standard input is used. Pathspec
+        elements are separated by LF or CR/LF. Pathspec elements can be
+        quoted as explained for the configuration variable <code>core.quotePath</code>
+        (see <a href="git-config.html">git-config(1)</a>). See also <code>--pathspec-file-nul</code> and
+        global <code>--literal-pathspecs</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--pathspec-file-nul
+</dt>
+<dd>
+<p>
+        Only meaningful with <code>--pathspec-from-file</code>. Pathspec elements are
+        separated with NUL character and all other characters are taken
+        literally (including newlines and quotes).
+</p>
+</dd>
 </dl></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_discussion">DISCUSSION</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>The &lt;file&gt; list given to the command can be exact pathnames,
-file glob patterns, or leading directory names.  The command
-removes only the paths that are known to Git.  Giving the name of
-a file that you have not told Git about does not remove that file.</p></div>
-<div class="paragraph"><p>File globbing matches across directory boundaries.  Thus, given
-two directories <code>d</code> and <code>d2</code>, there is a difference between
-using <code>git rm 'd*'</code> and <code>git rm 'd/*'</code>, as the former will
-also remove all of directory <code>d2</code>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1005,7 +1020,7 @@ obsolete when recursive submodule update has been implemented.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2019-09-03 16:07:56 PDT
+ 2020-03-17 14:25:57 PDT
 </div>
 </div>
 </body>

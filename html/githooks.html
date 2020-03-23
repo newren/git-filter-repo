@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 8.6.10" />
 <title>githooks(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -1171,9 +1172,14 @@ e-mails.</p></div>
 <div class="sect2">
 <h3 id="_fsmonitor_watchman">fsmonitor-watchman</h3>
 <div class="paragraph"><p>This hook is invoked when the configuration option <code>core.fsmonitor</code> is
-set to <code>.git/hooks/fsmonitor-watchman</code>.  It takes two arguments, a version
-(currently 1) and the time in elapsed nanoseconds since midnight,
-January 1, 1970.</p></div>
+set to <code>.git/hooks/fsmonitor-watchman</code> or <code>.git/hooks/fsmonitor-watchmanv2</code>
+depending on the version of the hook to use.</p></div>
+<div class="paragraph"><p>Version 1 takes two arguments, a version (1) and the time in elapsed
+nanoseconds since midnight, January 1, 1970.</p></div>
+<div class="paragraph"><p>Version 2 takes two arguments, a version (2) and a token that is used
+for identifying changes since the token. For watchman this would be
+a clock id. This version must output to stdout the new token followed
+by a NUL before the list of files.</p></div>
 <div class="paragraph"><p>The hook should output to stdout the list of all files in the working
 directory that may have changed since the requested time.  The logic
 should be inclusive so that it does not miss any potential changes.
@@ -1224,7 +1230,7 @@ running passing "1", "1" should not be possible.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-01-07 09:02:40 PST
+ 2020-03-17 14:25:57 PDT
 </div>
 </div>
 </body>

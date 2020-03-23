@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 8.6.10" />
 <title>git-config(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -748,18 +749,18 @@ git-config(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [-z|--null] name [value [value_regex]]
+<pre class="content"><em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [--show-scope] [-z|--null] name [value [value_regex]]
 <em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] --add name value
 <em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] --replace-all name value [value_regex]
-<em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [-z|--null] --get name [value_regex]
-<em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [-z|--null] --get-all name [value_regex]
-<em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [-z|--null] [--name-only] --get-regexp name_regex [value_regex]
+<em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [--show-scope] [-z|--null] --get name [value_regex]
+<em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [--show-scope] [-z|--null] --get-all name [value_regex]
+<em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [--show-origin] [--show-scope] [-z|--null] [--name-only] --get-regexp name_regex [value_regex]
 <em>git config</em> [&lt;file-option&gt;] [--type=&lt;type&gt;] [-z|--null] --get-urlmatch name URL
 <em>git config</em> [&lt;file-option&gt;] --unset name [value_regex]
 <em>git config</em> [&lt;file-option&gt;] --unset-all name [value_regex]
 <em>git config</em> [&lt;file-option&gt;] --rename-section old_name new_name
 <em>git config</em> [&lt;file-option&gt;] --remove-section name
-<em>git config</em> [&lt;file-option&gt;] [--show-origin] [-z|--null] [--name-only] -l | --list
+<em>git config</em> [&lt;file-option&gt;] [--show-origin] [--show-scope] [-z|--null] [--name-only] -l | --list
 <em>git config</em> [&lt;file-option&gt;] --get-color name [default]
 <em>git config</em> [&lt;file-option&gt;] --get-colorbool name [stdout-is-tty]
 <em>git config</em> [&lt;file-option&gt;] -e | --edit</pre>
@@ -1134,6 +1135,16 @@ from all available files.</p></div>
         origin type (file, standard input, blob, command line) and
         the actual origin (config file path, ref, or blob id if
         applicable).
+</p>
+</dd>
+<dt class="hdlist1">
+--show-scope
+</dt>
+<dd>
+<p>
+        Similar to <code>--show-origin</code> in that it augments the output of
+        all queried config options with the scope of that value
+        (local, global, system, command).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1738,7 +1749,9 @@ color
 </p>
 <div class="paragraph"><p>The basic colors accepted are <code>normal</code>, <code>black</code>, <code>red</code>, <code>green</code>, <code>yellow</code>,
 <code>blue</code>, <code>magenta</code>, <code>cyan</code> and <code>white</code>.  The first color given is the
-foreground; the second is the background.</p></div>
+foreground; the second is the background.  All the basic colors except
+<code>normal</code> have a bright variant that can be speficied by prefixing the
+color with <code>bright</code>, like <code>brightred</code>.</p></div>
 <div class="paragraph"><p>Colors may also be given as numbers between 0 and 255; these use ANSI
 256-color mode (but note that not all terminals may support this).  If
 your terminal supports it, you may also specify 24-bit RGB values as
@@ -2052,6 +2065,24 @@ submoduleAlternateErrorStrategyDie
                 configured to "die" causes a fatal error.
 </p>
 </dd>
+<dt class="hdlist1">
+addIgnoredFile
+</dt>
+<dd>
+<p>
+                Advice shown if a user attempts to add an ignored file to
+                the index.
+</p>
+</dd>
+<dt class="hdlist1">
+addEmptyPathspec
+</dt>
+<dd>
+<p>
+                Advice shown if a user runs the add command without providing
+                the pathspec parameter.
+</p>
+</dd>
 </dl></div>
 </div></div>
 </dd>
@@ -2153,6 +2184,22 @@ core.fsmonitor
         requested date/time. This information is used to speed up git by
         avoiding unnecessary processing of files that have not changed.
         See the "fsmonitor-watchman" section of <a href="githooks.html">githooks(5)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+core.fsmonitorHookVersion
+</dt>
+<dd>
+<p>
+        Sets the version of hook that is to be used when calling fsmonitor.
+        There are currently versions 1 and 2. When this is not set,
+        version 2 will be tried first and if it fails then version 1
+        will be tried. Version 1 uses a timestamp as input to determine
+        which files have changes since that time but some monitors
+        like watchman have race conditions when used with a timestamp.
+        Version 2 uses an opaque string so that the monitor can return
+        something that can be used to determine what files have changed
+        without race conditions.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3256,13 +3303,14 @@ branch.&lt;name&gt;.rebase
         "git pull" is run. See "pull.rebase" for doing this in a non
         branch-specific manner.
 </p>
-<div class="paragraph"><p>When <code>merges</code>, pass the <code>--rebase-merges</code> option to <em>git rebase</em>
+<div class="paragraph"><p>When <code>merges</code> (or just <em>m</em>), pass the <code>--rebase-merges</code> option to <em>git rebase</em>
 so that the local merge commits are included in the rebase (see
 <a href="git-rebase.html">git-rebase(1)</a> for details).</p></div>
-<div class="paragraph"><p>When <code>preserve</code> (deprecated in favor of <code>merges</code>), also pass
+<div class="paragraph"><p>When <code>preserve</code> (or just <em>p</em>, deprecated in favor of <code>merges</code>), also pass
 <code>--preserve-merges</code> along to <em>git rebase</em> so that locally committed merge
 commits will not be flattened by running <em>git pull</em>.</p></div>
-<div class="paragraph"><p>When the value is <code>interactive</code>, the rebase is run in interactive mode.</p></div>
+<div class="paragraph"><p>When the value is <code>interactive</code> (or just <em>i</em>), the rebase is run in interactive
+mode.</p></div>
 <div class="paragraph"><p><strong>NOTE</strong>: this is a possibly dangerous operation; do <strong>not</strong> use
 it unless you understand the implications (see <a href="git-rebase.html">git-rebase(1)</a>
 for details).</p></div>
@@ -5577,6 +5625,47 @@ gpg.&lt;format&gt;.program
 </p>
 </dd>
 <dt class="hdlist1">
+gpg.minTrustLevel
+</dt>
+<dd>
+<p>
+        Specifies a minimum trust level for signature verification.  If
+        this option is unset, then signature verification for merge
+        operations require a key with at least <code>marginal</code> trust.  Other
+        operations that perform signature verification require a key
+        with at least <code>undefined</code> trust.  Setting this option overrides
+        the required trust-level for all operations.  Supported values,
+        in increasing order of significance:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>undefined</code>
+</p>
+</li>
+<li>
+<p>
+<code>never</code>
+</p>
+</li>
+<li>
+<p>
+<code>marginal</code>
+</p>
+</li>
+<li>
+<p>
+<code>fully</code>
+</p>
+</li>
+<li>
+<p>
+<code>ultimate</code>
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
 gui.commitMsgWidth
 </dt>
 <dd>
@@ -5986,7 +6075,7 @@ http.version
 <p>
         Use the specified HTTP protocol version when communicating with a server.
         If you want to force the default. The available and default version depend
-        on libcurl. Actually the possible values of
+        on libcurl. Currently the possible values of
         this option are:
 </p>
 <div class="ulist"><ul>
@@ -6013,7 +6102,7 @@ http.sslVersion
         particular configuration of the crypto library in use. Internally
         this sets the <em>CURLOPT_SSL_VERSION</em> option; see the libcurl
         documentation for more details on the format of this option and
-        for the ssl version supported. Actually the possible values of
+        for the ssl version supported. Currently the possible values of
         this option are:
 </p>
 <div class="ulist"><ul>
@@ -6230,6 +6319,13 @@ http.postBuffer
         massive pack file locally.  Default is 1 MiB, which is
         sufficient for most requests.
 </p>
+<div class="paragraph"><p>Note that raising this limit is only effective for disabling chunked
+transfer encoding and therefore should be used only where the remote
+server or a proxy only supports HTTP/1.0 or is noncompliant with the
+HTTP standard.  Raising this is not, in general, an effective solution
+for most push problems, but can increase memory consumption
+significantly since the entire buffer is allocated even for small
+pushes.</p></div>
 </dd>
 <dt class="hdlist1">
 http.lowSpeedLimit, http.lowSpeedTime
@@ -7303,6 +7399,18 @@ all existing objects. You can force recompression by passing the -F option
 to <a href="git-repack.html">git-repack(1)</a>.</p></div>
 </dd>
 <dt class="hdlist1">
+pack.allowPackReuse
+</dt>
+<dd>
+<p>
+        When true, and when reachability bitmaps are enabled,
+        pack-objects will try to send parts of the bitmapped packfile
+        verbatim. This can reduce memory and CPU usage to serve fetches,
+        but might result in sending a slightly larger pack. Defaults to
+        true.
+</p>
+</dd>
+<dt class="hdlist1">
 pack.island
 </dt>
 <dd>
@@ -7573,11 +7681,10 @@ protocol.version
 </dt>
 <dd>
 <p>
-        Experimental. If set, clients will attempt to communicate with a
-        server using the specified protocol version.  If unset, no
-        attempt will be made by the client to communicate using a
-        particular protocol version, this results in protocol version 0
-        being used.
+        If set, clients will attempt to communicate with a server
+        using the specified protocol version.  If the server does
+        not support it, communication falls back to version 0.
+        If unset, the default is <code>2</code>.
         Supported versions:
 </p>
 <div class="openblock">
@@ -7627,13 +7734,14 @@ pull.rebase
         pull" is run. See "branch.&lt;name&gt;.rebase" for setting this on a
         per-branch basis.
 </p>
-<div class="paragraph"><p>When <code>merges</code>, pass the <code>--rebase-merges</code> option to <em>git rebase</em>
+<div class="paragraph"><p>When <code>merges</code> (or just <em>m</em>), pass the <code>--rebase-merges</code> option to <em>git rebase</em>
 so that the local merge commits are included in the rebase (see
 <a href="git-rebase.html">git-rebase(1)</a> for details).</p></div>
-<div class="paragraph"><p>When <code>preserve</code> (deprecated in favor of <code>merges</code>), also pass
+<div class="paragraph"><p>When <code>preserve</code> (or just <em>p</em>, deprecated in favor of <code>merges</code>), also pass
 <code>--preserve-merges</code> along to <em>git rebase</em> so that locally committed merge
 commits will not be flattened by running <em>git pull</em>.</p></div>
-<div class="paragraph"><p>When the value is <code>interactive</code>, the rebase is run in interactive mode.</p></div>
+<div class="paragraph"><p>When the value is <code>interactive</code> (or just <em>i</em>), the rebase is run in interactive
+mode.</p></div>
 <div class="paragraph"><p><strong>NOTE</strong>: this is a possibly dangerous operation; do <strong>not</strong> use
 it unless you understand the implications (see <a href="git-rebase.html">git-rebase(1)</a>
 for details).</p></div>
@@ -7661,7 +7769,8 @@ push.default
 <dd>
 <p>
         Defines the action <code>git push</code> should take if no refspec is
-        explicitly given.  Different values are well-suited for
+        given (whether from the command-line, config, or elsewhere).
+        Different values are well-suited for
         specific workflows; for instance, in a purely central workflow
         (i.e. the fetch source is equal to the push destination),
         <code>upstream</code> is probably what you want.  Possible values are:
@@ -7672,7 +7781,7 @@ push.default
 <li>
 <p>
 <code>nothing</code> - do not push anything (error out) unless a refspec is
-  explicitly given. This is primarily meant for people who want to
+  given. This is primarily meant for people who want to
   avoid mistakes by always being explicit.
 </p>
 </li>
@@ -7769,18 +7878,22 @@ push.pushOption
 higher priority configuration file (e.g. <code>.git/config</code> in a
 repository) to clear the values inherited from a lower priority
 configuration files (e.g. <code>$HOME/.gitconfig</code>).</p></div>
-<div class="openblock">
+<div class="listingblock">
 <div class="content">
-<div class="paragraph"><p>Example:</p></div>
-<div class="paragraph"><p>/etc/gitconfig
+<pre><code>Example:
+
+/etc/gitconfig
   push.pushoption = a
-  push.pushoption = b</p></div>
-<div class="paragraph"><p>~/.gitconfig
-  push.pushoption = c</p></div>
-<div class="paragraph"><p>repo/.git/config
+  push.pushoption = b
+
+~/.gitconfig
+  push.pushoption = c
+
+repo/.git/config
   push.pushoption =
-  push.pushoption = b</p></div>
-<div class="paragraph"><p>This will result in only b (a and c are cleared).</p></div>
+  push.pushoption = b
+
+This will result in only b (a and c are cleared).</code></pre>
 </div></div>
 </dd>
 <dt class="hdlist1">
@@ -7812,6 +7925,17 @@ rebase.useBuiltin
         implementation of rebase. Now the built-in rewrite of it in C
         is always used. Setting this will emit a warning, to alert any
         remaining users that setting this now does nothing.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.backend
+</dt>
+<dd>
+<p>
+        Default backend to use for rebasing.  Possible choices are
+        <em>apply</em> or <em>merge</em>.  In the future, if the merge backend gains
+        all remaining capabilities of the apply backend, this setting
+        may become unused.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -9422,8 +9546,12 @@ committer.email
         Also, all of these can be overridden by the <code>GIT_AUTHOR_NAME</code>,
         <code>GIT_AUTHOR_EMAIL</code>, <code>GIT_COMMITTER_NAME</code>,
         <code>GIT_COMMITTER_EMAIL</code> and <code>EMAIL</code> environment variables.
-        See <a href="git-commit-tree.html">git-commit-tree(1)</a> for more information.
 </p>
+<div class="paragraph"><p>Note that the <code>name</code> forms of these variables conventionally refer to
+some form of a personal name.  See <a href="git-commit.html">git-commit(1)</a> and the
+environment variables section of <a href="git.html">git(1)</a> for more information on
+these settings and the <code>credential.username</code> option if you&#8217;re looking
+for authentication credentials instead.</p></div>
 </dd>
 <dt class="hdlist1">
 user.useConfigOnly
@@ -9555,7 +9683,7 @@ looks like</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-01-07 09:02:40 PST
+ 2020-03-17 14:25:57 PDT
 </div>
 </div>
 </body>

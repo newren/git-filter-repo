@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 8.6.10" />
 <title>git-commit(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -1404,55 +1405,6 @@ changes to tracked files.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_date_formats">DATE FORMATS</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>The <code>GIT_AUTHOR_DATE</code>, <code>GIT_COMMITTER_DATE</code> environment variables
-and the <code>--date</code> option
-support the following date formats:</p></div>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-Git internal format
-</dt>
-<dd>
-<p>
-        It is <code>&lt;unix timestamp&gt; &lt;time zone offset&gt;</code>, where <code>&lt;unix
-        timestamp&gt;</code> is the number of seconds since the UNIX epoch.
-        <code>&lt;time zone offset&gt;</code> is a positive or negative offset from UTC.
-        For example CET (which is 1 hour ahead of UTC) is <code>+0100</code>.
-</p>
-</dd>
-<dt class="hdlist1">
-RFC 2822
-</dt>
-<dd>
-<p>
-        The standard email format as described by RFC 2822, for example
-        <code>Thu, 07 Apr 2005 22:13:13 +0200</code>.
-</p>
-</dd>
-<dt class="hdlist1">
-ISO 8601
-</dt>
-<dd>
-<p>
-        Time and date specified by the ISO 8601 standard, for example
-        <code>2005-04-07T22:13:13</code>. The parser accepts a space instead of the
-        <code>T</code> character as well.
-</p>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">In addition, the date part is accepted in the following formats:
-<code>YYYY.MM.DD</code>, <code>MM/DD/YYYY</code> and <code>DD.MM.YYYY</code>.</td>
-</tr></table>
-</div>
-</dd>
-</dl></div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_examples">EXAMPLES</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>When recording your own work, the contents of modified files in
@@ -1536,6 +1488,88 @@ resolution, you cannot use <code>git commit</code> with pathnames to
 alter the order the changes are committed, because the merge
 should be recorded as a single commit.  In fact, the command
 refuses to run when given pathnames (but see <code>-i</code> option).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_commit_information">COMMIT INFORMATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Author and committer information is taken from the following environment
+variables, if set:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>GIT_AUTHOR_NAME
+GIT_AUTHOR_EMAIL
+GIT_AUTHOR_DATE
+GIT_COMMITTER_NAME
+GIT_COMMITTER_EMAIL
+GIT_COMMITTER_DATE</code></pre>
+</div></div>
+<div class="paragraph"><p>(nb "&lt;", "&gt;" and "\n"s are stripped)</p></div>
+<div class="paragraph"><p>The author and committer names are by convention some form of a personal name
+(that is, the name by which other humans refer to you), although Git does not
+enforce or require any particular form. Arbitrary Unicode may be used, subject
+to the constraints listed above. This name has no effect on authentication; for
+that, see the <code>credential.username</code> variable in <a href="git-config.html">git-config(1)</a>.</p></div>
+<div class="paragraph"><p>In case (some of) these environment variables are not set, the information
+is taken from the configuration items <code>user.name</code> and <code>user.email</code>, or, if not
+present, the environment variable EMAIL, or, if that is not set,
+system user name and the hostname used for outgoing mail (taken
+from <code>/etc/mailname</code> and falling back to the fully qualified hostname when
+that file does not exist).</p></div>
+<div class="paragraph"><p>The <code>author.name</code> and <code>committer.name</code> and their corresponding email options
+override <code>user.name</code> and <code>user.email</code> if set and are overridden themselves by
+the environment variables.</p></div>
+<div class="paragraph"><p>The typical usage is to set just the <code>user.name</code> and <code>user.email</code> variables;
+the other options are provided for more complex use cases.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_date_formats">DATE FORMATS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <code>GIT_AUTHOR_DATE</code>, <code>GIT_COMMITTER_DATE</code> environment variables
+and the <code>--date</code> option
+support the following date formats:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Git internal format
+</dt>
+<dd>
+<p>
+        It is <code>&lt;unix timestamp&gt; &lt;time zone offset&gt;</code>, where <code>&lt;unix
+        timestamp&gt;</code> is the number of seconds since the UNIX epoch.
+        <code>&lt;time zone offset&gt;</code> is a positive or negative offset from UTC.
+        For example CET (which is 1 hour ahead of UTC) is <code>+0100</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+RFC 2822
+</dt>
+<dd>
+<p>
+        The standard email format as described by RFC 2822, for example
+        <code>Thu, 07 Apr 2005 22:13:13 +0200</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+ISO 8601
+</dt>
+<dd>
+<p>
+        Time and date specified by the ISO 8601 standard, for example
+        <code>2005-04-07T22:13:13</code>. The parser accepts a space instead of the
+        <code>T</code> character as well.
+</p>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">In addition, the date part is accepted in the following formats:
+<code>YYYY.MM.DD</code>, <code>MM/DD/YYYY</code> and <code>DD.MM.YYYY</code>.</td>
+</tr></table>
+</div>
+</dd>
+</dl></div>
 </div>
 </div>
 <div class="sect1">
@@ -1691,7 +1725,7 @@ information.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-01-07 09:02:40 PST
+ 2020-03-10 17:50:59 PDT
 </div>
 </div>
 </body>

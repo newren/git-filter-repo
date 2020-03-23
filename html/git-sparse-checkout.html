@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
     "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="generator" content="AsciiDoc 8.6.10" />
 <title>git-sparse-checkout(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -790,6 +791,9 @@ THE FUTURE.</p></div>
 <div class="paragraph"><p>To avoid interfering with other worktrees, it first enables the
 <code>extensions.worktreeConfig</code> setting and makes sure to set the
 <code>core.sparseCheckout</code> setting in the worktree-specific config file.</p></div>
+<div class="paragraph"><p>When <code>--cone</code> is provided, the <code>core.sparseCheckoutCone</code> setting is
+also set, allowing for better performance with a limited set of
+patterns (see <em>CONE PATTERN SET</em> below).</p></div>
 </dd>
 <dt class="hdlist1">
 <em>set</em>
@@ -803,6 +807,25 @@ THE FUTURE.</p></div>
 </p>
 <div class="paragraph"><p>When the <code>--stdin</code> option is provided, the patterns are read from
 standard in as a newline-delimited list instead of from the arguments.</p></div>
+<div class="paragraph"><p>When <code>core.sparseCheckoutCone</code> is enabled, the input list is considered a
+list of directories instead of sparse-checkout patterns. The command writes
+patterns to the sparse-checkout file to include all files contained in those
+directories (recursively) as well as files that are siblings of ancestor
+directories. The input format matches the output of <code>git ls-tree --name-only</code>.
+This includes interpreting pathnames that begin with a double quote (") as
+C-style quoted strings.</p></div>
+</dd>
+<dt class="hdlist1">
+<em>add</em>
+</dt>
+<dd>
+<p>
+        Update the sparse-checkout file to include additional patterns.
+        By default, these patterns are read from the command-line arguments,
+        but they can be read from stdin using the <code>--stdin</code> option. When
+        <code>core.sparseCheckoutCone</code> is enabled, the given patterns are interpreted
+        as directory names as in the <em>set</em> subcommand.
+</p>
 </dd>
 <dt class="hdlist1">
 <em>disable</em>
@@ -863,7 +886,7 @@ using negative patterns. For example, to remove the file <code>unwanted</code>:<
 inclusion/exclusion rules. These can result in O(N*M) pattern matches when
 updating the index, where N is the number of patterns and M is the number
 of paths in the index. To combat this performance issue, a more restricted
-pattern set is allowed when <code>core.spareCheckoutCone</code> is enabled.</p></div>
+pattern set is allowed when <code>core.sparseCheckoutCone</code> is enabled.</p></div>
 <div class="paragraph"><p>The accepted patterns in the cone pattern set are:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
@@ -888,10 +911,12 @@ the following patterns:</p></div>
 <pre><code>/*
 !/*/</code></pre>
 </div></div>
-<div class="paragraph"><p>This says "include everything in root, but nothing two levels below root."
-If we then add the folder <code>A/B/C</code> as a recursive pattern, the folders <code>A</code> and
-<code>A/B</code> are added as parent patterns. The resulting sparse-checkout file is
-now</p></div>
+<div class="paragraph"><p>This says "include everything in root, but nothing two levels below root."</p></div>
+<div class="paragraph"><p>When in cone mode, the <code>git sparse-checkout set</code> subcommand takes a list of
+directories instead of a list of sparse-checkout patterns. In this mode,
+the command <code>git sparse-checkout set A/B/C</code> sets the directory <code>A/B/C</code> as
+a recursive pattern, the directories <code>A</code> and <code>A/B</code> are added as parent
+patterns. The resulting sparse-checkout file is now</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>/*
@@ -949,7 +974,7 @@ submodule will still appear in your working directory.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-01-13 11:57:55 PST
+ 2020-03-23 15:36:52 PDT
 </div>
 </div>
 </body>
