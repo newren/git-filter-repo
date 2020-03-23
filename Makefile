@@ -51,6 +51,8 @@ update_docs: export COMMIT=$(shell git rev-parse HEAD)
 update_docs:
 	# Sanity check; we'll build docs in a clone of a git repo
 	test -d ../git
+	# Sanity check; docs == origin/docs
+	test -z "$(git rev-parse docs origin/docs | uniq -u)"
 	# Avoid spurious errors by forcing index to be well formatted, if empty
 	git read-tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904 # empty tree
 	# Symlink git-filter-repo.txt documentation into git and build it
@@ -89,6 +91,8 @@ github_release: update_docs
 	test -n "$(GITHUB_COM_TOKEN)"
 	test -n "$(TAGNAME)"
 	test -n "$$COMMIT"
+	# Make sure 'jq' is installed
+	type -p jq
 	# Tag the release, push it to GitHub
 	git tag -a -m "filter-repo $(TAGNAME)" $(TAGNAME) $$COMMIT
 	git push origin $(TAGNAME)
@@ -124,6 +128,7 @@ pypi_release: # Has an implicit dependency on github_release because...
 	cd release && venv/bin/pip3 install --upgrade setuptools pip
 	cd release && venv/bin/pip3 install twine wheel
 	cd release && venv/bin/python3 setup.py sdist bdist_wheel
+	# Note: hope you remember password for pypi, but username is 'newren'
 	cd release && venv/bin/twine upload dist/*
 	# Remove temporary file(s)
 	cd release && rm -f README.md git-filter-repo git_filter_repo.py
