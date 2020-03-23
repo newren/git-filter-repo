@@ -1408,6 +1408,43 @@ test_expect_success 'degenerate merge with non-matching filenames' '
 	)
 '
 
+test_expect_success 'degenerate merge with typechange' '
+	test_create_repo degenerate_merge_with_typechange &&
+	(
+		cd degenerate_merge_with_typechange &&
+
+		touch irrelevant_file &&
+		git add irrelevant_file &&
+		git commit -m "Irrelevant, unwanted file"
+		git branch A &&
+
+		git checkout --orphan B &&
+		git reset --hard &&
+		echo hello >world &&
+		git add world &&
+		git commit -m "greeting" &&
+		echo goodbye >planet &&
+		git add planet &&
+		git commit -m "farewell" &&
+
+		git checkout A &&
+		git merge --allow-unrelated-histories --no-commit B &&
+		rm world &&
+		ln -s planet world &&
+		git add world &&
+		git commit &&
+
+		git filter-repo --force --path world &&
+		test_path_is_missing irrelevant_file &&
+		test_path_is_missing planet &&
+		echo world >expect &&
+		git ls-files >actual &&
+		test_cmp expect actual &&
+
+		test_line_count = 2 <(git log --oneline HEAD)
+	)
+'
+
 test_expect_success 'Filtering a blob to make it match previous version' '
 	test_create_repo remove_unique_bits_of_blob &&
 	(
