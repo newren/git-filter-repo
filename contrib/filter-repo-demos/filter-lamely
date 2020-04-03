@@ -385,7 +385,7 @@ class UserInterfaceNightmare:
     # manually sets GIT_ALLOW_NULL_SHA1, so to pass the same tests we need to
     # as well.
     os.environ['GIT_ALLOW_NULL_SHA1'] = '1'
-    p = subproc.Popen('git update-index --index-info'.split(),
+    p = subproc.Popen('git update-index -z --index-info'.split(),
                       stdin = subprocess.PIPE)
     for change in file_changes:
       if change.type == b'D':
@@ -393,10 +393,10 @@ class UserInterfaceNightmare:
         # case they are renaming all files (e.g. moving into a subdirectory);
         # they need to be able to rename what is deleted so it actually deletes
         # the right thing.
-        p.stdin.write(b'160000 %s\t%s\n'
+        p.stdin.write(b'160000 %s\t%s\x00'
                       % (self._special_delete_mode, change.filename))
       else:
-        p.stdin.write(b'%s %s\t%s\n' %
+        p.stdin.write(b'%s %s\t%s\x00' %
                       (change.mode, change.blob_id, change.filename))
     p.stdin.close()
     if p.wait() != 0:
@@ -405,8 +405,10 @@ class UserInterfaceNightmare:
 
   def _update_file_changes_from_index(self, commit):
     new_changes = {}
-    output = subproc.check_output('git ls-files -s'.split())
-    for line in output.splitlines():
+    output = subproc.check_output('git ls-files -sz'.split())
+    for line in output.split(b'\x00'):
+      if not line:
+        continue
       mode_thru_stage, filename = line.split(b'\t', 1)
       mode, objid, stage = mode_thru_stage.split(b' ')
       if mode == b'160000' and objid == self._special_delete_mode:
