@@ -3025,8 +3025,6 @@ class RepoFilter(object):
        Returns a tuple:
          (parents, new_first_parent_if_would_become_non_merge)'''
 
-    if self._args.prune_degenerate == 'never':
-      return parents, None
     always_prune = (self._args.prune_degenerate == 'always')
 
     # Pruning of empty commits means multiple things:
@@ -3049,6 +3047,10 @@ class RepoFilter(object):
 
     # We can't have redundant parents if we don't have at least 2 parents
     if len(parents) < 2:
+      return parents, None
+
+    # Don't remove redundant parents if user doesn't want us to
+    if self._args.prune_degenerate == 'never':
       return parents, None
 
     # Remove duplicate parents (if both sides of history have lots of commits
