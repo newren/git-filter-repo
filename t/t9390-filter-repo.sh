@@ -1044,6 +1044,18 @@ test_expect_success 'startup sanity checks' '
 		git update-ref -m funsies refs/remotes/origin/master refs/heads/master~1 &&
 		test_must_fail git filter-repo --path numbers 2>../err &&
 		test_i18ngrep "refs/heads/master does not match refs/remotes/origin/master" ../err &&
+		rm ../err &&
+
+		cd ../ &&
+		git -C analyze_me gc &&
+		echo foobar | git -C analyze_me hash-object -w --stdin &&
+		git clone analyze_me startup_sanity_checks2 &&
+		cd startup_sanity_checks2 &&
+
+		echo foobar | git hash-object -w --stdin &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "expected freshly packed repo" ../err &&
+		test_i18ngrep "when cloning local repositories" ../err &&
 		rm ../err
 	)
 '

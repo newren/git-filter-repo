@@ -2846,11 +2846,20 @@ class RepoFilter(object):
   @staticmethod
   def sanity_check(refs, is_bare):
     def abort(reason):
+      try:
+        cmd = 'git config remote.origin.url'
+        output = subproc.check_output(cmd.split()).strip()
+      except subprocess.CalledProcessError as e:
+        output = None
+      msg = ""
+      if os.path.isdir(output):
+        msg = _("Note: when cloning local repositories, you need to pass\n"
+                "      --no-local to git clone to avoid this issue.\n")
       raise SystemExit(
         _("Aborting: Refusing to overwrite repo history since this does not\n"
           "look like a fresh clone.\n"
-          "  (%s)\n"
-          "To override, use --force.") % reason)
+          "  (%s)\n%s"
+          "To override, use --force.") % (reason, msg))
 
     # Make sure repo is fully packed, just like a fresh clone would be.
     # Note that transfer.unpackLimit defaults to 100, meaning that a
