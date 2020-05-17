@@ -100,6 +100,11 @@ but some highlights for the main competitors:
     more performant (though not nearly as fast or safe as
     filter-repo).
 
+  * a [cheat
+    sheet](Documentation/converting-from-filter-branch.md#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage)
+    is available showing how to convert example commands from the manual of
+    filter-branch into filter-repo commands.
+
 ## BFG Repo Cleaner
 
   * great tool for its time, but while it makes some things simple, it
@@ -115,6 +120,11 @@ but some highlights for the main competitors:
     [bfg-ish](contrib/filter-repo-demos/bfg-ish), a reimplementation of bfg
     based on filter-repo which includes several new features and bugfixes
     relative to bfg.
+
+  * a [cheat
+    sheet](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg)
+    is available showing how to convert example commands from the manual of
+    BFG Repo Cleaner into filter-repo commands.
 
 # Simple example, with comparisons
 
