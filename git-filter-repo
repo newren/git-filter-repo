@@ -1632,11 +1632,15 @@ class FilteringOptions(object):
           raise SystemExit(_("Error: With --path-rename, if OLD_NAME and "
                              "NEW_NAME are both non-empty and either ends "
                              "with a slash then both must."))
+        if any(v.startswith(b'/') for v in values):
+          raise SystemExit(_("Error: Pathnames cannot begin with a '/'"))
         components = values[0].split(b'/') + values[1].split(b'/')
       else:
         mod_type = 'filter'
         match_type = suffix
         components = values.split(b'/')
+        if values.startswith(b'/'):
+          raise SystemExit(_("Error: Pathnames cannot begin with a '/'"))
       for illegal_path in [b'.', b'..', b'.git']:
         if illegal_path in components:
           raise SystemExit(_("Error: Invalid path component '%s' found in '%s'")
