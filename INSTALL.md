@@ -1,4 +1,22 @@
-# What/why/where to install things
+# Installation via Package Manager
+
+Installation is as easy as
+
+    $ PACKAGE_TOOL install git-filter-repo
+
+for those using one of the following [package
+managers](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
+to install software on their system:
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/git-filter-repo.svg)](https://repology.org/project/git-filter-repo/versions)
+
+This list covers at least Windows (Scoop), Mac OS X (Homebrew), and
+Linux (most the rest).  Note that I do not curate this list (and have
+no interest in doing so); https://repology.org tracks who packages
+these versions.
+
+
+# Manual Installation
 
 filter-repo only consists of a few files that need to be installed:
 
@@ -33,6 +51,14 @@ filter-repo only consists of a few files that need to be installed:
     where ever you like; I have no idea where such a thing should go.
 
 
+# Installation via [pip](https://pip.pypa.io/)
+
+For those who prefer to install python packages via pip, you merely need
+to run:
+
+    $ pip3 install git-filter-repo
+
+
 # Installation via Makefile
 
 Installing should be doable by hand, but a Makefile is provided for those
@@ -44,34 +70,3 @@ at least a couple of the directories with sane values, e.g.
 Also, the Makefile will not edit the shebang line (the first line) of
 git-filter-repo if your python executable is not named "python3";
 you'll still need to do that yourself.
-
-
-# Installation via [pip](https://pip.pypa.io/)
-
-For those who prefer to install python packages via pip, you merely need
-to run:
-
-    $ pip3 install git-filter-repo
-
-
-# Installation via Package Manager
-
-For those who prefer to install software via a [package
-manager](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
-for their operating system, there are many choices -- from
-[dnf](https://github.com/rpm-software-management/dnf) or
-[yum](http://yum.baseurl.org/) or
-[apt-get](https://www.debian.org/doc/manuals/debian-reference/ch02.en.html)
-or whatever for Linux, to [brew](https://brew.sh/) for Mac OS X, to
-[scoop](https://scoop.sh/) for Windows.  Nearly any of these tools
-will reduce the installation instructions down to
-
-    $ PACKAGE_TOOL install git-filter-repo
-
-I have no interest in tracking all these pre-built packages (nor
-whether those who packaged git-filter-repo have made modifications or
-left parts of it out), but apparently https://repology.org is willing
-to track who has packaged it.  So, using repology's packaging status
-link, the following package managers have packaged git-filter-repo:
-
-[![Packaging status](https://repology.org/badge/vertical-allrepos/git-filter-repo.svg)](https://repology.org/project/git-filter-repo/versions)
