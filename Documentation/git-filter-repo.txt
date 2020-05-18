@@ -569,6 +569,11 @@ git filter-repo --invert-paths --path-glob '*/.DS_Store' --path '.DS_Store'
 would workaround that problem it would also grab files named `foo.DS_Store`
 or `bar/baz.DS_Store`)
 
+Finally, see also the `--filename-callback` from <<CALLBACKS>>.
+
+Filtering based on many paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If you have a long list of files, directories, globs, or regular
 expressions to filter on, you can stick them in a file and use
 `--paths-from-file`; for example, with a file named stuff-i-want.txt with
@@ -590,14 +595,39 @@ then you could run
 git filter-repo --paths-from-file stuff-i-want.txt
 --------------------------------------------------
 
-to get a repo containing only the toplevel README.md file, the guides/ and
-tools/releases/ directories, all python files, files whose name was of the
-form YYYY.MM-DD.txt at least two subdirectories deep, and would rename
-tools/ to scripts/ and rename files like foo/bar/baz/bleh.text to
-baz/foo/bar/bleh.txt.  Note the special line prefixes of `glob:` and
+to get a repo containing only the toplevel README.md file, the guides/
+and tools/releases/ directories, all python files, files whose name
+was of the form YYYY.MM-DD.txt at least two subdirectories deep, and
+would rename tools/ to scripts/ and rename files like foo/bar/baz.text
+to bar/foo/baz.txt.  Note the special line prefixes of `glob:` and
 `regex:` and the special string `==>` denoting renames.
 
-Finally, see also the `--filename-callback` from <<CALLBACKS>>.
+Sometimes you have a way of easily generating all the files you want.
+For example, if you know that none of the currently tracked files have
+any newlines or special characters in them (see core.quotePath from
+`git config --help`) so that `git ls-files` would print all files
+literally one per line, and you knew that you wanted to keep only the
+files that are currently tracked (thus deleting from all commits in
+history any files that only appear on other branches or that only
+appear in older commits), then you could use a pair of commands such
+as
+
+--------------------------------------------------
+git ls-files >../paths-i-want.txt
+git filter-repo --paths-from-file ../paths-i-want.txt
+--------------------------------------------------
+
+Similarly, you could use --paths-from-file to delete many files.  For
+example, you could run `git filter-repo --analyze` to get reports,
+look in one such as .git/filter-repo/analysis/path-deleted-sizes.txt
+and copy all the filenames into a file such as
+/tmp/files-i-dont-want-anymore.txt and then run
+
+--------------------------------------------------
+git filter-repo --invert-paths --paths-from-file /tmp/files-i-dont-want-anymore.txt
+--------------------------------------------------
+
+to delete them all.
 
 Directory based shortcuts
 ~~~~~~~~~~~~~~~~~~~~~~~~~
