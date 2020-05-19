@@ -1302,10 +1302,10 @@ since the old and new histories are in different repositories.</td>
 </dt>
 <dd>
 <p>
-        Rewrite history even if the current repo does not look like a fresh
-        clone.  Note that when cloning repos on a local filesystem, it is
-        better to pass <code>--no-local</code> to git clone than passing <code>--force</code> to
-        git-filter-repo.
+        Rewrite history even if the current repo does not look like a
+        fresh clone.  See <a href="#FRESHCLONE">[FRESHCLONE]</a>.  Note that when cloning
+        repos on a local filesystem, it is better to pass <code>--no-local</code>
+        to git clone than passing <code>--force</code> to git-filter-repo.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1380,6 +1380,47 @@ since the old and new histories are in different repositories.</td>
 </dd>
 </dl></div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="FRESHCLONE">FRESH CLONE SAFETY CHECK AND --FORCE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Since filter-repo does irreversible rewriting of history, it is
+important to avoid making changes to a repo for which the user doesn&#8217;t
+have a good backup.  The primary defense mechanism is to simply
+educate users and rely on them to be good stewards of their data; thus
+there are several warnings in the documentation about how filter repo
+rewrites history.</p></div>
+<div class="paragraph"><p>However, as a service to users, we would like to provide an additional
+safety check beyond the documentation.  There isn&#8217;t a good way to
+check if the user has a good backup, but we can ask a related question
+that is an imperfect but quite reasonable proxy: "Is this repository a
+fresh clone?"  Unfortunately, that is also a question we can&#8217;t get a
+perfect answer to; git provides no way to answer that question.
+However, there are approximately a dozen things that I found that seem
+to always be true of brand new clones, and I check for all of those.</p></div>
+<div class="paragraph"><p>These checks can have both false positives and false negatives.
+Someone might have a perfectly good backup of their repo without it
+actually being a fresh clone&#8201;&#8212;&#8201;but there&#8217;s no way for filter-repo to
+know that.  Conversely, someone could look at all things that
+filter-repo checks for in its safety checks and then just tweak their
+non-backed-up repository to satisfy those conditions (though it would
+take a fair amount of effort, and it&#8217;s astronomically unlikely that a
+repo that isn&#8217;t a fresh clone happens to match all the criteria).  In
+practice, the safety checks filter-repo uses seem to be really good at
+avoiding people accidentally running filter-repo on a repository that
+they shouldn&#8217;t be running it on. It even caught me once when I did
+mean to run filter-repo but was in a different directory than I
+thought I was.</p></div>
+<div class="paragraph"><p>In short, it&#8217;s perfectly fine to use "--force" to override the safety
+checks as long as you&#8217;re okay with filter-repo irreversibly rewriting
+the contents of the current repository.  It is a really bad idea to
+get in the habit of always specifying --force; if you do, one day you
+will run one of your commands in the wrong directory like I did, and
+you won&#8217;t have the safety check anymore to bail you out.  Also, it is
+definitely NOT okay to recommend --force on forums, Q&amp;A sites, or in
+emails to other users without first carefully explaining that --force
+means putting your repositories' data at risk.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -2482,7 +2523,7 @@ I assume that people use filter-repo for one-shot conversions, not
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-05-18 07:58:18 PDT
+ 2020-05-19 14:45:21 PDT
 </div>
 </div>
 </body>

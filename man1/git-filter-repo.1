@@ -467,7 +467,8 @@ Show a help message and exit\&.
 .PP
 \-\-force, \-f
 .RS 4
-Rewrite history even if the current repo does not look like a fresh clone\&. Note that when cloning repos on a local filesystem, it is better to pass
+Rewrite history even if the current repo does not look like a fresh clone\&. See
+the section called \(lqFRESH CLONE SAFETY CHECK AND \-\-FORCE\(rq\&. Note that when cloning repos on a local filesystem, it is better to pass
 \fB\-\-no\-local\fR
 to git clone than passing
 \fB\-\-force\fR
@@ -509,6 +510,15 @@ and filtering its output, filter the fast\-export stream from stdin\&. The stdin
 .RS 4
 Pass \-\-quiet to other git commands called\&.
 .RE
+.SH "FRESH CLONE SAFETY CHECK AND \-\-FORCE"
+.sp
+Since filter\-repo does irreversible rewriting of history, it is important to avoid making changes to a repo for which the user doesn\(cqt have a good backup\&. The primary defense mechanism is to simply educate users and rely on them to be good stewards of their data; thus there are several warnings in the documentation about how filter repo rewrites history\&.
+.sp
+However, as a service to users, we would like to provide an additional safety check beyond the documentation\&. There isn\(cqt a good way to check if the user has a good backup, but we can ask a related question that is an imperfect but quite reasonable proxy: "Is this repository a fresh clone?" Unfortunately, that is also a question we can\(cqt get a perfect answer to; git provides no way to answer that question\&. However, there are approximately a dozen things that I found that seem to always be true of brand new clones, and I check for all of those\&.
+.sp
+These checks can have both false positives and false negatives\&. Someone might have a perfectly good backup of their repo without it actually being a fresh clone \(em but there\(cqs no way for filter\-repo to know that\&. Conversely, someone could look at all things that filter\-repo checks for in its safety checks and then just tweak their non\-backed\-up repository to satisfy those conditions (though it would take a fair amount of effort, and it\(cqs astronomically unlikely that a repo that isn\(cqt a fresh clone happens to match all the criteria)\&. In practice, the safety checks filter\-repo uses seem to be really good at avoiding people accidentally running filter\-repo on a repository that they shouldn\(cqt be running it on\&. It even caught me once when I did mean to run filter\-repo but was in a different directory than I thought I was\&.
+.sp
+In short, it\(cqs perfectly fine to use "\-\-force" to override the safety checks as long as you\(cqre okay with filter\-repo irreversibly rewriting the contents of the current repository\&. It is a really bad idea to get in the habit of always specifying \-\-force; if you do, one day you will run one of your commands in the wrong directory like I did, and you won\(cqt have the safety check anymore to bail you out\&. Also, it is definitely NOT okay to recommend \-\-force on forums, Q&A sites, or in emails to other users without first carefully explaining that \-\-force means putting your repositories\*(Aq data at risk\&.
 .SH "VERSATILITY"
 .sp
 filter\-repo has a hierarchy of capabilities on the spectrum from easy to use convenience flags that perform pre\-defined types of filtering, to choices that provide lots of flexibility in controlling how filtering occurs\&. This spectrum includes the following:
