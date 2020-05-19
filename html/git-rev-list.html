@@ -1383,6 +1383,17 @@ Default mode
 </p>
 </dd>
 <dt class="hdlist1">
+--show-pulls
+</dt>
+<dd>
+<p>
+        Include all commits from the default mode, but also any merge
+        commits that are not TREESAME to the first parent but are
+        TREESAME to a later parent. This mode is helpful for showing
+        the merge commits that "first introduced" a change to a branch.
+</p>
+</dd>
+<dt class="hdlist1">
 --full-history
 </dt>
 <dd>
@@ -1666,7 +1677,7 @@ If after this parent rewriting, <code>C'</code> is a root or merge commit (has
 </div></div>
 </dd>
 </dl></div>
-<div class="paragraph"><p>Finally, there is a fifth simplification mode available:</p></div>
+<div class="paragraph"><p>There is another simplification mode available:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 --ancestry-path
@@ -1708,6 +1719,137 @@ option does. Applied to the <em>D..M</em> range, it results in:</p></div>
 </div></div>
 </dd>
 </dl></div>
+<div class="paragraph"><p>Before discussing another option, <code>--show-pulls</code>, we need to
+create a new example history.</p></div>
+<div class="paragraph"><p>+
+A common problem users face when looking at simplified history is that a
+commit they know changed a file somehow does not appear in the file&#8217;s
+simplified history. Let&#8217;s demonstrate a new example and show how options
+such as <code>--full-history</code> and <code>--simplify-merges</code> works in that case:</p></div>
+<div class="paragraph"><p>+</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M-----C--N---O---P
+         /     / \  \  \/   /   /
+        I     B   \  R-'`-Z'   /
+         \   /     \/         /
+          \ /      /\        /
+           `---X--'  `---Y--'</code></pre>
+</div></div>
+<div class="paragraph"><p>+
+For this example, suppose <code>I</code> created <code>file.txt</code> which was modified by
+<code>A</code>, <code>B</code>, and <code>X</code> in different ways. The single-parent commits <code>C</code>, <code>Z</code>,
+and <code>Y</code> do not change <code>file.txt</code>. The merge commit <code>M</code> was created by
+resolving the merge conflict to include both changes from <code>A</code> and <code>B</code>
+and hence is not TREESAME to either. The merge commit <code>R</code>, however, was
+created by ignoring the contents of <code>file.txt</code> at <code>M</code> and taking only
+the contents of <code>file.txt</code> at <code>X</code>. Hence, <code>R</code> is TREESAME to <code>X</code> but not
+<code>M</code>. Finally, the natural merge resolution to create <code>N</code> is to take the
+contents of <code>file.txt</code> at <code>R</code>, so <code>N</code> is TREESAME to <code>R</code> but not <code>C</code>.
+The merge commits <code>O</code> and <code>P</code> are TREESAME to their first parents, but
+not to their second parents, <code>Z</code> and <code>Y</code> respectively.</p></div>
+<div class="paragraph"><p>+
+When using the default mode, <code>N</code> and <code>R</code> both have a TREESAME parent, so
+those edges are walked and the others are ignored. The resulting history
+graph is:</p></div>
+<div class="paragraph"><p>+</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        I---X</code></pre>
+</div></div>
+<div class="paragraph"><p>+
+When using <code>--full-history</code>, Git walks every edge. This will discover
+the commits <code>A</code> and <code>B</code> and the merge <code>M</code>, but also will reveal the
+merge commits <code>O</code> and <code>P</code>. With parent rewriting, the resulting graph is:</p></div>
+<div class="paragraph"><p>+</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M--------N---O---P
+         /     / \  \  \/   /   /
+        I     B   \  R-'`--'   /
+         \   /     \/         /
+          \ /      /\        /
+           `---X--'  `------'</code></pre>
+</div></div>
+<div class="paragraph"><p>+
+Here, the merge commits <code>O</code> and <code>P</code> contribute extra noise, as they did
+not actually contribute a change to <code>file.txt</code>. They only merged a topic
+that was based on an older version of <code>file.txt</code>. This is a common
+issue in repositories using a workflow where many contributors work in
+parallel and merge their topic branches along a single trunk: manu
+unrelated merges appear in the <code>--full-history</code> results.</p></div>
+<div class="paragraph"><p>+
+When using the <code>--simplify-merges</code> option, the commits <code>O</code> and <code>P</code>
+disappear from the results. This is because the rewritten second parents
+of <code>O</code> and <code>P</code> are reachable from their first parents. Those edges are
+removed and then the commits look like single-parent commits that are
+TREESAME to their parent. This also happens to the commit <code>N</code>, resulting
+in a history view as follows:</p></div>
+<div class="paragraph"><p>+</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M--.
+         /     /    \
+        I     B      R
+         \   /      /
+          \ /      /
+           `---X--'</code></pre>
+</div></div>
+<div class="paragraph"><p>+
+In this view, we see all of the important single-parent changes from
+<code>A</code>, <code>B</code>, and <code>X</code>. We also see the carefully-resolved merge <code>M</code> and the
+not-so-carefully-resolved merge <code>R</code>. This is usually enough information
+to determine why the commits <code>A</code> and <code>B</code> "disappeared" from history in
+the default view. However, there are a few issues with this approach.</p></div>
+<div class="paragraph"><p>+
+The first issue is performance. Unlike any previous option, the
+<code>--simplify-merges</code> option requires walking the entire commit history
+before returning a single result. This can make the option difficult to
+use for very large repositories.</p></div>
+<div class="paragraph"><p>+
+The second issue is one of auditing. When many contributors are working
+on the same repository, it is important which merge commits introduced
+a change into an important branch. The problematic merge <code>R</code> above is
+not likely to be the merge commit that was used to merge into an
+important branch. Instead, the merge <code>N</code> was used to merge <code>R</code> and <code>X</code>
+into the important branch. This commit may have information about why
+the change <code>X</code> came to override the changes from <code>A</code> and <code>B</code> in its
+commit message.</p></div>
+<div class="paragraph"><p>+
+The <code>--show-pulls</code> option helps with both of these issues by adding more
+merge commits to the history results. If a merge is not TREESAME to its
+first parent but is TREESAME to a later parent, then that merge is
+treated as if it "pulled" the change from another branch. When using
+<code>--show-pulls</code> on this example (and no other options) the resulting
+graph is:</p></div>
+<div class="paragraph"><p>+</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        I---X---R---N</code></pre>
+</div></div>
+<div class="paragraph"><p>+
+Here, the merge commits <code>R</code> and <code>N</code> are included because they pulled
+the commits <code>X</code> and <code>R</code> into the base branch, respectively. These
+merges are the reason the commits <code>A</code> and <code>B</code> do not appear in the
+default history.</p></div>
+<div class="paragraph"><p>+
+When <code>--show-pulls</code> is paired with <code>--simplify-merges</code>, the
+graph includes all of the necessary information:</p></div>
+<div class="paragraph"><p>+</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>          .-A---M--.   N
+         /     /    \ /
+        I     B      R
+         \   /      /
+          \ /      /
+           `---X--'</code></pre>
+</div></div>
+<div class="paragraph"><p>+
+Notice that since <code>M</code> is reachable from <code>R</code>, the edge from <code>N</code> to <code>M</code>
+was simplified away. However, <code>N</code> still appears in the history as an
+important commit because it "pulled" the change <code>R</code> into the main
+branch.</p></div>
 <div class="paragraph"><p>The <code>--simplify-by-decoration</code> option allows you to view only the
 big picture of the topology of the history, by omitting commits
 that are not referenced by tags.  Commits are marked as !TREESAME
@@ -2480,6 +2622,14 @@ Subject: [PATCH] &lt;title line&gt;</code></pre>
 <div class="content">
 <pre><code>&lt;full commit message&gt;</code></pre>
 </div></div>
+</li>
+<li>
+<p>
+<em>mboxrd</em>
+</p>
+<div class="paragraph"><p>Like <em>email</em>, but lines in the commit message starting with "From "
+(preceded by zero or more "&gt;") are quoted with "&gt;" so they aren&#8217;t
+confused as starting a new commit.</p></div>
 </li>
 <li>
 <p>
@@ -3272,7 +3422,7 @@ $ git log -2 --pretty=%h 4da45bef</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-03-10 17:50:59 PDT
+ 2020-04-10 00:25:15 PDT
 </div>
 </div>
 </body>

@@ -927,6 +927,33 @@ already trusted to run their own code.</code></pre>
 </dl></div>
 </div>
 <div class="sect2">
+<h3 id="_submodule_rewriting">Submodule Rewriting</h3>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--rewrite-submodules-from=&lt;name&gt;:&lt;file&gt;
+</dt>
+<dt class="hdlist1">
+--rewrite-submodules-to=&lt;name&gt;:&lt;file&gt;
+</dt>
+<dd>
+<p>
+  Rewrite the object IDs for the submodule specified by &lt;name&gt; from the values
+        used in the from &lt;file&gt; to those used in the to &lt;file&gt;. The from marks should
+        have been created by <code>git fast-export</code>, and the to marks should have been
+        created by <code>git fast-import</code> when importing that same submodule.
+</p>
+<div class="paragraph"><p>&lt;name&gt; may be any arbitrary string not containing a colon character, but the
+same value must be used with both options when specifying corresponding marks.
+Multiple submodules may be specified with different values for &lt;name&gt;. It is an
+error not to use these options in corresponding pairs.</p></div>
+<div class="paragraph"><p>These options are primarily useful when converting a repository from one hash
+algorithm to another; without them, fast-import will fail if it encounters a
+submodule because it has no way of writing the object ID into the new hash
+algorithm.</p></div>
+</dd>
+</dl></div>
+</div>
+<div class="sect2">
 <h3 id="_performance_and_compression_tuning">Performance and Compression Tuning</h3>
 <div class="dlist"><dl>
 <dt class="hdlist1">
@@ -2577,7 +2604,7 @@ compression.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-03-10 17:50:59 PDT
+ 2020-05-19 12:58:36 PDT
 </div>
 </div>
 </body>

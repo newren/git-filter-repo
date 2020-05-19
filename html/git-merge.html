@@ -892,11 +892,16 @@ When not possible, refuse to merge and exit with a non-zero status.</p></div>
 <dt class="hdlist1">
 --gpg-sign[=&lt;keyid&gt;]
 </dt>
+<dt class="hdlist1">
+--no-gpg-sign
+</dt>
 <dd>
 <p>
         GPG-sign the resulting merge commit. The <code>keyid</code> argument is
         optional and defaults to the committer identity; if specified,
-        it must be stuck to the option without a space.
+        it must be stuck to the option without a space. <code>--no-gpg-sign</code>
+        is useful to countermand both <code>commit.gpgSign</code> configuration variable,
+        and earlier <code>--gpg-sign</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1068,6 +1073,21 @@ option can be used to override --squash.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--autostash
+</dt>
+<dt class="hdlist1">
+--no-autostash
+</dt>
+<dd>
+<p>
+        Automatically create a temporary stash entry before the operation
+        begins, and apply it after the operation ends.  This means
+        that you can run the operation on a dirty worktree.  However, use
+        with care: the final stash application after a successful
+        merge might result in non-trivial conflicts.
+</p>
+</dd>
+<dt class="hdlist1">
 --allow-unrelated-histories
 </dt>
 <dd>
@@ -1138,14 +1158,18 @@ will be appended to the specified message.</p></div>
 <dd>
 <p>
         Abort the current conflict resolution process, and
-        try to reconstruct the pre-merge state.
+        try to reconstruct the pre-merge state. If an autostash entry is
+        present, apply it to the worktree.
 </p>
 <div class="paragraph"><p>If there were uncommitted worktree changes present when the merge
 started, <em>git merge --abort</em> will in some cases be unable to
 reconstruct these changes. It is therefore recommended to always
 commit or stash your changes before running <em>git merge</em>.</p></div>
 <div class="paragraph"><p><em>git merge --abort</em> is equivalent to <em>git reset --merge</em> when
-<code>MERGE_HEAD</code> is present.</p></div>
+<code>MERGE_HEAD</code> is present unless <code>MERGE_AUTOSTASH</code> is also present in
+which case <em>git merge --abort</em> applies the stash entry to the worktree
+whereas <em>git reset --merge</em> will save the stashed changes in the stash
+list.</p></div>
 </dd>
 <dt class="hdlist1">
 --quit
@@ -1153,7 +1177,8 @@ commit or stash your changes before running <em>git merge</em>.</p></div>
 <dd>
 <p>
         Forget about the current merge in progress. Leave the index
-        and the working tree as-is.
+        and the working tree as-is. If <code>MERGE_AUTOSTASH</code> is present, the
+        stash entry will be saved to the stash list.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1826,6 +1851,21 @@ merge.stat
 </p>
 </dd>
 <dt class="hdlist1">
+merge.autoStash
+</dt>
+<dd>
+<p>
+        When set to true, automatically create a temporary stash entry
+        before the operation begins, and apply it after the operation
+        ends.  This means that you can run merge on a dirty worktree.
+        However, use with care: the final stash application after a
+        successful merge might result in non-trivial conflicts.
+        This option can be overridden by the <code>--no-autostash</code> and
+        <code>--autostash</code> options of <a href="git-merge.html">git-merge(1)</a>.
+        Defaults to false.
+</p>
+</dd>
+<dt class="hdlist1">
 merge.tool
 </dt>
 <dd>
@@ -2055,7 +2095,7 @@ branch.&lt;name&gt;.mergeOptions
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-03-10 17:50:59 PDT
+ 2020-05-19 12:58:36 PDT
 </div>
 </div>
 </body>

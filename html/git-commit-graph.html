@@ -815,11 +815,22 @@ commits starting at all refs. (Cannot be combined with <code>--stdin-commits</co
 or <code>--stdin-packs</code>.)</p></div>
 <div class="paragraph"><p>With the <code>--append</code> option, include all commits that are present in the
 existing commit-graph file.</p></div>
-<div class="paragraph"><p>With the <code>--split</code> option, write the commit-graph as a chain of multiple
-commit-graph files stored in <code>&lt;dir&gt;/info/commit-graphs</code>. The new commits
-not already in the commit-graph are added in a new "tip" file. This file
-is merged with the existing file if the following merge conditions are
-met:</p></div>
+<div class="paragraph"><p>With the <code>--changed-paths</code> option, compute and write information about the
+paths changed between a commit and it&#8217;s first parent. This operation can
+take a while on large repositories. It provides significant performance gains
+for getting history of a directory or a file with <code>git log -- &lt;path&gt;</code>.</p></div>
+<div class="paragraph"><p>With the <code>--split[=&lt;strategy&gt;]</code> option, write the commit-graph as a
+chain of multiple commit-graph files stored in
+<code>&lt;dir&gt;/info/commit-graphs</code>. Commit-graph layers are merged based on the
+strategy and other splitting options. The new commits not already in the
+commit-graph are added in a new "tip" file. This file is merged with the
+existing file if the following merge conditions are met:
+* If <code>--split=no-merge</code> is specified, a merge is never performed, and
+the remaining options are ignored. <code>--split=replace</code> overwrites the
+existing chain with a new one. A bare <code>--split</code> defers to the remaining
+options. (Note that merging a chain of commit graphs replaces the
+existing chain with a length-1 chain where the first and only
+incremental holds the entire graph).</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -912,7 +923,7 @@ Write a commit-graph file containing all commits in the current
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-03-17 14:25:57 PDT
+ 2020-05-19 12:58:36 PDT
 </div>
 </div>
 </body>

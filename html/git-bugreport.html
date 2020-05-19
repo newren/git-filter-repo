@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.10" />
-<title>git-sparse-checkout(1)</title>
+<title>git-bugreport(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -735,12 +735,12 @@ asciidoc.install();
 <body class="manpage">
 <div id="header">
 <h1>
-git-sparse-checkout(1) Manual Page
+git-bugreport(1) Manual Page
 </h1>
 <h2>NAME</h2>
 <div class="sectionbody">
-<p>git-sparse-checkout -
-   Initialize and modify the sparse-checkout configuration, which reduces the checkout to a set of paths given by a list of patterns.
+<p>git-bugreport -
+   Collect information for user to file a bug report
 </p>
 </div>
 </div>
@@ -749,7 +749,7 @@ git-sparse-checkout(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git sparse-checkout &lt;subcommand&gt; [options]</em></pre>
+<pre class="content"><em>git bugreport</em> [(-o | --output-directory) &lt;path&gt;] [(-s | --suffix) &lt;format&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -757,225 +757,87 @@ git-sparse-checkout(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Initialize and modify the sparse-checkout configuration, which reduces
-the checkout to a set of paths given by a list of patterns.</p></div>
-<div class="paragraph"><p>THIS COMMAND IS EXPERIMENTAL. ITS BEHAVIOR, AND THE BEHAVIOR OF OTHER
-COMMANDS IN THE PRESENCE OF SPARSE-CHECKOUTS, WILL LIKELY CHANGE IN
-THE FUTURE.</p></div>
+<div class="paragraph"><p>Captures information about the user&#8217;s machine, Git client, and repository state,
+as well as a form requesting information about the behavior the user observed,
+into a single text file which the user can then share, for example to the Git
+mailing list, in order to report an observed bug.</p></div>
+<div class="paragraph"><p>The following information is requested from the user:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Reproduction steps
+</p>
+</li>
+<li>
+<p>
+Expected behavior
+</p>
+</li>
+<li>
+<p>
+Actual behavior
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The following information is captured automatically:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<em>git version --build-options</em>
+</p>
+</li>
+<li>
+<p>
+uname sysname, release, version, and machine strings
+</p>
+</li>
+<li>
+<p>
+Compiler-specific info string
+</p>
+</li>
+<li>
+<p>
+A list of enabled hooks
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>This tool is invoked via the typical Git setup process, which means that in some
+cases, it might not be able to launch - for example, if a relevant config file
+is unreadable. In this kind of scenario, it may be helpful to manually gather
+the kind of information listed above when manually asking for help.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_commands">COMMANDS</h2>
+<h2 id="_options">OPTIONS</h2>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<em>list</em>
+-o &lt;path&gt;
+</dt>
+<dt class="hdlist1">
+--output-directory &lt;path&gt;
 </dt>
 <dd>
 <p>
-        Describe the patterns in the sparse-checkout file.
+        Place the resulting bug report file in <code>&lt;path&gt;</code> instead of the root of
+        the Git repository.
 </p>
 </dd>
 <dt class="hdlist1">
-<em>init</em>
+-s &lt;format&gt;
 </dt>
-<dd>
-<p>
-        Enable the <code>core.sparseCheckout</code> setting. If the
-        sparse-checkout file does not exist, then populate it with
-        patterns that match every file in the root directory and
-        no other directories, then will remove all directories tracked
-        by Git. Add patterns to the sparse-checkout file to
-        repopulate the working directory.
-</p>
-<div class="paragraph"><p>To avoid interfering with other worktrees, it first enables the
-<code>extensions.worktreeConfig</code> setting and makes sure to set the
-<code>core.sparseCheckout</code> setting in the worktree-specific config file.</p></div>
-<div class="paragraph"><p>When <code>--cone</code> is provided, the <code>core.sparseCheckoutCone</code> setting is
-also set, allowing for better performance with a limited set of
-patterns (see <em>CONE PATTERN SET</em> below).</p></div>
-</dd>
 <dt class="hdlist1">
-<em>set</em>
+--suffix &lt;format&gt;
 </dt>
 <dd>
 <p>
-        Write a set of patterns to the sparse-checkout file, as given as
-        a list of arguments following the <em>set</em> subcommand. Update the
-        working directory to match the new patterns. Enable the
-        core.sparseCheckout config setting if it is not already enabled.
-</p>
-<div class="paragraph"><p>When the <code>--stdin</code> option is provided, the patterns are read from
-standard in as a newline-delimited list instead of from the arguments.</p></div>
-<div class="paragraph"><p>When <code>core.sparseCheckoutCone</code> is enabled, the input list is considered a
-list of directories instead of sparse-checkout patterns. The command writes
-patterns to the sparse-checkout file to include all files contained in those
-directories (recursively) as well as files that are siblings of ancestor
-directories. The input format matches the output of <code>git ls-tree --name-only</code>.
-This includes interpreting pathnames that begin with a double quote (") as
-C-style quoted strings.</p></div>
-</dd>
-<dt class="hdlist1">
-<em>add</em>
-</dt>
-<dd>
-<p>
-        Update the sparse-checkout file to include additional patterns.
-        By default, these patterns are read from the command-line arguments,
-        but they can be read from stdin using the <code>--stdin</code> option. When
-        <code>core.sparseCheckoutCone</code> is enabled, the given patterns are interpreted
-        as directory names as in the <em>set</em> subcommand.
-</p>
-</dd>
-<dt class="hdlist1">
-'reapply
-</dt>
-<dd>
-<p>
-        Reapply the sparsity pattern rules to paths in the working tree.
-        Commands like merge or rebase can materialize paths to do their
-        work (e.g. in order to show you a conflict), and other
-        sparse-checkout commands might fail to sparsify an individual file
-        (e.g. because it has unstaged changes or conflicts).  In such
-        cases, it can make sense to run <code>git sparse-checkout reapply</code> later
-        after cleaning up affected paths (e.g. resolving conflicts, undoing
-        or committing changes, etc.).
-</p>
-</dd>
-<dt class="hdlist1">
-<em>disable</em>
-</dt>
-<dd>
-<p>
-        Disable the <code>core.sparseCheckout</code> config setting, and restore the
-        working directory to include all files. Leaves the sparse-checkout
-        file intact so a later <em>git sparse-checkout init</em> command may
-        return the working directory to the same state.
+        Specify an alternate suffix for the bugreport name, to create a file
+        named <em>git-bugreport-&lt;formatted suffix&gt;</em>. This should take the form of a
+        <a href="strftime">3</a> format string; the current local time will be used.
 </p>
 </dd>
 </dl></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_sparse_checkout">SPARSE CHECKOUT</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>"Sparse checkout" allows populating the working directory sparsely.
-It uses the skip-worktree bit (see <a href="git-update-index.html">git-update-index(1)</a>) to tell
-Git whether a file in the working directory is worth looking at. If
-the skip-worktree bit is set, then the file is ignored in the working
-directory. Git will not populate the contents of those files, which
-makes a sparse checkout helpful when working in a repository with many
-files, but only a few are important to the current user.</p></div>
-<div class="paragraph"><p>The <code>$GIT_DIR/info/sparse-checkout</code> file is used to define the
-skip-worktree reference bitmap. When Git updates the working
-directory, it updates the skip-worktree bits in the index based
-on this file. The files matching the patterns in the file will
-appear in the working directory, and the rest will not.</p></div>
-<div class="paragraph"><p>To enable the sparse-checkout feature, run <code>git sparse-checkout init</code> to
-initialize a simple sparse-checkout file and enable the <code>core.sparseCheckout</code>
-config setting. Then, run <code>git sparse-checkout set</code> to modify the patterns in
-the sparse-checkout file.</p></div>
-<div class="paragraph"><p>To repopulate the working directory with all files, use the
-<code>git sparse-checkout disable</code> command.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_full_pattern_set">FULL PATTERN SET</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>By default, the sparse-checkout file uses the same syntax as <code>.gitignore</code>
-files.</p></div>
-<div class="paragraph"><p>While <code>$GIT_DIR/info/sparse-checkout</code> is usually used to specify what
-files are included, you can also specify what files are <em>not</em> included,
-using negative patterns. For example, to remove the file <code>unwanted</code>:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>/*
-!unwanted</code></pre>
-</div></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_cone_pattern_set">CONE PATTERN SET</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>The full pattern set allows for arbitrary pattern matches and complicated
-inclusion/exclusion rules. These can result in O(N*M) pattern matches when
-updating the index, where N is the number of patterns and M is the number
-of paths in the index. To combat this performance issue, a more restricted
-pattern set is allowed when <code>core.sparseCheckoutCone</code> is enabled.</p></div>
-<div class="paragraph"><p>The accepted patterns in the cone pattern set are:</p></div>
-<div class="olist arabic"><ol class="arabic">
-<li>
-<p>
-<strong>Recursive:</strong> All paths inside a directory are included.
-</p>
-</li>
-<li>
-<p>
-<strong>Parent:</strong> All files immediately inside a directory are included.
-</p>
-</li>
-</ol></div>
-<div class="paragraph"><p>In addition to the above two patterns, we also expect that all files in the
-root directory are included. If a recursive pattern is added, then all
-leading directories are added as parent patterns.</p></div>
-<div class="paragraph"><p>By default, when running <code>git sparse-checkout init</code>, the root directory is
-added as a parent pattern. At this point, the sparse-checkout file contains
-the following patterns:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>/*
-!/*/</code></pre>
-</div></div>
-<div class="paragraph"><p>This says "include everything in root, but nothing two levels below root."</p></div>
-<div class="paragraph"><p>When in cone mode, the <code>git sparse-checkout set</code> subcommand takes a list of
-directories instead of a list of sparse-checkout patterns. In this mode,
-the command <code>git sparse-checkout set A/B/C</code> sets the directory <code>A/B/C</code> as
-a recursive pattern, the directories <code>A</code> and <code>A/B</code> are added as parent
-patterns. The resulting sparse-checkout file is now</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>/*
-!/*/
-/A/
-!/A/*/
-/A/B/
-!/A/B/*/
-/A/B/C/</code></pre>
-</div></div>
-<div class="paragraph"><p>Here, order matters, so the negative patterns are overridden by the positive
-patterns that appear lower in the file.</p></div>
-<div class="paragraph"><p>If <code>core.sparseCheckoutCone=true</code>, then Git will parse the sparse-checkout file
-expecting patterns of these types. Git will warn if the patterns do not match.
-If the patterns do match the expected format, then Git will use faster hash-
-based algorithms to compute inclusion in the sparse-checkout.</p></div>
-<div class="paragraph"><p>In the cone mode case, the <code>git sparse-checkout list</code> subcommand will list the
-directories that define the recursive patterns. For the example sparse-checkout
-file above, the output is as follows:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>$ git sparse-checkout list
-A/B/C</code></pre>
-</div></div>
-<div class="paragraph"><p>If <code>core.ignoreCase=true</code>, then the pattern-matching algorithm will use a
-case-insensitive check. This corrects for case mismatched filenames in the
-<em>git sparse-checkout set</em> command to reflect the expected cone in the working
-directory.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_submodules">SUBMODULES</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>If your repository contains one or more submodules, then those submodules will
-appear based on which you initialized with the <code>git submodule</code> command. If
-your sparse-checkout patterns exclude an initialized submodule, then that
-submodule will still appear in your working directory.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_see_also">SEE ALSO</h2>
-<div class="sectionbody">
-<div class="paragraph"><p><a href="git-read-tree.html">git-read-tree(1)</a>
-<a href="gitignore.html">gitignore(5)</a></p></div>
 </div>
 </div>
 <div class="sect1">

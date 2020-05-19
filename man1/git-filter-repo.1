@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/23/2020
+.\"      Date: 05/19/2020
 .\"    Manual: Git Manual
-.\"    Source: Git 2.26.0.dirty
+.\"    Source: Git 2.27.0.rc0.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "03/23/2020" "Git 2\&.26\&.0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "05/19/2020" "Git 2\&.27\&.0\&.rc0\&.dirty" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -258,7 +258,7 @@ Regex of paths to include in filtered history\&. Multiple \-\-path\-regex option
 .PP
 \-\-use\-base\-name
 .RS 4
-Match on file base name instead of full path from the top of the repo\&. Incompatible with \-\-path\-rename\&.
+Match on file base name instead of full path from the top of the repo\&. Incompatible with \-\-path\-rename, and incompatible with matching against directory names\&.
 .RE
 .SS "Renaming based on paths (see also \-\-filename\-callback)"
 .PP
@@ -371,6 +371,11 @@ Whether to prune empty commits\&.
 .RS 4
 Since merge commits are needed for history topology, they are typically exempt from pruning\&. However, they can become degenerate with the pruning of other commits (having fewer than two parents, having one commit serve as both parents, or having one parent as the ancestor of the other\&.) If such merge commits have no file changes, they can be pruned\&. The default (\fIauto\fR) is to only prune empty merge commits which become degenerate (not which started as such)\&.
 .RE
+.PP
+\-\-no\-ff
+.RS 4
+Even if the first parent is or becomes an ancestor of another parent, do not prune it\&. This modifies how \-\-prune\-degenerate behaves, and may be useful in projects who always use merge \-\-no\-ff\&.
+.RE
 .SS "Generic callback code snippets"
 .PP
 \-\-filename\-callback <function_body>
@@ -462,7 +467,11 @@ Show a help message and exit\&.
 .PP
 \-\-force, \-f
 .RS 4
-Rewrite history even if the current repo does not look like a fresh clone\&.
+Rewrite history even if the current repo does not look like a fresh clone\&. Note that when cloning repos on a local filesystem, it is better to pass
+\fB\-\-no\-local\fR
+to git clone than passing
+\fB\-\-force\fR
+to git\-filter\-repo\&.
 .RE
 .PP
 \-\-partial
@@ -847,6 +856,9 @@ git filter\-repo \-\-invert\-paths \-\-path\-glob \*(Aq*/\&.DS_Store\*(Aq \-\-pa
 .sp
 (the \fB\-\-path\-glob\fR isn\(cqt sufficient by itself as it might miss a toplevel \&.DS_Store file; further while something like \fB\-\-path\-glob \*(Aq*\&.DS_Store\*(Aq\fR would workaround that problem it would also grab files named \fBfoo\&.DS_Store\fR or \fBbar/baz\&.DS_Store\fR)
 .sp
+Finally, see also the \fB\-\-filename\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
+.SS "Filtering based on many paths"
+.sp
 If you have a long list of files, directories, globs, or regular expressions to filter on, you can stick them in a file and use \fB\-\-paths\-from\-file\fR; for example, with a file named stuff\-i\-want\&.txt with contents of
 .sp
 .if n \{\
@@ -879,9 +891,113 @@ git filter\-repo \-\-paths\-from\-file stuff\-i\-want\&.txt
 .\}
 .sp
 .sp
-to get a repo containing only the toplevel README\&.md file, the guides/ and tools/releases/ directories, all python files, files whose name was of the form YYYY\&.MM\-DD\&.txt at least two subdirectories deep, and would rename tools/ to scripts/ and rename files like foo/bar/baz/bleh\&.text to baz/foo/bar/bleh\&.txt\&. Note the special line prefixes of \fBglob:\fR and \fBregex:\fR and the special string \fB==>\fR denoting renames\&.
+to get a repo containing only the toplevel README\&.md file, the guides/ and tools/releases/ directories, all python files, files whose name was of the form YYYY\&.MM\-DD\&.txt at least two subdirectories deep, and would rename tools/ to scripts/ and rename files like foo/bar/baz\&.text to bar/foo/baz\&.txt\&. Note the special line prefixes of \fBglob:\fR and \fBregex:\fR and the special string \fB==>\fR denoting renames\&.
 .sp
-Finally, see also the \fB\-\-filename\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
+Sometimes you have a way of easily generating all the files you want\&. For example, if you know that none of the currently tracked files have any newlines or special characters in them (see core\&.quotePath from \fBgit config \-\-help\fR) so that \fBgit ls\-files\fR would print all files literally one per line, and you knew that you wanted to keep only the files that are currently tracked (thus deleting from all commits in history any files that only appear on other branches or that only appear in older commits), then you could use a pair of commands such as
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git ls\-files >\&.\&./paths\-i\-want\&.txt
+git filter\-repo \-\-paths\-from\-file \&.\&./paths\-i\-want\&.txt
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Similarly, you could use \-\-paths\-from\-file to delete many files\&. For example, you could run \fBgit filter\-repo \-\-analyze\fR to get reports, look in one such as \&.git/filter\-repo/analysis/path\-deleted\-sizes\&.txt and copy all the filenames into a file such as /tmp/files\-i\-dont\-want\-anymore\&.txt and then run
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-invert\-paths \-\-paths\-from\-file /tmp/files\-i\-dont\-want\-anymore\&.txt
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+to delete them all\&.
+.SS "Directory based shortcuts"
+.sp
+Let\(cqs say you had a directory structure like the following:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+module/
+   foo\&.c
+   bar\&.c
+otherDir/
+   blah\&.config
+   stuff\&.txt
+zebra\&.jpg
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+If you wanted just the module/ directory and you wanted it to become the new root so that your new directory structure looked like
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+foo\&.c
+bar\&.c
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+then you could run:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-subdirectory\-filter module/
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+If you wanted all the files from the original repo, but wanted to move everything under a subdirectory named my\-module/, so that your new directory structure looked like
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+my\-module/
+   module/
+      foo\&.c
+      bar\&.c
+   otherDir/
+      blah\&.config
+      stuff\&.txt
+   zebra\&.jpg
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+then you would instead run run
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-to\-subdirectory\-filter my\-module/
+.fi
+.if n \{\
+.RE
+.\}
+.sp
 .SS "Content based filtering"
 .sp
 If you want to filter out all files bigger than a certain size, you can use \fB\-\-strip\-blobs\-bigger\-than\fR with some size (K, M, and G suffixes are recognized), e\&.g\&.:
@@ -920,7 +1036,7 @@ p455w0rd
 foo==>bar
 glob:*666*==>
 regex:\ebdriver\eb==>pilot
-literal:MM/DD/YYYY=>YYYY\-MM\-DD
+literal:MM/DD/YYYY==>YYYY\-MM\-DD
 regex:([0\-9]{2})/([0\-9]{2})/([0\-9]{4})==>\e3\-\e1\-\e2
 .fi
 .if n \{\

@@ -765,9 +765,8 @@ source, it will be removed to match the source.</p></div>
 <div class="paragraph"><p>The command can also be used to restore the content in the index with
 <code>--staged</code>, or restore both the working tree and the index with
 <code>--staged --worktree</code>.</p></div>
-<div class="paragraph"><p>By default, the restore sources for working tree and the index are the
-index and <code>HEAD</code> respectively. <code>--source</code> could be used to specify a
-commit as the restore source.</p></div>
+<div class="paragraph"><p>By default, if <code>--staged</code> is given, the contents are restored from <code>HEAD</code>,
+otherwise from the index. Use <code>--source</code> to restore from a different commit.</p></div>
 <div class="paragraph"><p>See "Reset, restore and revert" in <a href="git.html">git(1)</a> for the differences
 between the three commands.</p></div>
 <div class="paragraph"><p>THIS COMMAND IS EXPERIMENTAL. THE BEHAVIOR MAY CHANGE.</p></div>
@@ -789,10 +788,8 @@ between the three commands.</p></div>
         tree. It is common to specify the source tree by naming a
         commit, branch or tag associated with it.
 </p>
-<div class="paragraph"><p>If not specified, the default restore source for the working tree is
-the index, and the default restore source for the index is
-<code>HEAD</code>. When both <code>--staged</code> and <code>--worktree</code> are specified,
-<code>--source</code> must also be specified.</p></div>
+<div class="paragraph"><p>If not specified, the contents are restored from <code>HEAD</code> if <code>--staged</code> is
+given, otherwise from the index.</p></div>
 </dd>
 <dt class="hdlist1">
 -p
@@ -914,6 +911,24 @@ in <a href="git-checkout.html">git-checkout(1)</a> for details.</p></div>
         $GIT_DIR/info/sparse-checkout. This option ignores the sparse
         patterns and unconditionally restores any files in
         <code>&lt;pathspec&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--recurse-submodules
+</dt>
+<dt class="hdlist1">
+--no-recurse-submodules
+</dt>
+<dd>
+<p>
+        If <code>&lt;pathspec&gt;</code> names an active submodule and the restore location
+        includes the working tree, the submodule will only be updated if
+        this option is given, in which case its working tree will be
+        restored to the commit recorded in the superproject, and any local
+        modifications overwritten. If nothing (or
+        <code>--no-recurse-submodules</code>) is used, submodules working trees will
+        not be updated. Just like <a href="git-checkout.html">git-checkout(1)</a>, this will detach
+        <code>HEAD</code> of the submodule.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1056,7 +1071,7 @@ as using <a href="git-checkout.html">git-checkout(1)</a>)</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-03-10 17:50:59 PDT
+ 2020-05-19 12:58:36 PDT
 </div>
 </div>
 </body>

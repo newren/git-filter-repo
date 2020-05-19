@@ -1444,11 +1444,12 @@ http.sslverify false</code></pre>
 <div class="sectionbody">
 <div class="paragraph"><p>The Git configuration file contains a number of variables that affect
 the Git commands' behavior. The files <code>.git/config</code> and optionally
-<code>config.worktree</code> (see <code>extensions.worktreeConfig</code> below) in each
-repository are used to store the configuration for that repository, and
-<code>$HOME/.gitconfig</code> is used to store a per-user configuration as
-fallback values for the <code>.git/config</code> file. The file <code>/etc/gitconfig</code>
-can be used to store a system-wide default configuration.</p></div>
+<code>config.worktree</code> (see the "CONFIGURATION FILE" section of
+<a href="git-worktree.html">git-worktree(1)</a>) in each repository are used to store the
+configuration for that repository, and <code>$HOME/.gitconfig</code> is used to
+store a per-user configuration as fallback values for the <code>.git/config</code>
+file. The file <code>/etc/gitconfig</code> can be used to store a system-wide
+default configuration.</p></div>
 <div class="paragraph"><p>The configuration variables are used by both the Git plumbing
 and the porcelains. The variables are divided into sections, wherein
 the fully qualified variable name of the variable itself is the last
@@ -1678,11 +1679,9 @@ Note that "../" is not special and will match literally, which is
 ; file (if the condition is true); their location is not
 ; affected by the condition
 [includeIf "gitdir:/path/to/group/"]
-        path = foo.inc</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>; include only if we are in a worktree where foo-branch is
+        path = foo.inc
+
+; include only if we are in a worktree where foo-branch is
 ; currently checked out
 [includeIf "onbranch:foo-branch"]
         path = foo.inc</code></pre>
@@ -3951,10 +3950,13 @@ credential.helper
 <p>
         Specify an external helper to be called when a username or
         password credential is needed; the helper may consult external
-        storage to avoid prompting the user for the credentials. Note
-        that multiple helpers may be defined. See <a href="gitcredentials.html">gitcredentials(7)</a>
-        for details.
+        storage to avoid prompting the user for the credentials. This is
+        normally the name of a credential helper with possible
+        arguments, but may also be an absolute path with arguments or, if
+        preceded by <code>!</code>, shell commands.
 </p>
+<div class="paragraph"><p>Note that multiple helpers may be defined. See <a href="gitcredentials.html">gitcredentials(7)</a>
+for details and examples.</p></div>
 </dd>
 <dt class="hdlist1">
 credential.useHttpPath
@@ -4669,12 +4671,6 @@ feature.experimental
 <div class="ulist"><ul>
 <li>
 <p>
-<code>pack.useSparse=true</code> uses a new algorithm when constructing a pack-file
-which can improve <code>git push</code> performance in repos with many files.
-</p>
-</li>
-<li>
-<p>
 <code>fetch.negotiationAlgorithm=skipping</code> may improve fetch negotiation times by
 skipping more commits at a time, reducing the number of round trips.
 </p>
@@ -4720,13 +4716,16 @@ fetch.recurseSubmodules
 </dt>
 <dd>
 <p>
-        This option can be either set to a boolean value or to <em>on-demand</em>.
+        This option controls whether <code>git fetch</code> (and the underlying fetch
+        in <code>git pull</code>) will recursively fetch into populated submodules.
+        This option can be set either to a boolean value or to <em>on-demand</em>.
         Setting it to a boolean changes the behavior of fetch and pull to
-        unconditionally recurse into submodules when set to true or to not
-        recurse at all when set to false. When set to <em>on-demand</em> (the default
-        value), fetch and pull will only recurse into a populated submodule
-        when its superproject retrieves a commit that updates the submodule&#8217;s
+        recurse unconditionally into submodules when set to true or to not
+        recurse at all when set to false. When set to <em>on-demand</em>, fetch and
+        pull will only recurse into a populated submodule when its
+        superproject retrieves a commit that updates the submodule&#8217;s
         reference.
+        Defaults to <em>on-demand</em>, or to the value of <em>submodule.recurse</em> if set.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -4973,6 +4972,16 @@ format.suffix
         The default for format-patch is to output files with the suffix
         <code>.patch</code>. Use this variable to change that suffix (make sure to
         include the dot if you want it).
+</p>
+</dd>
+<dt class="hdlist1">
+format.encodeEmailHeaders
+</dt>
+<dd>
+<p>
+        Encode email headers that have non-ASCII characters with
+        "Q-encoding" (described in RFC 2047) for email transmission.
+        Defaults to true.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -5992,6 +6001,47 @@ http.proxyAuthMethod
 </div></div>
 </dd>
 <dt class="hdlist1">
+http.proxySSLCert
+</dt>
+<dd>
+<p>
+        The pathname of a file that stores a client certificate to use to authenticate
+        with an HTTPS proxy. Can be overridden by the <code>GIT_PROXY_SSL_CERT</code> environment
+        variable.
+</p>
+</dd>
+<dt class="hdlist1">
+http.proxySSLKey
+</dt>
+<dd>
+<p>
+        The pathname of a file that stores a private key to use to authenticate with
+        an HTTPS proxy. Can be overridden by the <code>GIT_PROXY_SSL_KEY</code> environment
+        variable.
+</p>
+</dd>
+<dt class="hdlist1">
+http.proxySSLCertPasswordProtected
+</dt>
+<dd>
+<p>
+        Enable Git&#8217;s password prompt for the proxy SSL certificate.  Otherwise OpenSSL
+        will prompt the user, possibly many times, if the certificate or private key
+        is encrypted. Can be overriden by the <code>GIT_PROXY_SSL_CERT_PASSWORD_PROTECTED</code>
+        environment variable.
+</p>
+</dd>
+<dt class="hdlist1">
+http.proxySSLCAInfo
+</dt>
+<dd>
+<p>
+        Pathname to the file containing the certificate bundle that should be used to
+        verify the proxy with when using an HTTPS proxy. Can be overriden by the
+        <code>GIT_PROXY_SSL_CAINFO</code> environment variable.
+</p>
+</dd>
+<dt class="hdlist1">
 http.emptyAuth
 </dt>
 <dd>
@@ -6725,6 +6775,17 @@ log.decorate
 </p>
 </dd>
 <dt class="hdlist1">
+log.excludeDecoration
+</dt>
+<dd>
+<p>
+        Exclude the specified patterns from the log decorations. This is
+        similar to the <code>--decorate-refs-exclude</code> command-line option, but
+        the config option can be overridden by the <code>--decorate-refs</code>
+        option.
+</p>
+</dd>
+<dt class="hdlist1">
 log.follow
 </dt>
 <dd>
@@ -6974,6 +7035,21 @@ merge.stat
 <p>
         Whether to print the diffstat between ORIG_HEAD and the merge result
         at the end of the merge.  True by default.
+</p>
+</dd>
+<dt class="hdlist1">
+merge.autoStash
+</dt>
+<dd>
+<p>
+        When set to true, automatically create a temporary stash entry
+        before the operation begins, and apply it after the operation
+        ends.  This means that you can run merge on a dirty worktree.
+        However, use with care: the final stash application after a
+        successful merge might result in non-trivial conflicts.
+        This option can be overridden by the <code>--no-autostash</code> and
+        <code>--autostash</code> options of <a href="git-merge.html">git-merge(1)</a>.
+        Defaults to false.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -7538,8 +7614,8 @@ pack.useSparse
         objects. This can have significant performance benefits when
         computing a pack to send a small change. However, it is possible
         that extra objects are added to the pack-file if the included
-        commits contain certain types of direct renames. Default is <code>false</code>
-        unless <code>feature.experimental</code> is enabled.
+        commits contain certain types of direct renames. Default is
+        <code>true</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -7684,7 +7760,7 @@ protocol.version
         If set, clients will attempt to communicate with a server
         using the specified protocol version.  If the server does
         not support it, communication falls back to version 0.
-        If unset, the default is <code>2</code>.
+        If unset, the default is <code>0</code>.
         Supported versions:
 </p>
 <div class="openblock">
@@ -7913,6 +7989,8 @@ push.recurseSubmodules
         is <em>no</em> then default behavior of ignoring submodules when pushing
         is retained. You may override this configuration at time of push by
         specifying <em>--recurse-submodules=check|on-demand|no</em>.
+        If not set, <em>no</em> is used by default, unless <em>submodule.recurse</em> is
+        set (in which case a <em>true</em> value means <em>on-demand</em>).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -8916,18 +8994,12 @@ stash.useBuiltin
 </dt>
 <dd>
 <p>
-       Set to <code>false</code> to use the legacy shell script implementation of
-       <a href="git-stash.html">git-stash(1)</a>. Is <code>true</code> by default, which means use
-       the built-in rewrite of it in C.
+        Unused configuration variable.  Used in Git versions 2.22 to
+        2.26 as an escape hatch to enable the legacy shellscript
+        implementation of stash.  Now the built-in rewrite of it in C
+        is always used. Setting this will emit a warning, to alert any
+        remaining users that setting this now does nothing.
 </p>
-<div class="paragraph"><p>The C rewrite is first included with Git version 2.22 (and Git for Windows
-version 2.19). This option serves as an escape hatch to re-enable the
-legacy version in case any bugs are found in the rewrite. This option and
-the shell script version of <a href="git-stash.html">git-stash(1)</a> will be removed in some
-future release.</p></div>
-<div class="paragraph"><p>If you find some reason to set this option to <code>false</code>, other than
-one-off testing, you should report the behavior difference as a bug in
-Git (see <a href="https://git-scm.com/community">https://git-scm.com/community</a> for details).</p></div>
 </dd>
 <dt class="hdlist1">
 stash.showPatch
@@ -9049,9 +9121,17 @@ submodule.recurse
 <dd>
 <p>
         Specifies if commands recurse into submodules by default. This
-        applies to all commands that have a <code>--recurse-submodules</code> option,
-        except <code>clone</code>.
+        applies to all commands that have a <code>--recurse-submodules</code> option
+        (<code>checkout</code>, <code>fetch</code>, <code>grep</code>, <code>pull</code>, <code>push</code>, <code>read-tree</code>, <code>reset</code>,
+        <code>restore</code> and <code>switch</code>) except <code>clone</code> and <code>ls-files</code>.
         Defaults to false.
+        When set to true, it can be deactivated via the
+        <code>--no-recurse-submodules</code> option. Note that some Git commands
+        lacking this option may call some of the above commands affected by
+        <code>submodule.recurse</code>; for instance <code>git remote update</code> will call
+        <code>git fetch</code> but does not have a <code>--no-recurse-submodules</code> option.
+        For these commands a workaround is to temporarily change the
+        configuration value by using <code>git -c submodule.recurse=0</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -9256,6 +9336,20 @@ trace2.configParams
         output to contain events listing each configured remote.
         May be overridden by the <code>GIT_TRACE2_CONFIG_PARAMS</code> environment
         variable.  Unset by default.
+</p>
+</dd>
+<dt class="hdlist1">
+trace2.envVars
+</dt>
+<dd>
+<p>
+        A comma-separated list of "important" environment variables that should
+        be recorded in the trace2 output.  For example,
+        <code>GIT_HTTP_USER_AGENT,GIT_CONFIG</code> would cause the trace2 output to
+        contain events listing the overrides for HTTP user agent and the
+        location of the Git configuration file (assuming any are set).  May be
+        overriden by the <code>GIT_TRACE2_ENV_VARS</code> environment variable.  Unset by
+        default.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -9683,7 +9777,7 @@ looks like</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-03-17 14:25:57 PDT
+ 2020-05-13 22:19:00 PDT
 </div>
 </div>
 </body>

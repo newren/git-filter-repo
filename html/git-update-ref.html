@@ -806,7 +806,11 @@ performs all modifications together.  Specify commands of the form:</p></div>
 create SP &lt;ref&gt; SP &lt;newvalue&gt; LF
 delete SP &lt;ref&gt; [SP &lt;oldvalue&gt;] LF
 verify SP &lt;ref&gt; [SP &lt;oldvalue&gt;] LF
-option SP &lt;opt&gt; LF</code></pre>
+option SP &lt;opt&gt; LF
+start LF
+prepare LF
+commit LF
+abort LF</code></pre>
 </div></div>
 <div class="paragraph"><p>With <code>--create-reflog</code>, update-ref will create a reflog for each ref
 even if one would not ordinarily be created.</p></div>
@@ -822,7 +826,11 @@ quoting:</p></div>
 create SP &lt;ref&gt; NUL &lt;newvalue&gt; NUL
 delete SP &lt;ref&gt; NUL [&lt;oldvalue&gt;] NUL
 verify SP &lt;ref&gt; NUL [&lt;oldvalue&gt;] NUL
-option SP &lt;opt&gt; NUL</code></pre>
+option SP &lt;opt&gt; NUL
+start NUL
+prepare NUL
+commit NUL
+abort NUL</code></pre>
 </div></div>
 <div class="paragraph"><p>In this format, use 40 "0" to specify a zero value, and use the empty
 string to specify a missing value.</p></div>
@@ -865,7 +873,7 @@ verify
 <dd>
 <p>
         Verify &lt;ref&gt; against &lt;oldvalue&gt; but do not change it.  If
-        &lt;oldvalue&gt; zero or missing, the ref must not exist.
+        &lt;oldvalue&gt; is zero or missing, the ref must not exist.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -876,6 +884,44 @@ option
         Modify behavior of the next command naming a &lt;ref&gt;.
         The only valid option is <code>no-deref</code> to avoid dereferencing
         a symbolic ref.
+</p>
+</dd>
+<dt class="hdlist1">
+start
+</dt>
+<dd>
+<p>
+        Start a transaction. In contrast to a non-transactional session, a
+        transaction will automatically abort if the session ends without an
+        explicit commit.
+</p>
+</dd>
+<dt class="hdlist1">
+prepare
+</dt>
+<dd>
+<p>
+        Prepare to commit the transaction. This will create lock files for all
+        queued reference updates. If one reference could not be locked, the
+        transaction will be aborted.
+</p>
+</dd>
+<dt class="hdlist1">
+commit
+</dt>
+<dd>
+<p>
+        Commit all reference updates queued for the transaction, ending the
+        transaction.
+</p>
+</dd>
+<dt class="hdlist1">
+abort
+</dt>
+<dd>
+<p>
+        Abort the transaction, releasing all locks if the transaction is in
+        prepared state.
 </p>
 </dd>
 </dl></div>
@@ -926,7 +972,7 @@ or does not have committer information available.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-03-10 13:56:38 PDT
+ 2020-05-19 12:58:36 PDT
 </div>
 </div>
 </body>
