@@ -283,10 +283,10 @@ Miscellaneous options
 
 --force::
 -f::
-	Rewrite history even if the current repo does not look like a fresh
-	clone.  Note that when cloning repos on a local filesystem, it is
-	better to pass `--no-local` to git clone than passing `--force` to
-	git-filter-repo.
+	Rewrite history even if the current repo does not look like a
+	fresh clone.  See <<FRESHCLONE>>.  Note that when cloning
+	repos on a local filesystem, it is better to pass `--no-local`
+	to git clone than passing `--force` to git-filter-repo.
 
 --partial::
 	Do a partial history rewrite, resulting in the mixture of old and
@@ -327,6 +327,50 @@ Miscellaneous options
 
 --quiet::
 	Pass --quiet to other git commands called.
+
+[[FRESHCLONE]]
+FRESH CLONE SAFETY CHECK AND --FORCE
+------------------------------------
+
+Since filter-repo does irreversible rewriting of history, it is
+important to avoid making changes to a repo for which the user doesn't
+have a good backup.  The primary defense mechanism is to simply
+educate users and rely on them to be good stewards of their data; thus
+there are several warnings in the documentation about how filter repo
+rewrites history.
+
+However, as a service to users, we would like to provide an additional
+safety check beyond the documentation.  There isn't a good way to
+check if the user has a good backup, but we can ask a related question
+that is an imperfect but quite reasonable proxy: "Is this repository a
+fresh clone?"  Unfortunately, that is also a question we can't get a
+perfect answer to; git provides no way to answer that question.
+However, there are approximately a dozen things that I found that seem
+to always be true of brand new clones, and I check for all of those.
+
+These checks can have both false positives and false negatives.
+Someone might have a perfectly good backup of their repo without it
+actually being a fresh clone -- but there's no way for filter-repo to
+know that.  Conversely, someone could look at all things that
+filter-repo checks for in its safety checks and then just tweak their
+non-backed-up repository to satisfy those conditions (though it would
+take a fair amount of effort, and it's astronomically unlikely that a
+repo that isn't a fresh clone happens to match all the criteria).  In
+practice, the safety checks filter-repo uses seem to be really good at
+avoiding people accidentally running filter-repo on a repository that
+they shouldn't be running it on. It even caught me once when I did
+mean to run filter-repo but was in a different directory than I
+thought I was.
+
+In short, it's perfectly fine to use "--force" to override the safety
+checks as long as you're okay with filter-repo irreversibly rewriting
+the contents of the current repository.  It is a really bad idea to
+get in the habit of always specifying --force; if you do, one day you
+will run one of your commands in the wrong directory like I did, and
+you won't have the safety check anymore to bail you out.  Also, it is
+definitely NOT okay to recommend --force on forums, Q&A sites, or in
+emails to other users without first carefully explaining that --force
+means putting your repositories' data at risk.
 
 [[VERSATILITY]]
 VERSATILITY

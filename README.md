@@ -277,9 +277,10 @@ one of the last four traits as well:
      using that.  Almost everyone I've ever seen do a repository
      filtering operation has done so with a fresh clone, because
      wiping out the clone in case of error is a vastly easier recovery
-     mechanism.  Strongly encourage that workflow by detecting and
-     bailing if we're not in a fresh clone, unless the user overrides
-     with --force.
+     mechanism.  Strongly encourage that workflow by [detecting and
+     bailing if we're not in a fresh
+     clone](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#FRESHCLONE),
+     unless the user overrides with --force.
 
   1. [Auto shrink] Automatically remove old cruft and repack the
      repository for the user after filtering (unless overridden); this
