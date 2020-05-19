@@ -2045,12 +2045,12 @@ EXAMPLES
       global write_marks
       write_marks = False
       if args.state_branch:
-        raise SystemExit(_("Error: need a version of git whose fast-export "
-                           "command has the --mark-tags option"))
+        # We need a version of git-fast-export with --mark-tags
+        raise SystemExit(_("Error: need git >= 2.24.0"))
     if b'--reencode' not in output: # pragma: no cover
       if args.preserve_commit_encoding:
-        raise SystemExit(_("Error: need a version of git whose fast-export "
-                           "command has the --reencode option"))
+        # We need a version of git-fast-export with --reencode
+        raise SystemExit(_("Error: need git >= 2.23.0"))
       else:
         # Set args.preserve_commit_encoding to None which we'll check for later
         # to avoid passing --reencode=yes to fast-export (that option was the
@@ -2063,8 +2063,8 @@ EXAMPLES
       p.wait()
       output = p.stdout.read()
       if b'--combined-all-paths' not in output:
-        raise SystemExit(_("Error: need a version of git whose diff-tree "
-                           "command has the --combined-all-paths option"))
+        # We need a version of git-diff-tree with --combined-all-paths
+        raise SystemExit(_("Error: need git >= 2.22.0"))
     # End of sanity checks on git version
     if args.max_blob_size:
       suffix = args.max_blob_size[-1]
