@@ -2183,6 +2183,7 @@ EXAMPLES
       args.strip_blobs_with_ids = set()
     if (args.partial or args.refs) and not args.replace_refs:
       args.replace_refs = 'update-no-add'
+    args.repack = not (args.partial or args.refs)
     if args.refs or args.source or args.target:
       args.partial = True
     if not args.refs:
@@ -3890,9 +3891,8 @@ class RepoFilter(object):
       self._save_marks_files()
 
     # Notify user how long it took, before doing a gc and such
-    repack = (not self._args.partial)
     msg = "New history written in {:.2f} seconds..."
-    if repack:
+    if self._args.repack:
       msg = "New history written in {:.2f} seconds; now repacking/cleaning..."
     print(msg.format(time.time()-start))
 
@@ -3914,9 +3914,11 @@ class RepoFilter(object):
       # Write out data about run
       self._record_metadata(self.results_tmp_dir(), self._orig_refs)
 
-    # If repack, then nuke the reflogs and repack.  If reset, do a reset --hard
+    # Final cleanup:
+    #   If we need a repack, then nuke the reflogs and repack.
+    #   If we need a reset, do a reset --hard
     reset = not GitUtils.is_repository_bare(target_working_dir)
-    RepoFilter.cleanup(target_working_dir, repack, reset,
+    RepoFilter.cleanup(target_working_dir, self._args.repack, reset,
                        run_quietly=self._args.quiet,
                        show_debuginfo=self._args.debug)
 
