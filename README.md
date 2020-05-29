@@ -58,10 +58,18 @@ cases.  The more involved instructions are needed if you
 
 See the [user
 manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html).
-If you prefer learning from examples, the [simple
-example](#simple-example-with-comparisons) below may be of interest,
-and the user manual has an extensive [examples
-section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES).
+
+If you prefer learning from examples:
+  * the [simple example](#simple-example-with-comparisons) below may
+    be of interest
+  * the user manual has an extensive [examples
+section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES)
+  * there is a [cheat sheet for converting filter-branch
+    commands](Documentation/converting-from-filter-branch.md#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage),
+    which covers every example from the filter-branch manual
+  * there is a [cheat sheet for converting BFG Repo Cleaner
+    commands](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg),
+    which covers every example from the BFG website
 
 # Why filter-repo instead of other alternatives?
 
