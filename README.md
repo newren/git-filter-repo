@@ -26,7 +26,9 @@ history rewriting tools](contrib/filter-repo-demos).
     * [BFG Repo Cleaner](#bfg-repo-cleaner)
   * [Simple example, with comparisons](#simple-example-with-comparisons)
     * [Solving this with filter-repo](#solving-this-with-filter-repo)
-    * [Solving this with other filtering tools](#solving-this-with-other-filtering-tools)
+    * [Solving this with BFG Repo Cleaner](#solving-this-with-bfg-repo-cleaner)
+    * [Solving this with filter-branch](#solving-this-with-filter-branch)
+    * [Solving this with fast-export/fast-import](#solving-this-with-fast-exportfast-import)
   * [Design rationale behind filter-repo](#design-rationale-behind-filter-repo)
   * [How do I contribute?](#how-do-i-contribute)
   * [Is there a Code of Conduct?](#is-there-a-code-of-conduct)
@@ -158,14 +160,15 @@ Doing this with filter-repo is as simple as the following command:
 (the single quotes are unnecessary, but make it clearer to a human that we
 are replacing the empty string as a prefix with `my-module-`)
 
-## Solving this with other filtering tools
+## Solving this with BFG Repo Cleaner
 
-By contrast, BFG Repo Cleaner is not capable of this kind of rewrite,
-it would take considerable effort to do this safely with
-fast-export/fast-import (especially if you wanted empty commits pruned
-or commit hashes rewritten), and filter-branch comes with a pile of
-caveats (more on that below) even once you figure out the necessary
-invocation(s):
+BFG Repo Cleaner is not capable of this kind of rewrite; in fact, all
+three types of wanted changes are outside of its capabilities.
+
+## Solving this with filter-branch
+
+filter-branch comes with a pile of caveats (more on that below) even
+once you figure out the necessary invocation(s):
 
 ```shell
   git filter-branch \
@@ -243,6 +246,53 @@ new and old history before pushing somewhere.  Other caveats:
     characters (even special ascii characters such as tabs or double
     quotes will wreak havoc and likely result in missing files or
     misnamed files)
+
+## Solving this with fast-export/fast-import
+
+One can kind of hack this together with something like:
+
+```shell
+  git fast-export --no-data --reencode=yes --mark-tags --fake-missing-tagger \
+      --signed-tags=strip --tag-of-filtered-object=rewrite --all \
+      | grep -vP '^M [0-9]+ [0-9a-f]+ (?!src/)' \
+      | grep -vP '^D (?!src/)' \
+      | perl -pe 's%^(M [0-9]+ [0-9a-f]+ )(.*)$%\1my-module/\2%' \
+      | perl -pe 's%^(D )(.*)$%\1my-module/\2%' \
+      | perl -pe s%refs/tags/%refs/tags/my-module-% \
+      | git -c core.ignorecase=false fast-import --force --quiet
+  git for-each-ref --format="delete %(refname)" refs/tags/ \
+      | grep -v refs/tags/my-module- \
+      | git update-ref --stdin
+  git reset --hard
+  git reflog expire --expire=now --all
+  git gc --prune=now
+```
+
+But this comes with some nasty caveats and limitations:
+  * The various greps and regex replacements operate on the entire
+    fast-export stream and thus might accidentally corrupt unintended
+    portions of it, such as commit messages.  If you needed to edit
+    file contents and thus dropped the --no-data flag, it could also
+    end up corrupting file contents.
+  * This command assumes all filenames in the repository are composed
+    entirely of ascii characters, and also exclude special characters
+    such as tabs or double quotes.  If such a special filename exists
+    within the old src/ directory, it will be pruned even though it
+    was intended to be kept.  (In slightly different repository
+    rewrites, this type of editing also risks corrupting filenames
+    with special characters by adding extra double quotes near the end
+    of the filename and in some leading directory name.)
+  * This command will leave behind huge numbers of useless empty
+    commits, and has no realistic way of pruning them.  (And if you
+    tried to combine this technique with another tool to prune the
+    empty commits, then you now have no way to distinguish between
+    commits which were made empty by the filtering that you want to
+    remove, and commits which were empty before the filtering process
+    and which you thus may want to keep.)
+  * Commit messages which reference other commits by hash will now
+    reference old commits that no longer exist.  Attempting to edit
+    the commit messages to update them is extraordinarily difficult to
+    add to this kind of direct rewrite.
 
 # Design rationale behind filter-repo
 
