@@ -58,7 +58,7 @@ Also, it's worth noting that there is an important safety mechanism:
 
   * abort if run from a repo that is not a fresh clone (to prevent
     accidental data loss from rewriting local history that doesn't
-    exist anywhere else)
+    exist anywhere else).  See <<FRESHCLONE>>.
 
 For those who know that there is large unwanted stuff in their history
 and want help finding it, this command also
@@ -346,7 +346,9 @@ that is an imperfect but quite reasonable proxy: "Is this repository a
 fresh clone?"  Unfortunately, that is also a question we can't get a
 perfect answer to; git provides no way to answer that question.
 However, there are approximately a dozen things that I found that seem
-to always be true of brand new clones, and I check for all of those.
+to always be true of brand new clones (assuming they are either clones
+of remote repositories or are made with the `--no-local` flag), and I
+check for all of those.
 
 These checks can have both false positives and false negatives.
 Someone might have a perfectly good backup of their repo without it
@@ -355,22 +357,24 @@ know that.  Conversely, someone could look at all things that
 filter-repo checks for in its safety checks and then just tweak their
 non-backed-up repository to satisfy those conditions (though it would
 take a fair amount of effort, and it's astronomically unlikely that a
-repo that isn't a fresh clone happens to match all the criteria).  In
-practice, the safety checks filter-repo uses seem to be really good at
-avoiding people accidentally running filter-repo on a repository that
-they shouldn't be running it on. It even caught me once when I did
-mean to run filter-repo but was in a different directory than I
-thought I was.
+repo that isn't a fresh clone randomly happens to match all the
+criteria).  In practice, the safety checks filter-repo uses seem to be
+really good at avoiding people accidentally running filter-repo on a
+repository that they shouldn't be running it on. It even caught me
+once when I did mean to run filter-repo but was in a different
+directory than I thought I was.
 
-In short, it's perfectly fine to use "--force" to override the safety
+In short, it's perfectly fine to use `--force` to override the safety
 checks as long as you're okay with filter-repo irreversibly rewriting
 the contents of the current repository.  It is a really bad idea to
-get in the habit of always specifying --force; if you do, one day you
-will run one of your commands in the wrong directory like I did, and
-you won't have the safety check anymore to bail you out.  Also, it is
-definitely NOT okay to recommend --force on forums, Q&A sites, or in
-emails to other users without first carefully explaining that --force
-means putting your repositories' data at risk.
+get in the habit of always specifying `--force`; if you do, one day
+you will run one of your commands in the wrong directory like I did,
+and you won't have the safety check anymore to bail you out.  Also, it
+is definitely NOT okay to recommend `--force` on forums, Q&A sites, or
+in emails to other users without first carefully explaining that
+`--force` means putting your repositories' data at risk.  I am
+especially bothered by people who suggest the flag when it clearly is
+NOT needed; they are needlessly putting other peoples' data at risk.
 
 [[VERSATILITY]]
 VERSATILITY
