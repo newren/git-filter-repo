@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/19/2020
+.\"      Date: 06/01/2020
 .\"    Manual: Git Manual
-.\"    Source: Git 2.27.0.rc0.dirty
+.\"    Source: Git 2.27.0.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "05/19/2020" "Git 2\&.27\&.0\&.rc0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "06/01/2020" "Git 2\&.27\&.0\&.dirty" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -210,7 +210,8 @@ Also, it\(cqs worth noting that there is an important safety mechanism:
 .sp -1
 .IP \(bu 2.3
 .\}
-abort if run from a repo that is not a fresh clone (to prevent accidental data loss from rewriting local history that doesn\(cqt exist anywhere else)
+abort if run from a repo that is not a fresh clone (to prevent accidental data loss from rewriting local history that doesn\(cqt exist anywhere else)\&. See
+the section called \(lqFRESH CLONE SAFETY CHECK AND \-\-FORCE\(rq\&.
 .RE
 .sp
 For those who know that there is large unwanted stuff in their history and want help finding it, this command also
@@ -514,11 +515,11 @@ Pass \-\-quiet to other git commands called\&.
 .sp
 Since filter\-repo does irreversible rewriting of history, it is important to avoid making changes to a repo for which the user doesn\(cqt have a good backup\&. The primary defense mechanism is to simply educate users and rely on them to be good stewards of their data; thus there are several warnings in the documentation about how filter repo rewrites history\&.
 .sp
-However, as a service to users, we would like to provide an additional safety check beyond the documentation\&. There isn\(cqt a good way to check if the user has a good backup, but we can ask a related question that is an imperfect but quite reasonable proxy: "Is this repository a fresh clone?" Unfortunately, that is also a question we can\(cqt get a perfect answer to; git provides no way to answer that question\&. However, there are approximately a dozen things that I found that seem to always be true of brand new clones, and I check for all of those\&.
+However, as a service to users, we would like to provide an additional safety check beyond the documentation\&. There isn\(cqt a good way to check if the user has a good backup, but we can ask a related question that is an imperfect but quite reasonable proxy: "Is this repository a fresh clone?" Unfortunately, that is also a question we can\(cqt get a perfect answer to; git provides no way to answer that question\&. However, there are approximately a dozen things that I found that seem to always be true of brand new clones (assuming they are either clones of remote repositories or are made with the \fB\-\-no\-local\fR flag), and I check for all of those\&.
 .sp
-These checks can have both false positives and false negatives\&. Someone might have a perfectly good backup of their repo without it actually being a fresh clone \(em but there\(cqs no way for filter\-repo to know that\&. Conversely, someone could look at all things that filter\-repo checks for in its safety checks and then just tweak their non\-backed\-up repository to satisfy those conditions (though it would take a fair amount of effort, and it\(cqs astronomically unlikely that a repo that isn\(cqt a fresh clone happens to match all the criteria)\&. In practice, the safety checks filter\-repo uses seem to be really good at avoiding people accidentally running filter\-repo on a repository that they shouldn\(cqt be running it on\&. It even caught me once when I did mean to run filter\-repo but was in a different directory than I thought I was\&.
+These checks can have both false positives and false negatives\&. Someone might have a perfectly good backup of their repo without it actually being a fresh clone \(em but there\(cqs no way for filter\-repo to know that\&. Conversely, someone could look at all things that filter\-repo checks for in its safety checks and then just tweak their non\-backed\-up repository to satisfy those conditions (though it would take a fair amount of effort, and it\(cqs astronomically unlikely that a repo that isn\(cqt a fresh clone randomly happens to match all the criteria)\&. In practice, the safety checks filter\-repo uses seem to be really good at avoiding people accidentally running filter\-repo on a repository that they shouldn\(cqt be running it on\&. It even caught me once when I did mean to run filter\-repo but was in a different directory than I thought I was\&.
 .sp
-In short, it\(cqs perfectly fine to use "\-\-force" to override the safety checks as long as you\(cqre okay with filter\-repo irreversibly rewriting the contents of the current repository\&. It is a really bad idea to get in the habit of always specifying \-\-force; if you do, one day you will run one of your commands in the wrong directory like I did, and you won\(cqt have the safety check anymore to bail you out\&. Also, it is definitely NOT okay to recommend \-\-force on forums, Q&A sites, or in emails to other users without first carefully explaining that \-\-force means putting your repositories\*(Aq data at risk\&.
+In short, it\(cqs perfectly fine to use \(oq\-\-force` to override the safety checks as long as you\(cqre okay with filter\-repo irreversibly rewriting the contents of the current repository\&. It is a really bad idea to get in the habit of always specifying \fB\-\-force\fR; if you do, one day you will run one of your commands in the wrong directory like I did, and you won\(cqt have the safety check anymore to bail you out\&. Also, it is definitely NOT okay to recommend \fB\-\-force\fR on forums, Q&A sites, or in emails to other users without first carefully explaining that \fB\-\-force\fR means putting your repositories\(cq data at risk\&. I am especially bothered by people who suggest the flag when it clearly is NOT needed; they are needlessly putting other peoples\*(Aq data at risk\&.
 .SH "VERSATILITY"
 .sp
 filter\-repo has a hierarchy of capabilities on the spectrum from easy to use convenience flags that perform pre\-defined types of filtering, to choices that provide lots of flexibility in controlling how filtering occurs\&. This spectrum includes the following:
@@ -1474,7 +1475,8 @@ Commit:
 \fBauthor_date\fR,
 \fBcommitter_name\fR,
 \fBcommitter_email\fR,
-\fBcommitter_date `, `message\fR,
+\fBcommitter_date\fR,
+\fBmessage\fR,
 \fBfile_changes\fR
 (list of FileChange objects, each containing a
 \fBtype\fR,
