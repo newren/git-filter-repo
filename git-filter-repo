@@ -1619,6 +1619,7 @@ class GitUtils(object):
     print(decode(version[0:12]))
 
 class FilteringOptions(object):
+  default_replace_text = b'***REMOVED***'
   class AppendFilter(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
       user_path = values
@@ -1818,8 +1819,8 @@ EXAMPLES
                "By default, each expression is treated as literal text, "
                "but 'regex:' and 'glob:' prefixes are supported.  You can "
                "end the line with '==>' and some replacement text to "
-               "choose a replacement choice other than the default of "
-               "'***REMOVED***'. "))
+               "choose a replacement choice other than the default of '{}'."
+               .format(decode(FilteringOptions.default_replace_text))))
     contents.add_argument('--strip-blobs-bigger-than', metavar='SIZE',
                           dest='max_blob_size', default=0,
         help=_("Strip blobs (files) bigger than specified size (e.g. '5M', "
@@ -2089,7 +2090,7 @@ EXAMPLES
         line = line.rstrip(b'\r\n')
 
         # Determine the replacement
-        replacement = b'***REMOVED***'
+        replacement = FilteringOptions.default_replace_text
         if b'==>' in line:
           line, replacement = line.rsplit(b'==>', 1)
 
