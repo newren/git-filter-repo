@@ -65,8 +65,9 @@ comments at the top of the
 [bfg-ish](../contrib/filter-repo-demos/bfg-ish) script if you want
 details.  The bfg-ish script implemented these protection and privacy
 options since it was designed to act like BFG, but still flipped the
-default to the opposite of what BFG chose.  This means a number of
-things with filter-repo:
+default to the opposite of what BFG chose.  I left the "protection"
+and "non-private" features out of filter-repo entirely.  This means a
+number of things with filter-repo:
   * any filters you specify will also be applied to HEAD, so that you
     don't have a weird disconnect from your history transformations
     only being applied to most commits
