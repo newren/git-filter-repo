@@ -3231,7 +3231,8 @@ class RepoFilter(object):
     if blob.original_id in self._args.strip_blobs_with_ids:
       blob.skip()
 
-    if self._args.replace_text:
+    if self._args.replace_text and \
+       not any(x == b"0" for x in blob.data[0:8192]):
       for literal, replacement in self._args.replace_text['literals']:
         blob.data = blob.data.replace(literal, replacement)
       for regex,   replacement in self._args.replace_text['regexes']:
