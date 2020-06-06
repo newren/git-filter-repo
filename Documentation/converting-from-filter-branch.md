@@ -9,6 +9,7 @@ to learn how to convert over to using filter-repo.
   * [Intention of "equivalent" commands](#intention-of-equivalent-commands)
   * [Basic Differences](#basic-differences)
   * [Cheat Sheet: Conversion of Examples from the filter-branch manpage](#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage)
+  * [Cheat Sheet: Additional conversion examples](#cheat-sheet-additional-conversion-examples)
 
 ## Half-hearted conversions
 
@@ -309,3 +310,37 @@ Note that filter-branch accepts `--not` among the revision specifiers,
 but that appears to python to be a flag name which breaks parsing.
 So, instead of e.g. `--not C` as we might use with filter-branch, we
 can specify `^C` to filter-repo.
+
+## Cheat Sheet: Additional conversion examples
+
+### Running a code formatter or linter on each file with some extension
+
+Running some program on a subset of files is relatively natural in
+filter-branch:
+
+```shell
+  git filter-branch --tree-filter '
+      git ls-files -z "*.c" \
+          | xargs -0 -n 1 clang-format -style=file -i
+      '
+```
+
+filter-repo decided not to provide a way to run an external program to
+do filtering, because most filter-branch uses of this ability are
+riddled with [safety
+problems](https://git-scm.com/docs/git-filter-branch#SAFETY) and
+[performance
+issues](https://git-scm.com/docs/git-filter-branch#PERFORMANCE).
+However, in special cases like this it's fairly safe.  One can write a
+script that uses filter-repo as a library to achieve this, while also
+gaining filter-repo's automatic handling of other concerns like
+rewriting commit IDs in commit messages or pruning commits that become
+empty.  In fact, one of the [contrib
+demos](../contrib/filter-repo-demos),
+[lint-history](../contrib/filter-repo-demos/lint-history), handles
+this exact type of situation already:
+
+```shell
+  lint-history --relevant 'return filename.endswith(b".c")' \
+      clang-format -style=file -i
+```
