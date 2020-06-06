@@ -9,6 +9,7 @@ that could be done.
 
 Command&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |Description
 -------|-----------
+no-op-example        |Simple example with no modifications to filter-repo behavior, just showing what to import and run.
 insert-beginning     |Add a new file (e.g. LICENSE/COPYING) to the beginning of history.
 signed-off-by        |Add a Signed-off-by tag to a range of commits
 lint-history         |Run some lint command on all non-binary files in history.
