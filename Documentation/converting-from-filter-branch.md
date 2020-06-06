@@ -275,7 +275,8 @@ or
     '
 ```
 
-(and as a bonus will fix tagger emails too, unlike the filter-branch one)
+(and as a bonus both filter-repo alternatives will fix tagger emails
+too, unlike the filter-branch example)
 
 
 ### Restricting to a range
