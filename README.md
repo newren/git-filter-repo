@@ -39,7 +39,7 @@ history rewriting tools](contrib/filter-repo-demos).
 filter-repo requires:
 
   * git >= 2.22.0 at a minimum; [some features](#upstream-improvements)
-    require git >= 2.24.0
+    require git >= 2.24.0 or later
   * python3 >= 3.5
 
 # How do I install it?
@@ -259,7 +259,8 @@ One can kind of hack this together with something like:
       | perl -pe 's%^(M [0-9]+ [0-9a-f]+ )(.*)$%\1my-module/\2%' \
       | perl -pe 's%^(D )(.*)$%\1my-module/\2%' \
       | perl -pe s%refs/tags/%refs/tags/my-module-% \
-      | git -c core.ignorecase=false fast-import --force --quiet
+      | git -c core.ignorecase=false fast-import --date-format=raw-permissive \
+            --force --quiet
   git for-each-ref --format="delete %(refname)" refs/tags/ \
       | grep -v refs/tags/my-module- \
       | git update-ref --stdin
@@ -429,6 +430,9 @@ has also driven numerous improvements to fast-export and fast-import
 (and occasionally other commands) in core git, based on things
 filter-repo needs to do its work:
 
+  * git-2.28.0 (not yet released)
+    * [fast-import: add new --date-format=raw-permissive format](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=d42a2fb72f)
   * git-2.24.0
     * [fast-export: handle nested tags](
       https://git.kernel.org/pub/scm/git/git.git/commit/?id=941790d7de)

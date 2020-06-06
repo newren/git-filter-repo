@@ -53,6 +53,7 @@ __all__ = ["Blob", "Reset", "FileChange", "Commit", "Tag", "Progress",
 
 deleted_hash = b'0'*40
 write_marks = True
+date_format_permissive = True
 
 def gettext_poison(msg):
   if "GIT_TEST_GETTEXT_POISON" in os.environ: # pragma: no cover
@@ -1075,15 +1076,6 @@ class FastExportParser(object):
     user_regex = self._user_regexes[usertype]
     (name, email, when) = user_regex.match(self._currentline).groups()
 
-    # TimeZone idiocy; IST is any of four timezones, so someone translated
-    # it to something that was totally invalid...and it got recorded that
-    # way.  Others have suggested just using an invalid timezone that
-    # fast-import will not choke on.  Let's do that.  Note that +051800
-    # seems to be the only weird timezone found in the wild, by me or some
-    # other posts google returned on the subject...
-    if when.endswith(b'+051800'):
-      when = when[0:-7]+b'+0261'
-
     self._advance_currentline()
     return (name, email, when)
 
@@ -2050,6 +2042,9 @@ EXAMPLES
     p = subproc.Popen('git fast-export -h'.split(),
                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = p.stdout.read()
+    if b'--anonymize-map' not in output: # pragma: no cover
+      global date_format_permissive
+      date_format_permissive = False
     if b'--mark-tags' not in output: # pragma: no cover
       global write_marks
       write_marks = False
@@ -3633,6 +3628,8 @@ class RepoFilter(object):
       location = ['-C', self._args.target] if self._args.target else []
       fip_cmd = ['git'] + location + ['-c', 'core.ignorecase=false',
                                       'fast-import', '--force', '--quiet']
+      if date_format_permissive:
+        fip_cmd.append('--date-format=raw-permissive')
       if self._args.state_branch:
         target_marks_file = self._load_marks_file(b'target-marks')
         fip_cmd.extend([b'--export-marks='+target_marks_file,
