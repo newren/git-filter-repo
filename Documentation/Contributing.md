@@ -57,7 +57,8 @@ There are a few extra things I would like folks to keep in mind:
     * `make test` will run the testsuite under
       [coverage3](https://pypi.org/project/coverage/) (which you will
       need to install), and report on line coverage.  Line coverage of
-      git-filter-repo needs to remain at 100%.
+      git-filter-repo needs to remain at 100%; line coverage of
+      contrib and test scripts can be ignored.
 
   * Please do not be intimidated by detailed feedback:
 
