@@ -248,10 +248,11 @@ class BFG_ish:
       # FIXME: This next line assumes the file fits in memory; though the way
       # fr.Blob works we kind of have that assumption baked in elsewhere too...
       contents = self.cat_file_proc.stdout.read(int(objsize))
-      for literal, replacement in self.replacement_rules['literals']:
-        contents = contents.replace(literal, replacement)
-      for regex,   replacement in self.replacement_rules['regexes']:
-        contents = regex.sub(replacement, contents)
+      if not any(x == b"0" for x in contents[0:8192]): # not binaries
+        for literal, replacement in self.replacement_rules['literals']:
+          contents = contents.replace(literal, replacement)
+        for regex,   replacement in self.replacement_rules['regexes']:
+          contents = regex.sub(replacement, contents)
       self.cat_file_proc.stdout.read(1) # Read trailing newline
 
       blob = fr.Blob(contents)
