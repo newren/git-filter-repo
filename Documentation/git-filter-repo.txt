@@ -486,7 +486,32 @@ history rewrite are roughly as follows:
      namespaces (e.g. refs/changes/, refs/pull/,
      refs/merge-requests/) that they have locked down.
 
-5. (Optional) Some additional considerations
+5. If you still want to push your rewritten history back to the
+   original url despite my warnings above, you'll have to manage it
+   very carefully:
+
+   * git-filter-repo deletes the "origin" remote to help avoid people
+     accidentally repushing to the same repository, so you'll need to
+     remind git what origin's url was.  You'll have to look up the
+     command for that.
+
+   * You'll need to carefully synchronize with *everyone* who has
+     cloned the repository, and will also need to carefully
+     synchronize with *everything* (e.g. CI systems) that has cloned
+     it.  Every single clone will either need to be thrown away and
+     re-cloned, or need to take all the steps outlined in item 4 as
+     well as follow the necessary steps from "RECOVERING FROM UPSTREAM
+     REBASE" section of linkgit:git-rebase[1].  If you miss fixing any
+     clones, you'll risk mixing old and new history and end up with an
+     even worse mess to clean up.
+
+   * Finally, you'll need to consult any documentation from your
+     hosting provider about how to remove any server-side references
+     to the old commits (example:
+     https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html[GitLab's
+     docs on reducing repository size]).
+
+6. (Optional) Some additional considerations
 
    * filter-repo by default creates replace refs (see
      linkgit:git-replace[1]) for each rewritten commit ID, allowing
