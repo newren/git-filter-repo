@@ -178,6 +178,85 @@ test_expect_success '--paths-from-file' '
 	)
 '
 
+create_path_filtering_and_renaming() {
+	test -d path_filtering_and_renaming && return
+
+	test_create_repo path_filtering_and_renaming &&
+	(
+		cd path_filtering_and_renaming &&
+
+		>.gitignore &&
+		mkdir -p src/main/java/com/org/{foo,bar} &&
+		mkdir -p src/main/resources &&
+		test_seq  1 10 >src/main/java/com/org/foo/uptoten &&
+		test_seq 11 20 >src/main/java/com/org/bar/uptotwenty &&
+		test_seq  1  7 >src/main/java/com/org/uptoseven &&
+		test_seq  1  5 >src/main/resources/uptofive &&
+		git add . &&
+		git commit -m Initial
+	)
+}
+
+test_expect_success 'Mixing filtering and renaming paths, not enough filters' '
+	create_path_filtering_and_renaming &&
+	git clone --no-local path_filtering_and_renaming \
+			     path_filtering_and_renaming_1 &&
+	(
+		cd path_filtering_and_renaming_1 &&
+
+		git filter-repo --path .gitignore \
+				--path src/main/resources \
+				--path-rename src/main/java/com/org/foo/:src/main/java/com/org/ &&
+
+		cat <<-EOF >expect &&
+		.gitignore
+		src/main/resources/uptofive
+		EOF
+		git ls-files >actual &&
+		test_cmp expect actual
+	)
+'
+
+test_expect_success 'Mixing filtering and renaming paths, enough filters' '
+	create_path_filtering_and_renaming &&
+	git clone --no-local path_filtering_and_renaming \
+			     path_filtering_and_renaming_2 &&
+	(
+		cd path_filtering_and_renaming_2 &&
+
+		git filter-repo --path .gitignore \
+				--path src/main/resources \
+				--path src/main/java/com/org/foo/ \
+				--path-rename src/main/java/com/org/foo/:src/main/java/com/org/ &&
+
+		cat <<-EOF >expect &&
+		.gitignore
+		src/main/java/com/org/uptoten
+		src/main/resources/uptofive
+		EOF
+		git ls-files >actual &&
+		test_cmp expect actual
+	)
+'
+
+test_expect_success 'Mixing filtering and to-subdirectory-filter' '
+	create_path_filtering_and_renaming &&
+	git clone --no-local path_filtering_and_renaming \
+			     path_filtering_and_renaming_3 &&
+	(
+		cd path_filtering_and_renaming_3 &&
+
+		git filter-repo --path src/main/resources \
+				--to-subdirectory-filter my-module &&
+
+		cat <<-EOF >expect &&
+		my-module/src/main/resources/uptofive
+		EOF
+		git ls-files >actual &&
+		test_cmp expect actual
+	)
+'
+
 test_expect_success 'setup metasyntactic repo' '
 	test_create_repo metasyntactic &&
 	(

@@ -112,6 +112,10 @@ Filtering based on paths (see also --filename-callback)
 Renaming based on paths (see also --filename-callback)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Note: if you combine path filtering with path renaming, be aware that
+      a rename directive does not select paths, it only says how to
+      rename paths that are selected with the filters.
+
 --path-rename <old_name:new_name>::
 --path-rename-match <old_name:new_name>::
 	Path to rename; if filename or directory matches <old_name>
@@ -615,6 +619,21 @@ would make sense but reversing the two arguments would not (src/main/ is
 created by the rename so reversing the two would give you an empty repo).
 Also, note that the rename of cmds/run_release.sh a couple examples ago was
 done before the other renames.
+
+Note that path renaming does not do path filtering, thus the following
+command
+
+--------------------------------------------------
+git filter-repo --path src/main/ --path-rename tools/:scripts/
+--------------------------------------------------
+
+would not result in the tools or scripts directories being present, because
+the single filter selected only src/main/.  It's likely that you would
+instead want to run:
+
+--------------------------------------------------
+git filter-repo --path src/main/ --path tools/ --path-rename tools/:scripts/
+--------------------------------------------------
 
 If you prefer to filter based solely on basename, use the `--use-base-name`
 flag (though this is incompatible with `--path-rename`).  For example, to
