@@ -2026,20 +2026,16 @@ EXAMPLES
       args.path_changes = []
       args.inclusive = False
     else:
-      # Check for incompatible --path-rename (or equivalent specification
-      # from --paths-from-file) used together with either
-      # --use-base-name or --invert-paths.
-      if args.use_base_name or not args.inclusive:
-        if any(x[0] == 'rename' for x in args.path_changes):
-          raise SystemExit(_("Error: path renaming is incompatible with "
-                             "both --use-base-name and --invert-paths"))
-
-      # If we only have renaming paths (i.e. we have no filtering paths),
-      # then no path should be filtered out.  Based on how newname() works,
-      # the easiest way to achieve that is setting args.inclusive to False.
+      # Similarly, if we have no filtering paths, then no path should be
+      # filtered out.  Based on how newname() works, the easiest way to
+      # achieve that is setting args.inclusive to False.
       if not any(x[0] == 'filter' for x in args.path_changes):
         args.inclusive = False
-
+      # Also check for incompatible --use-base-name and --path-rename flags.
+      if args.use_base_name:
+        if any(x[0] == 'rename' for x in args.path_changes):
+          raise SystemExit(_("Error: --use-base-name and --path-rename are "
+                             "incompatible."))
     # Also throw some sanity checks on git version here;
     # PERF: remove these checks once new enough git versions are common
     p = subproc.Popen('git fast-export -h'.split(),
@@ -3279,11 +3275,8 @@ class RepoFilter(object):
           assert match_type in ('match','regex') # glob was translated to regex
           if match_type == 'match' and filename_matches(match, full_pathname):
             full_pathname = full_pathname.replace(match, repl, 1)
-            wanted = filtering_is_inclusive
           if match_type == 'regex':
             full_pathname = match.sub(repl, full_pathname)
-            if full_pathname != pathname:
-              wanted = filtering_is_inclusive
       return full_pathname if (wanted == filtering_is_inclusive) else None
 
     args = self._args
