@@ -22,8 +22,10 @@ filter-repo only consists of a few files that need to be installed:
 
   * git-filter-repo
 
+    This is the only thing needed for basic use.
+
     This can be installed in the directory pointed to by `git --exec-path`,
-    or placed anywhere in $PATH.  This is the only thing needed for basic use.
+    or placed anywhere in $PATH.
 
     If your python3 executable is named "python" instead of "python3"
     (this particularly appears to affect a number of Windows users),
@@ -32,24 +34,49 @@ filter-repo only consists of a few files that need to be installed:
 
   * git_filter_repo.py
 
-    If you want to make use of one of the scripts in contrib/filter-repo-demos/,
-    or want to write your own script making use of filter-repo as a python
-    library, then you need to have a symlink to (or copy of) git-filter-repo
-    named git_filter_repo.py in $PYTHONPATH.
+    This is needed if you want to make use of one of the scripts in
+    contrib/filter-repo-demos/, or want to write your own script making use
+    of filter-repo as a python library.
+
+    You can create this symlink to (or copy of) git-filter-repo named
+    git_filter-repo.py and place it in your python site packages; `python
+    -c "import site; print(site.getsitepackages())" may help you find the
+    appropriate location for your system.  Alternatively, you can place
+    this file anywhere within $PYTHONPATH.
 
   * git-filter-repo.1
 
-    If you want `git filter-repo --help` to display the manpage, this needs
-    to be copied into $MANDIR/man1/ where $MANDIR is some entry from $MANPATH.
-    (Note that `git filter-repo -h` will show a more limited built-in set of
-    instructions regardless of whether the manpage is installed.)
+    This is needed if you want `git filter-repo --help` to succeed in
+    displaying the manpage, when help.format is "man" (the default on Linux
+    and Mac).
+
+    This can be installed in the directory pointed to by `$(git
+    --man-path)/man1/`, or placed anywhere in $MANDIR/man1/ where $MANDIR
+    is some entry from $MANPATH.
+
+    Note that `git filter-repo -h` will show a more limited built-in set of
+    instructions regardless of whether the manpage is installed.
 
   * git-filter-repo.html
 
-    The manpage is good enough for me and my systems, but an html-formatted
-    version of the same page is provided for those who prefer it.  Place it
-    where ever you like; I have no idea where such a thing should go.
+    This is needed if you want `git filter-repo --help` to succeed in
+    displaying the html version of the help, when help.format is set to
+    "html" (the default on Windows).
 
+    This can be installed in the directory pointed to by `git --html-path`.
+
+    Note that `git filter-repo -h` will show a more limited built-in set of
+    instructions regardless of whether the html version of help is
+    installed.
+
+So, installation might look something like
+```
+cp -a git-filter-repo $(git --exec-path)
+cp -a git-filter-repo.1 $(git --man-path)/man1
+cp -a git-filter-repo.html $(git --html-path)
+ln -s $(git --exec-path)/git-filter-repo \
+    $(python -c "import site; print(site.getsitepackages()[-1])")/git_filter_repo.py
+```
 
 # Installation via [pip](https://pip.pypa.io/)
 
