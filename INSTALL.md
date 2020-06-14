@@ -40,7 +40,7 @@ filter-repo only consists of a few files that need to be installed:
 
     You can create this symlink to (or copy of) git-filter-repo named
     git_filter-repo.py and place it in your python site packages; `python
-    -c "import site; print(site.getsitepackages())" may help you find the
+    -c "import site; print(site.getsitepackages())"` may help you find the
     appropriate location for your system.  Alternatively, you can place
     this file anywhere within $PYTHONPATH.
 
