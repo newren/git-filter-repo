@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/01/2020
+.\"      Date: 06/13/2020
 .\"    Manual: Git Manual
 .\"    Source: Git 2.27.0.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "06/01/2020" "Git 2\&.27\&.0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "06/13/2020" "Git 2\&.27\&.0\&.dirty" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -262,6 +262,8 @@ Regex of paths to include in filtered history\&. Multiple \-\-path\-regex option
 Match on file base name instead of full path from the top of the repo\&. Incompatible with \-\-path\-rename, and incompatible with matching against directory names\&.
 .RE
 .SS "Renaming based on paths (see also \-\-filename\-callback)"
+.sp
+Note: if you combine path filtering with path renaming, be aware that a rename directive does not select paths, it only says how to rename paths that are selected with the filters\&.
 .PP
 \-\-path\-rename <old_name:new_name>, \-\-path\-rename\-match <old_name:new_name>
 .RS 4
@@ -594,11 +596,14 @@ Steps to use git\-filter\-repo as part of the bigger picture of doing a history 
 .sp -1
 .IP "  1." 4.2
 .\}
-Create a clone of your repository (if you created special refs outside of refs/heads/ or refs/tags/, make sure to fetch those too)\&. Note that
+Create a clone of your repository (if you created special refs outside of refs/heads/ or refs/tags/, make sure to fetch those too)\&. You may pass
 \fB\-\-bare\fR
-and
+or
 \fB\-\-mirror\fR
-clones are supported too, if you prefer\&.
+to
+\fBgit clone\fR, if you prefer\&. You should pass
+\fB\-\-no\-local\fR
+if the repository you are cloning from is on the local filesystem\&. Avoid other flags; some might confuse the fresh clone check, and others could cause parts of the data to be missing that are needed for the rewrite\&.
 .RE
 .sp
 .RS 4
@@ -695,6 +700,56 @@ The server may not allow you to force push over some refs\&. For example, code r
 .el \{\
 .sp -1
 .IP "  5." 4.2
+.\}
+If you still want to push your rewritten history back to the original url despite my warnings above, you\(cqll have to manage it very carefully:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+git\-filter\-repo deletes the "origin" remote to help avoid people accidentally repushing to the same repository, so you\(cqll need to remind git what origin\(cqs url was\&. You\(cqll have to look up the command for that\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+You\(cqll need to carefully synchronize with
+\fBeveryone\fR
+who has cloned the repository, and will also need to carefully synchronize with
+\fBeverything\fR
+(e\&.g\&. CI systems) that has cloned it\&. Every single clone will either need to be thrown away and re\-cloned, or need to take all the steps outlined in item 4 as well as follow the necessary steps from "RECOVERING FROM UPSTREAM REBASE" section of
+\fBgit-rebase\fR(1)\&. If you miss fixing any clones, you\(cqll risk mixing old and new history and end up with an even worse mess to clean up\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Finally, you\(cqll need to consult any documentation from your hosting provider about how to remove any server\-side references to the old commits (example:
+\m[blue]\fBGitLab\(cqs docs on reducing repository size\fR\m[]\&\s-2\u[1]\d\s+2)\&.
+.RE
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 6.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  6." 4.2
 .\}
 (Optional) Some additional considerations
 .sp
@@ -825,6 +880,32 @@ git filter\-repo \-\-path\-rename sources/:src/main/ \-\-path src/main/
 .sp
 .sp
 would make sense but reversing the two arguments would not (src/main/ is created by the rename so reversing the two would give you an empty repo)\&. Also, note that the rename of cmds/run_release\&.sh a couple examples ago was done before the other renames\&.
+.sp
+Note that path renaming does not do path filtering, thus the following command
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path src/main/ \-\-path\-rename tools/:scripts/
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+would not result in the tools or scripts directories being present, because the single filter selected only src/main/\&. It\(cqs likely that you would instead want to run:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-path src/main/ \-\-path tools/ \-\-path\-rename tools/:scripts/
+.fi
+.if n \{\
+.RE
+.\}
+.sp
 .sp
 If you prefer to filter based solely on basename, use the \fB\-\-use\-base\-name\fR flag (though this is incompatible with \fB\-\-path\-rename\fR)\&. For example, to only include README\&.md and Makefile files from any directory:
 .sp
@@ -2129,3 +2210,9 @@ I assume that people use filter\-repo for one\-shot conversions, not ongoing dat
 .SH "GIT"
 .sp
 Part of the \fBgit\fR(1) suite
+.SH "NOTES"
+.IP " 1." 4
+GitLab\(cqs docs on reducing repository size
+.RS 4
+\%https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html
+.RE

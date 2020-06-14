@@ -956,6 +956,9 @@ provides an option to analyze a repository and generate reports that
 </div>
 <div class="sect2">
 <h3 id="_renaming_based_on_paths_see_also_filename_callback">Renaming based on paths (see also --filename-callback)</h3>
+<div class="paragraph"><p>Note: if you combine path filtering with path renaming, be aware that
+      a rename directive does not select paths, it only says how to
+      rename paths that are selected with the filters.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 --path-rename &lt;old_name:new_name&gt;
@@ -1498,8 +1501,12 @@ history rewrite are roughly as follows:</p></div>
 <li>
 <p>
 Create a clone of your repository (if you created special refs outside
-   of refs/heads/ or refs/tags/, make sure to fetch those too).  Note
-   that <code>--bare</code> and <code>--mirror</code> clones are supported too, if you prefer.
+   of refs/heads/ or refs/tags/, make sure to fetch those too).  You may
+   pass <code>--bare</code> or <code>--mirror</code> to <code>git clone</code>, if you prefer.  You should
+   pass <code>--no-local</code> if the repository you are cloning from is on the local
+   filesystem.  Avoid other flags; some might confuse the fresh clone
+   check, and others could cause parts of the data to be missing that are
+   needed for the rewrite.
 </p>
 </li>
 <li>
@@ -1577,6 +1584,45 @@ The server may not allow you to force push over some refs.
      For example, code review systems may have special ref
      namespaces (e.g. refs/changes/, refs/pull/,
      refs/merge-requests/) that they have locked down.
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
+If you still want to push your rewritten history back to the
+   original url despite my warnings above, you&#8217;ll have to manage it
+   very carefully:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+git-filter-repo deletes the "origin" remote to help avoid people
+     accidentally repushing to the same repository, so you&#8217;ll need to
+     remind git what origin&#8217;s url was.  You&#8217;ll have to look up the
+     command for that.
+</p>
+</li>
+<li>
+<p>
+You&#8217;ll need to carefully synchronize with <strong>everyone</strong> who has
+     cloned the repository, and will also need to carefully
+     synchronize with <strong>everything</strong> (e.g. CI systems) that has cloned
+     it.  Every single clone will either need to be thrown away and
+     re-cloned, or need to take all the steps outlined in item 4 as
+     well as follow the necessary steps from "RECOVERING FROM UPSTREAM
+     REBASE" section of <a href="git-rebase.html">git-rebase(1)</a>.  If you miss fixing any
+     clones, you&#8217;ll risk mixing old and new history and end up with an
+     even worse mess to clean up.
+</p>
+</li>
+<li>
+<p>
+Finally, you&#8217;ll need to consult any documentation from your
+     hosting provider about how to remove any server-side references
+     to the old commits (example:
+     <a href="https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html">GitLab&#8217;s
+     docs on reducing repository size</a>).
 </p>
 </li>
 </ul></div>
@@ -1688,6 +1734,19 @@ applied in order.  Thus, a command like</p></div>
 created by the rename so reversing the two would give you an empty repo).
 Also, note that the rename of cmds/run_release.sh a couple examples ago was
 done before the other renames.</p></div>
+<div class="paragraph"><p>Note that path renaming does not do path filtering, thus the following
+command</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git filter-repo --path src/main/ --path-rename tools/:scripts/</code></pre>
+</div></div>
+<div class="paragraph"><p>would not result in the tools or scripts directories being present, because
+the single filter selected only src/main/.  It&#8217;s likely that you would
+instead want to run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git filter-repo --path src/main/ --path tools/ --path-rename tools/:scripts/</code></pre>
+</div></div>
 <div class="paragraph"><p>If you prefer to filter based solely on basename, use the <code>--use-base-name</code>
 flag (though this is incompatible with <code>--path-rename</code>).  For example, to
 only include README.md and Makefile files from any directory:</p></div>
@@ -2527,7 +2586,7 @@ I assume that people use filter-repo for one-shot conversions, not
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-06-01 08:15:38 PDT
+ 2020-06-13 21:04:42 PDT
 </div>
 </div>
 </body>
