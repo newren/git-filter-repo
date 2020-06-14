@@ -431,8 +431,12 @@ Steps to use git-filter-repo as part of the bigger picture of doing a
 history rewrite are roughly as follows:
 
 1. Create a clone of your repository (if you created special refs outside
-   of refs/heads/ or refs/tags/, make sure to fetch those too).  Note
-   that `--bare` and `--mirror` clones are supported too, if you prefer.
+   of refs/heads/ or refs/tags/, make sure to fetch those too).  You may
+   pass `--bare` or `--mirror` to `git clone`, if you prefer.  You should
+   pass `--no-local` if the repository you are cloning from is on the local
+   filesystem.  Avoid other flags; some might confuse the fresh clone
+   check, and others could cause parts of the data to be missing that are
+   needed for the rewrite.
 
 2. (Optional) Run `git filter-repo --analyze`.  This will create a
    directory of reports mentioning renames that have occurred in your
