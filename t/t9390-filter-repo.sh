@@ -51,7 +51,8 @@ filter_testcase degenerate degenerate-keepme-noff --path moduleA/keepme --no-ff
 filter_testcase unusual unusual-filtered --path ''
 filter_testcase unusual unusual-mailmap  --mailmap ../t9390/sample-mailmap
 
-test_expect_success 'setup path_rename' '
+setup_path_rename() {
+	test -d path_rename && return
 	test_create_repo path_rename &&
 	(
 		cd path_rename &&
@@ -79,9 +80,10 @@ test_expect_success 'setup path_rename' '
 		git add sequences/medium &&
 		git commit -m final
 	)
-'
+}
 
 test_expect_success '--path-rename sequences/tiny:sequences/small' '
+	setup_path_rename &&
 	(
 		git clone file://"$(pwd)"/path_rename path_rename_single &&
 		cd path_rename_single &&
@@ -94,6 +96,7 @@ test_expect_success '--path-rename sequences/tiny:sequences/small' '
 '
 
 test_expect_success '--path-rename sequences:numbers' '
+	setup_path_rename &&
 	(
 		git clone file://"$(pwd)"/path_rename path_rename_dir &&
 		cd path_rename_dir &&
@@ -107,6 +110,7 @@ test_expect_success '--path-rename sequences:numbers' '
 '
 
 test_expect_success '--path-rename-prefix values:numbers' '
+	setup_path_rename &&
 	(
 		git clone file://"$(pwd)"/path_rename path_rename_dir_2 &&
 		cd path_rename_dir_2 &&
@@ -120,6 +124,7 @@ test_expect_success '--path-rename-prefix values:numbers' '
 '
 
 test_expect_success '--path-rename squashing' '
+	setup_path_rename &&
 	(
 		git clone file://"$(pwd)"/path_rename path_rename_squash &&
 		cd path_rename_squash &&
@@ -138,6 +143,7 @@ test_expect_success '--path-rename squashing' '
 '
 
 test_expect_success '--path-rename inability to squash' '
+	setup_path_rename &&
 	(
 		git clone file://"$(pwd)"/path_rename path_rename_bad_squash &&
 		cd path_rename_bad_squash &&
@@ -149,6 +155,7 @@ test_expect_success '--path-rename inability to squash' '
 '
 
 test_expect_success '--paths-from-file' '
+	setup_path_rename &&
 	(
 		git clone file://"$(pwd)"/path_rename paths_from_file &&
 		cd paths_from_file &&
@@ -257,7 +264,8 @@ test_expect_success 'Mixing filtering and to-subdirectory-filter' '
 	)
 '
 
-test_expect_success 'setup metasyntactic repo' '
+setup_metasyntactic_repo() {
+	test -d metasyntactic && return
 	test_create_repo metasyntactic &&
 	(
 		cd metasyntactic &&
@@ -287,9 +295,10 @@ test_expect_success 'setup metasyntactic repo' '
 		git commit -m more.words &&
 		git tag -a -m "Look, ma, I made a tag" v3.0
 	)
-'
+}
 
 test_expect_success '--tag-rename' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic tag_rename &&
 		cd tag_rename &&
@@ -308,6 +317,7 @@ test_expect_success '--tag-rename' '
 '
 
 test_expect_success '--subdirectory-filter' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic subdir_filter &&
 		cd subdir_filter &&
@@ -326,6 +336,7 @@ test_expect_success '--subdirectory-filter' '
 '
 
 test_expect_success '--subdirectory-filter with trailing slash' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic subdir_filter_2 &&
 		cd subdir_filter_2 &&
@@ -344,6 +355,7 @@ test_expect_success '--subdirectory-filter with trailing slash' '
 '
 
 test_expect_success '--to-subdirectory-filter' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic to_subdir_filter &&
 		cd to_subdir_filter &&
@@ -363,6 +375,7 @@ test_expect_success '--to-subdirectory-filter' '
 '
 
 test_expect_success '--use-base-name' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic use_base_name &&
 		cd use_base_name &&
@@ -381,6 +394,7 @@ test_expect_success '--use-base-name' '
 '
 
 test_expect_success 'refs/replace/ to skip a parent' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic replace_skip_ref &&
 		cd replace_skip_ref &&
@@ -402,6 +416,7 @@ test_expect_success 'refs/replace/ to skip a parent' '
 '
 
 test_expect_success 'refs/replace/ to add more initial history' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic replace_add_refs &&
 		cd replace_add_refs &&
@@ -436,6 +451,7 @@ test_expect_success 'refs/replace/ to add more initial history' '
 '
 
 test_expect_success 'creation/deletion/updating of replace refs' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic replace_handling &&
 
@@ -494,6 +510,7 @@ test_expect_success 'creation/deletion/updating of replace refs' '
 '
 
 test_expect_success '--debug' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic debug &&
 		cd debug &&
@@ -516,6 +533,7 @@ test_expect_success '--debug' '
 '
 
 test_expect_success '--dry-run' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic dry_run &&
 		cd dry_run &&
@@ -543,6 +561,7 @@ test_expect_success '--dry-run' '
 '
 
 test_expect_success '--dry-run --debug' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic dry_run_debug &&
 		cd dry_run_debug &&
@@ -570,6 +589,7 @@ test_expect_success '--dry-run --debug' '
 '
 
 test_expect_success '--dry-run --stdin' '
+	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic dry_run_stdin &&
 		cd dry_run_stdin &&
@@ -594,7 +614,8 @@ test_expect_success '--dry-run --stdin' '
 	)
 '
 
-test_expect_success 'setup analyze_me' '
+setup_analyze_me() {
+	test -d analyze_me && return
 	test_create_repo analyze_me &&
 	(
 		cd analyze_me &&
@@ -666,9 +687,10 @@ test_expect_success 'setup analyze_me' '
 		# Add a random extra unreferenced object
 		echo foobar | git hash-object --stdin -w
 	)
-'
+}
 
 test_expect_success C_LOCALE_OUTPUT '--analyze' '
+	setup_analyze_me &&
 	(
 		cd analyze_me &&
 
@@ -777,6 +799,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 '
 
 test_expect_success '--replace-text all options' '
+	setup_analyze_me &&
 	(
 		git clone file://"$(pwd)"/analyze_me replace_text &&
 		cd replace_text &&
@@ -801,6 +824,7 @@ test_expect_success '--replace-text all options' '
 '
 
 test_expect_success '--strip-blobs-bigger-than' '
+	setup_analyze_me &&
 	(
 		git clone file://"$(pwd)"/analyze_me strip_big_blobs &&
 		cd strip_big_blobs &&
@@ -856,6 +880,7 @@ test_expect_success '--strip-blobs-bigger-than' '
 '
 
 test_expect_success '--strip-blobs-with-ids' '
+	setup_analyze_me &&
 	(
 		git clone file://"$(pwd)"/analyze_me strip_blobs_with_ids &&
 		cd strip_blobs_with_ids &&
@@ -900,7 +925,8 @@ test_expect_success '--strip-blobs-with-ids' '
 	)
 '
 
-test_expect_success 'setup commit message rewriting' '
+setup_commit_message_rewriting() {
+	test -d commit_msg && return
 	test_create_repo commit_msg &&
 	(
 		cd commit_msg &&
@@ -931,9 +957,10 @@ test_expect_success 'setup commit message rewriting' '
 		git add baz &&
 		git commit
 	)
-'
+}
 
 test_expect_success 'commit message rewrite' '
+	setup_commit_message_rewriting &&
 	(
 		git clone file://"$(pwd)"/commit_msg commit_msg_clone &&
 		cd commit_msg_clone &&
@@ -960,6 +987,7 @@ test_expect_success 'commit message rewrite' '
 '
 
 test_expect_success 'commit hash unchanged if requested' '
+	setup_commit_message_rewriting &&
 	(
 		git clone file://"$(pwd)"/commit_msg commit_msg_clone_2 &&
 		cd commit_msg_clone_2 &&
@@ -1048,6 +1076,7 @@ test_expect_success 'commit message rewrite unsuccessful' '
 '
 
 test_expect_success 'startup sanity checks' '
+	setup_analyze_me &&
 	(
 		git clone file://"$(pwd)"/analyze_me startup_sanity_checks &&
 		cd startup_sanity_checks &&
@@ -1222,6 +1251,7 @@ test_expect_success 'invalid fast-import directives' '
 '
 
 test_expect_success 'mailmap sanity checks' '
+	setup_analyze_me &&
 	(
 		git clone file://"$(pwd)"/analyze_me mailmap_sanity_checks &&
 		cd mailmap_sanity_checks &&
@@ -1244,6 +1274,7 @@ test_expect_success 'mailmap sanity checks' '
 '
 
 test_expect_success 'incremental import' '
+	setup_analyze_me &&
 	(
 		git clone file://"$(pwd)"/analyze_me incremental &&
 		cd incremental &&
@@ -1256,6 +1287,7 @@ test_expect_success 'incremental import' '
 '
 
 test_expect_success '--target' '
+	setup_analyze_me &&
 	git init target &&
 	(
 		cd target &&
@@ -1274,6 +1306,7 @@ test_expect_success '--target' '
 '
 
 test_expect_success '--refs' '
+	setup_analyze_me &&
 	git init refs &&
 	(
 		cd refs &&
@@ -1313,7 +1346,8 @@ test_expect_success 'reset to specific refs' '
 	)
 '
 
-test_expect_success 'setup handle funny characters' '
+setup_handle_funny_characters() {
+	test -d funny_chars && return
 	test_create_repo funny_chars &&
 	(
 		cd funny_chars &&
@@ -1345,9 +1379,10 @@ test_expect_success 'setup handle funny characters' '
 
 		git tag -a -m "₪₽£€$" סְפָרַד
 	)
-'
+}
 
 test_expect_success 'handle funny characters' '
+	setup_handle_funny_characters &&
 	(
 		git clone file://"$(pwd)"/funny_chars funny_chars_checks &&
 		cd funny_chars_checks &&
