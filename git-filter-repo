@@ -1807,7 +1807,8 @@ EXAMPLES
         help=_("Specify several path filtering and renaming directives, one "
                "per line.  Lines with '==>' in them specify path renames, "
                "and lines can begin with 'literal:' (the default), 'glob:', "
-               "or 'regex:' to specify different matching styles"))
+               "or 'regex:' to specify different matching styles.  Blank "
+               "lines and lines starting with a '#' are ignored."))
     helpers.add_argument('--subdirectory-filter', metavar='DIRECTORY',
         action=FilteringOptions.HelperFilter, type=os.fsencode,
         help=_("Only look at history that touches the given subdirectory "
@@ -2122,6 +2123,9 @@ EXAMPLES
 
         # Skip blank lines
         if not line:
+          continue
+        # Skip comment lines
+        if line.startswith(b'#'):
           continue
 
         # Determine the replacement

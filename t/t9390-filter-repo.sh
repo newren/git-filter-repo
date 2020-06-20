@@ -165,6 +165,7 @@ test_expect_success '--paths-from-file' '
 		values/huge==>values/gargantuan
 		glob:*rge
 
+		# Comments and blank lines are ignored
 		regex:.*med.*
 		regex:^([^/]*)/(.*)ge$==>\2/\1/ge
 		EOF
