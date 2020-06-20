@@ -1650,6 +1650,10 @@ class FilteringOptions(object):
         values = re.compile(values)
       items = getattr(namespace, self.dest, []) or []
       items.append((mod_type, match_type, values))
+      if (match_type, mod_type) == ('glob', 'filter'):
+        if not values.endswith(b'*'):
+          extension = b'*' if values.endswith(b'/') else b'/*'
+          items.append((mod_type, match_type, values+extension))
       setattr(namespace, self.dest, items)
 
   class HelperFilter(argparse.Action):
@@ -2151,6 +2155,9 @@ EXAMPLES
           new_path_changes.append(['rename', match_type, (match, repl)])
         else:
           new_path_changes.append(['filter', match_type, match])
+          if match_type == 'glob' and not match.endswith(b'*'):
+            extension = b'*' if match.endswith(b'/') else b'/*'
+            new_path_changes.append(['filter', match_type, match+extension])
       return new_path_changes
 
   @staticmethod
