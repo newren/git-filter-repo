@@ -343,6 +343,38 @@ Miscellaneous options
 --quiet::
 	Pass --quiet to other git commands called.
 
+OUTPUT
+------
+
+Every time filter-repo is run, files are created in the `.git/filter-repo/`
+directory. These files overwritten unconditionally on every run.
+
+Commit map
+~~~~~~~~~~
+
+The `.git/filter-repo/commit-map` file contains a mapping of how all
+commits were (or were not) changed.
+
+  * A header is the first line with the text "old" and "new"
+  * Commit mappings are in no particular order
+  * All commits in range of the rewrite will be listed, even commits
+    that are unchanged (e.g. because the commit pre-dated when the
+    large file(s) were introduced to the repo).
+  * An all-zeros hash, or null SHA, represents a non-existant object.
+    When in the "new" column, this means the commit was removed
+    entirely.
+
+Reference map
+~~~~~~~~~~~~~
+
+The `.git/filter-repo/ref-map` file contains a mapping of which local
+references were changed.
+
+  * A header is the first line with the text "old" and "new"
+  * Reference mappings are in no particular order
+  * An all-zeros hash, or null SHA, represents a non-existant object.
+    When in the "new" column, this means the ref was removed entirely.
+
 [[FRESHCLONE]]
 FRESH CLONE SAFETY CHECK AND --FORCE
 ------------------------------------
