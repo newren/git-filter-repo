@@ -4,9 +4,10 @@ Installation is as easy as
 
     $ PACKAGE_TOOL install git-filter-repo
 
-for those using one of the following [package
-managers](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
-to install software on their system:
+for those using a [package
+manager](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
+to install software on their system from one of the following package
+repositories:
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/git-filter-repo.svg)](https://repology.org/project/git-filter-repo/versions)
 
