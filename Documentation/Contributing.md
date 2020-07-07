@@ -10,7 +10,10 @@ with a few exceptions:
   * While I
     [hate](https://public-inbox.org/git/CABPp-BG2SkH0GrRYpHLfp2Wey91ThwQoTgf9UmPa9f5Szn+v3Q@mail.gmail.com/)
     [GitHub](https://public-inbox.org/git/CABPp-BEcpasV4vBTm0uxQ4Vzm88MQAX-ArDG4e9QU8tEoNsZWw@mail.gmail.com/)
-    [PRs](https://public-inbox.org/git/CABPp-BEHy8c3raHwf9aFXvXN0smf_WwCcNiYxQBwh7W6An60qQ@mail.gmail.com/),
+    [PRs](https://public-inbox.org/git/CABPp-BEHy8c3raHwf9aFXvXN0smf_WwCcNiYxQBwh7W6An60qQ@mail.gmail.com/)
+    (as others point out, [it's mind-boggling in a bad way that
+    web-based Git hosting and code review systems do such a poor
+    job](http://nhaehnle.blogspot.com/2020/06/they-want-to-be-small-they-want-to-be.html)),
     git-format-patch and git-send-email can be a beast and I have not
     yet found time to modify Dscho's excellent
     [GitGitGadget](https://github.com/gitgitgadget/gitgitgadget) to
