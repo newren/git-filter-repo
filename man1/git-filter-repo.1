@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/13/2020
+.\"      Date: 07/27/2020
 .\"    Manual: Git Manual
-.\"    Source: Git 2.27.0.dirty
+.\"    Source: Git 2.28.0.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "06/13/2020" "Git 2\&.27\&.0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "07/27/2020" "Git 2\&.28\&.0\&.dirty" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -280,7 +280,14 @@ in them specify path renames, and lines can begin with
 (the default),
 \fBglob:\fR, or
 \fBregex:\fR
-to specify different matching styles
+to specify different matching styles\&. Blank lines and lines starting with a
+\fB#\fR
+are ignored (if you have a filename that you want to filter on that starts with
+\fBliteral:\fR,
+\fB#\fR,
+\fBglob:\fR, or
+\fBregex:\fR, then prefix the line with
+\fIliteral:\fR)\&.
 .RE
 .PP
 \-\-subdirectory\-filter <directory>
@@ -470,7 +477,7 @@ Show a help message and exit\&.
 .PP
 \-\-force, \-f
 .RS 4
-Rewrite history even if the current repo does not look like a fresh clone\&. See
+Ignore fresh clone checks and rewrite history (an irreversible operation, especially since it by default ends with an immediate pruning of reflogs and old objects)\&. See
 the section called \(lqFRESH CLONE SAFETY CHECK AND \-\-FORCE\(rq\&. Note that when cloning repos on a local filesystem, it is better to pass
 \fB\-\-no\-local\fR
 to git clone than passing
@@ -512,6 +519,92 @@ and filtering its output, filter the fast\-export stream from stdin\&. The stdin
 \-\-quiet
 .RS 4
 Pass \-\-quiet to other git commands called\&.
+.RE
+.SH "OUTPUT"
+.sp
+Every time filter\-repo is run, files are created in the \fB\&.git/filter\-repo/\fR directory\&. These files overwritten unconditionally on every run\&.
+.SS "Commit map"
+.sp
+The \fB\&.git/filter\-repo/commit\-map\fR file contains a mapping of how all commits were (or were not) changed\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+A header is the first line with the text "old" and "new"
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Commit mappings are in no particular order
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+All commits in range of the rewrite will be listed, even commits that are unchanged (e\&.g\&. because the commit pre\-dated when the large file(s) were introduced to the repo)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+An all\-zeros hash, or null SHA, represents a non\-existant object\&. When in the "new" column, this means the commit was removed entirely\&.
+.RE
+.SS "Reference map"
+.sp
+The \fB\&.git/filter\-repo/ref\-map\fR file contains a mapping of which local references were changed\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+A header is the first line with the text "old" and "new"
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Reference mappings are in no particular order
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+An all\-zeros hash, or null SHA, represents a non\-existant object\&. When in the "new" column, this means the ref was removed entirely\&.
 .RE
 .SH "FRESH CLONE SAFETY CHECK AND \-\-FORCE"
 .sp
@@ -957,12 +1050,22 @@ If you have a long list of files, directories, globs, or regular expressions to 
 .RS 4
 .\}
 .nf
+# Blank lines and comment lines are ignored\&.
+# Examples similar to \-\-path:
 README\&.md
 guides/
 tools/releases
+
+# An example that is like \-\-path\-glob:
 glob:*\&.py
+
+# An example that is like \-\-path\-regex:
 regex:^\&.*/\&.*/[0\-9]{4}\-[0\-9]{2}\-[0\-9]{2}\&.txt$
+
+# An example of renaming a path
 tools/==>scripts/
+
+# An example of using a regex to rename a path
 regex:(\&.*)/([^/]*)/([^/]*)\e\&.text$==>\e2/\e1/\e3\&.txt
 .fi
 .if n \{\
@@ -1706,7 +1809,7 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  4." 4.2
 .\}
-\fBgit fast\-export \-\-show\-original\-ids \-\-reference\-excluded\-parents \-\-fake\-missing\-tagger \-\-signed\-tags=strip \-\-tag\-of\-filtered\-object=rewrite \-\-use\-done\-feature \-\-no\-data \-\-reencode=yes \-\-mark\-tags \-\-all | filter | git \-c core\&.ignorecase=false fast\-import \-\-force \-\-quiet\fR
+\fBgit fast\-export \-\-show\-original\-ids \-\-reference\-excluded\-parents \-\-fake\-missing\-tagger \-\-signed\-tags=strip \-\-tag\-of\-filtered\-object=rewrite \-\-use\-done\-feature \-\-no\-data \-\-reencode=yes \-\-mark\-tags \-\-all | filter | git \-c core\&.ignorecase=false fast\-import \-\-date\-format=raw\-permissive \-\-force \-\-quiet\fR
 .RE
 .sp
 .RS 4

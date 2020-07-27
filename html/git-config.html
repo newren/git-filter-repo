@@ -4227,6 +4227,15 @@ diff.noprefix
 </p>
 </dd>
 <dt class="hdlist1">
+diff.relative
+</dt>
+<dd>
+<p>
+        If set to <em>true</em>, <em>git diff</em> does not show changes outside of the directory
+        and show pathnames relative to the current directory.
+</p>
+</dd>
+<dt class="hdlist1">
 diff.orderFile
 </dt>
 <dd>
@@ -4677,13 +4686,9 @@ skipping more commits at a time, reducing the number of round trips.
 </li>
 <li>
 <p>
-<code>fetch.writeCommitGraph=true</code> writes a commit-graph after every <code>git fetch</code>
-command that downloads a pack-file from a remote. Using the <code>--split</code> option,
-most executions will create a very small commit-graph file on top of the
-existing commit-graph file(s). Occasionally, these files will merge and the
-write may take longer. Having an updated commit-graph file helps performance
-of many Git commands, including <code>git merge-base</code>, <code>git push -f</code>, and
-<code>git log --graph</code>.
+<code>protocol.version=2</code> speeds up fetches from repositories with many refs by
+allowing the client to specify which refs to list before the server lists
+them.
 </p>
 </li>
 </ul></div>
@@ -4859,8 +4864,7 @@ fetch.writeCommitGraph
         the existing commit-graph file(s). Occasionally, these files will
         merge and the write may take longer. Having an updated commit-graph
         file helps performance of many Git commands, including <code>git merge-base</code>,
-        <code>git push -f</code>, and <code>git log --graph</code>. Defaults to false, unless
-        <code>feature.experimental</code> is true.
+        <code>git push -f</code>, and <code>git log --graph</code>. Defaults to false.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -6666,6 +6670,15 @@ init.templateDir
 </p>
 </dd>
 <dt class="hdlist1">
+init.defaultBranch
+</dt>
+<dd>
+<p>
+        Allows overriding the default branch name e.g. when initializing
+        a new repository or when cloning an empty repository.
+</p>
+</dd>
+<dt class="hdlist1">
 instaweb.browser
 </dt>
 <dd>
@@ -7760,7 +7773,8 @@ protocol.version
         If set, clients will attempt to communicate with a server
         using the specified protocol version.  If the server does
         not support it, communication falls back to version 0.
-        If unset, the default is <code>0</code>.
+        If unset, the default is <code>0</code>, unless <code>feature.experimental</code>
+        is enabled, in which case the default is <code>2</code>.
         Supported versions:
 </p>
 <div class="openblock">

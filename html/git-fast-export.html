@@ -924,6 +924,16 @@ by keeping the marks the same across runs.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--anonymize-map=&lt;from&gt;[:&lt;to&gt;]
+</dt>
+<dd>
+<p>
+        Convert token <code>&lt;from&gt;</code> to <code>&lt;to&gt;</code> in the anonymized output. If
+        <code>&lt;to&gt;</code> is omitted, map <code>&lt;from&gt;</code> to itself (i.e., do not
+        anonymize it). See the section on <code>ANONYMIZING</code> below.
+</p>
+</dd>
+<dt class="hdlist1">
 --reference-excluded-parents
 </dt>
 <dd>
@@ -1062,6 +1072,27 @@ you can peruse it directly before sending. You may also want to try:</p></div>
 collapse "User 0", "User 1", etc into "User X"). This produces a much
 smaller output, and it is usually easy to quickly confirm that there is
 no private data in the stream.</p></div>
+<div class="paragraph"><p>Reproducing some bugs may require referencing particular commits or
+paths, which becomes challenging after refnames and paths have been
+anonymized. You can ask for a particular token to be left as-is or
+mapped to a new value. For example, if you have a bug which reproduces
+with <code>git rev-list sensitive -- secret.c</code>, you can run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git fast-export --anonymize --all \
+      --anonymize-map=sensitive:foo \
+      --anonymize-map=secret.c:bar.c \
+      &gt;stream</code></pre>
+</div></div>
+<div class="paragraph"><p>After importing the stream, you can then run <code>git rev-list foo -- bar.c</code>
+in the anonymized repository.</p></div>
+<div class="paragraph"><p>Note that paths and refnames are split into tokens at slash boundaries.
+The command above would anonymize <code>subdir/secret.c</code> as something like
+<code>path123/bar.c</code>; you could then search for <code>bar.c</code> in the anonymized
+repository to determine the final pathname.</p></div>
+<div class="paragraph"><p>To make referencing the final pathname simpler, you can map each path
+component; so if you also anonymize <code>subdir</code> to <code>publicdir</code>, then the
+final pathname would be <code>publicdir/bar.c</code>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1089,7 +1120,7 @@ a tag referencing a tree instead of a commit.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2020-07-27 09:55:43 PDT
 </div>
 </div>
 </body>

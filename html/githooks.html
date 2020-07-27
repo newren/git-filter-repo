@@ -1091,6 +1091,44 @@ probably enable this hook.</p></div>
 for the user.</p></div>
 </div>
 <div class="sect2">
+<h3 id="_reference_transaction">reference-transaction</h3>
+<div class="paragraph"><p>This hook is invoked by any Git command that performs reference
+updates. It executes whenever a reference transaction is prepared,
+committed or aborted and may thus get called multiple times.</p></div>
+<div class="paragraph"><p>The hook takes exactly one argument, which is the current state the
+given reference transaction is in:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+"prepared": All reference updates have been queued to the
+      transaction and references were locked on disk.
+</p>
+</li>
+<li>
+<p>
+"committed": The reference transaction was committed and all
+      references now have their respective new value.
+</p>
+</li>
+<li>
+<p>
+"aborted": The reference transaction was aborted, no changes
+      were performed and the locks have been released.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>For each reference update that was added to the transaction, the hook
+receives on standard input a line of the format:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;old-value&gt; SP &lt;new-value&gt; SP &lt;ref-name&gt; LF</code></pre>
+</div></div>
+<div class="paragraph"><p>The exit status of the hook is ignored for any state except for the
+"prepared" state. In the "prepared" state, a non-zero exit status will
+cause the transaction to be aborted. The hook will not be called with
+"aborted" state in that case.</p></div>
+</div>
+<div class="sect2">
 <h3 id="_push_to_checkout">push-to-checkout</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
 <code>git push</code> and updates reference(s) in its repository, and when
@@ -1266,7 +1304,7 @@ running passing "1", "1" should not be possible.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-06-01 09:52:53 PDT
+ 2020-07-27 09:55:43 PDT
 </div>
 </div>
 </body>

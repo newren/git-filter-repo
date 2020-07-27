@@ -1048,6 +1048,15 @@ the remote repository.</p></div>
         absence of this capability, Git will use <code>--signed-tags=warn-strip</code>.
 </p>
 </dd>
+<dt class="hdlist1">
+<em>object-format</em>
+</dt>
+<dd>
+<p>
+        This indicates that the helper is able to interact with the remote
+        side using an explicit hash algorithm extension.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1078,12 +1087,14 @@ the remote repository.</p></div>
 <p>
         Lists the refs, one per line, in the format "&lt;value&gt; &lt;name&gt;
         [&lt;attr&gt; &#8230;]". The value may be a hex sha1 hash, "@&lt;dest&gt;" for
-        a symref, or "?" to indicate that the helper could not get the
-        value of the ref. A space-separated list of attributes follows
-        the name; unrecognized attributes are ignored. The list ends
-        with a blank line.
+        a symref, ":&lt;keyword&gt; &lt;value&gt;" for a key-value pair, or
+        "?" to indicate that the helper could not get the value of the
+        ref. A space-separated list of attributes follows the name;
+        unrecognized attributes are ignored. The list ends with a
+        blank line.
 </p>
-<div class="paragraph"><p>See REF LIST ATTRIBUTES for a list of currently defined attributes.</p></div>
+<div class="paragraph"><p>See REF LIST ATTRIBUTES for a list of currently defined attributes.
+See REF LIST KEYWORDS for a list of currently defined keywords.</p></div>
 <div class="paragraph"><p>Supported if the helper has the "fetch" or "import" capability.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1247,7 +1258,9 @@ operations.</p></div>
         trying to fall back).  After line feed terminating the positive
         (empty) response, the output of the service starts.  Messages
         (both request and response) must consist of zero or more
-        PKT-LINEs, terminating in a flush packet. The client must not
+        PKT-LINEs, terminating in a flush packet. Response messages will
+        then have a response end packet after the flush packet to
+        indicate the end of a response.  The client must not
         expect the server to store any state in between request-response
         pairs.  After the connection ends, the remote helper exits.
 </p>
@@ -1276,6 +1289,25 @@ attributes are defined.</p></div>
 <p>
         This ref is unchanged since the last import or fetch, although
         the helper cannot necessarily determine what value that produced.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ref_list_keywords">REF LIST KEYWORDS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <em>list</em> command may produce a list of key-value pairs.
+The following keys are defined.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<em>object-format</em>
+</dt>
+<dd>
+<p>
+        The refs are using the given hash algorithm.  This keyword is only
+        used if the server and client both support the object-format
+        extension.
 </p>
 </dd>
 </dl></div>
@@ -1451,6 +1483,18 @@ set by Git if the remote helper has the <em>option</em> capability.</p></div>
         remote side does not support this capability, the push will fail.
 </p>
 </dd>
+<dt class="hdlist1">
+<em>option object-format</em> {<em>true</em>|algorithm}
+</dt>
+<dd>
+<p>
+        If <em>true</em>, indicate that the caller wants hash algorithm information
+        to be passed back from the remote.  This mode is used when fetching
+        refs.
+</p>
+<div class="paragraph"><p>If set to an algorithm, indicate that the caller wants to interact with
+the remote side using that algorithm.</p></div>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1474,7 +1518,7 @@ set by Git if the remote helper has the <em>option</em> capability.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2020-07-27 09:55:43 PDT
 </div>
 </div>
 </body>
