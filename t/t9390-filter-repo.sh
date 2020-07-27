@@ -1324,6 +1324,28 @@ test_expect_success '--refs' '
 	test_cmp refs/expect refs/actual
 '
 
+test_expect_success '--refs and --replace-text' '
+	# This test exists to make sure we do not assume that parents in
+	# filter-repo code are always represented by integers (or marks);
+	# they sometimes are represented as hashes.
+	setup_path_rename &&
+	(
+		git clone file://"$(pwd)"/path_rename refs_and_replace_text &&
+		cd refs_and_replace_text &&
+		git rev-parse --short=10 HEAD~1 >myparent &&
+		git filter-repo --force --replace-text <(echo "10==>TEN") --refs $(cat myparent)..master &&
+		cat <<-EOF >expect &&
+		TEN11
+		EOF
+		test_cmp expect sequences/medium &&
+		git rev-list --count HEAD >actual &&
+		echo 4 >expect &&
+		test_cmp expect actual &&
+		git rev-parse --short=10 HEAD~1 >actual &&
+		test_cmp myparent actual
+	)
+'
+
 test_expect_success 'reset to specific refs' '
 	test_create_repo reset_to_specific_refs &&
 	(

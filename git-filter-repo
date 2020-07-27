@@ -3191,7 +3191,10 @@ class RepoFilter(object):
     for change in commit.file_changes:
       parent = new_1st_parent or commit.parents[0] # exists due to above checks
       quoted_filename = PathQuoting.enquote(change.filename)
-      self._output.write(b"ls :%d %s\n" % (parent, quoted_filename))
+      if isinstance(parent, int):
+        self._output.write(b"ls :%d %s\n" % (parent, quoted_filename))
+      else:
+        self._output.write(b"ls %s %s\n" % (parent, quoted_filename))
       self._output.flush()
       parent_version = fi_output.readline().split()
       if change.type == b'D':
