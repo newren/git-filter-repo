@@ -2118,6 +2118,13 @@ EXAMPLES
       for line in f:
         line = line.rstrip(b'\r\n')
 
+        # Unicode
+        line = line.lstrip(b'\xff\xfe1\x00')
+        # Unicode big endian
+        line = line.lstrip(b'\xfe\xff\x001')
+        # utf8
+        line = line.lstrip(b'\xef\xbb\xbf1')
+
         # Skip blank lines
         if not line:
           continue
