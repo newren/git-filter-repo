@@ -51,6 +51,9 @@ filter-repo only consists of a few files that need to be installed:
     displaying the manpage, when help.format is "man" (the default on Linux
     and Mac).
 
+    `make snag_docs` must be run to retrieve this file, depositing it
+    at `Documentation/man1/git-filter-repo.1`
+    
     This can be installed in the directory pointed to by `$(git
     --man-path)/man1/`, or placed anywhere in $MANDIR/man1/ where $MANDIR
     is some entry from $MANPATH.
@@ -64,6 +67,9 @@ filter-repo only consists of a few files that need to be installed:
     displaying the html version of the help, when help.format is set to
     "html" (the default on Windows).
 
+    `make snag_docs` must be run to retrieve this file, depositing it
+    at `Documentation/html/git-filter-repo.html`
+
     This can be installed in the directory pointed to by `git --html-path`.
 
     Note that `git filter-repo -h` will show a more limited built-in set of
@@ -73,10 +79,12 @@ filter-repo only consists of a few files that need to be installed:
 So, installation might look something like
 ```
 cp -a git-filter-repo $(git --exec-path)
-cp -a git-filter-repo.1 $(git --man-path)/man1
-cp -a git-filter-repo.html $(git --html-path)
 ln -s $(git --exec-path)/git-filter-repo \
     $(python -c "import site; print(site.getsitepackages()[-1])")/git_filter_repo.py
+    
+make snag_docs
+cp -a Documentation/man1/git-filter-repo.1 $(git --man-path)/man1
+cp -a Documentation/html/git-filter-repo.html $(git --html-path)
 ```
 
 # Installation via [pip](https://pip.pypa.io/)
