@@ -106,7 +106,7 @@ becomes
 becomes
 
 ```shell
-  git filter-repo --use-base-names --path id_dsa --path id_rsa --invert-paths
+  git filter-repo --use-base-name --path id_dsa --path id_rsa --invert-paths
 ```
 
 ### Removing sensitive content
