@@ -1649,4 +1649,37 @@ test_expect_success '--version' '
 	test_cmp expect actual
 '
 
+test_expect_success 'empty author ident' '
+	test_create_repo empty_author_ident &&
+	(
+		cd empty_author_ident &&
+
+		git init &&
+		cat <<-EOF | git fast-import --quiet &&
+			feature done
+			blob
+			mark :1
+			data 8
+			initial
+
+			reset refs/heads/develop
+			commit refs/heads/develop
+			mark :2
+			author <empty@ident.ity> 1535228562 -0700
+			committer Full Name <email@add.ress> 1535228562 -0700
+			data 8
+			Initial
+			M 100644 :1 filename
+
+			done
+			EOF
+
+		git filter-repo --force --path-rename filename:stuff &&
+
+		git log --format=%an develop >actual &&
+		echo >expect &&
+		test_cmp expect actual
+	)
+'
+
 test_done

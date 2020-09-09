@@ -1189,13 +1189,14 @@ class FastExportParser(object):
       original_id = self._parse_original_id();
 
     author_name = None
+    author_email = None
     if self._currentline.startswith(b'author'):
       (author_name, author_email, author_date) = self._parse_user(b'author')
 
     (committer_name, committer_email, committer_date) = \
       self._parse_user(b'committer')
 
-    if not author_name:
+    if not author_name and not author_email:
       (author_name, author_email, author_date) = \
         (committer_name, committer_email, committer_date)
 
