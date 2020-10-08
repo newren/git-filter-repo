@@ -317,6 +317,31 @@ test_expect_success '--tag-rename' '
 	)
 '
 
+test_expect_success 'tag of tag before relevant portion of history' '
+	test_create_repo filtered_tag_of_tag &&
+	(
+		cd filtered_tag_of_tag &&
+		echo contents >file &&
+		git add file &&
+		git commit -m "Initial" &&
+
+		git tag -a -m "Inner Tag" inner_tag HEAD &&
+		git tag -a -m "Outer Tag" outer_tag inner_tag &&
+
+		mkdir subdir &&
+		echo stuff >subdir/whatever &&
+		git add subdir &&
+		git commit -m "Add file in subdir" &&
+
+		git filter-repo --force --subdirectory-filter subdir &&
+
+		git show-ref >refs &&
+		! grep refs/tags refs &&
+		git log --all --oneline >commits &&
+		test_line_count = 1 commits
+	)
+'
+
 test_expect_success '--subdirectory-filter' '
 	setup_metasyntactic_repo &&
 	(
