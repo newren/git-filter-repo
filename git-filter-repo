@@ -3357,6 +3357,11 @@ class RepoFilter(object):
     commit.file_changes = [v for k,v in sorted(new_file_changes.items())]
 
   def _tweak_commit(self, commit, aux_info):
+    # Callbacks are provided environment variables related to commit
+    # similarly to filter-branch
+    # https://git-scm.com/docs/git-filter-branch#_filters
+    os.environ["GIT_COMMIT"] = commit.original_id.decode('utf-8')
+
     # Change the commit message according to callback
     if not self._args.preserve_commit_hashes:
       commit.message = self._hash_re.sub(self._translate_commit_hash,

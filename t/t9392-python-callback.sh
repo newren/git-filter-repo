@@ -64,9 +64,9 @@ test_expect_success '--message-callback' '
 	setup message-callback &&
 	(
 		cd message-callback &&
-		git filter-repo --message-callback "return b\"TLDR: \"+message[0:5]" &&
+		git filter-repo --message-callback "return b\"TLDR: \"+message[0:5]+b\" \"+os.environ[\"GIT_COMMIT\"].encode(\"utf-8\")" &&
 		git log --format=%s >log-messages &&
-		grep TLDR:...... log-messages >modified-messages &&
+		grep "TLDR:...... .\{40\}" log-messages >modified-messages &&
 		test_line_count = 6 modified-messages
 	)
 '
