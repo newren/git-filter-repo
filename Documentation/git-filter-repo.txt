@@ -872,9 +872,12 @@ YYYY-MM-DD.  In the expressions file, there are a few things to note:
     globs (see https://docs.python.org/3/library/fnmatch.html), or regular
     expressions (see https://docs.python.org/3/library/re.html#regular-expression-syntax).
     If none of these are specified, `literal:` is assumed.
-  * globs and regexes are applied to each line of the file; it is not
-    possible with --replace-text to match a multi-line string.
-  * If multiple matches are found on a line, all are replaced.
+  * If multiple matches are found, all are replaced.
+  * globs and regexes are applied to the entire file, but without any
+    special flags turned on.  Some folks may be interested in adding `(?m)`
+    to the regex to turn on MULTILINE mode, so that `^` and `$` match the
+    beginning and ends of lines rather than the beginning and end of file.
+    See https://docs.python.org/3/library/re.html for details.
 
 See also the `--blob-callback` from <<CALLBACKS>>.
 
