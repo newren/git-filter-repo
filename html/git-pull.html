@@ -1384,7 +1384,7 @@ default fetches are performed sequentially, not in parallel.</p></div>
 </dt>
 <dd>
 <p>
-        If the remote is fetched successfully, pull and add upstream
+        If the remote is fetched successfully, add upstream
         (tracking) reference, used by argument-less
         <a href="git-pull.html">git-pull(1)</a> and other commands. For more information,
         see <code>branch.&lt;name&gt;.merge</code> and <code>branch.&lt;name&gt;.remote</code> in
@@ -1502,6 +1502,20 @@ by a colon <code>:</code>, followed by the destination ref &lt;dst&gt;.
 The colon can be omitted when &lt;dst&gt; is empty.  &lt;src&gt; is
 typically a ref, but it can also be a fully spelled hex object
 name.</p></div>
+<div class="paragraph"><p>A &lt;refspec&gt; may contain a <code>*</code> in its &lt;src&gt; to indicate a simple pattern
+match. Such a refspec functions like a glob that matches any ref with the
+same prefix. A pattern &lt;refspec&gt; must have a <code>*</code> in both the &lt;src&gt; and
+&lt;dst&gt;. It will map refs to the destination by replacing the <code>*</code> with the
+contents matched from the source.</p></div>
+<div class="paragraph"><p>If a refspec is prefixed by <code>^</code>, it will be interpreted as a negative
+refspec. Rather than specifying which refs to fetch or which local refs to
+update, such a refspec will instead specify refs to exclude. A ref will be
+considered to match if it matches at least one positive refspec, and does
+not match any negative refspec. Negative refspecs can be useful to restrict
+the scope of a pattern refspec so that it will not include specific refs.
+Negative refspecs can themselves be pattern refspecs. However, they may only
+contain a &lt;src&gt; and do not specify a &lt;dst&gt;. Fully spelled out hex object
+names are also not supported.</p></div>
 <div class="paragraph"><p><code>tag &lt;tag&gt;</code> means the same as <code>refs/tags/&lt;tag&gt;:refs/tags/&lt;tag&gt;</code>;
 it requests fetching everything up to the given tag.</p></div>
 <div class="paragraph"><p>The remote ref that matches &lt;src&gt;
@@ -2212,7 +2226,7 @@ version.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-06-19 08:51:05 PDT
+ 2020-09-02 09:22:52 PDT
 </div>
 </div>
 </body>

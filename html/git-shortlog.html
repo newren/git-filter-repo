@@ -821,6 +821,51 @@ reference to the current repository.</p></div>
 </div></div>
 </dd>
 <dt class="hdlist1">
+--group=&lt;type&gt;
+</dt>
+<dd>
+<p>
+        Group commits based on <code>&lt;type&gt;</code>. If no <code>--group</code> option is
+        specified, the default is <code>author</code>. <code>&lt;type&gt;</code> is one of:
+</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+<code>author</code>, commits are grouped by author
+</p>
+</li>
+<li>
+<p>
+<code>committer</code>, commits are grouped by committer (the same as <code>-c</code>)
+</p>
+</li>
+<li>
+<p>
+<code>trailer:&lt;field&gt;</code>, the <code>&lt;field&gt;</code> is interpreted as a case-insensitive
+   commit message trailer (see <a href="git-interpret-trailers.html">git-interpret-trailers(1)</a>). For
+   example, if your project uses <code>Reviewed-by</code> trailers, you might want
+   to see who has been reviewing with
+   <code>git shortlog -ns --group=trailer:reviewed-by</code>.
+</p>
+<div class="paragraph"><p>Note that commits that do not include the trailer will not be counted.
+Likewise, commits with multiple trailers (e.g., multiple signoffs) may
+be counted more than once (but only once per unique trailer value in
+that commit).</p></div>
+<div class="paragraph"><p>Shortlog will attempt to parse each trailer value as a <code>name &lt;email&gt;</code>
+identity. If successful, the mailmap is applied and the email is omitted
+unless the <code>--email</code> option is specified. If the value cannot be parsed
+as an identity, it will be taken literally and completely.</p></div>
+</li>
+</ul></div>
+</div></div>
+<div class="paragraph"><p>If <code>--group</code> is specified multiple times, commits are counted under each
+value (but again, only once per unique value in that commit). For
+example, <code>git shortlog --group=author --group=trailer:co-authored-by</code>
+counts both authors and co-authors.</p></div>
+</dd>
+<dt class="hdlist1">
 -c
 </dt>
 <dt class="hdlist1">
@@ -828,7 +873,7 @@ reference to the current repository.</p></div>
 </dt>
 <dd>
 <p>
-        Collect and show committer identities instead of authors.
+        This is an alias for <code>--group=committer</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1104,8 +1149,7 @@ parents) and <code>--max-parents=-1</code> (negative numbers denote no upper lim
         because merges into a topic branch tend to be only about
         adjusting to updated upstream from time to time, and
         this option allows you to ignore the individual commits
-        brought in to your history by such a merge. Cannot be
-        combined with --bisect.
+        brought in to your history by such a merge.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1240,7 +1284,7 @@ explicitly.</p></div>
         Pretend as if the bad bisection ref <code>refs/bisect/bad</code>
         was listed and as if it was followed by <code>--not</code> and the good
         bisection refs <code>refs/bisect/good-*</code> on the command
-        line. Cannot be combined with --first-parent.
+        line.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1995,7 +2039,7 @@ the email address.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2020-10-13 17:54:12 PDT
 </div>
 </div>
 </body>

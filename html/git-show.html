@@ -823,8 +823,8 @@ people using 80-column terminals.</p></div>
 <dd>
 <p>
         Show the full 40-byte hexadecimal commit object name. This negates
-        <code>--abbrev-commit</code> and those options which imply it such as
-        "--oneline". It also overrides the <code>log.abbrevCommit</code> variable.
+        <code>--abbrev-commit</code>, either explicit or implied by other options such
+        as "--oneline". It also overrides the <code>log.abbrevCommit</code> variable.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1949,6 +1949,14 @@ $ git log -2 --pretty=%h 4da45bef</code></pre>
 </p>
 </dd>
 <dt class="hdlist1">
+-t
+</dt>
+<dd>
+<p>
+        Show the tree objects in the diff output.
+</p>
+</dd>
+<dt class="hdlist1">
 --indent-heuristic
 </dt>
 <dd>
@@ -2613,10 +2621,11 @@ override configuration settings.</p></div>
 <p>
         Instead of showing the full 40-byte hexadecimal object
         name in diff-raw format output and diff-tree header
-        lines, show only a partial prefix.  This is
-        independent of the <code>--full-index</code> option above, which controls
-        the diff-patch output format.  Non default number of
-        digits can be specified with <code>--abbrev=&lt;n&gt;</code>.
+        lines, show only a partial prefix.
+        In diff-patch output format, <code>--full-index</code> takes higher
+        precedence, i.e. if <code>--full-index</code> is specified, full blob
+        names will be shown regardless of <code>--abbrev</code>.
+        Non default number of digits can be specified with <code>--abbrev=&lt;n&gt;</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3100,7 +3109,8 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 <a href="git-diff-files.html">git-diff-files(1)</a>
 with the <code>-p</code> option produces patch text.
 You can customize the creation of patch text via the
-<code>GIT_EXTERNAL_DIFF</code> and the <code>GIT_DIFF_OPTS</code> environment variables.</p></div>
+<code>GIT_EXTERNAL_DIFF</code> and the <code>GIT_DIFF_OPTS</code> environment variables
+(see <a href="git.html">git(1)</a>).</p></div>
 <div class="paragraph"><p>What the -p option produces is slightly different from the traditional
 diff format:</p></div>
 <div class="olist arabic"><ol class="arabic">

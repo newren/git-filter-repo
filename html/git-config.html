@@ -2635,7 +2635,7 @@ core.deltaBaseCacheLimit
 </dt>
 <dd>
 <p>
-        Maximum number of bytes to reserve for caching base objects
+        Maximum number of bytes per thread to reserve for caching base objects
         that may be referenced by multiple deltified objects.  By storing the
         entire decompressed base objects in a cache Git is able
         to avoid unpacking and decompressing frequently used base
@@ -3944,6 +3944,25 @@ commit.verbose
 </p>
 </dd>
 <dt class="hdlist1">
+commitGraph.maxNewFilters
+</dt>
+<dd>
+<p>
+        Specifies the default value for the <code>--max-new-filters</code> option of <code>git
+        commit-graph write</code> (c.f., <a href="git-commit-graph.html">git-commit-graph(1)</a>).
+</p>
+</dd>
+<dt class="hdlist1">
+commitGraph.readChangedPaths
+</dt>
+<dd>
+<p>
+        If true, then git will use the changed-path Bloom filters in the
+        commit-graph file (if it exists, and they are present). Defaults to
+        true. See <a href="git-commit-graph.html">git-commit-graph(1)</a> for more information.
+</p>
+</dd>
+<dt class="hdlist1">
 credential.helper
 </dt>
 <dd>
@@ -4388,61 +4407,6 @@ diff.guitool
 <div class="ulist"><ul>
 <li>
 <p>
-araxis
-</p>
-</li>
-<li>
-<p>
-bc
-</p>
-</li>
-<li>
-<p>
-bc3
-</p>
-</li>
-<li>
-<p>
-codecompare
-</p>
-</li>
-<li>
-<p>
-deltawalker
-</p>
-</li>
-<li>
-<p>
-diffmerge
-</p>
-</li>
-<li>
-<p>
-diffuse
-</p>
-</li>
-<li>
-<p>
-ecmerge
-</p>
-</li>
-<li>
-<p>
-emerge
-</p>
-</li>
-<li>
-<p>
-examdiff
-</p>
-</li>
-<li>
-<p>
-guiffy
-</p>
-</li>
-<li>
-<p>
 gvimdiff
 </p>
 </li>
@@ -4458,42 +4422,12 @@ gvimdiff3
 </li>
 <li>
 <p>
-kdiff3
+nvimdiff
 </p>
 </li>
 <li>
 <p>
-kompare
-</p>
-</li>
-<li>
-<p>
-meld
-</p>
-</li>
-<li>
-<p>
-opendiff
-</p>
-</li>
-<li>
-<p>
-p4merge
-</p>
-</li>
-<li>
-<p>
-smerge
-</p>
-</li>
-<li>
-<p>
-tkdiff
-</p>
-</li>
-<li>
-<p>
-vimdiff
+nvimdiff2
 </p>
 </li>
 <li>
@@ -4504,16 +4438,6 @@ vimdiff2
 <li>
 <p>
 vimdiff3
-</p>
-</li>
-<li>
-<p>
-winmerge
-</p>
-</li>
-<li>
-<p>
-xxdiff
 </p>
 </li>
 </ul></div>
@@ -4641,6 +4565,19 @@ difftool.prompt
 </p>
 </dd>
 <dt class="hdlist1">
+extensions.objectFormat
+</dt>
+<dd>
+<p>
+        Specify the hash algorithm to use.  The acceptable values are <code>sha1</code> and
+        <code>sha256</code>.  If not specified, <code>sha1</code> is assumed.  It is an error to specify
+        this key unless <code>core.repositoryFormatVersion</code> is 1.
+</p>
+<div class="paragraph"><p>Note that this setting should only be set by <a href="git-init.html">git-init(1)</a> or
+<a href="git-clone.html">git-clone(1)</a>.  Trying to change it after initialization will not
+work and will produce hard-to-diagnose issues.</p></div>
+</dd>
+<dt class="hdlist1">
 fastimport.unpackLimit
 </dt>
 <dd>
@@ -4682,13 +4619,6 @@ feature.experimental
 <p>
 <code>fetch.negotiationAlgorithm=skipping</code> may improve fetch negotiation times by
 skipping more commits at a time, reducing the number of round trips.
-</p>
-</li>
-<li>
-<p>
-<code>protocol.version=2</code> speeds up fetches from repositories with many refs by
-allowing the client to specify which refs to list before the server lists
-them.
 </p>
 </li>
 </ul></div>
@@ -4822,7 +4752,10 @@ fetch.negotiationAlgorithm
         sent when negotiating the contents of the packfile to be sent by the
         server. Set to "skipping" to use an algorithm that skips commits in an
         effort to converge faster, but may result in a larger-than-necessary
-        packfile; The default is "default" which instructs Git to use the default algorithm
+        packfile; or set to "noop" to not send any information at all, which
+        will almost certainly result in a larger-than-necessary packfile, but
+        will skip the negotiation step.
+        The default is "default" which instructs Git to use the default algorithm
         that never skips commits (unless the server has acknowledged it or one
         of its descendants). If <code>feature.experimental</code> is enabled, then this
         setting defaults to "skipping".
@@ -5051,7 +4984,9 @@ format.useAutoBase
 <dd>
 <p>
         A boolean value which lets you enable the <code>--base=auto</code> option of
-        format-patch by default.
+        format-patch by default. Can also be set to "whenAble" to allow
+        enabling <code>--base=auto</code> if a suitable base is available, but to skip
+        adding base info otherwise without the format dying.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -6887,6 +6822,33 @@ mailmap.blob
 </p>
 </dd>
 <dt class="hdlist1">
+maintenance.&lt;task&gt;.enabled
+</dt>
+<dd>
+<p>
+        This boolean config option controls whether the maintenance task
+        with name <code>&lt;task&gt;</code> is run when no <code>--task</code> option is specified to
+        <code>git maintenance run</code>. These config values are ignored if a
+        <code>--task</code> option exists. By default, only <code>maintenance.gc.enabled</code>
+        is true.
+</p>
+</dd>
+<dt class="hdlist1">
+maintenance.commit-graph.auto
+</dt>
+<dd>
+<p>
+        This integer config option controls how often the <code>commit-graph</code> task
+        should be run as part of <code>git maintenance run --auto</code>. If zero, then
+        the <code>commit-graph</code> task will not run with the <code>--auto</code> option. A
+        negative value will force the task to run every time. Otherwise, a
+        positive value implies the command should run when the number of
+        reachable commits that are not in the commit-graph file is at least
+        the value of <code>maintenance.commit-graph.auto</code>. The default value is
+        100.
+</p>
+</dd>
+<dt class="hdlist1">
 man.viewer
 </dt>
 <dd>
@@ -6986,6 +6948,22 @@ merge.log
         actual commits that are being merged.  Defaults to false, and
         true is a synonym for 20.
 </p>
+</dd>
+<dt class="hdlist1">
+merge.suppressDest
+</dt>
+<dd>
+<p>
+        By adding a glob that matches the names of integration
+        branches to this multi-valued configuration variable, the
+        default merge message computed for merges into these
+        integration branches will omit "into &lt;branch name&gt;" from
+        its title.
+</p>
+<div class="paragraph"><p>An element with an empty value can be used to clear the list
+of globs accumulated from previous configuration entries.
+When there is no <code>merge.suppressDest</code> variable defined, the
+default value of <code>master</code> is used for backward compatibility.</p></div>
 </dd>
 <dt class="hdlist1">
 merge.renameLimit
@@ -7089,61 +7067,6 @@ merge.guitool
 <div class="ulist"><ul>
 <li>
 <p>
-araxis
-</p>
-</li>
-<li>
-<p>
-bc
-</p>
-</li>
-<li>
-<p>
-bc3
-</p>
-</li>
-<li>
-<p>
-codecompare
-</p>
-</li>
-<li>
-<p>
-deltawalker
-</p>
-</li>
-<li>
-<p>
-diffmerge
-</p>
-</li>
-<li>
-<p>
-diffuse
-</p>
-</li>
-<li>
-<p>
-ecmerge
-</p>
-</li>
-<li>
-<p>
-emerge
-</p>
-</li>
-<li>
-<p>
-examdiff
-</p>
-</li>
-<li>
-<p>
-guiffy
-</p>
-</li>
-<li>
-<p>
 gvimdiff
 </p>
 </li>
@@ -7159,42 +7082,12 @@ gvimdiff3
 </li>
 <li>
 <p>
-kdiff3
+nvimdiff
 </p>
 </li>
 <li>
 <p>
-meld
-</p>
-</li>
-<li>
-<p>
-opendiff
-</p>
-</li>
-<li>
-<p>
-p4merge
-</p>
-</li>
-<li>
-<p>
-smerge
-</p>
-</li>
-<li>
-<p>
-tkdiff
-</p>
-</li>
-<li>
-<p>
-tortoisemerge
-</p>
-</li>
-<li>
-<p>
-vimdiff
+nvimdiff2
 </p>
 </li>
 <li>
@@ -7205,16 +7098,6 @@ vimdiff2
 <li>
 <p>
 vimdiff3
-</p>
-</li>
-<li>
-<p>
-winmerge
-</p>
-</li>
-<li>
-<p>
-xxdiff
 </p>
 </li>
 </ul></div>
@@ -7310,6 +7193,21 @@ mergetool.meld.hasOutput
         use the configured value instead.  Setting <code>mergetool.meld.hasOutput</code>
         to <code>true</code> tells Git to unconditionally use the <code>--output</code> option,
         and <code>false</code> avoids using <code>--output</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.meld.useAutoMerge
+</dt>
+<dd>
+<p>
+        When the <code>--auto-merge</code> is given, meld will merge all non-conflicting
+        parts automatically, highlight the conflicting parts and wait for
+        user decision.  Setting <code>mergetool.meld.useAutoMerge</code> to <code>true</code> tells
+        Git to unconditionally use the <code>--auto-merge</code> option with <code>meld</code>.
+        Setting this value to <code>auto</code> makes git detect whether <code>--auto-merge</code>
+        is supported and will only use <code>--auto-merge</code> when available.  A
+        value of <code>false</code> avoids using <code>--auto-merge</code> altogether, and is the
+        default value.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -7773,8 +7671,7 @@ protocol.version
         If set, clients will attempt to communicate with a server
         using the specified protocol version.  If the server does
         not support it, communication falls back to version 0.
-        If unset, the default is <code>0</code>, unless <code>feature.experimental</code>
-        is enabled, in which case the default is <code>2</code>.
+        If unset, the default is <code>2</code>.
         Supported versions:
 </p>
 <div class="openblock">
@@ -8316,6 +8213,33 @@ receive.hideRefs
 </p>
 </dd>
 <dt class="hdlist1">
+receive.procReceiveRefs
+</dt>
+<dd>
+<p>
+        This is a multi-valued variable that defines reference prefixes
+        to match the commands in <code>receive-pack</code>.  Commands matching the
+        prefixes will be executed by an external hook "proc-receive",
+        instead of the internal <code>execute_commands</code> function.  If this
+        variable is not defined, the "proc-receive" hook will never be
+        used, and all commands will be executed by the internal
+        <code>execute_commands</code> function.
+</p>
+<div class="paragraph"><p>For example, if this variable is set to "refs/for", pushing to reference
+such as "refs/for/master" will not create or update a reference named
+"refs/for/master", but may create or update a pull request directly by
+running the hook "proc-receive".</p></div>
+<div class="paragraph"><p>Optional modifiers can be provided in the beginning of the value to filter
+commands for specific actions: create (a), modify (m), delete (d).
+A <code>!</code> can be included in the modifiers to negate the reference prefix entry.
+E.g.:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>git config --system --add receive.procReceiveRefs ad:refs/heads
+git config --system --add receive.procReceiveRefs !:refs/heads</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
 receive.updateServerInfo
 </dt>
 <dd>
@@ -8754,6 +8678,16 @@ sendemail.smtpReloginDelay
 <p>
         Seconds wait before reconnecting to smtp server.
         See also the <code>--relogin-delay</code> option of <a href="git-send-email.html">git-send-email(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+sendemail.forbidSendmailVariables
+</dt>
+<dd>
+<p>
+        To avoid common misconfiguration mistakes, <a href="git-send-email.html">git-send-email(1)</a>
+        will abort with a warning if any configuration options for "sendmail"
+        exist. Set this variable to bypass the check.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -9574,6 +9508,39 @@ uploadpack.allowFilter
 </p>
 </dd>
 <dt class="hdlist1">
+uploadpackfilter.allow
+</dt>
+<dd>
+<p>
+        Provides a default value for unspecified object filters (see: the
+        below configuration variable).
+        Defaults to <code>true</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+uploadpackfilter.&lt;filter&gt;.allow
+</dt>
+<dd>
+<p>
+        Explicitly allow or ban the object filter corresponding to
+        <code>&lt;filter&gt;</code>, where <code>&lt;filter&gt;</code> may be one of: <code>blob:none</code>,
+        <code>blob:limit</code>, <code>tree</code>, <code>sparse:oid</code>, or <code>combine</code>. If using
+        combined filters, both <code>combine</code> and all of the nested filter
+        kinds must be allowed. Defaults to <code>uploadpackfilter.allow</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+uploadpackfilter.tree.maxDepth
+</dt>
+<dd>
+<p>
+        Only allow <code>--filter=tree:&lt;n&gt;</code> when <code>&lt;n&gt;</code> is no more than the value of
+        <code>uploadpackfilter.tree.maxDepth</code>. If set, this also implies
+        <code>uploadpackfilter.tree.allow=true</code>, unless this configuration
+        variable had already been set. Has no effect if unset.
+</p>
+</dd>
+<dt class="hdlist1">
 uploadpack.allowRefInWant
 </dt>
 <dd>
@@ -9791,7 +9758,7 @@ looks like</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-05-13 22:19:00 PDT
+ 2020-09-02 09:22:52 PDT
 </div>
 </div>
 </body>

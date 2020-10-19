@@ -1164,13 +1164,16 @@ So does <code>git bundle</code> (see <a href="git-bundle.html">git-bundle(1)</a>
         This option specifies how missing objects are handled.
 </p>
 <div class="paragraph"><p>The form <em>--missing=error</em> requests that pack-objects stop with an error if
-a missing object is encountered.  This is the default action.</p></div>
+a missing object is encountered.  If the repository is a partial clone, an
+attempt to fetch missing objects will be made before declaring them missing.
+This is the default action.</p></div>
 <div class="paragraph"><p>The form <em>--missing=allow-any</em> will allow object traversal to continue
-if a missing object is encountered.  Missing objects will silently be
-omitted from the results.</p></div>
+if a missing object is encountered.  No fetch of a missing object will occur.
+Missing objects will silently be omitted from the results.</p></div>
 <div class="paragraph"><p>The form <em>--missing=allow-promisor</em> is like <em>allow-any</em>, but will only
 allow object traversal to continue for EXPECTED promisor missing objects.
-Unexpected missing object will raise an error.</p></div>
+No fetch of a missing object will occur.  An unexpected missing object will
+raise an error.</p></div>
 </dd>
 <dt class="hdlist1">
 --exclude-promisor-objects
@@ -1325,7 +1328,7 @@ over user-wide config, and so forth).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-06-19 08:51:05 PDT
+ 2020-09-02 09:22:52 PDT
 </div>
 </div>
 </body>

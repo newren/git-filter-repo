@@ -761,34 +761,34 @@ git-rev-list(1) Manual Page
 given commit(s), but exclude commits that are reachable from the one(s)
 given with a <em>&#94;</em> in front of them.  The output is given in reverse
 chronological order by default.</p></div>
-<div class="paragraph"><p>You can think of this as a set operation.  Commits given on the command
-line form a set of commits that are reachable from any of them, and then
-commits reachable from any of the ones given with <em>&#94;</em> in front are
-subtracted from that set.  The remaining commits are what comes out in the
-command&#8217;s output.  Various other options and paths parameters can be used
-to further limit the result.</p></div>
+<div class="paragraph"><p>You can think of this as a set operation. Commits reachable from any of
+the commits given on the command line form a set, and then commits reachable
+from any of the ones given with <em>&#94;</em> in front are subtracted from that
+set.  The remaining commits are what comes out in the command&#8217;s output.
+Various other options and paths parameters can be used to further limit the
+result.</p></div>
 <div class="paragraph"><p>Thus, the following command:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>        $ git rev-list foo bar ^baz</code></pre>
+<pre><code>$ git rev-list foo bar ^baz</code></pre>
 </div></div>
 <div class="paragraph"><p>means "list all the commits which are reachable from <em>foo</em> or <em>bar</em>, but
 not from <em>baz</em>".</p></div>
 <div class="paragraph"><p>A special notation "<em>&lt;commit1&gt;</em>..<em>&lt;commit2&gt;</em>" can be used as a
-short-hand for "&#94;'&lt;commit1&gt;' <em>&lt;commit2&gt;</em>". For example, either of
+short-hand for "^<em>&lt;commit1&gt;</em> <em>&lt;commit2&gt;</em>". For example, either of
 the following may be used interchangeably:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>        $ git rev-list origin..HEAD
-        $ git rev-list HEAD ^origin</code></pre>
+<pre><code>$ git rev-list origin..HEAD
+$ git rev-list HEAD ^origin</code></pre>
 </div></div>
 <div class="paragraph"><p>Another special notation is "<em>&lt;commit1&gt;</em>&#8230;<em>&lt;commit2&gt;</em>" which is useful
 for merges.  The resulting set of commits is the symmetric difference
 between the two operands.  The following two commands are equivalent:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>        $ git rev-list A B --not $(git merge-base --all A B)
-        $ git rev-list A...B</code></pre>
+<pre><code>$ git rev-list A B --not $(git merge-base --all A B)
+$ git rev-list A...B</code></pre>
 </div></div>
 <div class="paragraph"><p><em>rev-list</em> is a very essential Git command, since it
 provides the ability to build and traverse commit ancestry graphs. For
@@ -1043,8 +1043,7 @@ parents) and <code>--max-parents=-1</code> (negative numbers denote no upper lim
         because merges into a topic branch tend to be only about
         adjusting to updated upstream from time to time, and
         this option allows you to ignore the individual commits
-        brought in to your history by such a merge. Cannot be
-        combined with --bisect.
+        brought in to your history by such a merge.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1877,7 +1876,7 @@ commits are marked as TREESAME (subject to be simplified away).</p></div>
 <div class="paragraph"><p>would be of roughly the same length.  Finding the change which
 introduces a regression is thus reduced to a binary search: repeatedly
 generate and test new 'midpoint&#8217;s until the commit chain is of length
-one. Cannot be combined with --first-parent.</p></div>
+one.</p></div>
 </dd>
 <dt class="hdlist1">
 --bisect-vars
@@ -2221,8 +2220,8 @@ people using 80-column terminals.</p></div>
 <dd>
 <p>
         Show the full 40-byte hexadecimal commit object name. This negates
-        <code>--abbrev-commit</code> and those options which imply it such as
-        "--oneline". It also overrides the <code>log.abbrevCommit</code> variable.
+        <code>--abbrev-commit</code>, either explicit or implied by other options such
+        as "--oneline". It also overrides the <code>log.abbrevCommit</code> variable.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3413,7 +3412,7 @@ $ git log -2 --pretty=%h 4da45bef</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2020-09-02 09:22:52 PDT
 </div>
 </div>
 </body>

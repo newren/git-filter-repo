@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.10" />
-<title>git-imap-send(1)</title>
+<title>git-maintenance(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -735,12 +735,12 @@ asciidoc.install();
 <body class="manpage">
 <div id="header">
 <h1>
-git-imap-send(1) Manual Page
+git-maintenance(1) Manual Page
 </h1>
 <h2>NAME</h2>
 <div class="sectionbody">
-<p>git-imap-send -
-   Send a collection of patches from stdin to an IMAP folder
+<p>git-maintenance -
+   Run tasks to optimize Git repository data
 </p>
 </div>
 </div>
@@ -749,7 +749,7 @@ git-imap-send(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git imap-send</em> [-v] [-q] [--[no-]curl]</pre>
+<pre class="content"><em>git maintenance</em> run [&lt;options&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -757,14 +757,67 @@ git-imap-send(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This command uploads a mailbox generated with <em>git format-patch</em>
-into an IMAP drafts folder.  This allows patches to be sent as
-other email is when using mail clients that cannot read mailbox
-files directly. The command also works with any general mailbox
-in which emails have the fields "From", "Date", and "Subject" in
-that order.</p></div>
-<div class="paragraph"><p>Typical usage is something like:</p></div>
-<div class="paragraph"><p>git format-patch --signoff --stdout --attach origin | git imap-send</p></div>
+<div class="paragraph"><p>Run tasks to optimize Git repository data, speeding up other Git commands
+and reducing storage requirements for the repository.</p></div>
+<div class="paragraph"><p>Git commands that add repository data, such as <code>git add</code> or <code>git fetch</code>,
+are optimized for a responsive user experience. These commands do not take
+time to optimize the Git data, since such optimizations scale with the full
+size of the repository while these user commands each perform a relatively
+small action.</p></div>
+<div class="paragraph"><p>The <code>git maintenance</code> command provides flexibility for how to optimize the
+Git repository.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_subcommands">SUBCOMMANDS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+run
+</dt>
+<dd>
+<p>
+        Run one or more maintenance tasks. If one or more <code>--task</code> options
+        are specified, then those tasks are run in that order. Otherwise,
+        the tasks are determined by which <code>maintenance.&lt;task&gt;.enabled</code>
+        config options are true. By default, only <code>maintenance.gc.enabled</code>
+        is true.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tasks">TASKS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+commit-graph
+</dt>
+<dd>
+<p>
+        The <code>commit-graph</code> job updates the <code>commit-graph</code> files incrementally,
+        then verifies that the written data is correct. The incremental
+        write is safe to run alongside concurrent Git processes since it
+        will not expire <code>.graph</code> files that were in the previous
+        <code>commit-graph-chain</code> file. They will be deleted by a later run based
+        on the expiration delay.
+</p>
+</dd>
+<dt class="hdlist1">
+gc
+</dt>
+<dd>
+<p>
+        Clean up unnecessary files and optimize the local repository. "GC"
+        stands for "garbage collection," but this task performs many
+        smaller tasks. This task can be expensive for large repositories,
+        as it repacks all Git objects into a single pack-file. It can also
+        be disruptive in some situations, as it deletes stale data. See
+        <a href="git-gc.html">git-gc(1)</a> for more details on garbage collection in Git.
+</p>
+</dd>
+</dl></div>
 </div>
 </div>
 <div class="sect1">
@@ -772,246 +825,38 @@ that order.</p></div>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
--v
-</dt>
-<dt class="hdlist1">
---verbose
+--auto
 </dt>
 <dd>
 <p>
-        Be verbose.
+        When combined with the <code>run</code> subcommand, run maintenance tasks
+        only if certain thresholds are met. For example, the <code>gc</code> task
+        runs when the number of loose objects exceeds the number stored
+        in the <code>gc.auto</code> config setting, or when the number of pack-files
+        exceeds the <code>gc.autoPackLimit</code> config setting.
 </p>
 </dd>
-<dt class="hdlist1">
--q
-</dt>
 <dt class="hdlist1">
 --quiet
 </dt>
 <dd>
 <p>
-        Be quiet.
+        Do not report progress or other information over <code>stderr</code>.
 </p>
 </dd>
 <dt class="hdlist1">
---curl
+--task=&lt;task&gt;
 </dt>
 <dd>
 <p>
-        Use libcurl to communicate with the IMAP server, unless tunneling
-        into it.  Ignored if Git was built without the USE_CURL_FOR_IMAP_SEND
-        option set.
-</p>
-</dd>
-<dt class="hdlist1">
---no-curl
-</dt>
-<dd>
-<p>
-        Talk to the IMAP server using git&#8217;s own IMAP routines instead of
-        using libcurl.  Ignored if Git was built with the NO_OPENSSL option
-        set.
+        If this option is specified one or more times, then only run the
+        specified tasks in the specified order. If no <code>--task=&lt;task&gt;</code>
+        arguments are specified, then only the tasks with
+        <code>maintenance.&lt;task&gt;.enabled</code> configured as <code>true</code> are considered.
+        See the <em>TASKS</em> section for the list of accepted <code>&lt;task&gt;</code> values.
 </p>
 </dd>
 </dl></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_configuration">CONFIGURATION</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>To use the tool, <code>imap.folder</code> and either <code>imap.tunnel</code> or <code>imap.host</code> must be set
-to appropriate values.</p></div>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-imap.folder
-</dt>
-<dd>
-<p>
-        The folder to drop the mails into, which is typically the Drafts
-        folder. For example: "INBOX.Drafts", "INBOX/Drafts" or
-        "[Gmail]/Drafts". Required.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.tunnel
-</dt>
-<dd>
-<p>
-        Command used to setup a tunnel to the IMAP server through which
-        commands will be piped instead of using a direct network connection
-        to the server. Required when imap.host is not set.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.host
-</dt>
-<dd>
-<p>
-        A URL identifying the server. Use an <code>imap://</code> prefix for non-secure
-        connections and an <code>imaps://</code> prefix for secure connections.
-        Ignored when imap.tunnel is set, but required otherwise.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.user
-</dt>
-<dd>
-<p>
-        The username to use when logging in to the server.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.pass
-</dt>
-<dd>
-<p>
-        The password to use when logging in to the server.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.port
-</dt>
-<dd>
-<p>
-        An integer port number to connect to on the server.
-        Defaults to 143 for imap:// hosts and 993 for imaps:// hosts.
-        Ignored when imap.tunnel is set.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.sslverify
-</dt>
-<dd>
-<p>
-        A boolean to enable/disable verification of the server certificate
-        used by the SSL/TLS connection. Default is <code>true</code>. Ignored when
-        imap.tunnel is set.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.preformattedHTML
-</dt>
-<dd>
-<p>
-        A boolean to enable/disable the use of html encoding when sending
-        a patch.  An html encoded patch will be bracketed with &lt;pre&gt;
-        and have a content type of text/html.  Ironically, enabling this
-        option causes Thunderbird to send the patch as a plain/text,
-        format=fixed email.  Default is <code>false</code>.
-</p>
-</dd>
-<dt class="hdlist1">
-imap.authMethod
-</dt>
-<dd>
-<p>
-        Specify authenticate method for authentication with IMAP server.
-        If Git was built with the NO_CURL option, or if your curl version is older
-        than 7.34.0, or if you&#8217;re running git-imap-send with the <code>--no-curl</code>
-        option, the only supported method is <em>CRAM-MD5</em>. If this is not set
-        then <em>git imap-send</em> uses the basic IMAP plaintext LOGIN command.
-</p>
-</dd>
-</dl></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_examples">EXAMPLES</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Using tunnel mode:</p></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>[imap]
-    folder = "INBOX.Drafts"
-    tunnel = "ssh -q -C user@example.com /usr/bin/imapd ./Maildir 2&gt; /dev/null"</code></pre>
-</div></div>
-<div class="paragraph"><p>Using direct mode:</p></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>[imap]
-    folder = "INBOX.Drafts"
-    host = imap://imap.example.com
-    user = bob
-    pass = p4ssw0rd</code></pre>
-</div></div>
-<div class="paragraph"><p>Using direct mode with SSL:</p></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>[imap]
-    folder = "INBOX.Drafts"
-    host = imaps://imap.example.com
-    user = bob
-    pass = p4ssw0rd
-    port = 123
-    ; sslVerify = false</code></pre>
-</div></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">You may want to use <code>sslVerify=false</code>
-while troubleshooting, if you suspect that the reason you are
-having trouble connecting is because the certificate you use at
-the private server <code>example.com</code> you are trying to set up (or
-have set up) may not be verified correctly.</td>
-</tr></table>
-</div>
-<div class="paragraph"><p>Using Gmail&#8217;s IMAP interface:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>[imap]
-        folder = "[Gmail]/Drafts"
-        host = imaps://imap.gmail.com
-        user = user@gmail.com
-        port = 993</code></pre>
-</div></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">You might need to instead use: <code>folder = "[Google Mail]/Drafts"</code> if you get an error
-that the "Folder doesn&#8217;t exist".</td>
-</tr></table>
-</div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">If your Gmail account is set to another language than English, the name of the "Drafts"
-folder will be localized.</td>
-</tr></table>
-</div>
-<div class="paragraph"><p>Once the commits are ready to be sent, run the following command:</p></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>$ git format-patch --cover-letter -M --stdout origin/master | git imap-send</code></pre>
-</div></div>
-<div class="paragraph"><p>Just make sure to disable line wrapping in the email client (Gmail&#8217;s web
-interface will wrap lines no matter what, so you need to use a real
-IMAP client).</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_caution">CAUTION</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>It is still your responsibility to make sure that the email message
-sent by your email program meets the standards of your project.
-Many projects do not like patches to be attached.  Some mail
-agents will transform patches (e.g. wrap lines, send them as
-format=flowed) in ways that make them fail.  You will get angry
-flames ridiculing you if you don&#8217;t check this.</p></div>
-<div class="paragraph"><p>Thunderbird in particular is known to be problematic.  Thunderbird
-users may wish to visit this web page for more information:
-  <a href="http://kb.mozillazine.org/Plain_text_e-mail_-_Thunderbird#Completely_plain_email">http://kb.mozillazine.org/Plain_text_e-mail_-_Thunderbird#Completely_plain_email</a></p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_see_also">SEE ALSO</h2>
-<div class="sectionbody">
-<div class="paragraph"><p><a href="git-format-patch.html">git-format-patch(1)</a>, <a href="git-send-email.html">git-send-email(1)</a>, mbox(5)</p></div>
 </div>
 </div>
 <div class="sect1">

@@ -901,6 +901,18 @@ documented in <a href="git-config.html">git-config(1)</a>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--[no-]write-fetch-head
+</dt>
+<dd>
+<p>
+        Write the list of remote refs fetched in the <code>FETCH_HEAD</code>
+        file directly under <code>$GIT_DIR</code>.  This is the default.
+        Passing <code>--no-write-fetch-head</code> from the command line tells
+        Git not to write the file.  Under <code>--dry-run</code> option, the
+        file is never written.
+</p>
+</dd>
+<dt class="hdlist1">
 -f
 </dt>
 <dt class="hdlist1">
@@ -935,12 +947,16 @@ documented in <a href="git-config.html">git-config(1)</a>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--[no-]auto-maintenance
+</dt>
+<dt class="hdlist1">
 --[no-]auto-gc
 </dt>
 <dd>
 <p>
-        Run <code>git gc --auto</code> at the end to perform garbage collection
-        if needed. This is enabled by default.
+        Run <code>git maintenance run --auto</code> at the end to perform automatic
+        repository maintenance if needed. (<code>--[no-]auto-gc</code> is a synonym.)
+        This is enabled by default.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1084,7 +1100,7 @@ default fetches are performed sequentially, not in parallel.</p></div>
 </dt>
 <dd>
 <p>
-        If the remote is fetched successfully, pull and add upstream
+        If the remote is fetched successfully, add upstream
         (tracking) reference, used by argument-less
         <a href="git-pull.html">git-pull(1)</a> and other commands. For more information,
         see <code>branch.&lt;name&gt;.merge</code> and <code>branch.&lt;name&gt;.remote</code> in
@@ -1274,6 +1290,20 @@ by a colon <code>:</code>, followed by the destination ref &lt;dst&gt;.
 The colon can be omitted when &lt;dst&gt; is empty.  &lt;src&gt; is
 typically a ref, but it can also be a fully spelled hex object
 name.</p></div>
+<div class="paragraph"><p>A &lt;refspec&gt; may contain a <code>*</code> in its &lt;src&gt; to indicate a simple pattern
+match. Such a refspec functions like a glob that matches any ref with the
+same prefix. A pattern &lt;refspec&gt; must have a <code>*</code> in both the &lt;src&gt; and
+&lt;dst&gt;. It will map refs to the destination by replacing the <code>*</code> with the
+contents matched from the source.</p></div>
+<div class="paragraph"><p>If a refspec is prefixed by <code>^</code>, it will be interpreted as a negative
+refspec. Rather than specifying which refs to fetch or which local refs to
+update, such a refspec will instead specify refs to exclude. A ref will be
+considered to match if it matches at least one positive refspec, and does
+not match any negative refspec. Negative refspecs can be useful to restrict
+the scope of a pattern refspec so that it will not include specific refs.
+Negative refspecs can themselves be pattern refspecs. However, they may only
+contain a &lt;src&gt; and do not specify a &lt;dst&gt;. Fully spelled out hex object
+names are also not supported.</p></div>
 <div class="paragraph"><p><code>tag &lt;tag&gt;</code> means the same as <code>refs/tags/&lt;tag&gt;:refs/tags/&lt;tag&gt;</code>;
 it requests fetching everything up to the given tag.</p></div>
 <div class="paragraph"><p>The remote ref that matches &lt;src&gt;
@@ -1323,6 +1353,15 @@ in a repository with this behavior; the pulling user simply
 must know this is the expected usage pattern for a branch.</td>
 </tr></table>
 </div>
+</dd>
+<dt class="hdlist1">
+--stdin
+</dt>
+<dd>
+<p>
+        Read refspecs, one per line, from stdin in addition to those provided
+        as arguments. The "tag &lt;name&gt;" format is not supported.
+</p>
 </dd>
 </dl></div>
 </div>
@@ -1929,7 +1968,7 @@ version.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-07-27 09:55:43 PDT
+ 2020-10-13 17:54:12 PDT
 </div>
 </div>
 </body>

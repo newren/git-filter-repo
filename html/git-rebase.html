@@ -1045,6 +1045,17 @@ rebase.rescheduleFailedExec
         This is the same as specifying the <code>--reschedule-failed-exec</code> option.
 </p>
 </dd>
+<dt class="hdlist1">
+sequence.editor
+</dt>
+<dd>
+<p>
+        Text editor used by <code>git rebase -i</code> for editing the rebase instruction file.
+        The value is meant to be interpreted by the shell when it is used.
+        It can be overridden by the <code>GIT_SEQUENCE_EDITOR</code> environment variable.
+        When not configured the default commit message editor is used instead.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1454,12 +1465,28 @@ with <code>--keep-base</code> in order to drop those commits from your branch.</
 <dt class="hdlist1">
 --ignore-whitespace
 </dt>
+<dd>
+<p>
+        Ignore whitespace differences when trying to reconcile
+differences. Currently, each backend implements an approximation of
+this behavior:
+</p>
+<div class="paragraph"><p>apply backend: When applying a patch, ignore changes in whitespace in
+context lines. Unfortunately, this means that if the "old" lines being
+replaced by the patch differ only in whitespace from the existing
+file, you will get a merge conflict instead of a successful patch
+application.</p></div>
+<div class="paragraph"><p>merge backend: Treat lines with only whitespace changes as unchanged
+when merging. Unfortunately, this means that any patch hunks that were
+intended to modify whitespace and nothing else will be dropped, even
+if the other side had no changes that conflicted.</p></div>
+</dd>
 <dt class="hdlist1">
 --whitespace=&lt;option&gt;
 </dt>
 <dd>
 <p>
-        These flags are passed to the <em>git apply</em> program
+        This flag is passed to the <em>git apply</em> program
         (see <a href="git-apply.html">git-apply(1)</a>) that applies the patch.
         Implies --apply.
 </p>
@@ -1468,13 +1495,24 @@ with <code>--keep-base</code> in order to drop those commits from your branch.</
 <dt class="hdlist1">
 --committer-date-is-author-date
 </dt>
+<dd>
+<p>
+        Instead of using the current time as the committer date, use
+        the author date of the commit being rebased as the committer
+        date. This option implies <code>--force-rebase</code>.
+</p>
+</dd>
 <dt class="hdlist1">
 --ignore-date
 </dt>
+<dt class="hdlist1">
+--reset-author-date
+</dt>
 <dd>
 <p>
-        These flags are passed to <em>git am</em> to easily change the dates
-        of the rebased commits (see <a href="git-am.html">git-am(1)</a>).
+        Instead of using the author date of the original commit, use
+        the current time as the author date of the rebased commit.  This
+        option implies <code>--force-rebase</code>.
 </p>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
@@ -1667,21 +1705,6 @@ used to override and disable this setting.</p></div>
 </li>
 <li>
 <p>
---committer-date-is-author-date
-</p>
-</li>
-<li>
-<p>
---ignore-date
-</p>
-</li>
-<li>
-<p>
---ignore-whitespace
-</p>
-</li>
-<li>
-<p>
 --whitespace
 </p>
 </li>
@@ -1784,6 +1807,21 @@ used to override and disable this setting.</p></div>
 <li>
 <p>
 --preserve-merges and --empty=
+</p>
+</li>
+<li>
+<p>
+--preserve-merges and --ignore-whitespace
+</p>
+</li>
+<li>
+<p>
+--preserve-merges and --committer-date-is-author-date
+</p>
+</li>
+<li>
+<p>
+--preserve-merges and --ignore-date
 </p>
 </li>
 <li>
@@ -2716,7 +2754,7 @@ Use <code>--rebase-merges</code> in such scenarios instead.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-07-27 09:55:43 PDT
+ 2020-10-13 17:54:12 PDT
 </div>
 </div>
 </body>

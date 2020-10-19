@@ -758,9 +758,42 @@ git-log(1) Manual Page
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Shows the commit logs.</p></div>
-<div class="paragraph"><p>The command takes options applicable to the <code>git rev-list</code>
+<div class="paragraph"><p>List commits that are reachable by following the <code>parent</code> links from the
+given commit(s), but exclude commits that are reachable from the one(s)
+given with a <em>&#94;</em> in front of them.  The output is given in reverse
+chronological order by default.</p></div>
+<div class="paragraph"><p>You can think of this as a set operation. Commits reachable from any of
+the commits given on the command line form a set, and then commits reachable
+from any of the ones given with <em>&#94;</em> in front are subtracted from that
+set.  The remaining commits are what comes out in the command&#8217;s output.
+Various other options and paths parameters can be used to further limit the
+result.</p></div>
+<div class="paragraph"><p>Thus, the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log foo bar ^baz</code></pre>
+</div></div>
+<div class="paragraph"><p>means "list all the commits which are reachable from <em>foo</em> or <em>bar</em>, but
+not from <em>baz</em>".</p></div>
+<div class="paragraph"><p>A special notation "<em>&lt;commit1&gt;</em>..<em>&lt;commit2&gt;</em>" can be used as a
+short-hand for "^<em>&lt;commit1&gt;</em> <em>&lt;commit2&gt;</em>". For example, either of
+the following may be used interchangeably:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log origin..HEAD
+$ git log HEAD ^origin</code></pre>
+</div></div>
+<div class="paragraph"><p>Another special notation is "<em>&lt;commit1&gt;</em>&#8230;<em>&lt;commit2&gt;</em>" which is useful
+for merges.  The resulting set of commits is the symmetric difference
+between the two operands.  The following two commands are equivalent:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git log A B --not $(git merge-base --all A B)
+$ git log A...B</code></pre>
+</div></div>
+<div class="paragraph"><p>The command takes options applicable to the <a href="git-rev-list.html">git-rev-list(1)</a>
 command to control what is shown and how, and options applicable to
-the <code>git diff-*</code> commands to control how the changes
+the <a href="git-diff.html">git-diff(1)</a> command to control how the changes
 each commit introduces are shown.</p></div>
 </div>
 </div>
@@ -1174,8 +1207,7 @@ parents) and <code>--max-parents=-1</code> (negative numbers denote no upper lim
         because merges into a topic branch tend to be only about
         adjusting to updated upstream from time to time, and
         this option allows you to ignore the individual commits
-        brought in to your history by such a merge. Cannot be
-        combined with --bisect.
+        brought in to your history by such a merge.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1310,7 +1342,7 @@ explicitly.</p></div>
         Pretend as if the bad bisection ref <code>refs/bisect/bad</code>
         was listed and as if it was followed by <code>--not</code> and the good
         bisection refs <code>refs/bisect/good-*</code> on the command
-        line. Cannot be combined with --first-parent.
+        line.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2088,8 +2120,8 @@ people using 80-column terminals.</p></div>
 <dd>
 <p>
         Show the full 40-byte hexadecimal commit object name. This negates
-        <code>--abbrev-commit</code> and those options which imply it such as
-        "--oneline". It also overrides the <code>log.abbrevCommit</code> variable.
+        <code>--abbrev-commit</code>, either explicit or implied by other options such
+        as "--oneline". It also overrides the <code>log.abbrevCommit</code> variable.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2358,78 +2390,6 @@ the time zone is omitted when the local time zone is used
         do not belong to a linear branch. This option puts a barrier
         in between them in that case. If <code>&lt;barrier&gt;</code> is specified, it
         is the string that will be shown instead of the default one.
-</p>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
-<h3 id="_diff_formatting">Diff Formatting</h3>
-<div class="paragraph"><p>Listed below are options that control the formatting of diff output.
-Some of them are specific to <a href="git-rev-list.html">git-rev-list(1)</a>, however other diff
-options may be given. See <a href="git-diff-files.html">git-diff-files(1)</a> for more options.</p></div>
-<div class="dlist"><dl>
-<dt class="hdlist1">
--c
-</dt>
-<dd>
-<p>
-        With this option, diff output for a merge commit
-        shows the differences from each of the parents to the merge result
-        simultaneously instead of showing pairwise diff between a parent
-        and the result one at a time. Furthermore, it lists only files
-        which were modified from all parents.
-</p>
-</dd>
-<dt class="hdlist1">
---cc
-</dt>
-<dd>
-<p>
-        This flag implies the <code>-c</code> option and further compresses the
-        patch output by omitting uninteresting hunks whose contents in
-        the parents have only two variants and the merge result picks
-        one of them without modification.
-</p>
-</dd>
-<dt class="hdlist1">
---combined-all-paths
-</dt>
-<dd>
-<p>
-        This flag causes combined diffs (used for merge commits) to
-        list the name of the file from all parents.  It thus only has
-        effect when -c or --cc are specified, and is likely only
-        useful if filename changes are detected (i.e. when either
-        rename or copy detection have been requested).
-</p>
-</dd>
-<dt class="hdlist1">
--m
-</dt>
-<dd>
-<p>
-        This flag makes the merge commits show the full diff like
-        regular commits; for each merge parent, a separate log entry
-        and diff is generated. An exception is that only diff against
-        the first parent is shown when <code>--first-parent</code> option is given;
-        in that case, the output represents the changes the merge
-        brought <em>into</em> the then-current branch.
-</p>
-</dd>
-<dt class="hdlist1">
--r
-</dt>
-<dd>
-<p>
-        Show recursive diffs.
-</p>
-</dd>
-<dt class="hdlist1">
--t
-</dt>
-<dd>
-<p>
-        Show the tree objects in the diff output. This implies <code>-r</code>.
 </p>
 </dd>
 </dl></div>
@@ -3366,8 +3326,78 @@ $ git log -2 --pretty=%h 4da45bef</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_common_diff_options">COMMON DIFF OPTIONS</h2>
+<h2 id="_diff_formatting">DIFF FORMATTING</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>By default, <code>git log</code> does not generate any diff output. The options
+below can be used to show the changes made by each commit.</p></div>
+<div class="paragraph"><p>Note that unless one of <code>-c</code>, <code>--cc</code>, or <code>-m</code> is given, merge commits
+will never show a diff, even if a diff format like <code>--patch</code> is
+selected, nor will they match search options like <code>-S</code>. The exception is
+when <code>--first-parent</code> is in use, in which merges are treated like normal
+single-parent commits (this can be overridden by providing a
+combined-diff option or with <code>--no-diff-merges</code>).</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-c
+</dt>
+<dd>
+<p>
+        With this option, diff output for a merge commit
+        shows the differences from each of the parents to the merge result
+        simultaneously instead of showing pairwise diff between a parent
+        and the result one at a time. Furthermore, it lists only files
+        which were modified from all parents.
+</p>
+</dd>
+<dt class="hdlist1">
+--cc
+</dt>
+<dd>
+<p>
+        This flag implies the <code>-c</code> option and further compresses the
+        patch output by omitting uninteresting hunks whose contents in
+        the parents have only two variants and the merge result picks
+        one of them without modification.
+</p>
+</dd>
+<dt class="hdlist1">
+--combined-all-paths
+</dt>
+<dd>
+<p>
+        This flag causes combined diffs (used for merge commits) to
+        list the name of the file from all parents.  It thus only has
+        effect when -c or --cc are specified, and is likely only
+        useful if filename changes are detected (i.e. when either
+        rename or copy detection have been requested).
+</p>
+</dd>
+<dt class="hdlist1">
+-m
+</dt>
+<dd>
+<p>
+        This flag makes the merge commits show the full diff like
+        regular commits; for each merge parent, a separate log entry
+        and diff is generated. An exception is that only diff against
+        the first parent is shown when <code>--first-parent</code> option is given;
+        in that case, the output represents the changes the merge
+        brought <em>into</em> the then-current branch.
+</p>
+</dd>
+<dt class="hdlist1">
+--diff-merges=off
+</dt>
+<dt class="hdlist1">
+--no-diff-merges
+</dt>
+<dd>
+<p>
+        Disable output of diffs for merge commits (default). Useful to
+        override <code>-m</code>, <code>-c</code>, or <code>--cc</code>.
+</p>
+</dd>
+</dl></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 -p
@@ -3450,6 +3480,14 @@ $ git log -2 --pretty=%h 4da45bef</code></pre>
 <dd>
 <p>
         Synonym for <code>-p --raw</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+-t
+</dt>
+<dd>
+<p>
+        Show the tree objects in the diff output.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -4117,10 +4155,11 @@ override configuration settings.</p></div>
 <p>
         Instead of showing the full 40-byte hexadecimal object
         name in diff-raw format output and diff-tree header
-        lines, show only a partial prefix.  This is
-        independent of the <code>--full-index</code> option above, which controls
-        the diff-patch output format.  Non default number of
-        digits can be specified with <code>--abbrev=&lt;n&gt;</code>.
+        lines, show only a partial prefix.
+        In diff-patch output format, <code>--full-index</code> takes higher
+        precedence, i.e. if <code>--full-index</code> is specified, full blob
+        names will be shown regardless of <code>--abbrev</code>.
+        Non default number of digits can be specified with <code>--abbrev=&lt;n&gt;</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -4604,7 +4643,8 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 <a href="git-diff-files.html">git-diff-files(1)</a>
 with the <code>-p</code> option produces patch text.
 You can customize the creation of patch text via the
-<code>GIT_EXTERNAL_DIFF</code> and the <code>GIT_DIFF_OPTS</code> environment variables.</p></div>
+<code>GIT_EXTERNAL_DIFF</code> and the <code>GIT_DIFF_OPTS</code> environment variables
+(see <a href="git.html">git(1)</a>).</p></div>
 <div class="paragraph"><p>What the -p option produces is slightly different from the traditional
 diff format:</p></div>
 <div class="olist arabic"><ol class="arabic">
@@ -5121,7 +5161,7 @@ and overridden by the <code>--notes=&lt;ref&gt;</code> option.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-06-19 08:51:05 PDT
+ 2020-09-02 09:22:52 PDT
 </div>
 </div>
 </body>
