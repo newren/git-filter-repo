@@ -942,7 +942,7 @@ test_expect_success '--strip-blobs-with-ids' '
 		! grep words/to ../filenames &&
 		! grep capricious ../filenames &&
 		! grep fickle ../filenames &&
-		! grep mercurial ../filenames
+		! grep mercurial ../filenames &&
 
 		# Remove the temporary auxiliary files
 		rm ../bad-ids &&
