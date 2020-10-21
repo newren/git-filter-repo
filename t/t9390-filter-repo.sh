@@ -1197,6 +1197,12 @@ test_expect_success 'startup sanity checks' '
 
 test_expect_success 'other startup error cases and requests for help' '
 	(
+		# prevent MSYS2 (Git for Windows) from converting the colon to
+		# a semicolon when encountering parameters that look like
+		# Unix-style, colon-separated path lists (such as `foo:.`)
+		MSYS_NO_PATHCONV=1 &&
+		export MSYS_NO_PATHCONV
+
 		git init startup_errors &&
 		cd startup_errors &&
 
