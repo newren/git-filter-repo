@@ -298,7 +298,7 @@ setup_metasyntactic_repo() {
 	)
 }
 
-test_expect_success '--tag-rename' '
+test_expect_success FUNNYNAMES '--tag-rename' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic tag_rename &&
@@ -342,7 +342,7 @@ test_expect_success 'tag of tag before relevant portion of history' '
 	)
 '
 
-test_expect_success '--subdirectory-filter' '
+test_expect_success FUNNYNAMES '--subdirectory-filter' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic subdir_filter &&
@@ -361,7 +361,7 @@ test_expect_success '--subdirectory-filter' '
 	)
 '
 
-test_expect_success '--subdirectory-filter with trailing slash' '
+test_expect_success FUNNYNAMES '--subdirectory-filter with trailing slash' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic subdir_filter_2 &&
@@ -380,7 +380,7 @@ test_expect_success '--subdirectory-filter with trailing slash' '
 	)
 '
 
-test_expect_success '--to-subdirectory-filter' '
+test_expect_success FUNNYNAMES '--to-subdirectory-filter' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic to_subdir_filter &&
@@ -400,7 +400,7 @@ test_expect_success '--to-subdirectory-filter' '
 	)
 '
 
-test_expect_success '--use-base-name' '
+test_expect_success FUNNYNAMES '--use-base-name' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic use_base_name &&
@@ -419,7 +419,7 @@ test_expect_success '--use-base-name' '
 	)
 '
 
-test_expect_success 'refs/replace/ to skip a parent' '
+test_expect_success FUNNYNAMES 'refs/replace/ to skip a parent' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic replace_skip_ref &&
@@ -441,7 +441,7 @@ test_expect_success 'refs/replace/ to skip a parent' '
 	)
 '
 
-test_expect_success 'refs/replace/ to add more initial history' '
+test_expect_success FUNNYNAMES 'refs/replace/ to add more initial history' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic replace_add_refs &&
@@ -476,7 +476,7 @@ test_expect_success 'refs/replace/ to add more initial history' '
 	)
 '
 
-test_expect_success 'creation/deletion/updating of replace refs' '
+test_expect_success FUNNYNAMES 'creation/deletion/updating of replace refs' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic replace_handling &&
@@ -535,7 +535,7 @@ test_expect_success 'creation/deletion/updating of replace refs' '
 	)
 '
 
-test_expect_success '--debug' '
+test_expect_success FUNNYNAMES '--debug' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic debug &&
@@ -558,7 +558,7 @@ test_expect_success '--debug' '
 	)
 '
 
-test_expect_success '--dry-run' '
+test_expect_success FUNNYNAMES '--dry-run' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic dry_run &&
@@ -586,7 +586,7 @@ test_expect_success '--dry-run' '
 	)
 '
 
-test_expect_success '--dry-run --debug' '
+test_expect_success FUNNYNAMES '--dry-run --debug' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic dry_run_debug &&
@@ -614,7 +614,7 @@ test_expect_success '--dry-run --debug' '
 	)
 '
 
-test_expect_success '--dry-run --stdin' '
+test_expect_success FUNNYNAMES '--dry-run --stdin' '
 	setup_metasyntactic_repo &&
 	(
 		git clone file://"$(pwd)"/metasyntactic dry_run_stdin &&
@@ -917,7 +917,8 @@ test_expect_success '--strip-blobs-with-ids' '
 		grep fake_submodule ../filenames &&
 
 		# Strip "a certain file" files
-		git filter-repo --strip-blobs-with-ids <(echo deadbeefdeadbeefdeadbeefdeadbeefdeadbeef) &&
+		echo deadbeefdeadbeefdeadbeefdeadbeefdeadbeef >../input &&
+		git filter-repo --strip-blobs-with-ids ../input &&
 
 		git log --format=%n --name-only | sort | uniq >../filenames &&
 		test_line_count = 10 ../filenames &&
@@ -937,12 +938,12 @@ test_expect_success '--strip-blobs-with-ids' '
 		git filter-repo --strip-blobs-with-ids ../bad-ids --replace-text ../replace-rules &&
 
 		git log --format=%n --name-only | sort | uniq >../filenames &&
-		test_line_count = 5 ../filenames &&
+		test_line_count = 6 ../filenames &&
 		! grep sequence/to ../filenames &&
 		! grep words/to ../filenames &&
 		! grep capricious ../filenames &&
 		! grep fickle ../filenames &&
-		! grep mercurial ../filenames
+		! grep mercurial ../filenames &&
 
 		# Remove the temporary auxiliary files
 		rm ../bad-ids &&
@@ -1196,6 +1197,12 @@ test_expect_success 'startup sanity checks' '
 
 test_expect_success 'other startup error cases and requests for help' '
 	(
+		# prevent MSYS2 (Git for Windows) from converting the colon to
+		# a semicolon when encountering parameters that look like
+		# Unix-style, colon-separated path lists (such as `foo:.`)
+		MSYS_NO_PATHCONV=1 &&
+		export MSYS_NO_PATHCONV
+
 		git init startup_errors &&
 		cd startup_errors &&
 
@@ -1232,10 +1239,12 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_must_fail git filter-repo --path-rename foo:bar/ 2>err &&
 		test_i18ngrep "either ends with a slash then both must." err &&
 
-		test_must_fail git filter-repo --paths-from-file <(echo "foo==>bar/") 2>err &&
+		echo "foo==>bar/" >input &&
+		test_must_fail git filter-repo --paths-from-file input 2>err &&
 		test_i18ngrep "either ends with a slash then both must." err &&
 
-		test_must_fail git filter-repo --paths-from-file <(echo "glob:*.py==>newname") 2>err &&
+		echo "glob:*.py==>newname" >input &&
+		test_must_fail git filter-repo --paths-from-file input 2>err &&
 		test_i18ngrep "renaming globs makes no sense" err &&
 
 		test_must_fail git filter-repo --strip-blobs-bigger-than 3GiB 2>err &&
@@ -1282,8 +1291,9 @@ test_expect_success 'mailmap sanity checks' '
 		git clone file://"$(pwd)"/analyze_me mailmap_sanity_checks &&
 		cd mailmap_sanity_checks &&
 
-		test_must_fail git filter-repo --mailmap /fake/path 2>../err &&
-		test_i18ngrep "Cannot read /fake/path" ../err &&
+		fake=$(pwd)/fake &&
+		test_must_fail git filter-repo --mailmap "$fake"/path 2>../err &&
+		test_i18ngrep "Cannot read $fake/path" ../err &&
 
 		echo "Total Bogus" >../whoopsies &&
 		test_must_fail git filter-repo --mailmap ../whoopsies 2>../err &&
@@ -1358,7 +1368,8 @@ test_expect_success '--refs and --replace-text' '
 		git clone file://"$(pwd)"/path_rename refs_and_replace_text &&
 		cd refs_and_replace_text &&
 		git rev-parse --short=10 HEAD~1 >myparent &&
-		git filter-repo --force --replace-text <(echo "10==>TEN") --refs $(cat myparent)..master &&
+		echo "10==>TEN" >input &&
+		git filter-repo --force --replace-text input --refs $(cat myparent)..master &&
 		cat <<-EOF >expect &&
 		TEN11
 		EOF
@@ -1565,7 +1576,7 @@ test_expect_success '--state-branch with expanding paths and refs' '
 	)
 '
 
-test_expect_success 'degenerate merge with non-matching filenames' '
+test_expect_success FUNNYNAMES 'degenerate merge with non-matching filenames' '
 	test_create_repo degenerate_merge_differing_filenames &&
 	(
 		cd degenerate_merge_differing_filenames &&
@@ -1629,7 +1640,8 @@ test_expect_success 'degenerate merge with typechange' '
 		git ls-files >actual &&
 		test_cmp expect actual &&
 
-		test_line_count = 2 <(git log --oneline HEAD)
+		git log --oneline HEAD >input &&
+		test_line_count = 2 input
 	)
 '
 
@@ -1670,7 +1682,7 @@ test_expect_success 'tweaking just a tag' '
 
 test_expect_success '--version' '
 	git filter-repo --version >actual &&
-	git hash-object ../../git-filter-repo | colrm 13 >expect &&
+	git hash-object ../../git-filter-repo | cut -c 1-12 >expect &&
 	test_cmp expect actual
 '
 
