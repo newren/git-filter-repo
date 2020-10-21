@@ -917,7 +917,8 @@ test_expect_success '--strip-blobs-with-ids' '
 		grep fake_submodule ../filenames &&
 
 		# Strip "a certain file" files
-		git filter-repo --strip-blobs-with-ids <(echo deadbeefdeadbeefdeadbeefdeadbeefdeadbeef) &&
+		echo deadbeefdeadbeefdeadbeefdeadbeefdeadbeef >../input &&
+		git filter-repo --strip-blobs-with-ids ../input &&
 
 		git log --format=%n --name-only | sort | uniq >../filenames &&
 		test_line_count = 10 ../filenames &&
@@ -1232,10 +1233,12 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_must_fail git filter-repo --path-rename foo:bar/ 2>err &&
 		test_i18ngrep "either ends with a slash then both must." err &&
 
-		test_must_fail git filter-repo --paths-from-file <(echo "foo==>bar/") 2>err &&
+		echo "foo==>bar/" >input &&
+		test_must_fail git filter-repo --paths-from-file input 2>err &&
 		test_i18ngrep "either ends with a slash then both must." err &&
 
-		test_must_fail git filter-repo --paths-from-file <(echo "glob:*.py==>newname") 2>err &&
+		echo "glob:*.py==>newname" >input &&
+		test_must_fail git filter-repo --paths-from-file input 2>err &&
 		test_i18ngrep "renaming globs makes no sense" err &&
 
 		test_must_fail git filter-repo --strip-blobs-bigger-than 3GiB 2>err &&
@@ -1358,7 +1361,8 @@ test_expect_success '--refs and --replace-text' '
 		git clone file://"$(pwd)"/path_rename refs_and_replace_text &&
 		cd refs_and_replace_text &&
 		git rev-parse --short=10 HEAD~1 >myparent &&
-		git filter-repo --force --replace-text <(echo "10==>TEN") --refs $(cat myparent)..master &&
+		echo "10==>TEN" >input &&
+		git filter-repo --force --replace-text input --refs $(cat myparent)..master &&
 		cat <<-EOF >expect &&
 		TEN11
 		EOF
@@ -1629,7 +1633,8 @@ test_expect_success 'degenerate merge with typechange' '
 		git ls-files >actual &&
 		test_cmp expect actual &&
 
-		test_line_count = 2 <(git log --oneline HEAD)
+		git log --oneline HEAD >input &&
+		test_line_count = 2 input
 	)
 '
 
