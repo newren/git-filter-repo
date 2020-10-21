@@ -168,6 +168,7 @@ test_expect_success 'lint-history' '
 	test_create_repo lint-history &&
 	(
 		cd lint-history &&
+		git config core.autocrlf false &&
 		echo initial >content &&
 		git add content &&
 		git commit -m "initial" &&
