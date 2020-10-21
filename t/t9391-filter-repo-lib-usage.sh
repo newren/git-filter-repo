@@ -164,6 +164,11 @@ test_expect_success 'other error cases' '
 	)
 '
 
+test_lazy_prereq DOS2UNIX '
+	dos2unix -h
+	test $? -ne 127
+'
+
 test_expect_success 'lint-history' '
 	test_create_repo lint-history &&
 	(
@@ -181,10 +186,13 @@ test_expect_success 'lint-history' '
 		git add content &&
 		git commit -m "oops, that was embarassing" &&
 
-		$CONTRIB_DIR/lint-history --filenames-important dos2unix &&
-		echo 2 >expect &&
-		git rev-list --count HEAD >actual &&
-		test_cmp expect actual
+		if test_have_prereq DOS2UNIX
+		then
+			$CONTRIB_DIR/lint-history --filenames-important dos2unix &&
+			echo 2 >expect &&
+			git rev-list --count HEAD >actual &&
+			test_cmp expect actual
+		fi
 	)
 '
 
