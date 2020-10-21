@@ -1,0 +1,49 @@
+name: Run tests
+
+on: [push, pull_request]
+
+jobs:
+  run-tests:
+    strategy:
+      matrix:
+        os: [ 'windows', 'ubuntu', 'macos' ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+    - name: test
+      shell: bash
+      run: |
+        # setup-python puts `python` into the `PATH`, not `python3`, yet
+        # `git-filter-repo` expects `python3` in the `PATH`. Let's add
+        # a shim.
+        printf '#!/bin/sh\n\nexec python "$@"\n' >python3 &&
+
+        export PATH=$PWD:$PATH &&
+        export PYTHONPATH=$PWD &&
+        export TEST_SHELL_PATH=/bin/sh &&
+
+        failed=0 &&
+        cd t &&
+        for t in t[0-9]*.sh
+        do
+          printf '\n\n== %s ==\n' "$t" &&
+          bash $t -q -v -x ||
+          failed=$(($failed+1))
+        done &&
+        if test 0 != $failed
+        then
+          mkdir ../failed &&
+          tar czf ../failed/failed.tar.gz .
+          exit 1
+        fi
+    - name: upload failed tests' directories
+      if: failure()
+      uses: actions/upload-artifact@v1
+      with:
+        name: failed-${{ matrix.os }}
+        path: failed
