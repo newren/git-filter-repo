@@ -937,7 +937,7 @@ test_expect_success '--strip-blobs-with-ids' '
 		git filter-repo --strip-blobs-with-ids ../bad-ids --replace-text ../replace-rules &&
 
 		git log --format=%n --name-only | sort | uniq >../filenames &&
-		test_line_count = 5 ../filenames &&
+		test_line_count = 6 ../filenames &&
 		! grep sequence/to ../filenames &&
 		! grep words/to ../filenames &&
 		! grep capricious ../filenames &&
