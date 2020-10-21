@@ -1291,8 +1291,9 @@ test_expect_success 'mailmap sanity checks' '
 		git clone file://"$(pwd)"/analyze_me mailmap_sanity_checks &&
 		cd mailmap_sanity_checks &&
 
-		test_must_fail git filter-repo --mailmap /fake/path 2>../err &&
-		test_i18ngrep "Cannot read /fake/path" ../err &&
+		fake=$(pwd)/fake &&
+		test_must_fail git filter-repo --mailmap "$fake"/path 2>../err &&
+		test_i18ngrep "Cannot read $fake/path" ../err &&
 
 		echo "Total Bogus" >../whoopsies &&
 		test_must_fail git filter-repo --mailmap ../whoopsies 2>../err &&
