@@ -24,21 +24,11 @@ jobs:
         printf '#!/bin/sh\n\nexec python "$@"\n' >python3 &&
 
         export PATH=$PWD:$PATH &&
-        export PYTHONPATH=$PWD &&
-        export TEST_SHELL_PATH=/bin/sh &&
 
-        failed=0 &&
-        cd t &&
-        for t in t[0-9]*.sh
-        do
-          printf '\n\n== %s ==\n' "$t" &&
-          bash $t -q -v -x ||
-          failed=$(($failed+1))
-        done &&
-        if test 0 != $failed
+        if ! t/run_tests -q -v -x
         then
-          mkdir ../failed &&
-          tar czf ../failed/failed.tar.gz .
+          mkdir failed &&
+          tar czf failed/failed.tar.gz t
           exit 1
         fi
     - name: upload failed tests' directories
