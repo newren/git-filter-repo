@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 
 cd $(dirname $0)
 
@@ -7,4 +8,9 @@ cd $(dirname $0)
 # for file/directory names when it should always be bytestrings.
 export PRETEND_UNICODE_ARGS=1
 
-ls t939*.sh | xargs -n 1 bash
+failed=0
+
+for test in t939*.sh; do
+	./$test || failed=1
+done
+exit $failed
