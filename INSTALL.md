@@ -117,6 +117,9 @@ and on windows the pip install might not take care of python-specific
 issues for you (see "Notes for Windows Users", above).  As such,
 installation via package managers is recommended instead.
 
+# Installation via [Homebrew](https://brew.sh/)
+
+    $ brew install git-filter-repo
 
 # Installation via Makefile
 
