@@ -1,8 +1,21 @@
 from setuptools import setup
 import os
-for f in ['git-filter-repo', 'git_filter_repo.py', 'README.md']:
+
+
+def link_parent(src, target=None):
+    if target is None:
+        target = src
     try:
-        os.symlink("../"+f, f)
+        os.symlink(os.path.join("..", src), target)
     except FileExistsError:
         pass
-setup(use_scm_version=dict(root="..", relative_to=__file__))
+
+
+for f in ['git-filter-repo', 'README.md']:
+    link_parent(f)
+
+link_parent('git-filter-repo', 'git_filter_repo.py')
+
+
+setup(use_scm_version=dict(root="..", relative_to=__file__),
+      entry_points={'console_scripts': ['git-filter-repo = git_filter_repo:main']})
