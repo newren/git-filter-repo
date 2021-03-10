@@ -64,6 +64,9 @@ filter-repo only consists of a few files that need to be installed:
     displaying the manpage, when help.format is "man" (the default on Linux
     and Mac).
 
+    If you've cloned the repo directly `make snag_docs` can be run to
+    retrieve this file, depositing it at `Documentation/man1/git-filter-repo.1`
+
     This can be installed in the directory pointed to by `$(git
     --man-path)/man1/`, or placed anywhere in $MANDIR/man1/ where $MANDIR
     is some entry from $MANPATH.
@@ -76,6 +79,9 @@ filter-repo only consists of a few files that need to be installed:
     This is needed if you want `git filter-repo --help` to succeed in
     displaying the html version of the help, when help.format is set to
     "html" (the default on Windows).
+
+    If you've cloned the repo directly `make snag_docs` can be run to
+    retrieve this file, depositing it at `Documentation/html/git-filter-repo.html`
 
     This can be installed in the directory pointed to by `git --html-path`.
 
