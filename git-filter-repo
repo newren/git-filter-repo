@@ -1622,7 +1622,10 @@ class FilteringOptions(object):
       if suffix.startswith('rename'):
         mod_type = 'rename'
         match_type = option_string[len('--path-rename-'):] or 'match'
-        values = values.split(b':', 1)
+        values = values.split(b':')
+        if len(values) != 2:
+          raise SystemExit(_("Error: --path-rename expects one colon in its"
+                             " argument: <old_name:new_name>."))
         if values[0] and values[1] and not (
            values[0].endswith(b'/') == values[1].endswith(b'/')):
           raise SystemExit(_("Error: With --path-rename, if OLD_NAME and "
