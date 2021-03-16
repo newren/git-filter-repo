@@ -19,8 +19,33 @@ these versions.
 
 # Notes for Windows Users
 
-It seems that the default python on Windows is not fully functional,
-and windows might not allow executing python scripts by default.  See
+If you don't do a full blown Python web development on Windows the
+best way to install git-filter-repo is to use Python and pip from
+[Microsoft
+Store](https://docs.microsoft.com/en-us/windows/python/beginners).
+Follow these simple steps:
+
+1. Install Python from Microsoft Store.
+2. Run `pip install git-filter-repo` from the Windows Command Prompt.
+3. Copy git-filter-repo file from
+    *%LOCALAPPDATA%\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\Scripts*
+    to the directory pointed to by `git --exec-path`,
+
+    or
+
+    add
+    *%LOCALAPPDATA%\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\Scripts*
+    to you PATH environment variable.
+    
+    The folder above could be different depending on your Python's
+    version.
+4. Change first line of the git-filter-repo script to
+`#!\python.exe`.
+
+If you have Python installed via
+[WSL](https://docs.microsoft.com/en-us/windows/python/web-frameworks)
+or from official [Python for Windows
+installer](https://www.python.org/downloads/windows/) see
 [issue 124](https://github.com/newren/git-filter-repo/issues/124),
 [issue 36](https://github.com/newren/git-filter-repo/issues/36), and
 [this git mailing list
