@@ -1262,6 +1262,9 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_must_fail git filter-repo --path-rename /foo:bar 2>err &&
 		test_i18ngrep "Pathnames cannot begin with a ./" err &&
 
+		test_must_fail git filter-repo --path-rename foo 2>err &&
+		test_i18ngrep "Error: --path-rename expects one colon in its argument" err &&
+
 		test_must_fail git filter-repo --subdirectory-filter /foo 2>err &&
 		test_i18ngrep "Pathnames cannot begin with a ./" err &&
 
