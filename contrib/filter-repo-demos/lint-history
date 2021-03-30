@@ -30,7 +30,7 @@ near the top of git-filter-repo.
 # Technically, if you are only running on all non-binary files and don't care
 # about filenames, then this program could be replaced by a "one-liner"; e.g.
 #    git filter-repo --force --blob-callback '
-#      if not any(x == b"0" for x in blob.data[0:8192]):
+#      if not b"\0" in blob.data[0:8192]:
 #        filename = '.git/info/tmpfile'
 #        with open(filename, "wb") as f:
 #          f.write(blob.data)
@@ -129,7 +129,7 @@ def lint_with_real_filenames(commit, metadata):
       change.blob_id = blob.id
 
 def lint_non_binary_blobs(blob, metadata):
-  if not any(x == b"0" for x in blob.data[0:8192]):
+  if not b"\0" in blob.data[0:8192]:
     filename = '.git/info/tmpfile'
     with open(filename, "wb") as f:
       f.write(blob.data)
