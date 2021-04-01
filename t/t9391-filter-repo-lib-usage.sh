@@ -160,7 +160,7 @@ test_expect_success 'other error cases' '
 		cd other &&
 
 		! python3 -c "import git_filter_repo as fr; fr.GitUtils.get_commit_count(b\".\", [\"HEAD\"])" 2>err &&
-		test_i18ngrep ". does not appear to be a valid git repository" err
+		test_i18ngrep "\. does not appear to be a valid git repository" err
 	)
 '
 
