@@ -1496,16 +1496,13 @@ class GitUtils(object):
       args = ['--all']
     if len(args) == 1 and isinstance(args[0], list):
       args = args[0]
-    p1 = subproc.Popen(["git", "rev-list"] + args,
-                       bufsize=-1,
-                       stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                       cwd=repo)
-    p2 = subproc.Popen(["wc", "-l"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    count = int(p2.communicate()[0])
-    if p1.poll() != 0:
+    p = subproc.Popen(["git", "rev-list", "--count"] + args,
+                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                      cwd=repo)
+    if p.wait() != 0:
       raise SystemExit(_("%s does not appear to be a valid git repository")
                        % decode(repo))
-    return count
+    return int(p.stdout.read())
 
   @staticmethod
   def get_total_objects(repo):
