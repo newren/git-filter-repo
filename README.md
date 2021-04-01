@@ -73,6 +73,11 @@ section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-rep
     commands](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg),
     which covers every example from the BFG website
 
+External sites also have [alternative formats of the user
+manual](https://www.mankier.com/1/git-filter-repo) available, at least
+for the most recent release.  This also may be beneficial if
+htmlpreview.github.io starts hitting load limits.
+
 # Why filter-repo instead of other alternatives?
 
 This was covered in more detail in a [Git Rev News article on
