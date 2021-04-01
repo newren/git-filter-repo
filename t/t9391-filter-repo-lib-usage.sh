@@ -4,7 +4,14 @@ test_description='Usage of git-filter-repo as a library'
 . ./test-lib.sh
 
 # for git_filter_repo.py import
-export PYTHONPATH=$(dirname $TEST_DIRECTORY):$PYTHONPATH
+case "$(uname -s)" in
+MINGW*|MSYS)
+	export PYTHONPATH=$(cygpath -am $TEST_DIRECTORY/..)\;$PYTHONPATH
+	;;
+*)
+	export PYTHONPATH=$(dirname $TEST_DIRECTORY):$PYTHONPATH
+	;;
+esac
 # Avoid writing git_filter_repo.pyc file
 export PYTHONDONTWRITEBYTECODE=1
 export CONTRIB_DIR=$TEST_DIRECTORY/../contrib/filter-repo-demos
