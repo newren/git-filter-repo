@@ -55,8 +55,9 @@ can be overridden, but they are all on by default):
     handles edge cases like pruning of merge commits which become
     degenerate and empty)
   * creating replace-refs (see linkgit:git-replace[1]) for old commit
-    hashes, which if pushed and fetched will allow users to continue to
-    refer to new commits using (unabbreviated) old commit IDs
+    hashes, which if manually pushed and fetched will allow users to
+    continue to refer to new commits using (unabbreviated) old commit
+    IDs
   * stripping of original history to avoid mixing old and new history
   * repacking the repository post-rewrite to shrink the repo for the
     user
@@ -568,15 +569,23 @@ history rewrite are roughly as follows:
 
    * filter-repo by default creates replace refs (see
      linkgit:git-replace[1]) for each rewritten commit ID, allowing
-     you to use old (unabbreviated) commit hashes to refer to the
-     newly rewritten commits.  If you want to use these replace refs,
-     push them to the relevant clone URL and tell users to adjust
-     their fetch refspec (e.g. `git config --add remote.origin.fetch
-     +refs/replace/*:refs/replace/*`) Sadly, some existing git servers
-     (e.g. Gerrit, GitHub) do not yet understand replace refs, and
-     thus one can't use old commit hashes within their UI; this may
-     change in the future.  But replace refs at least help users
-     locally within the git CLI.
+     you to use old (unabbreviated) commit hashes in the git command
+     line to refer to the newly rewritten commits.  If you want to use
+     these replace refs, manually push them to the relevant clone URL
+     and tell users to manually fetch them (e.g. by adjusting their
+     fetch refspec, `git config --add remote.origin.fetch
+     +refs/replace/*:refs/replace/*`).  Sadly, replace refs are not
+     yet widely understood; projects like jgit and libgit2 do not
+     support them and existing repository managers (e.g. Gerrit,
+     GitHub, GitLab) do not yet understand replace refs.  Thus one
+     can't use old commit hashes within the UI of these other systems.
+     This may change in the future, but replace refs at least help
+     users locally within the git command line interface.  Also, be
+     aware that commit-graphs are excessively cautious around replace
+     refs and just turn off entirely if any are present, so after
+     enough time has passed that old commit IDs become less relevant,
+     users may want to locally delete the replace refs to regain the
+     speedups from commit-graphs.
 
    * If you have a central repo, you may want to prevent people
      from pushing old commit IDs, in order to avoid mixing old
