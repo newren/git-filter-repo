@@ -797,7 +797,7 @@ ea4c7f9bf69e781dd0cd88d2bccb2bf5cc15c9a7 git-blame: Make the output</code></pre>
 <dd>
 <p>
         Show blank SHA-1 for boundary commits.  This can also
-        be controlled via the <code>blame.blankboundary</code> config option.
+        be controlled via the <code>blame.blankBoundary</code> config option.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -825,45 +825,48 @@ ea4c7f9bf69e781dd0cd88d2bccb2bf5cc15c9a7 git-blame: Make the output</code></pre>
 </dt>
 <dd>
 <p>
-        Annotate only the given line range. May be specified multiple times.
-        Overlapping ranges are allowed.
+        Annotate only the line range given by <em>&lt;start&gt;,&lt;end&gt;</em>,
+        or by the function name regex <em>&lt;funcname&gt;</em>.
+        May be specified multiple times. Overlapping ranges are allowed.
 </p>
-<div class="paragraph"><p>&lt;start&gt; and &lt;end&gt; are optional. &#8220;-L &lt;start&gt;&#8221; or &#8220;-L &lt;start&gt;,&#8221; spans from
-&lt;start&gt; to end of file. &#8220;-L ,&lt;end&gt;&#8221; spans from start of file to &lt;end&gt;.</p></div>
-<div class="paragraph"><p>&lt;start&gt; and &lt;end&gt; can take one of these forms:</p></div>
+<div class="paragraph"><p><em>&lt;start&gt;</em> and <em>&lt;end&gt;</em> are optional. <code>-L &lt;start&gt;</code> or <code>-L &lt;start&gt;,</code> spans from
+<em>&lt;start&gt;</em> to end of file. <code>-L ,&lt;end&gt;</code> spans from start of file to <em>&lt;end&gt;</em>.</p></div>
+<div class="paragraph"><p><em>&lt;start&gt;</em> and <em>&lt;end&gt;</em> can take one of these forms:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
 number
 </p>
-<div class="paragraph"><p>If &lt;start&gt; or &lt;end&gt; is a number, it specifies an
+<div class="paragraph"><p>If <em>&lt;start&gt;</em> or <em>&lt;end&gt;</em> is a number, it specifies an
 absolute line number (lines count from 1).</p></div>
 </li>
 <li>
 <p>
-/regex/
+<code>/regex/</code>
 </p>
 <div class="paragraph"><p>This form will use the first line matching the given
-POSIX regex. If &lt;start&gt; is a regex, it will search from the end of
+POSIX regex. If <em>&lt;start&gt;</em> is a regex, it will search from the end of
 the previous <code>-L</code> range, if any, otherwise from the start of file.
-If &lt;start&gt; is &#8220;^/regex/&#8221;, it will search from the start of file.
-If &lt;end&gt; is a regex, it will search
-starting at the line given by &lt;start&gt;.</p></div>
+If <em>&lt;start&gt;</em> is <code>^/regex/</code>, it will search from the start of file.
+If <em>&lt;end&gt;</em> is a regex, it will search
+starting at the line given by <em>&lt;start&gt;</em>.</p></div>
 </li>
 <li>
 <p>
 +offset or -offset
 </p>
-<div class="paragraph"><p>This is only valid for &lt;end&gt; and will specify a number
-of lines before or after the line given by &lt;start&gt;.</p></div>
+<div class="paragraph"><p>This is only valid for <em>&lt;end&gt;</em> and will specify a number
+of lines before or after the line given by <em>&lt;start&gt;</em>.</p></div>
 </li>
 </ul></div>
-<div class="paragraph"><p>If &#8220;:&lt;funcname&gt;&#8221; is given in place of &lt;start&gt; and &lt;end&gt;, it is a
+<div class="paragraph"><p>If <code>:&lt;funcname&gt;</code> is given in place of <em>&lt;start&gt;</em> and <em>&lt;end&gt;</em>, it is a
 regular expression that denotes the range from the first funcname line
-that matches &lt;funcname&gt;, up to the next funcname line. &#8220;:&lt;funcname&gt;&#8221;
+that matches <em>&lt;funcname&gt;</em>, up to the next funcname line. <code>:&lt;funcname&gt;</code>
 searches from the end of the previous <code>-L</code> range, if any, otherwise
-from the start of file. &#8220;^:&lt;funcname&gt;&#8221; searches from the start of
-file.</p></div>
+from the start of file. <code>^:&lt;funcname&gt;</code> searches from the start of
+file. The function names are determined in the same way as <code>git diff</code>
+works out patch hunk headers (see <em>Defining a custom hunk-header</em>
+in <a href="gitattributes.html">gitattributes(5)</a>).</p></div>
 </dd>
 <dt class="hdlist1">
 -l
@@ -1151,7 +1154,9 @@ take effect.</p></div>
 <dd>
 <p>
         Instead of using the default 7+1 hexadecimal digits as the
-        abbreviated object name, use &lt;n&gt;+1 digits. Note that 1 column
+        abbreviated object name, use &lt;m&gt;+1 digits, where &lt;m&gt; is at
+        least &lt;n&gt; but ensures the commit object names are unique.
+        Note that 1 column
         is used for a caret to mark the boundary commit.
 </p>
 </dd>
@@ -1340,90 +1345,7 @@ commit commentary), a blame viewer will not care.</td>
 <div class="sect1">
 <h2 id="_mapping_authors">MAPPING AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>If the file <code>.mailmap</code> exists at the toplevel of the repository, or at
-the location pointed to by the mailmap.file or mailmap.blob
-configuration options, it
-is used to map author and committer names and email addresses to
-canonical real names and email addresses.</p></div>
-<div class="paragraph"><p>In the simple form, each line in the file consists of the canonical
-real name of an author, whitespace, and an email address used in the
-commit (enclosed by <em>&lt;</em> and <em>&gt;</em>) to map to the name. For example:</p></div>
-<div class="openblock">
-<div class="content">
-<div class="literalblock">
-<div class="content">
-<pre><code>Proper Name &lt;commit@email.xx&gt;</code></pre>
-</div></div>
-</div></div>
-<div class="paragraph"><p>The more complex forms are:</p></div>
-<div class="openblock">
-<div class="content">
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;proper@email.xx&gt; &lt;commit@email.xx&gt;</code></pre>
-</div></div>
-</div></div>
-<div class="paragraph"><p>which allows mailmap to replace only the email part of a commit, and:</p></div>
-<div class="openblock">
-<div class="content">
-<div class="literalblock">
-<div class="content">
-<pre><code>Proper Name &lt;proper@email.xx&gt; &lt;commit@email.xx&gt;</code></pre>
-</div></div>
-</div></div>
-<div class="paragraph"><p>which allows mailmap to replace both the name and the email of a
-commit matching the specified commit email address, and:</p></div>
-<div class="openblock">
-<div class="content">
-<div class="literalblock">
-<div class="content">
-<pre><code>Proper Name &lt;proper@email.xx&gt; Commit Name &lt;commit@email.xx&gt;</code></pre>
-</div></div>
-</div></div>
-<div class="paragraph"><p>which allows mailmap to replace both the name and the email of a
-commit matching both the specified commit name and email address.</p></div>
-<div class="paragraph"><p>Example 1: Your history contains commits by two authors, Jane
-and Joe, whose names appear in the repository under several forms:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>Joe Developer &lt;joe@example.com&gt;
-Joe R. Developer &lt;joe@example.com&gt;
-Jane Doe &lt;jane@example.com&gt;
-Jane Doe &lt;jane@laptop.(none)&gt;
-Jane D. &lt;jane@desktop.(none)&gt;</code></pre>
-</div></div>
-<div class="paragraph"><p>Now suppose that Joe wants his middle name initial used, and Jane
-prefers her family name fully spelled out. A proper <code>.mailmap</code> file
-would look like:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>Jane Doe         &lt;jane@desktop.(none)&gt;
-Joe R. Developer &lt;joe@example.com&gt;</code></pre>
-</div></div>
-<div class="paragraph"><p>Note how there is no need for an entry for <code>&lt;jane@laptop.(none)&gt;</code>, because the
-real name of that author is already correct.</p></div>
-<div class="paragraph"><p>Example 2: Your repository contains commits from the following
-authors:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>nick1 &lt;bugs@company.xx&gt;
-nick2 &lt;bugs@company.xx&gt;
-nick2 &lt;nick2@company.xx&gt;
-santa &lt;me@company.xx&gt;
-claus &lt;me@company.xx&gt;
-CTO &lt;cto@coompany.xx&gt;</code></pre>
-</div></div>
-<div class="paragraph"><p>Then you might want a <code>.mailmap</code> file that looks like:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>&lt;cto@company.xx&gt;                       &lt;cto@coompany.xx&gt;
-Some Dude &lt;some@dude.xx&gt;         nick1 &lt;bugs@company.xx&gt;
-Other Author &lt;other@author.xx&gt;   nick2 &lt;bugs@company.xx&gt;
-Other Author &lt;other@author.xx&gt;         &lt;nick2@company.xx&gt;
-Santa Claus &lt;santa.claus@northpole.xx&gt; &lt;me@company.xx&gt;</code></pre>
-</div></div>
-<div class="paragraph"><p>Use hash <em>#</em> for comments that are either on their own line, or after
-the email address.</p></div>
+<div class="paragraph"><p>See <a href="gitmailmap.html">gitmailmap(5)</a>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1443,7 +1365,7 @@ the email address.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2021-03-15 15:56:49 PDT
 </div>
 </div>
 </body>

@@ -753,7 +753,7 @@ git(1) Manual Page
     [--exec-path[=&lt;path&gt;]] [--html-path] [--man-path] [--info-path]
     [-p|--paginate|-P|--no-pager] [--no-replace-objects] [--bare]
     [--git-dir=&lt;path&gt;] [--work-tree=&lt;path&gt;] [--namespace=&lt;name&gt;]
-    [--super-prefix=&lt;path&gt;]
+    [--super-prefix=&lt;path&gt;] [--config-env &lt;name&gt;=&lt;envvar&gt;]
     &lt;command&gt; [&lt;args&gt;]</pre>
 <div class="attribution">
 </div></div>
@@ -841,6 +841,31 @@ git --git-dir=c/a.git --work-tree=c/b status</code></pre>
 config file). Including the equals but with an empty value (like <code>git -c
 foo.bar= ...</code>) sets <code>foo.bar</code> to the empty string which <code>git config
 --type=bool</code> will convert to <code>false</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+--config-env=&lt;name&gt;=&lt;envvar&gt;
+</dt>
+<dd>
+<p>
+        Like <code>-c &lt;name&gt;=&lt;value&gt;</code>, give configuration variable
+        <em>&lt;name&gt;</em> a value, where &lt;envvar&gt; is the name of an
+        environment variable from which to retrieve the value. Unlike
+        <code>-c</code> there is no shortcut for directly setting the value to an
+        empty string, instead the environment variable itself must be
+        set to the empty string.  It is an error if the <code>&lt;envvar&gt;</code> does not exist
+        in the environment. <code>&lt;envvar&gt;</code> may not contain an equals sign
+        to avoid ambiguity with <code>&lt;name&gt;</code> containing one.
+</p>
+<div class="paragraph"><p>This is useful for cases where you want to pass transitory
+configuration options to git, but are doing so on OS&#8217;s where
+other processes might be able to read your cmdline
+(e.g. <code>/proc/self/cmdline</code>), but not your environ
+(e.g. <code>/proc/self/environ</code>). That behavior is the default on
+Linux, but may not be on your system.</p></div>
+<div class="paragraph"><p>Note that this might add security for variables such as
+<code>http.extraHeader</code> where the sensitive information is part of
+the value, but not e.g. <code>url.&lt;base&gt;.insteadOf</code> where the
+sensitive information can be part of the key.</p></div>
 </dd>
 <dt class="hdlist1">
 --exec-path[=&lt;path&gt;]
@@ -1835,7 +1860,7 @@ repositories.</p></div>
 </dt>
 <dd>
 <p>
-        Creates a tag object.
+        Creates a tag object with extra validation.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1969,6 +1994,14 @@ repositories.</p></div>
 <dd>
 <p>
         Output information on each ref.
+</p>
+</dd>
+<dt class="hdlist1">
+<a href="git-for-each-repo.html">git-for-each-repo(1)</a>
+</dt>
+<dd>
+<p>
+        Run a Git command on a list of repositories.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2148,14 +2181,6 @@ typically do not use them directly.</p></div>
 <dd>
 <p>
         Push objects over HTTP/DAV to another repository.
-</p>
-</dd>
-<dt class="hdlist1">
-<a href="git-parse-remote.html">git-parse-remote(1)</a>
-</dt>
-<dd>
-<p>
-        Routines to help parsing remote repository access parameters.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2428,6 +2453,14 @@ users typically do not use them directly.</p></div>
 <dd>
 <p>
         Specifies intentionally untracked files to ignore.
+</p>
+</dd>
+<dt class="hdlist1">
+<a href="gitmailmap.html">gitmailmap(5)</a>
+</dt>
+<dd>
+<p>
+        Map author/committer names and/or E-Mail addresses.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3021,8 +3054,8 @@ parameter, &lt;path&gt;.</p></div>
 <p>
         This environment variable overrides the configured Git editor
         when editing the todo list of an interactive rebase. See also
-        linkit::git-rebase[1] and the <code>sequence.editor</code> option in
-        linkit::git-config[1].
+        <a href="git-rebase.html">git-rebase(1)</a> and the <code>sequence.editor</code> option in
+        <a href="git-config.html">git-config(1)</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3580,7 +3613,7 @@ the Git Security mailing list &lt;<a href="mailto:git-security@googlegroups.com"
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-10-13 17:54:12 PDT
+ 2021-03-30 23:01:44 PDT
 </div>
 </div>
 </body>

@@ -842,8 +842,10 @@ list
 <p>
 List details of each working tree.  The main working tree is listed first,
 followed by each of the linked working trees.  The output details include
-whether the working tree is bare, the revision currently checked out, and the
-branch currently checked out (or "detached HEAD" if none).
+whether the working tree is bare, the revision currently checked out, the
+branch currently checked out (or "detached HEAD" if none), "locked" if
+the worktree is locked, "prunable" if the worktree can be pruned by <code>prune</code>
+command.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -907,6 +909,10 @@ locate it. Running <code>repair</code> within the recently-moved working tree wi
 reestablish the connection. If multiple linked working trees are moved,
 running <code>repair</code> from any working tree with each tree&#8217;s new <code>&lt;path&gt;</code> as
 an argument, will reestablish the connection to all the specified paths.</p></div>
+<div class="paragraph"><p>If both the main working tree and linked working trees have been moved
+manually, then running <code>repair</code> in the main working tree and specifying the
+new <code>&lt;path&gt;</code> of each linked working tree will reestablish all connections
+in both directions.</p></div>
 </dd>
 <dt class="hdlist1">
 unlock
@@ -1062,6 +1068,7 @@ To remove a locked working tree, specify <code>--force</code> twice.</p></div>
 <p>
         With <code>prune</code>, report all removals.
 </p>
+<div class="paragraph"><p>With <code>list</code>, output additional information about worktrees (see below).</p></div>
 </dd>
 <dt class="hdlist1">
 --expire &lt;time&gt;
@@ -1070,6 +1077,8 @@ To remove a locked working tree, specify <code>--force</code> twice.</p></div>
 <p>
         With <code>prune</code>, only expire unused working trees older than <code>&lt;time&gt;</code>.
 </p>
+<div class="paragraph"><p>With <code>list</code>, annotate missing working trees as prunable if they are
+older than <code>&lt;time&gt;</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 --reason &lt;string&gt;
@@ -1221,13 +1230,52 @@ details on a single line with columns.  For example:</p></div>
 /path/to/linked-worktree        abcd1234 [master]
 /path/to/other-linked-worktree  1234abc  (detached HEAD)</code></pre>
 </div></div>
+<div class="paragraph"><p>The command also shows annotations for each working tree, according to its state.
+These annotations are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>locked</code>, if the working tree is locked.
+</p>
+</li>
+<li>
+<p>
+<code>prunable</code>, if the working tree can be pruned via <code>git worktree prune</code>.
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git worktree list
+/path/to/linked-worktree    abcd1234 [master]
+/path/to/locked-worktreee   acbd5678 (brancha) locked
+/path/to/prunable-worktree  5678abc  (detached HEAD) prunable</code></pre>
+</div></div>
+<div class="paragraph"><p>For these annotations, a reason might also be available and this can be
+seen using the verbose mode. The annotation is then moved to the next line
+indented followed by the additional information.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git worktree list --verbose
+/path/to/linked-worktree              abcd1234 [master]
+/path/to/locked-worktree-no-reason    abcd5678 (detached HEAD) locked
+/path/to/locked-worktree-with-reason  1234abcd (brancha)
+        locked: working tree path is mounted on a portable device
+/path/to/prunable-worktree            5678abc1 (detached HEAD)
+        prunable: gitdir file points to non-existent location</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that the annotation is moved to the next line if the additional
+information is available, otherwise it stays on the same line as the
+working tree itself.</p></div>
 <div class="sect2">
 <h3 id="_porcelain_format">Porcelain Format</h3>
 <div class="paragraph"><p>The porcelain format has a line per attribute.  Attributes are listed with a
 label and value separated by a single space.  Boolean attributes (like <code>bare</code>
 and <code>detached</code>) are listed as a label only, and are present only
-if the value is true.  The first attribute of a working tree is always
-<code>worktree</code>, an empty line indicates the end of the record.  For example:</p></div>
+if the value is true.  Some attributes (like <code>locked</code>) can be listed as a label
+only or with a value depending upon whether a reason is available.  The first
+attribute of a working tree is always <code>worktree</code>, an empty line indicates the
+end of the record.  For example:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git worktree list --porcelain
@@ -1240,7 +1288,33 @@ branch refs/heads/master
 
 worktree /path/to/other-linked-worktree
 HEAD 1234abc1234abc1234abc1234abc1234abc1234a
-detached</code></pre>
+detached
+
+worktree /path/to/linked-worktree-locked-no-reason
+HEAD 5678abc5678abc5678abc5678abc5678abc5678c
+branch refs/heads/locked-no-reason
+locked
+
+worktree /path/to/linked-worktree-locked-with-reason
+HEAD 3456def3456def3456def3456def3456def3456b
+branch refs/heads/locked-with-reason
+locked reason why is locked
+
+worktree /path/to/linked-worktree-prunable
+HEAD 1233def1234def1234def1234def1234def1234b
+detached
+prunable gitdir file points to non-existent location</code></pre>
+</div></div>
+<div class="paragraph"><p>If the lock reason contains "unusual" characters such as newline, they
+are escaped and the entire reason is quoted as explained for the
+configuration variable <code>core.quotePath</code> (see <a href="git-config.html">git-config(1)</a>).
+For Example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git worktree list --porcelain
+...
+locked "reason\nwhy is locked"
+...</code></pre>
 </div></div>
 </div>
 </div>
@@ -1286,7 +1360,7 @@ checkouts of a superproject.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-10-13 17:54:12 PDT
+ 2021-03-15 15:56:49 PDT
 </div>
 </div>
 </body>

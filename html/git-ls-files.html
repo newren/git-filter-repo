@@ -753,13 +753,14 @@ git-ls-files(1) Manual Page
                 (--[cached|deleted|others|ignored|stage|unmerged|killed|modified])*
                 (-[c|d|o|i|s|u|k|m])*
                 [--eol]
+                [--deduplicate]
                 [-x &lt;pattern&gt;|--exclude=&lt;pattern&gt;]
                 [-X &lt;file&gt;|--exclude-from=&lt;file&gt;]
                 [--exclude-per-directory=&lt;file&gt;]
                 [--exclude-standard]
                 [--error-unmatch] [--with-tree=&lt;tree-ish&gt;]
                 [--full-name] [--recurse-submodules]
-                [--abbrev] [--] [&lt;file&gt;&#8230;]</pre>
+                [--abbrev[=&lt;n&gt;]] [--] [&lt;file&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -767,9 +768,8 @@ git-ls-files(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This merges the file listing in the directory cache index with the
-actual working directory list, and shows different combinations of the
-two.</p></div>
+<div class="paragraph"><p>This merges the file listing in the index with the actual working
+directory list, and shows different combinations of the two.</p></div>
 <div class="paragraph"><p>One or more of the options below may be used to determine the files
 shown:</p></div>
 </div>
@@ -896,6 +896,18 @@ shown:</p></div>
 <p>
         \0 line termination on output and do not quote filenames.
         See OUTPUT below for more information.
+</p>
+</dd>
+<dt class="hdlist1">
+--deduplicate
+</dt>
+<dd>
+<p>
+        When only filenames are shown, suppress duplicates that may
+        come from having multiple stages during a merge, or giving
+        <code>--deleted</code> and <code>--modified</code> option at the same time.
+        When any of the <code>-t</code>, <code>--unmerged</code>, or <code>--stage</code> option is
+        in use, this option has no effect.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1083,7 +1095,8 @@ other
 <dd>
 <p>
         Instead of showing the full 40-byte hexadecimal object
-        lines, show only a partial prefix.
+        lines, show the shortest prefix that is at least <em>&lt;n&gt;</em>
+        hexdigits long that uniquely refers the object.
         Non default number of digits can be specified with --abbrev=&lt;n&gt;.
 </p>
 </dd>
@@ -1218,7 +1231,7 @@ pattern file appears in.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-15 15:56:49 PDT
 </div>
 </div>
 </body>

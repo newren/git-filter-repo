@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.10" />
-<title>git-parse-remote(1)</title>
+<title>gitmailmap(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -735,12 +735,12 @@ asciidoc.install();
 <body class="manpage">
 <div id="header">
 <h1>
-git-parse-remote(1) Manual Page
+gitmailmap(5) Manual Page
 </h1>
 <h2>NAME</h2>
 <div class="sectionbody">
-<p>git-parse-remote -
-   Routines to help parsing remote repository access parameters
+<p>gitmailmap -
+   Map author/committer names and/or E-Mail addresses
 </p>
 </div>
 </div>
@@ -748,19 +748,129 @@ git-parse-remote(1) Manual Page
 <div class="sect1">
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
-<div class="verseblock">
-<pre class="content"><em>. "$(git --exec-path)/git-parse-remote"</em></pre>
-<div class="attribution">
-</div></div>
+<div class="paragraph"><p>$GIT_WORK_TREE/.mailmap</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This script is included in various scripts to supply
-routines to parse files under $GIT_DIR/remotes/ and
-$GIT_DIR/branches/ and configuration variables that are related
-to fetching, pulling and pushing.</p></div>
+<div class="paragraph"><p>If the file <code>.mailmap</code> exists at the toplevel of the repository, or at
+the location pointed to by the <code>mailmap.file</code> or <code>mailmap.blob</code>
+configuration options (see <a href="git-config.html">git-config(1)</a>), it
+is used to map author and committer names and email addresses to
+canonical real names and email addresses.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_syntax">SYNTAX</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <em>#</em> character begins a comment to the end of line, blank lines
+are ignored.</p></div>
+<div class="paragraph"><p>In the simple form, each line in the file consists of the canonical
+real name of an author, whitespace, and an email address used in the
+commit (enclosed by <em>&lt;</em> and <em>&gt;</em>) to map to the name. For example:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre><code>Proper Name &lt;commit@email.xx&gt;</code></pre>
+</div></div>
+</div></div>
+<div class="paragraph"><p>The more complex forms are:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;proper@email.xx&gt; &lt;commit@email.xx&gt;</code></pre>
+</div></div>
+</div></div>
+<div class="paragraph"><p>which allows mailmap to replace only the email part of a commit, and:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre><code>Proper Name &lt;proper@email.xx&gt; &lt;commit@email.xx&gt;</code></pre>
+</div></div>
+</div></div>
+<div class="paragraph"><p>which allows mailmap to replace both the name and the email of a
+commit matching the specified commit email address, and:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre><code>Proper Name &lt;proper@email.xx&gt; Commit Name &lt;commit@email.xx&gt;</code></pre>
+</div></div>
+</div></div>
+<div class="paragraph"><p>which allows mailmap to replace both the name and the email of a
+commit matching both the specified commit name and email address.</p></div>
+<div class="paragraph"><p>Both E-Mails and names are matched case-insensitively. For example
+this would also match the <em>Commit Name &lt;commit&#64;email.xx&gt;</em> above:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre><code>Proper Name &lt;proper@email.xx&gt; CoMmIt NaMe &lt;CoMmIt@EmAiL.xX&gt;</code></pre>
+</div></div>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Your history contains commits by two authors, Jane
+and Joe, whose names appear in the repository under several forms:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Joe Developer &lt;joe@example.com&gt;
+Joe R. Developer &lt;joe@example.com&gt;
+Jane Doe &lt;jane@example.com&gt;
+Jane Doe &lt;jane@laptop.(none)&gt;
+Jane D. &lt;jane@desktop.(none)&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Now suppose that Joe wants his middle name initial used, and Jane
+prefers her family name fully spelled out. A <code>.mailmap</code> file to
+correct the names would look like:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Joe R. Developer &lt;joe@example.com&gt;
+Jane Doe &lt;jane@example.com&gt;
+Jane Doe &lt;jane@desktop.(none)&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that there&#8217;s no need to map the name for <em>&lt;jane&#64;laptop.(none)&gt;</em> to
+only correct the names. However, leaving the obviously broken
+<em>&lt;jane&#64;laptop.(none)&gt;</em> and <em>&lt;jane&#64;desktop.(none)&gt;</em> E-Mails as-is is
+usually not what you want. A <code>.mailmap</code> file which also corrects those
+is:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Joe R. Developer &lt;joe@example.com&gt;
+Jane Doe &lt;jane@example.com&gt; &lt;jane@laptop.(none)&gt;
+Jane Doe &lt;jane@example.com&gt; &lt;jane@desktop.(none)&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Finally, let&#8217;s say that Joe and Jane shared an E-Mail address, but not
+a name, e.g. by having these two commits in the history generated by a
+bug reporting system. I.e. names appearing in history as:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Joe &lt;bugs@example.com&gt;
+Jane &lt;bugs@example.com&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>A full <code>.mailmap</code> file which also handles those cases (an addition of
+two lines to the above example) would be:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Joe R. Developer &lt;joe@example.com&gt;
+Jane Doe &lt;jane@example.com&gt; &lt;jane@laptop.(none)&gt;
+Jane Doe &lt;jane@example.com&gt; &lt;jane@desktop.(none)&gt;
+Joe R. Developer &lt;joe@example.com&gt; Joe &lt;bugs@example.com&gt;
+Jane Doe &lt;jane@example.com&gt; Jane &lt;bugs@example.com&gt;</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="git-check-mailmap.html">git-check-mailmap(1)</a></p></div>
 </div>
 </div>
 <div class="sect1">
@@ -774,7 +884,7 @@ to fetching, pulling and pushing.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2017-12-22 18:32:40 PST
+ 2021-03-30 23:01:44 PDT
 </div>
 </div>
 </body>

@@ -802,8 +802,8 @@ same as for <em>git diff-index</em> and <em>git diff-tree</em>.</p></div>
 <dd>
 <p>
         Generate diffs with &lt;n&gt; lines of context instead of
-        the usual three. Implies <code>--patch</code>.
-        Implies <code>-p</code>.
+        the usual three.
+        Implies <code>--patch</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1501,7 +1501,8 @@ override configuration settings.</p></div>
 <dd>
 <p>
         In addition to <code>--full-index</code>, output a binary diff that
-        can be applied with <code>git-apply</code>. Implies <code>--patch</code>.
+        can be applied with <code>git-apply</code>.
+        Implies <code>--patch</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1511,7 +1512,8 @@ override configuration settings.</p></div>
 <p>
         Instead of showing the full 40-byte hexadecimal object
         name in diff-raw format output and diff-tree header
-        lines, show only a partial prefix.
+        lines, show the shortest prefix that is at least <em>&lt;n&gt;</em>
+        hexdigits long that uniquely refers the object.
         In diff-patch output format, <code>--full-index</code> takes higher
         precedence, i.e. if <code>--full-index</code> is specified, full blob
         names will be shown regardless of <code>--abbrev</code>.
@@ -1772,6 +1774,21 @@ components matches the pattern.  For example, the pattern "<code>foo*bar</code>"
 matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<code>foobarx</code>".</p></div>
 </dd>
 <dt class="hdlist1">
+--skip-to=&lt;file&gt;
+</dt>
+<dt class="hdlist1">
+--rotate-to=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Discard the files before the named &lt;file&gt; from the output
+        (i.e. <em>skip to</em>), or move them to the end of the output
+        (i.e. <em>rotate to</em>).  These were invented primarily for use
+        of the <code>git difftool</code> command, and may not be very useful
+        otherwise.
+</p>
+</dd>
+<dt class="hdlist1">
 -R
 </dt>
 <dd>
@@ -1860,6 +1877,18 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </p>
 </dd>
 <dt class="hdlist1">
+-I&lt;regex&gt;
+</dt>
+<dt class="hdlist1">
+--ignore-matching-lines=&lt;regex&gt;
+</dt>
+<dd>
+<p>
+        Ignore changes whose all lines match &lt;regex&gt;.  This option may
+        be specified more than once.
+</p>
+</dd>
+<dt class="hdlist1">
 --inter-hunk-context=&lt;lines&gt;
 </dt>
 <dd>
@@ -1878,7 +1907,10 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </dt>
 <dd>
 <p>
-        Show whole surrounding functions of changes.
+        Show whole function as context lines for each change.
+        The function names are determined in the same way as
+        <code>git diff</code> works out patch hunk headers (see <em>Defining a
+        custom hunk-header</em> in <a href="gitattributes.html">gitattributes(5)</a>).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2394,9 +2426,9 @@ rename to a</code></pre>
 <div class="paragraph"><p>Any diff-generating command can take the <code>-c</code> or <code>--cc</code> option to
 produce a <em>combined diff</em> when showing a merge. This is the default
 format when showing merges with <a href="git-diff.html">git-diff(1)</a> or
-<a href="git-show.html">git-show(1)</a>. Note also that you can give the <code>-m</code> option to any
-of these commands to force generation of diffs with individual parents
-of a merge.</p></div>
+<a href="git-show.html">git-show(1)</a>. Note also that you can give suitable
+<code>--diff-merges</code> option to any of these commands to force generation of
+diffs in specific format.</p></div>
 <div class="paragraph"><p>A "combined diff" format looks like this:</p></div>
 <div class="listingblock">
 <div class="content">

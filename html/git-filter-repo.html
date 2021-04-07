@@ -838,8 +838,9 @@ pruning commits which become empty due to the above filters (also
 <li>
 <p>
 creating replace-refs (see <a href="git-replace.html">git-replace(1)</a>) for old commit
-    hashes, which if pushed and fetched will allow users to continue to
-    refer to new commits using (unabbreviated) old commit IDs
+    hashes, which if manually pushed and fetched will allow users to
+    continue to refer to new commits using (unabbreviated) old commit
+    IDs
 </p>
 </li>
 <li>
@@ -1689,7 +1690,11 @@ Finally, you&#8217;ll need to consult any documentation from your
      hosting provider about how to remove any server-side references
      to the old commits (example:
      <a href="https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html">GitLab&#8217;s
-     docs on reducing repository size</a>).
+     excellent docs on reducing repository size</a>, or just the warning
+     box that references "GitHub support" from
+     <a href="https://docs.github.com/en/github/authenticating-to-github/removing-sensitive-data-from-a-repository">GitHub&#8217;s
+     otherwise dangerously out-of-date docs on removing sensitive
+     data</a>).
 </p>
 </li>
 </ul></div>
@@ -1703,15 +1708,23 @@ Finally, you&#8217;ll need to consult any documentation from your
 <p>
 filter-repo by default creates replace refs (see
      <a href="git-replace.html">git-replace(1)</a>) for each rewritten commit ID, allowing
-     you to use old (unabbreviated) commit hashes to refer to the
-     newly rewritten commits.  If you want to use these replace refs,
-     push them to the relevant clone URL and tell users to adjust
-     their fetch refspec (e.g. <code>git config --add remote.origin.fetch
-     +refs/replace/*:refs/replace/*</code>) Sadly, some existing git servers
-     (e.g. Gerrit, GitHub) do not yet understand replace refs, and
-     thus one can&#8217;t use old commit hashes within their UI; this may
-     change in the future.  But replace refs at least help users
-     locally within the git CLI.
+     you to use old (unabbreviated) commit hashes in the git command
+     line to refer to the newly rewritten commits.  If you want to use
+     these replace refs, manually push them to the relevant clone URL
+     and tell users to manually fetch them (e.g. by adjusting their
+     fetch refspec, <code>git config --add remote.origin.fetch
+     +refs/replace/*:refs/replace/*</code>).  Sadly, replace refs are not
+     yet widely understood; projects like jgit and libgit2 do not
+     support them and existing repository managers (e.g. Gerrit,
+     GitHub, GitLab) do not yet understand replace refs.  Thus one
+     can&#8217;t use old commit hashes within the UI of these other systems.
+     This may change in the future, but replace refs at least help
+     users locally within the git command line interface.  Also, be
+     aware that commit-graphs are excessively cautious around replace
+     refs and just turn off entirely if any are present, so after
+     enough time has passed that old commit IDs become less relevant,
+     users may want to locally delete the replace refs to regain the
+     speedups from commit-graphs.
 </p>
 </li>
 <li>
@@ -2666,7 +2679,7 @@ I assume that people use filter-repo for one-shot conversions, not
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-10-19 08:10:08 PDT
+ 2021-04-07 11:14:39 PDT
 </div>
 </div>
 </body>

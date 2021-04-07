@@ -1194,6 +1194,20 @@ explicitly.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--disk-usage
+</dt>
+<dd>
+<p>
+        Suppress normal output; instead, print the sum of the bytes used
+        for on-disk storage by the selected commits or objects. This is
+        equivalent to piping the output into <code>git cat-file
+        --batch-check='%(objectsize:disk)'</code>, except that it runs much
+        faster (especially with <code>--use-bitmap-index</code>). See the <code>CAVEATS</code>
+        section in <a href="git-cat-file.html">git-cat-file(1)</a> for the limitations of what
+        "on-disk storage" means.
+</p>
+</dd>
+<dt class="hdlist1">
 --cherry-mark
 </dt>
 <dd>
@@ -2207,9 +2221,9 @@ configuration (see <a href="git-config.html">git-config(1)</a>).</p></div>
 <dd>
 <p>
         Instead of showing the full 40-byte hexadecimal commit object
-        name, show only a partial prefix.  Non default number of
-        digits can be specified with "--abbrev=&lt;n&gt;" (which also modifies
-        diff output, if it is displayed).
+        name, show a prefix that names the object uniquely.
+        "--abbrev=&lt;n&gt;" (which also modifies diff output, if it is displayed)
+        option can be used to specify the minimum length of the prefix.
 </p>
 <div class="paragraph"><p>This should make "--pretty=oneline" a whole lot more readable for
 people using 80-column terminals.</p></div>
@@ -3284,8 +3298,14 @@ display the trailers of the body as
                           interpreted by
                           <a href="git-interpret-trailers.html">git-interpret-trailers(1)</a>. The
                           <code>trailers</code> string may be followed by a colon
-                          and zero or more comma-separated options:
+                          and zero or more comma-separated options.
+                          If any option is provided multiple times the
+                          last occurance wins.
 </p>
+<div class="paragraph"><p>The boolean options accept an optional value <code>[=&lt;BOOL&gt;]</code>. The values
+<code>true</code>, <code>false</code>, <code>on</code>, <code>off</code> etc. are all accepted. See the "boolean"
+sub-section in "EXAMPLES" in <a href="git-config.html">git-config(1)</a>. If a boolean
+option is given with no value, it&#8217;s enabled.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -3301,12 +3321,8 @@ display the trailers of the body as
 </li>
 <li>
 <p>
-<em>only[=val]</em>: select whether non-trailer lines from the trailer
-   block should be included. The <code>only</code> keyword may optionally be
-   followed by an equal sign and one of <code>true</code>, <code>on</code>, <code>yes</code> to omit or
-   <code>false</code>, <code>off</code>, <code>no</code> to show the non-trailer lines. If option is
-   given without value it is enabled. If given multiple times the last
-   value is used.
+<em>only[=&lt;BOOL&gt;]</em>: select whether non-trailer lines from the trailer
+   block should be included.
 </p>
 </li>
 <li>
@@ -3316,24 +3332,34 @@ display the trailers of the body as
    terminated with a line feed character. The string SEP may contain
    the literal formatting codes described above. To use comma as
    separator one must use <code>%x2C</code> as it would otherwise be parsed as
-   next option. If separator option is given multiple times only the
-   last one is used. E.g., <code>%(trailers:key=Ticket,separator=%x2C )</code>
+   next option. E.g., <code>%(trailers:key=Ticket,separator=%x2C )</code>
    shows all trailer lines whose key is "Ticket" separated by a comma
    and a space.
 </p>
 </li>
 <li>
 <p>
-<em>unfold[=val]</em>: make it behave as if interpret-trailer&#8217;s <code>--unfold</code>
-   option was given. In same way as to for <code>only</code> it can be followed
-   by an equal sign and explicit value. E.g.,
+<em>unfold[=&lt;BOOL&gt;]</em>: make it behave as if interpret-trailer&#8217;s <code>--unfold</code>
+   option was given. E.g.,
    <code>%(trailers:only,unfold=true)</code> unfolds and shows all trailer lines.
 </p>
 </li>
 <li>
 <p>
-<em>valueonly[=val]</em>: skip over the key part of the trailer line and only
-   show the value part. Also this optionally allows explicit value.
+<em>keyonly[=&lt;BOOL&gt;]</em>: only show the key part of the trailer.
+</p>
+</li>
+<li>
+<p>
+<em>valueonly[=&lt;BOOL&gt;]</em>: only show the value part of the trailer.
+</p>
+</li>
+<li>
+<p>
+<em>key_value_separator=&lt;SEP&gt;</em>: specify a separator inserted between
+   trailer lines. When this option is not given each trailer key-value
+   pair is separated by ": ". Otherwise it shares the same semantics
+   as <em>separator=&lt;SEP&gt;</em> above.
 </p>
 </li>
 </ul></div>
@@ -3402,6 +3428,133 @@ $ git log -2 --pretty=%h 4da45bef</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_examples">EXAMPLES</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Print the list of commits reachable from the current branch.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list HEAD</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Print the list of commits on this branch, but not present in the
+  upstream branch.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list @{upstream}..HEAD</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Format commits with their author and commit message (see also the
+  porcelain <a href="git-log.html">git-log(1)</a>).
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list --format=medium HEAD</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Format commits along with their diffs (see also the porcelain
+  <a href="git-log.html">git-log(1)</a>, which can do this in a single process).
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list HEAD |
+git diff-tree --stdin --format=medium -p</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Print the list of commits on the current branch that touched any
+  file in the <code>Documentation</code> directory.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list HEAD -- Documentation/</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Print the list of commits authored by you in the past year, on
+  any branch, tag, or other ref.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list --author=you@example.com --since=1.year.ago --all</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Print the list of objects reachable from the current branch (i.e., all
+  commits and the blobs and trees they contain).
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list --objects HEAD</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Compare the disk size of all reachable objects, versus those
+  reachable from reflogs, versus the total packed size. This can tell
+  you whether running <code>git repack -ad</code> might reduce the repository size
+  (by dropping unreachable objects), and whether expiring reflogs might
+  help.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code># reachable objects
+git rev-list --disk-usage --objects --all
+# plus reflogs
+git rev-list --disk-usage --objects --all --reflog
+# total disk size used
+du -c .git/objects/pack/*.pack .git/objects/??/*
+# alternative to du: add up "size" and "size-pack" fields
+git count-objects -v</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Report the disk size of each branch, not including objects used by the
+  current branch. This can find outliers that are contributing to a
+  bloated repository size (e.g., because somebody accidentally committed
+  large build artifacts).
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git for-each-ref --format='%(refname)' |
+while read branch
+do
+        size=$(git rev-list --disk-usage --objects HEAD..$branch)
+        echo "$size $branch"
+done |
+sort -n</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Compare the on-disk size of branches in one group of refs, excluding
+  another. If you co-mingle objects from multiple remotes in a single
+  repository, this can show which remotes are contributing to the
+  repository size (taking the size of <code>origin</code> as a baseline).
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>git rev-list --disk-usage --objects --remotes=$suspect --not --remotes=origin</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
@@ -3412,7 +3565,7 @@ $ git log -2 --pretty=%h 4da45bef</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-30 23:01:44 PDT
 </div>
 </div>
 </body>

@@ -768,6 +768,7 @@ git-format-patch(1) Manual Page
                    [--no-notes | --notes[=&lt;ref&gt;]]
                    [--interdiff=&lt;previous&gt;]
                    [--range-diff=&lt;previous&gt; [--creation-factor=&lt;percent&gt;]]
+                   [--filename-max-length=&lt;n&gt;]
                    [--progress]
                    [&lt;common diff options&gt;]
                    [ &lt;since&gt; | &lt;revision range&gt; ]</pre>
@@ -853,7 +854,7 @@ reference.</p></div>
 <dd>
 <p>
         Generate diffs with &lt;n&gt; lines of context instead of
-        the usual three. Implies <code>--patch</code>.
+        the usual three.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1183,7 +1184,7 @@ and accumulating child directory counts in the parent directories:
 <dd>
 <p>
         In addition to <code>--full-index</code>, output a binary diff that
-        can be applied with <code>git-apply</code>. Implies <code>--patch</code>.
+        can be applied with <code>git-apply</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1193,7 +1194,8 @@ and accumulating child directory counts in the parent directories:
 <p>
         Instead of showing the full 40-byte hexadecimal object
         name in diff-raw format output and diff-tree header
-        lines, show only a partial prefix.
+        lines, show the shortest prefix that is at least <em>&lt;n&gt;</em>
+        hexdigits long that uniquely refers the object.
         In diff-patch output format, <code>--full-index</code> takes higher
         precedence, i.e. if <code>--full-index</code> is specified, full blob
         names will be shown regardless of <code>--abbrev</code>.
@@ -1357,6 +1359,21 @@ components matches the pattern.  For example, the pattern "<code>foo*bar</code>"
 matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<code>foobarx</code>".</p></div>
 </dd>
 <dt class="hdlist1">
+--skip-to=&lt;file&gt;
+</dt>
+<dt class="hdlist1">
+--rotate-to=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Discard the files before the named &lt;file&gt; from the output
+        (i.e. <em>skip to</em>), or move them to the end of the output
+        (i.e. <em>rotate to</em>).  These were invented primarily for use
+        of the <code>git difftool</code> command, and may not be very useful
+        otherwise.
+</p>
+</dd>
+<dt class="hdlist1">
 --relative[=&lt;path&gt;]
 </dt>
 <dt class="hdlist1">
@@ -1436,6 +1453,18 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </p>
 </dd>
 <dt class="hdlist1">
+-I&lt;regex&gt;
+</dt>
+<dt class="hdlist1">
+--ignore-matching-lines=&lt;regex&gt;
+</dt>
+<dd>
+<p>
+        Ignore changes whose all lines match &lt;regex&gt;.  This option may
+        be specified more than once.
+</p>
+</dd>
+<dt class="hdlist1">
 --inter-hunk-context=&lt;lines&gt;
 </dt>
 <dd>
@@ -1454,7 +1483,10 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </dt>
 <dd>
 <p>
-        Show whole surrounding functions of changes.
+        Show whole function as context lines for each change.
+        The function names are determined in the same way as
+        <code>git diff</code> works out patch hunk headers (see <em>Defining a
+        custom hunk-header</em> in <a href="gitattributes.html">gitattributes(5)</a>).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1639,7 +1671,7 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </dt>
 <dd>
 <p>
-        Add <code>Signed-off-by:</code> line to the commit message, using
+        Add a <code>Signed-off-by</code> trailer to the commit message, using
         the committer identity of yourself.
         See the signoff option in <a href="git-commit.html">git-commit(1)</a> for more information.
 </p>
@@ -1759,6 +1791,18 @@ populated with placeholder text.</p></div>
         line, instead use <em>[&lt;subject prefix&gt;]</em>. This
         allows for useful naming of a patch series, and can be
         combined with the <code>--numbered</code> option.
+</p>
+</dd>
+<dt class="hdlist1">
+--filename-max-length=&lt;n&gt;
+</dt>
+<dd>
+<p>
+        Instead of the standard 64 bytes, chomp the generated output
+        filenames at around <em>&lt;n&gt;</em> bytes (too short a value will be
+        silently raised to a reasonable length).  Defaults to the
+        value of the <code>format.filenameMaxLength</code> configuration
+        variable, or 64 if unconfigured.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2479,7 +2523,7 @@ Extract three topmost commits from the current branch and format them
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-15 15:56:49 PDT
 </div>
 </div>
 </body>

@@ -915,6 +915,9 @@ names an existing object that is a commit-ish (i.e. a commit, or an
 annotated tag that points at a commit).  To make sure that <code>$VAR</code>
 names an existing object of any type, <code>git rev-parse "$VAR^{object}"</code>
 can be used.</p></div>
+<div class="paragraph"><p>Note that if you are verifying a name from an untrusted source, it is
+wise to use <code>--end-of-options</code> so that the name argument is not mistaken
+for another option.</p></div>
 </dd>
 <dt class="hdlist1">
 -q
@@ -1088,6 +1091,23 @@ explicitly.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--path-format=(absolute|relative)
+</dt>
+<dd>
+<p>
+        Controls the behavior of certain other options. If specified as absolute, the
+        paths printed by those options will be absolute and canonical. If specified as
+        relative, the paths will be relative to the current working directory if that
+        is possible.  The default is option specific.
+</p>
+<div class="paragraph"><p>This option may be specified multiple times and affects only the arguments that
+follow it on the command line, either to the end of the command line or the next
+instance of this option.</p></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The following options are modified by <code>--path-format</code>:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
 --git-dir
 </dt>
 <dd>
@@ -1101,20 +1121,75 @@ is not detected to lie in a Git repository or work tree
 print a message to stderr and exit with nonzero status.</p></div>
 </dd>
 <dt class="hdlist1">
+--git-common-dir
+</dt>
+<dd>
+<p>
+        Show <code>$GIT_COMMON_DIR</code> if defined, else <code>$GIT_DIR</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--resolve-git-dir &lt;path&gt;
+</dt>
+<dd>
+<p>
+        Check if &lt;path&gt; is a valid repository or a gitfile that
+        points at a valid repository, and print the location of the
+        repository.  If &lt;path&gt; is a gitfile then the resolved path
+        to the real repository is printed.
+</p>
+</dd>
+<dt class="hdlist1">
+--git-path &lt;path&gt;
+</dt>
+<dd>
+<p>
+        Resolve "$GIT_DIR/&lt;path&gt;" and takes other path relocation
+        variables such as $GIT_OBJECT_DIRECTORY,
+        $GIT_INDEX_FILE&#8230; into account. For example, if
+        $GIT_OBJECT_DIRECTORY is set to /foo/bar then "git rev-parse
+        --git-path objects/abc" returns /foo/bar/abc.
+</p>
+</dd>
+<dt class="hdlist1">
+--show-toplevel
+</dt>
+<dd>
+<p>
+        Show the (by default, absolute) path of the top-level directory
+        of the working tree. If there is no working tree, report an error.
+</p>
+</dd>
+<dt class="hdlist1">
+--show-superproject-working-tree
+</dt>
+<dd>
+<p>
+        Show the absolute path of the root of the superproject&#8217;s
+        working tree (if exists) that uses the current repository as
+        its submodule.  Outputs nothing if the current repository is
+        not used as a submodule by any project.
+</p>
+</dd>
+<dt class="hdlist1">
+--shared-index-path
+</dt>
+<dd>
+<p>
+        Show the path to the shared index file in split index mode, or
+        empty if not in split-index mode.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The following options are unaffected by <code>--path-format</code>:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
 --absolute-git-dir
 </dt>
 <dd>
 <p>
         Like <code>--git-dir</code>, but its output is always the canonicalized
         absolute path.
-</p>
-</dd>
-<dt class="hdlist1">
---git-common-dir
-</dt>
-<dd>
-<p>
-        Show <code>$GIT_COMMON_DIR</code> if defined, else <code>$GIT_DIR</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1152,29 +1227,6 @@ print a message to stderr and exit with nonzero status.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---resolve-git-dir &lt;path&gt;
-</dt>
-<dd>
-<p>
-        Check if &lt;path&gt; is a valid repository or a gitfile that
-        points at a valid repository, and print the location of the
-        repository.  If &lt;path&gt; is a gitfile then the resolved path
-        to the real repository is printed.
-</p>
-</dd>
-<dt class="hdlist1">
---git-path &lt;path&gt;
-</dt>
-<dd>
-<p>
-        Resolve "$GIT_DIR/&lt;path&gt;" and takes other path relocation
-        variables such as $GIT_OBJECT_DIRECTORY,
-        $GIT_INDEX_FILE&#8230; into account. For example, if
-        $GIT_OBJECT_DIRECTORY is set to /foo/bar then "git rev-parse
-        --git-path objects/abc" returns /foo/bar/abc.
-</p>
-</dd>
-<dt class="hdlist1">
 --show-cdup
 </dt>
 <dd>
@@ -1192,35 +1244,6 @@ print a message to stderr and exit with nonzero status.</p></div>
         When the command is invoked from a subdirectory, show the
         path of the current directory relative to the top-level
         directory.
-</p>
-</dd>
-<dt class="hdlist1">
---show-toplevel
-</dt>
-<dd>
-<p>
-        Show the absolute path of the top-level directory of the working
-        tree. If there is no working tree, report an error.
-</p>
-</dd>
-<dt class="hdlist1">
---show-superproject-working-tree
-</dt>
-<dd>
-<p>
-        Show the absolute path of the root of the superproject&#8217;s
-        working tree (if exists) that uses the current repository as
-        its submodule.  Outputs nothing if the current repository is
-        not used as a submodule by any project.
-</p>
-</dd>
-<dt class="hdlist1">
---shared-index-path
-</dt>
-<dd>
-<p>
-        Show the path to the shared index file in split index mode, or
-        empty if not in split-index mode.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1994,7 +2017,7 @@ Print the commit object name from the revision in the $REV shell variable:
 </p>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git rev-parse --verify $REV^{commit}</code></pre>
+<pre><code>$ git rev-parse --verify --end-of-options $REV^{commit}</code></pre>
 </div></div>
 <div class="paragraph"><p>This will error out if $REV is empty or not a valid revision.</p></div>
 </li>
@@ -2004,7 +2027,7 @@ Similar to above:
 </p>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git rev-parse --default master --verify $REV</code></pre>
+<pre><code>$ git rev-parse --default master --verify --end-of-options $REV</code></pre>
 </div></div>
 <div class="paragraph"><p>but if $REV is empty, the commit object name from master will be printed.</p></div>
 </li>
@@ -2022,7 +2045,7 @@ Similar to above:
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-15 15:56:49 PDT
 </div>
 </div>
 </body>

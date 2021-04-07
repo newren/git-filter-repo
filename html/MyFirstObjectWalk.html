@@ -961,28 +961,6 @@ For instance, <code>git log</code> takes advantage of <code>grep</code> and <cod
 its <code>init_log_defaults()</code> sets its own state (<code>decoration_style</code>) and asks
 <code>grep</code> and <code>diff</code> to initialize themselves by calling each of their
 initialization functions.</p></div>
-<div class="paragraph"><p>For our first example within <code>git walken</code>, we don&#8217;t intend to use any other
-components within Git, and we don&#8217;t have any configuration to do.  However, we
-may want to add some later, so for now, we can add an empty placeholder. Create
-a new function in <code>builtin/walken.c</code>:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>static void init_walken_defaults(void)
-{
-        /*
-         * We don't actually need the same components `git log` does; leave this
-         * empty for now.
-         */
-}</code></pre>
-</div></div>
-<div class="paragraph"><p>Make sure to add a line invoking it inside of <code>cmd_walken()</code>.</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
-{
-        init_walken_defaults();
-}</code></pre>
-</div></div>
 </div>
 <div class="sect3">
 <h4 id="_configuring_from_code_gitconfig_code">Configuring From <code>.gitconfig</code></h4>
@@ -1177,18 +1155,10 @@ from each commit if you&#8217;re curious; have a look at the functions available
 <div class="paragraph"><p>Next, let&#8217;s try to filter the commits we see based on their author. This is
 equivalent to running <code>git log --author=&lt;pattern&gt;</code>. We can add a filter by
 modifying <code>rev_info.grep_filter</code>, which is a <code>struct grep_opt</code>.</p></div>
-<div class="paragraph"><p>First some setup. Add <code>init_grep_defaults()</code> to <code>init_walken_defaults()</code> and add
-<code>grep_config()</code> to <code>git_walken_config()</code>:</p></div>
+<div class="paragraph"><p>First some setup. Add <code>grep_config()</code> to <code>git_walken_config()</code>:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>static void init_walken_defaults(void)
-{
-        init_grep_defaults(the_repository);
-}
-
-...
-
-static int git_walken_config(const char *var, const char *value, void *cb)
+<pre><code>static int git_walken_config(const char *var, const char *value, void *cb)
 {
         grep_config(var, value, cb);
         return git_default_config(var, value, cb);
@@ -1747,7 +1717,7 @@ Changed the display order of the filtered object walk
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-15 15:56:49 PDT
 </div>
 </div>
 </body>

@@ -885,6 +885,147 @@ success of the resolution after the custom tool has exited.</p></div>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+mergetool.&lt;tool&gt;.path
+</dt>
+<dd>
+<p>
+        Override the path for the given tool.  This is useful in case
+        your tool is not in the PATH.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.&lt;tool&gt;.cmd
+</dt>
+<dd>
+<p>
+        Specify the command to invoke the specified merge tool.  The
+        specified command is evaluated in shell with the following
+        variables available: <em>BASE</em> is the name of a temporary file
+        containing the common base of the files to be merged, if available;
+        <em>LOCAL</em> is the name of a temporary file containing the contents of
+        the file on the current branch; <em>REMOTE</em> is the name of a temporary
+        file containing the contents of the file from the branch being
+        merged; <em>MERGED</em> contains the name of the file to which the merge
+        tool should write the results of a successful merge.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.&lt;tool&gt;.hideResolved
+</dt>
+<dd>
+<p>
+        Allows the user to override the global <code>mergetool.hideResolved</code> value
+        for a specific tool. See <code>mergetool.hideResolved</code> for the full
+        description.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.&lt;tool&gt;.trustExitCode
+</dt>
+<dd>
+<p>
+        For a custom merge command, specify whether the exit code of
+        the merge command can be used to determine whether the merge was
+        successful.  If this is not set to true then the merge target file
+        timestamp is checked and the merge assumed to have been successful
+        if the file has been updated, otherwise the user is prompted to
+        indicate the success of the merge.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.meld.hasOutput
+</dt>
+<dd>
+<p>
+        Older versions of <code>meld</code> do not support the <code>--output</code> option.
+        Git will attempt to detect whether <code>meld</code> supports <code>--output</code>
+        by inspecting the output of <code>meld --help</code>.  Configuring
+        <code>mergetool.meld.hasOutput</code> will make Git skip these checks and
+        use the configured value instead.  Setting <code>mergetool.meld.hasOutput</code>
+        to <code>true</code> tells Git to unconditionally use the <code>--output</code> option,
+        and <code>false</code> avoids using <code>--output</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.meld.useAutoMerge
+</dt>
+<dd>
+<p>
+        When the <code>--auto-merge</code> is given, meld will merge all non-conflicting
+        parts automatically, highlight the conflicting parts and wait for
+        user decision.  Setting <code>mergetool.meld.useAutoMerge</code> to <code>true</code> tells
+        Git to unconditionally use the <code>--auto-merge</code> option with <code>meld</code>.
+        Setting this value to <code>auto</code> makes git detect whether <code>--auto-merge</code>
+        is supported and will only use <code>--auto-merge</code> when available.  A
+        value of <code>false</code> avoids using <code>--auto-merge</code> altogether, and is the
+        default value.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.hideResolved
+</dt>
+<dd>
+<p>
+        During a merge Git will automatically resolve as many conflicts as
+        possible and write the <em>MERGED</em> file containing conflict markers around
+        any conflicts that it cannot resolve; <em>LOCAL</em> and <em>REMOTE</em> normally
+        represent the versions of the file from before Git&#8217;s conflict
+        resolution. This flag causes <em>LOCAL</em> and <em>REMOTE</em> to be overwriten so
+        that only the unresolved conflicts are presented to the merge tool. Can
+        be configured per-tool via the <code>mergetool.&lt;tool&gt;.hideResolved</code>
+        configuration variable. Defaults to <code>false</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.keepBackup
+</dt>
+<dd>
+<p>
+        After performing a merge, the original file with conflict markers
+        can be saved as a file with a <code>.orig</code> extension.  If this variable
+        is set to <code>false</code> then this file is not preserved.  Defaults to
+        <code>true</code> (i.e. keep the backup files).
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.keepTemporaries
+</dt>
+<dd>
+<p>
+        When invoking a custom merge tool, Git uses a set of temporary
+        files to pass to the tool. If the tool returns an error and this
+        variable is set to <code>true</code>, then these temporary files will be
+        preserved, otherwise they will be removed after the tool has
+        exited. Defaults to <code>false</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.writeToTemp
+</dt>
+<dd>
+<p>
+        Git writes temporary <em>BASE</em>, <em>LOCAL</em>, and <em>REMOTE</em> versions of
+        conflicting files in the worktree by default.  Git will attempt
+        to use a temporary directory for these files when set <code>true</code>.
+        Defaults to <code>false</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+mergetool.prompt
+</dt>
+<dd>
+<p>
+        Prompt before each invocation of the merge resolution program.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_temporary_files">TEMPORARY FILES</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><code>git mergetool</code> creates <code>*.orig</code> backup files while resolving merges.
@@ -906,7 +1047,7 @@ are successfully merged.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2021-03-30 23:01:44 PDT
 </div>
 </div>
 </body>

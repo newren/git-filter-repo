@@ -750,7 +750,7 @@ git-diff-tree(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git diff-tree</em> [--stdin] [-m] [-s] [-v] [--no-commit-id] [--pretty]
-              [-t] [-r] [-c | --cc] [--combined-all-paths] [--root]
+              [-t] [-r] [-c | --cc] [--combined-all-paths] [--root] [--merge-base]
               [&lt;common diff options&gt;] &lt;tree-ish&gt; [&lt;tree-ish&gt;] [&lt;path&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
@@ -804,8 +804,8 @@ git-diff-tree(1) Manual Page
 <dd>
 <p>
         Generate diffs with &lt;n&gt; lines of context instead of
-        the usual three. Implies <code>--patch</code>.
-        Implies <code>-p</code>.
+        the usual three.
+        Implies <code>--patch</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1503,7 +1503,8 @@ override configuration settings.</p></div>
 <dd>
 <p>
         In addition to <code>--full-index</code>, output a binary diff that
-        can be applied with <code>git-apply</code>. Implies <code>--patch</code>.
+        can be applied with <code>git-apply</code>.
+        Implies <code>--patch</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1513,7 +1514,8 @@ override configuration settings.</p></div>
 <p>
         Instead of showing the full 40-byte hexadecimal object
         name in diff-raw format output and diff-tree header
-        lines, show only a partial prefix.
+        lines, show the shortest prefix that is at least <em>&lt;n&gt;</em>
+        hexdigits long that uniquely refers the object.
         In diff-patch output format, <code>--full-index</code> takes higher
         precedence, i.e. if <code>--full-index</code> is specified, full blob
         names will be shown regardless of <code>--abbrev</code>.
@@ -1774,6 +1776,21 @@ components matches the pattern.  For example, the pattern "<code>foo*bar</code>"
 matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<code>foobarx</code>".</p></div>
 </dd>
 <dt class="hdlist1">
+--skip-to=&lt;file&gt;
+</dt>
+<dt class="hdlist1">
+--rotate-to=&lt;file&gt;
+</dt>
+<dd>
+<p>
+        Discard the files before the named &lt;file&gt; from the output
+        (i.e. <em>skip to</em>), or move them to the end of the output
+        (i.e. <em>rotate to</em>).  These were invented primarily for use
+        of the <code>git difftool</code> command, and may not be very useful
+        otherwise.
+</p>
+</dd>
+<dt class="hdlist1">
 -R
 </dt>
 <dd>
@@ -1862,6 +1879,18 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </p>
 </dd>
 <dt class="hdlist1">
+-I&lt;regex&gt;
+</dt>
+<dt class="hdlist1">
+--ignore-matching-lines=&lt;regex&gt;
+</dt>
+<dd>
+<p>
+        Ignore changes whose all lines match &lt;regex&gt;.  This option may
+        be specified more than once.
+</p>
+</dd>
+<dt class="hdlist1">
 --inter-hunk-context=&lt;lines&gt;
 </dt>
 <dd>
@@ -1880,7 +1909,10 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </dt>
 <dd>
 <p>
-        Show whole surrounding functions of changes.
+        Show whole function as context lines for each change.
+        The function names are determined in the same way as
+        <code>git diff</code> works out patch hunk headers (see <em>Defining a
+        custom hunk-header</em> in <a href="gitattributes.html">gitattributes(5)</a>).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2047,6 +2079,16 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 </p>
 </dd>
 <dt class="hdlist1">
+--merge-base
+</dt>
+<dd>
+<p>
+        Instead of comparing the &lt;tree-ish&gt;s directly, use the merge
+        base between the two &lt;tree-ish&gt;s as the "before" side.  There
+        must be two &lt;tree-ish&gt;s given and they must both be commits.
+</p>
+</dd>
+<dt class="hdlist1">
 --stdin
 </dt>
 <dd>
@@ -2125,9 +2167,9 @@ configuration (see <a href="git-config.html">git-config(1)</a>).</p></div>
 <dd>
 <p>
         Instead of showing the full 40-byte hexadecimal commit object
-        name, show only a partial prefix.  Non default number of
-        digits can be specified with "--abbrev=&lt;n&gt;" (which also modifies
-        diff output, if it is displayed).
+        name, show a prefix that names the object uniquely.
+        "--abbrev=&lt;n&gt;" (which also modifies diff output, if it is displayed)
+        option can be used to specify the minimum length of the prefix.
 </p>
 <div class="paragraph"><p>This should make "--pretty=oneline" a whole lot more readable for
 people using 80-column terminals.</p></div>
@@ -3119,8 +3161,14 @@ display the trailers of the body as
                           interpreted by
                           <a href="git-interpret-trailers.html">git-interpret-trailers(1)</a>. The
                           <code>trailers</code> string may be followed by a colon
-                          and zero or more comma-separated options:
+                          and zero or more comma-separated options.
+                          If any option is provided multiple times the
+                          last occurance wins.
 </p>
+<div class="paragraph"><p>The boolean options accept an optional value <code>[=&lt;BOOL&gt;]</code>. The values
+<code>true</code>, <code>false</code>, <code>on</code>, <code>off</code> etc. are all accepted. See the "boolean"
+sub-section in "EXAMPLES" in <a href="git-config.html">git-config(1)</a>. If a boolean
+option is given with no value, it&#8217;s enabled.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -3136,12 +3184,8 @@ display the trailers of the body as
 </li>
 <li>
 <p>
-<em>only[=val]</em>: select whether non-trailer lines from the trailer
-   block should be included. The <code>only</code> keyword may optionally be
-   followed by an equal sign and one of <code>true</code>, <code>on</code>, <code>yes</code> to omit or
-   <code>false</code>, <code>off</code>, <code>no</code> to show the non-trailer lines. If option is
-   given without value it is enabled. If given multiple times the last
-   value is used.
+<em>only[=&lt;BOOL&gt;]</em>: select whether non-trailer lines from the trailer
+   block should be included.
 </p>
 </li>
 <li>
@@ -3151,24 +3195,34 @@ display the trailers of the body as
    terminated with a line feed character. The string SEP may contain
    the literal formatting codes described above. To use comma as
    separator one must use <code>%x2C</code> as it would otherwise be parsed as
-   next option. If separator option is given multiple times only the
-   last one is used. E.g., <code>%(trailers:key=Ticket,separator=%x2C )</code>
+   next option. E.g., <code>%(trailers:key=Ticket,separator=%x2C )</code>
    shows all trailer lines whose key is "Ticket" separated by a comma
    and a space.
 </p>
 </li>
 <li>
 <p>
-<em>unfold[=val]</em>: make it behave as if interpret-trailer&#8217;s <code>--unfold</code>
-   option was given. In same way as to for <code>only</code> it can be followed
-   by an equal sign and explicit value. E.g.,
+<em>unfold[=&lt;BOOL&gt;]</em>: make it behave as if interpret-trailer&#8217;s <code>--unfold</code>
+   option was given. E.g.,
    <code>%(trailers:only,unfold=true)</code> unfolds and shows all trailer lines.
 </p>
 </li>
 <li>
 <p>
-<em>valueonly[=val]</em>: skip over the key part of the trailer line and only
-   show the value part. Also this optionally allows explicit value.
+<em>keyonly[=&lt;BOOL&gt;]</em>: only show the key part of the trailer.
+</p>
+</li>
+<li>
+<p>
+<em>valueonly[=&lt;BOOL&gt;]</em>: only show the value part of the trailer.
+</p>
+</li>
+<li>
+<p>
+<em>key_value_separator=&lt;SEP&gt;</em>: specify a separator inserted between
+   trailer lines. When this option is not given each trailer key-value
+   pair is separated by ": ". Otherwise it shares the same semantics
+   as <em>separator=&lt;SEP&gt;</em> above.
 </p>
 </li>
 </ul></div>
@@ -3581,9 +3635,9 @@ rename to a</code></pre>
 <div class="paragraph"><p>Any diff-generating command can take the <code>-c</code> or <code>--cc</code> option to
 produce a <em>combined diff</em> when showing a merge. This is the default
 format when showing merges with <a href="git-diff.html">git-diff(1)</a> or
-<a href="git-show.html">git-show(1)</a>. Note also that you can give the <code>-m</code> option to any
-of these commands to force generation of diffs with individual parents
-of a merge.</p></div>
+<a href="git-show.html">git-show(1)</a>. Note also that you can give suitable
+<code>--diff-merges</code> option to any of these commands to force generation of
+diffs in specific format.</p></div>
 <div class="paragraph"><p>A "combined diff" format looks like this:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -3844,7 +3898,7 @@ the pathname, but if that is <code>NUL</code>, the record will show two paths.</
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2021-03-15 15:56:49 PDT
 </div>
 </div>
 </body>

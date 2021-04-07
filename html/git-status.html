@@ -960,7 +960,7 @@ ignored, then the directory is not shown, but all contents are shown.</p></div>
 <dd>
 <p>
         Display untracked files in columns. See configuration variable
-        column.status for option syntax.<code>--column</code> and <code>--no-column</code>
+        <code>column.status</code> for option syntax. <code>--column</code> and <code>--no-column</code>
         without options are equivalent to <em>always</em> and <em>never</em>
         respectively.
 </p>
@@ -1039,11 +1039,37 @@ single space. If a filename contains whitespace or other nonprintable
 characters, that field will be quoted in the manner of a C string
 literal: surrounded by ASCII double quote (34) characters, and with
 interior special characters backslash-escaped.</p></div>
-<div class="paragraph"><p>For paths with merge conflicts, <code>X</code> and <code>Y</code> show the modification
-states of each side of the merge. For paths that do not have merge
-conflicts, <code>X</code> shows the status of the index, and <code>Y</code> shows the status
-of the work tree.  For untracked paths, <code>XY</code> are <code>??</code>.  Other status
-codes can be interpreted as follows:</p></div>
+<div class="paragraph"><p>There are three different types of states that are shown using this format, and
+each one uses the <code>XY</code> syntax differently:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+When a merge is occurring and the merge was successful, or outside of a merge
+        situation, <code>X</code> shows the status of the index and <code>Y</code> shows the status of the
+        working tree.
+</p>
+</li>
+<li>
+<p>
+When a merge conflict has occurred and has not yet been resolved, <code>X</code> and <code>Y</code>
+        show the state introduced by each head of the merge, relative to the common
+        ancestor. These paths are said to be <em>unmerged</em>.
+</p>
+</li>
+<li>
+<p>
+When a path is untracked, <code>X</code> and <code>Y</code> are always the same, since they are
+        unknown to the index. <code>??</code> is used for untracked paths. Ignored files are
+        not listed unless <code>--ignored</code> is used; if it is, ignored files are indicated
+        by <code>!!</code>.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Note that the term <em>merge</em> here also includes rebases using the default
+<code>--merge</code> strategy, cherry-picks, and anything else using the merge machinery.</p></div>
+<div class="paragraph"><p>In the following table, these three classes are shown in separate sections, and
+these characters are used for <code>X</code> and <code>Y</code> fields for the first two sections that
+show tracked paths:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1081,8 +1107,6 @@ codes can be interpreted as follows:</p></div>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>Ignored files are not listed, unless <code>--ignored</code> option is in effect,
-in which case <code>XY</code> are <code>!!</code>.</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>X          Y     Meaning
@@ -1337,7 +1361,7 @@ using <code>git --no-optional-locks status</code> (see <a href="git.html">git(1)
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-30 23:01:44 PDT
 </div>
 </div>
 </body>

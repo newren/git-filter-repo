@@ -751,6 +751,7 @@ git-range-diff(1) Manual Page
 <div class="verseblock">
 <pre class="content"><em>git range-diff</em> [--color=[&lt;when&gt;]] [--no-color] [&lt;diff-options&gt;]
         [--no-dual-color] [--creation-factor=&lt;factor&gt;]
+        [--left-only | --right-only]
         ( &lt;range1&gt; &lt;range2&gt; | &lt;rev1&gt;&#8230;&lt;rev2&gt; | &lt;base&gt; &lt;rev1&gt; &lt;rev2&gt; )</pre>
 <div class="attribution">
 </div></div>
@@ -769,6 +770,28 @@ patches' size. See ``Algorithm`` below for details.</p></div>
 <div class="paragraph"><p>Finally, the list of matching commits is shown in the order of the
 second commit range, with unmatched commits being inserted just after
 all of their ancestors have been shown.</p></div>
+<div class="paragraph"><p>There are three ways to specify the commit ranges:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>&lt;range1&gt; &lt;range2&gt;</code>: Either commit range can be of the form
+  <code>&lt;base&gt;..&lt;rev&gt;</code>, <code>&lt;rev&gt;^!</code> or <code>&lt;rev&gt;^-&lt;n&gt;</code>. See <code>SPECIFYING RANGES</code>
+  in <a href="gitrevisions.html">gitrevisions(7)</a> for more details.
+</p>
+</li>
+<li>
+<p>
+<code>&lt;rev1&gt;...&lt;rev2&gt;</code>. This is equivalent to
+  <code>&lt;rev2&gt;..&lt;rev1&gt; &lt;rev1&gt;..&lt;rev2&gt;</code>.
+</p>
+</li>
+<li>
+<p>
+<code>&lt;base&gt; &lt;rev1&gt; &lt;rev2&gt;</code>: This is equivalent to <code>&lt;base&gt;..&lt;rev1&gt;
+  &lt;base&gt;..&lt;rev2&gt;</code>.
+</p>
+</li>
+</ul></div>
 </div>
 </div>
 <div class="sect1">
@@ -807,6 +830,24 @@ to revert to color all lines according to the outer diff markers
         and addition of another), and a smaller one in the reverse case.
         See the ``Algorithm`` section below for an explanation why this is
         needed.
+</p>
+</dd>
+<dt class="hdlist1">
+--left-only
+</dt>
+<dd>
+<p>
+        Suppress commits that are missing from the first specified range
+        (or the "left range" when using the <code>&lt;rev1&gt;...&lt;rev2&gt;</code> format).
+</p>
+</dd>
+<dt class="hdlist1">
+--right-only
+</dt>
+<dd>
+<p>
+        Suppress commits that are missing from the second specified range
+        (or the "right range" when using the <code>&lt;rev1&gt;...&lt;rev2&gt;</code> format).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1041,7 +1082,7 @@ found in this case will look like this:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-30 23:01:44 PDT
 </div>
 </div>
 </body>

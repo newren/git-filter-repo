@@ -957,9 +957,9 @@ gc.bigPackThreshold
 <dd>
 <p>
         If non-zero, all packs larger than this limit are kept when
-        <code>git gc</code> is run. This is very similar to <code>--keep-base-pack</code>
+        <code>git gc</code> is run. This is very similar to <code>--keep-largest-pack</code>
         except that all packs that meet the threshold are kept, not
-        just the base pack. Defaults to zero. Common unit suffixes of
+        just the largest pack. Defaults to zero. Common unit suffixes of
         <em>k</em>, <em>m</em>, or <em>g</em> are supported.
 </p>
 <div class="paragraph"><p>Note that if the number of kept packs is more than gc.autoPackLimit,
@@ -969,7 +969,7 @@ gc.autoPackLimit and gc.bigPackThreshold should be respected again.</p></div>
 <div class="paragraph"><p>If the amount of memory estimated for <code>git repack</code> to run smoothly is
 not available and <code>gc.bigPackThreshold</code> is not set, the largest pack
 will also be excluded (this is the equivalent of running <code>git gc</code> with
-<code>--keep-base-pack</code>).</p></div>
+<code>--keep-largest-pack</code>).</p></div>
 </dd>
 <dt class="hdlist1">
 gc.writeCommitGraph
@@ -1104,12 +1104,14 @@ gc.rerereUnresolved
 <div class="paragraph"><p><em>git gc</em> tries very hard not to delete objects that are referenced
 anywhere in your repository. In particular, it will keep not only
 objects referenced by your current set of branches and tags, but also
-objects referenced by the index, remote-tracking branches, notes saved
-by <em>git notes</em> under refs/notes/, reflogs (which may reference commits
-in branches that were later amended or rewound), and anything else in
-the refs/* namespace.  If you are expecting some objects to be deleted
-and they aren&#8217;t, check all of those locations and decide whether it
-makes sense in your case to remove those references.</p></div>
+objects referenced by the index, remote-tracking branches, reflogs
+(which may reference commits in branches that were later amended or
+rewound), and anything else in the refs/* namespace. Note that a note
+(of the kind created by <em>git notes</em>) attached to an object does not
+contribute in keeping the object alive. If you are expecting some
+objects to be deleted and they aren&#8217;t, check all of those locations
+and decide whether it makes sense in your case to remove those
+references.</p></div>
 <div class="paragraph"><p>On the other hand, when <em>git gc</em> runs concurrently with another process,
 there is a risk of it deleting an object that the other process is using
 but hasn&#8217;t created a reference to. This may just cause the other process
@@ -1163,7 +1165,7 @@ seems to be low in practice).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-09-02 09:22:52 PDT
+ 2021-03-30 23:01:44 PDT
 </div>
 </div>
 </body>
