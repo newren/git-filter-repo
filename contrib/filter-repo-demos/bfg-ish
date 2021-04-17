@@ -371,6 +371,7 @@ class BFG_ish:
     bfg_args = self.parse_options()
     preserve_refs = self.get_preservation_info(bfg_args.preserve_ref_tips)
 
+    work_dir = os.getcwd()
     os.chdir(bfg_args.repo)
     bfg_args.delete_files = java_to_fnmatch_glob(bfg_args.delete_files)
     bfg_args.delete_folders = java_to_fnmatch_glob(bfg_args.delete_folders)
@@ -395,6 +396,9 @@ class BFG_ish:
       extra_args += ['--preserve-commit-hashes']
     new_replace_file = None
     if bfg_args.replace_text:
+      if not os.path.isabs(bfg_args.replace_text):
+        bfg_args.replace_text = os.path.join(work_dir, bfg_args.replace_text)
+
       new_replace_file = self.convert_replace_text(bfg_args.replace_text)
       rules = fr.FilteringOptions.get_replace_text(new_replace_file)
       self.replacement_rules = rules
@@ -431,6 +435,9 @@ class BFG_ish:
       # one).
       if not fr.GitUtils.is_repository_bare('.'):
         need_another_reset = True
+
+    if not os.path.isabs(os.fsdecode(bfg_args.repo)):
+      bfg_args.repo = os.fsencode(os.path.join(work_dir, os.fsdecode(bfg_args.repo)))
 
     fr.RepoFilter.cleanup(bfg_args.repo, repack=True, reset=need_another_reset)
 
