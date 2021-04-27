@@ -181,4 +181,16 @@ test_expect_success 'callback has return statement sanity check' '
 	)
 '
 
+test_expect_success 'Callback read from a file' '
+	setup name-callback-from-file &&
+	(
+		cd name-callback-from-file &&
+		echo "return name.replace(b\"N.\", b\"And\")" >../name-func &&
+		git filter-repo --name-callback ../name-func &&
+		git log --format=%an >log-person-names &&
+		grep Copy.And.Paste log-person-names
+	)
+'
+
+
 test_done
