@@ -1708,6 +1708,9 @@ class FilteringOptions(object):
     To remove all .DS_Store files:
       git filter-repo --filename-callback 'return None if os.path.basename(filename) == b".DS_Store" else filename'
 
+    Note that if BODY resolves to a filename, then the contents of that file
+    will be used as the BODY in the callback function.
+
     For more detailed examples and explanations AND caveats, see
       https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#CALLBACKS
 
@@ -1904,32 +1907,32 @@ EXAMPLES
                "always use merge --no-ff."))
 
     callback = parser.add_argument_group(title=_("Generic callback code snippets"))
-    callback.add_argument('--filename-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--filename-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing filenames; see CALLBACKS "
                "sections below."))
-    callback.add_argument('--message-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--message-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing messages (both commit "
                "messages and tag messages); see CALLBACKS section below."))
-    callback.add_argument('--name-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--name-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing names of people; see "
                "CALLBACKS section below."))
-    callback.add_argument('--email-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--email-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing emails addresses; see "
                "CALLBACKS section below."))
-    callback.add_argument('--refname-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--refname-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing refnames; see CALLBACKS "
                "section below."))
 
-    callback.add_argument('--blob-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--blob-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing blob objects; see "
                "CALLBACKS section below."))
-    callback.add_argument('--commit-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--commit-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing commit objects; see "
                "CALLBACKS section below."))
-    callback.add_argument('--tag-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--tag-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing tag objects; see CALLBACKS "
                "section below."))
-    callback.add_argument('--reset-callback', metavar="FUNCTION_BODY",
+    callback.add_argument('--reset-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing reset objects; see "
                "CALLBACKS section below."))
 
@@ -2809,6 +2812,9 @@ class RepoFilter(object):
       callback_field = '_{}_callback'.format(type)
       code_string = getattr(self._args, type+'_callback')
       if code_string:
+        if os.path.exists(code_string):
+          with open(code_string, 'r', encoding='utf-8') as f:
+            code_string = f.read()
         if getattr(self, callback_field):
           raise SystemExit(_("Error: Cannot pass a %s_callback to RepoFilter "
                              "AND pass --%s-callback"
