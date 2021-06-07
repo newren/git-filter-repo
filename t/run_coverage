@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 orig_dir=$(cd $(dirname $0) && pwd -P)
 tmpdir=$(mktemp -d)
 
@@ -16,12 +18,12 @@ EOF
 
 export COVERAGE_PROCESS_START=$tmpdir/.coveragerc
 export PYTHONPATH=$tmpdir:
-# We pretend filenames are unicode for two reasons: (1) because it exercises
-# more code, and (2) this setting will detect accidental use of unicode strings
-# for file/directory names when it should always be bytestrings.
-export PRETEND_UNICODE_ARGS=1
 
-ls t939*.sh | xargs -n 1 bash
+# Produce a coverage report, even if the tests fail
+set +e
+$orig_dir/run_tests
+exitcode=$?
+set -e
 
 cd $tmpdir
 coverage3 combine
@@ -29,3 +31,5 @@ coverage3 html -d $orig_dir/report
 coverage3 report -m
 cd $orig_dir
 rm -rf $tmpdir
+
+exit $exitcode

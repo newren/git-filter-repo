@@ -12,7 +12,7 @@ build:
 	@echo Nothing to do: filter-repo is a script which needs no compilation.
 
 test:
-	cd t && time ./run_coverage
+	time t/run_coverage
 
 # fixup_locale might matter once we actually have translations, but right now
 # we don't.  It might not even matter then, because python has a fallback podir.
