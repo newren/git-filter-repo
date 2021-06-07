@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>githooks(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -856,7 +856,7 @@ given); <code>template</code> (if a <code>-t</code> option was given or the
 configuration option <code>commit.template</code> is set); <code>merge</code> (if the
 commit is a merge or a <code>.git/MERGE_MSG</code> file exists); <code>squash</code>
 (if a <code>.git/SQUASH_MSG</code> file exists); or <code>commit</code>, followed by
-a commit SHA-1 (if a <code>-c</code>, <code>-C</code> or <code>--amend</code> option was given).</p></div>
+a commit object name (if a <code>-c</code>, <code>-C</code> or <code>--amend</code> option was given).</p></div>
 <div class="paragraph"><p>If the exit status is non-zero, <code>git commit</code> will abort.</p></div>
 <div class="paragraph"><p>The purpose of the hook is to edit the message file in place, and
 it is not suppressed by the <code>--no-verify</code> option.  A non-zero exit
@@ -934,7 +934,7 @@ named remote is not being used both values will be the same.</p></div>
 input with lines of the form:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;local ref&gt; SP &lt;local sha1&gt; SP &lt;remote ref&gt; SP &lt;remote sha1&gt; LF</code></pre>
+<pre><code>&lt;local ref&gt; SP &lt;local object name&gt; SP &lt;remote ref&gt; SP &lt;remote object name&gt; LF</code></pre>
 </div></div>
 <div class="paragraph"><p>For instance, if the command <code>git push origin master:foreign</code> were run the
 hook would receive a line like the following:</p></div>
@@ -942,12 +942,12 @@ hook would receive a line like the following:</p></div>
 <div class="content">
 <pre><code>refs/heads/master 67890 refs/heads/foreign 12345</code></pre>
 </div></div>
-<div class="paragraph"><p>although the full, 40-character SHA-1s would be supplied.  If the foreign ref
-does not yet exist the <code>&lt;remote SHA-1&gt;</code> will be 40 <code>0</code>.  If a ref is to be
-deleted, the <code>&lt;local ref&gt;</code> will be supplied as <code>(delete)</code> and the <code>&lt;local
-SHA-1&gt;</code> will be 40 <code>0</code>.  If the local commit was specified by something other
-than a name which could be expanded (such as <code>HEAD~</code>, or a SHA-1) it will be
-supplied as it was originally given.</p></div>
+<div class="paragraph"><p>although the full object name would be supplied.  If the foreign ref does not
+yet exist the <code>&lt;remote object name&gt;</code> will be the all-zeroes object name.  If a
+ref is to be deleted, the <code>&lt;local ref&gt;</code> will be supplied as <code>(delete)</code> and the
+<code>&lt;local object name&gt;</code> will be the all-zeroes object name.  If the local commit
+was specified by something other than a name which could be expanded (such as
+<code>HEAD~</code>, or an object name) it will be supplied as it was originally given.</p></div>
 <div class="paragraph"><p>If this hook exits with a non-zero status, <code>git push</code> will abort without
 pushing anything.  Information about why the push is rejected may be sent
 to the user by writing to standard error.</p></div>
@@ -969,7 +969,7 @@ input a line of the format:</p></div>
 <div class="paragraph"><p>where <code>&lt;old-value&gt;</code> is the old object name stored in the ref,
 <code>&lt;new-value&gt;</code> is the new object name to be stored in the ref and
 <code>&lt;ref-name&gt;</code> is the full name of the ref.
-When creating a new ref, <code>&lt;old-value&gt;</code> is 40 <code>0</code>.</p></div>
+When creating a new ref, <code>&lt;old-value&gt;</code> is the all-zeroes object name.</p></div>
 <div class="paragraph"><p>If the hook exits with non-zero status, none of the refs will be
 updated. If the hook exits with zero, updating of individual refs can
 still be prevented by the <a href="#update"><em>update</em></a> hook.</p></div>
@@ -1159,7 +1159,8 @@ for the user.</p></div>
 <h3 id="_reference_transaction">reference-transaction</h3>
 <div class="paragraph"><p>This hook is invoked by any Git command that performs reference
 updates. It executes whenever a reference transaction is prepared,
-committed or aborted and may thus get called multiple times.</p></div>
+committed or aborted and may thus get called multiple times. The hook
+does not cover symbolic references (but that may change in the future).</p></div>
 <div class="paragraph"><p>The hook takes exactly one argument, which is the current state the
 given reference transaction is in:</p></div>
 <div class="ulist"><ul>
@@ -1188,6 +1189,13 @@ receives on standard input a line of the format:</p></div>
 <div class="content">
 <pre><code>&lt;old-value&gt; SP &lt;new-value&gt; SP &lt;ref-name&gt; LF</code></pre>
 </div></div>
+<div class="paragraph"><p>where <code>&lt;old-value&gt;</code> is the old object name passed into the reference
+transaction, <code>&lt;new-value&gt;</code> is the new object name to be stored in the
+ref and <code>&lt;ref-name&gt;</code> is the full name of the ref. When force updating
+the reference regardless of its current value or when the reference is
+to be created anew, <code>&lt;old-value&gt;</code> is the all-zeroes object name. To
+distinguish these cases, you can inspect the current value of
+<code>&lt;ref-name&gt;</code> via <code>git rev-parse</code>.</p></div>
 <div class="paragraph"><p>The exit status of the hook is ignored for any state except for the
 "prepared" state. In the "prepared" state, a non-zero exit status will
 cause the transaction to be aborted. The hook will not be called with
@@ -1240,7 +1248,7 @@ command-dependent arguments may be passed in the future.</p></div>
 format</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;old-sha1&gt; SP &lt;new-sha1&gt; [ SP &lt;extra-info&gt; ] LF</code></pre>
+<pre><code>&lt;old-object-name&gt; SP &lt;new-object-name&gt; [ SP &lt;extra-info&gt; ] LF</code></pre>
 </div></div>
 <div class="paragraph"><p>The <em>extra-info</em> is again command-dependent.  If it is empty, the
 preceding SP is also omitted.  Currently, no commands pass any
@@ -1258,7 +1266,7 @@ rebase
         For the <em>squash</em> and <em>fixup</em> operation, all commits that were
         squashed are listed as being rewritten to the squashed commit.
         This means that there will be several lines sharing the same
-        <em>new-sha1</em>.
+        <em>new-object-name</em>.
 </p>
 <div class="paragraph"><p>The commits are guaranteed to be listed in the order that they were
 processed by rebase.</p></div>
@@ -1369,7 +1377,7 @@ running passing "1", "1" should not be possible.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-15 15:56:49 PDT
+ 2021-05-26 09:36:25 PDT
 </div>
 </div>
 </body>

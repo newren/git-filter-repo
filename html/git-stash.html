@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-stash(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -750,7 +750,7 @@ git-stash(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git stash</em> list [&lt;log-options&gt;]
-<em>git stash</em> show [&lt;diff-options&gt;] [&lt;stash&gt;]
+<em>git stash</em> show [-u|--include-untracked|--only-untracked] [&lt;diff-options&gt;] [&lt;stash&gt;]
 <em>git stash</em> drop [-q|--quiet] [&lt;stash&gt;]
 <em>git stash</em> ( pop | apply ) [--index] [-q|--quiet] [&lt;stash&gt;]
 <em>git stash</em> branch &lt;branchname&gt; [&lt;stash&gt;]
@@ -838,7 +838,7 @@ stash@{1}: On master: 9cc0589... Add git-stash</code></pre>
 command to control what is shown and how. See <a href="git-log.html">git-log(1)</a>.</p></div>
 </dd>
 <dt class="hdlist1">
-show [&lt;diff-options&gt;] [&lt;stash&gt;]
+show [-u|--include-untracked|--only-untracked] [&lt;diff-options&gt;] [&lt;stash&gt;]
 </dt>
 <dd>
 <p>
@@ -848,8 +848,10 @@ show [&lt;diff-options&gt;] [&lt;stash&gt;]
         By default, the command shows the diffstat, but it will accept any
         format known to <em>git diff</em> (e.g., <code>git stash show -p stash@{1}</code>
         to view the second most recent entry in patch form).
-        You can use stash.showStat and/or stash.showPatch config variables
-        to change the default behavior.
+        If no <code>&lt;diff-option&gt;</code> is provided, the default behavior will be given
+        by the <code>stash.showStat</code>, and <code>stash.showPatch</code> config variables. You
+        can also use <code>stash.showIncludeUntracked</code> to set whether
+        <code>--include-untracked</code> is enabled by default.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -960,12 +962,26 @@ up with <code>git clean</code>.</p></div>
 <dt class="hdlist1">
 --include-untracked
 </dt>
+<dt class="hdlist1">
+--no-include-untracked
+</dt>
 <dd>
 <p>
-        This option is only valid for <code>push</code> and <code>save</code> commands.
+        When used with the <code>push</code> and <code>save</code> commands,
+        all untracked files are also stashed and then cleaned up with
+        <code>git clean</code>.
 </p>
-<div class="paragraph"><p>All untracked files are also stashed and then cleaned up with
-<code>git clean</code>.</p></div>
+<div class="paragraph"><p>When used with the <code>show</code> command, show the untracked files in the stash
+entry as part of the diff.</p></div>
+</dd>
+<dt class="hdlist1">
+--only-untracked
+</dt>
+<dd>
+<p>
+        This option is only valid for the <code>show</code> command.
+</p>
+<div class="paragraph"><p>Show only the untracked files in the stash entry as part of the diff.</p></div>
 </dd>
 <dt class="hdlist1">
 --index
@@ -1231,7 +1247,7 @@ xargs git log --merges --no-walk --grep=WIP</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-30 23:01:44 PDT
+ 2021-06-05 10:09:21 PDT
 </div>
 </div>
 </body>

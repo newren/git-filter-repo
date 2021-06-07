@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-repack(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -1003,6 +1003,33 @@ depth is 4095.</p></div>
         <a href="git-pack-objects.html">git-pack-objects(1)</a>.
 </p>
 </dd>
+<dt class="hdlist1">
+-g=&lt;factor&gt;
+</dt>
+<dt class="hdlist1">
+--geometric=&lt;factor&gt;
+</dt>
+<dd>
+<p>
+        Arrange resulting pack structure so that each successive pack
+        contains at least <code>&lt;factor&gt;</code> times the number of objects as the
+        next-largest pack.
+</p>
+<div class="paragraph"><p><code>git repack</code> ensures this by determining a "cut" of packfiles that need
+to be repacked into one in order to ensure a geometric progression. It
+picks the smallest set of packfiles such that as many of the larger
+packfiles (by count of objects contained in that pack) may be left
+intact.</p></div>
+<div class="paragraph"><p>Unlike other repack modes, the set of objects to pack is determined
+uniquely by the set of packs being "rolled-up"; in other words, the
+packs determined to need to be combined in order to restore a geometric
+progression.</p></div>
+<div class="paragraph"><p>When <code>--unpacked</code> is specified, loose objects are implicitly included in
+this "roll-up", without respect to their reachability. This is subject
+to change in the future. This option (implying a drastically different
+repack mode) is not guaranteed to work with all other combinations of
+option to <code>git repack</code>.</p></div>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1043,7 +1070,7 @@ attribute <code>delta</code> set to false.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-30 23:01:44 PDT
+ 2021-06-05 10:09:21 PDT
 </div>
 </div>
 </body>

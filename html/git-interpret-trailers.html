@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-interpret-trailers(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -1063,23 +1063,40 @@ trailer.&lt;token&gt;.command
 </dt>
 <dd>
 <p>
-        This option can be used to specify a shell command that will
-        be called to automatically add or modify a trailer with the
-        specified &lt;token&gt;.
+        This option behaves in the same way as <em>trailer.&lt;token&gt;.cmd</em>, except
+        that it doesn&#8217;t pass anything as argument to the specified command.
+        Instead the first occurrence of substring $ARG is replaced by the
+        value that would be passed as argument.
 </p>
-<div class="paragraph"><p>When this option is specified, the behavior is as if a special
-<em>&lt;token&gt;=&lt;value&gt;</em> argument were added at the beginning of the command
-line, where &lt;value&gt; is taken to be the standard output of the
-specified command with any leading and trailing whitespace trimmed
-off.</p></div>
-<div class="paragraph"><p>If the command contains the <code>$ARG</code> string, this string will be
-replaced with the &lt;value&gt; part of an existing trailer with the same
-&lt;token&gt;, if any, before the command is launched.</p></div>
-<div class="paragraph"><p>If some <em>&lt;token&gt;=&lt;value&gt;</em> arguments are also passed on the command
-line, when a <em>trailer.&lt;token&gt;.command</em> is configured, the command will
-also be executed for each of these arguments. And the &lt;value&gt; part of
-these arguments, if any, will be used to replace the <code>$ARG</code> string in
-the command.</p></div>
+<div class="paragraph"><p>The <em>trailer.&lt;token&gt;.command</em> option has been deprecated in favor of
+<em>trailer.&lt;token&gt;.cmd</em> due to the fact that $ARG in the user&#8217;s command is
+only replaced once and that the original way of replacing $ARG is not safe.</p></div>
+<div class="paragraph"><p>When both <em>trailer.&lt;token&gt;.cmd</em> and <em>trailer.&lt;token&gt;.command</em> are given
+for the same &lt;token&gt;, <em>trailer.&lt;token&gt;.cmd</em> is used and
+<em>trailer.&lt;token&gt;.command</em> is ignored.</p></div>
+</dd>
+<dt class="hdlist1">
+trailer.&lt;token&gt;.cmd
+</dt>
+<dd>
+<p>
+        This option can be used to specify a shell command that will be called:
+        once to automatically add a trailer with the specified &lt;token&gt;, and then
+        each time a <em>--trailer &lt;token&gt;=&lt;value&gt;</em> argument to modify the &lt;value&gt; of
+        the trailer that this option would produce.
+</p>
+<div class="paragraph"><p>When the specified command is first called to add a trailer
+with the specified &lt;token&gt;, the behavior is as if a special
+<em>--trailer &lt;token&gt;=&lt;value&gt;</em> argument was added at the beginning
+of the "git interpret-trailers" command, where &lt;value&gt;
+is taken to be the standard output of the command with any
+leading and trailing whitespace trimmed off.</p></div>
+<div class="paragraph"><p>If some <em>--trailer &lt;token&gt;=&lt;value&gt;</em> arguments are also passed
+on the command line, the command is called again once for each
+of these arguments with the same &lt;token&gt;. And the &lt;value&gt; part
+of these arguments, if any, will be passed to the command as its
+first argument. This way the command can produce a &lt;value&gt; computed
+from the &lt;value&gt; passed in the <em>--trailer &lt;token&gt;=&lt;value&gt;</em> argument.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1183,6 +1200,61 @@ Fix #42</code></pre>
 </li>
 <li>
 <p>
+Configure a <em>help</em> trailer with a cmd use a script <code>glog-find-author</code>
+  which search specified author identity from git log in git repository
+  and show how it works:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat ~/bin/glog-find-author
+#!/bin/sh
+test -n "$1" &amp;&amp; git log --author="$1" --pretty="%an &lt;%ae&gt;" -1 || true
+$ git config trailer.help.key "Helped-by: "
+$ git config trailer.help.ifExists "addIfDifferentNeighbor"
+$ git config trailer.help.cmd "~/bin/glog-find-author"
+$ git interpret-trailers --trailer="help:Junio" --trailer="help:Couder" &lt;&lt;EOF
+&gt; subject
+&gt;
+&gt; message
+&gt;
+&gt; EOF
+subject
+
+message
+
+Helped-by: Junio C Hamano &lt;gitster@pobox.com&gt;
+Helped-by: Christian Couder &lt;christian.couder@gmail.com&gt;</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Configure a <em>ref</em> trailer with a cmd use a script <code>glog-grep</code>
+  to grep last relevant commit from git log in the git repository
+  and show how it works:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat ~/bin/glog-grep
+#!/bin/sh
+test -n "$1" &amp;&amp; git log --grep "$1" --pretty=reference -1 || true
+$ git config trailer.ref.key "Reference-to: "
+$ git config trailer.ref.ifExists "replace"
+$ git config trailer.ref.cmd "~/bin/glog-grep"
+$ git interpret-trailers --trailer="ref:Add copyright notices." &lt;&lt;EOF
+&gt; subject
+&gt;
+&gt; message
+&gt;
+&gt; EOF
+subject
+
+message
+
+Reference-to: 8bc9a0c769 (Add copyright notices., 2005-04-07)</code></pre>
+</div></div>
+</li>
+<li>
+<p>
 Configure a <em>see</em> trailer with a command to show the subject of a
   commit that is related, and show how it works:
 </p>
@@ -1255,7 +1327,7 @@ $ chmod +x .git/hooks/commit-msg</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2020-04-10 00:25:15 PDT
+ 2021-06-05 10:09:21 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-diff-files(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -1142,7 +1142,9 @@ explained for the configuration variable <code>core.quotePath</code> (see
 </dt>
 <dd>
 <p>
-        Show only names of changed files.
+        Show only names of changed files. The file names are often encoded in UTF-8.
+        For more information see the discussion about encoding in the <a href="git-log.html">git-log(1)</a>
+        manual page.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1152,6 +1154,7 @@ explained for the configuration variable <code>core.quotePath</code> (see
 <p>
         Show only names and status of changed files. See the description
         of the <code>--diff-filter</code> option on what the status letters mean.
+        Just like <code>--name-only</code> the file names are often encoded in UTF-8.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2343,7 +2346,7 @@ all parents.</p></div>
 with the <code>-p</code> option produces patch text.
 You can customize the creation of patch text via the
 <code>GIT_EXTERNAL_DIFF</code> and the <code>GIT_DIFF_OPTS</code> environment variables
-(see <a href="git.html">git(1)</a>).</p></div>
+(see <a href="git.html">git(1)</a>), and the <code>diff</code> attribute (see <a href="gitattributes.html">gitattributes(5)</a>).</p></div>
 <div class="paragraph"><p>What the -p option produces is slightly different from the traditional
 diff format:</p></div>
 <div class="olist arabic"><ol class="arabic">
@@ -2416,6 +2419,14 @@ diff --git a/b b/a
 rename from b
 rename to a</code></pre>
 </div></div>
+</li>
+<li>
+<p>
+Hunk headers mention the name of the function to which the hunk
+    applies.  See "Defining a custom hunk-header" in
+    <a href="gitattributes.html">gitattributes(5)</a> for details of how to tailor to this to
+    specific languages.
+</p>
 </li>
 </ol></div>
 </div>

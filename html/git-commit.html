@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-commit(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -750,12 +750,13 @@ git-commit(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git commit</em> [-a | --interactive | --patch] [-s] [-v] [-u&lt;mode&gt;] [--amend]
-           [--dry-run] [(-c | -C | --fixup | --squash) &lt;commit&gt;]
+           [--dry-run] [(-c | -C | --squash) &lt;commit&gt; | --fixup [(amend|reword):]&lt;commit&gt;)]
            [-F &lt;file&gt; | -m &lt;msg&gt;] [--reset-author] [--allow-empty]
            [--allow-empty-message] [--no-verify] [-e] [--author=&lt;author&gt;]
            [--date=&lt;date&gt;] [--cleanup=&lt;mode&gt;] [--[no-]status]
            [-i | -o] [--pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]]
-           [-S[&lt;keyid&gt;]] [--] [&lt;pathspec&gt;&#8230;]</pre>
+           [(--trailer &lt;token&gt;[(=|:)&lt;value&gt;])&#8230;] [-S[&lt;keyid&gt;]]
+           [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -875,15 +876,44 @@ that, you can recover from it with <em>git reset</em>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---fixup=&lt;commit&gt;
+--fixup=[(amend|reword):]&lt;commit&gt;
 </dt>
 <dd>
 <p>
-        Construct a commit message for use with <code>rebase --autosquash</code>.
-        The commit message will be the subject line from the specified
-        commit with a prefix of "fixup! ".  See <a href="git-rebase.html">git-rebase(1)</a>
-        for details.
+        Create a new commit which "fixes up" <code>&lt;commit&gt;</code> when applied with
+        <code>git rebase --autosquash</code>. Plain <code>--fixup=&lt;commit&gt;</code> creates a
+        "fixup!" commit which changes the content of <code>&lt;commit&gt;</code> but leaves
+        its log message untouched. <code>--fixup=amend:&lt;commit&gt;</code> is similar but
+        creates an "amend!" commit which also replaces the log message of
+        <code>&lt;commit&gt;</code> with the log message of the "amend!" commit.
+        <code>--fixup=reword:&lt;commit&gt;</code> creates an "amend!" commit which
+        replaces the log message of <code>&lt;commit&gt;</code> with its own log message
+        but makes no changes to the content of <code>&lt;commit&gt;</code>.
 </p>
+<div class="paragraph"><p>The commit created by plain <code>--fixup=&lt;commit&gt;</code> has a subject
+composed of "fixup!" followed by the subject line from &lt;commit&gt;,
+and is recognized specially by <code>git rebase --autosquash</code>. The <code>-m</code>
+option may be used to supplement the log message of the created
+commit, but the additional commentary will be thrown away once the
+"fixup!" commit is squashed into <code>&lt;commit&gt;</code> by
+<code>git rebase --autosquash</code>.</p></div>
+<div class="paragraph"><p>The commit created by <code>--fixup=amend:&lt;commit&gt;</code> is similar but its
+subject is instead prefixed with "amend!". The log message of
+&lt;commit&gt; is copied into the log message of the "amend!" commit and
+opened in an editor so it can be refined. When <code>git rebase
+--autosquash</code> squashes the "amend!" commit into <code>&lt;commit&gt;</code>, the
+log message of <code>&lt;commit&gt;</code> is replaced by the refined log message
+from the "amend!" commit. It is an error for the "amend!" commit&#8217;s
+log message to be empty unless <code>--allow-empty-message</code> is
+specified.</p></div>
+<div class="paragraph"><p><code>--fixup=reword:&lt;commit&gt;</code> is shorthand for <code>--fixup=amend:&lt;commit&gt;
+--only</code>. It creates an "amend!" commit with only a log message
+(ignoring any changes staged in the index). When squashed by <code>git
+rebase --autosquash</code>, it replaces the log message of <code>&lt;commit&gt;</code>
+without making any other changes.</p></div>
+<div class="paragraph"><p>Neither "fixup!" nor "amend!" commits change authorship of
+<code>&lt;commit&gt;</code> when applied by <code>git rebase --autosquash</code>.
+See <a href="git-rebase.html">git-rebase(1)</a> for details.</p></div>
 </dd>
 <dt class="hdlist1">
 --squash=&lt;commit&gt;
@@ -1048,6 +1078,22 @@ that, you can recover from it with <em>git reset</em>.</p></div>
 </p>
 <div class="paragraph"><p>The --no-signoff option can be used to countermand an earlier --signoff
 option on the command line.</p></div>
+</dd>
+<dt class="hdlist1">
+--trailer &lt;token&gt;[(=|:)&lt;value&gt;]
+</dt>
+<dd>
+<p>
+        Specify a (&lt;token&gt;, &lt;value&gt;) pair that should be applied as a
+        trailer. (e.g. <code>git commit --trailer "Signed-off-by:C O Mitter \
+        &lt;committer@example.com&gt;" --trailer "Helped-by:C O Mitter \
+        &lt;committer@example.com&gt;"</code> will add the "Signed-off-by" trailer
+        and the "Helped-by" trailer to the commit message.)
+        The <code>trailer.*</code> configuration variables
+        (<a href="git-interpret-trailers.html">git-interpret-trailers(1)</a>) can be used to define if
+        a duplicated trailer is omitted, where in the run of trailers
+        each trailer would appear, and other details.
+</p>
 </dd>
 <dt class="hdlist1">
 -n
@@ -1734,7 +1780,7 @@ information.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-15 15:56:49 PDT
+ 2021-05-26 09:36:25 PDT
 </div>
 </div>
 </body>

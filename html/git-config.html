@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-config(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -1322,6 +1322,18 @@ GIT_CONFIG
 </p>
 </dd>
 <dt class="hdlist1">
+GIT_CONFIG_GLOBAL
+</dt>
+<dt class="hdlist1">
+GIT_CONFIG_SYSTEM
+</dt>
+<dd>
+<p>
+        Take the configuration from the given files instead from global or
+        system-level configuration. See <a href="git.html">git(1)</a> for details.
+</p>
+</dd>
+<dt class="hdlist1">
 GIT_CONFIG_NOSYSTEM
 </dt>
 <dd>
@@ -2129,6 +2141,16 @@ addEmptyPathspec
 <p>
                 Advice shown if a user runs the add command without providing
                 the pathspec parameter.
+</p>
+</dd>
+<dt class="hdlist1">
+updateSparsePath
+</dt>
+<dd>
+<p>
+                Advice shown when either <a href="git-add.html">git-add(1)</a> or <a href="git-rm.html">git-rm(1)</a>
+                is asked to update index entries outside the current sparse
+                checkout.
 </p>
 </dd>
 </dl></div>
@@ -3430,6 +3452,36 @@ checkout.guess
 </p>
 </dd>
 <dt class="hdlist1">
+checkout.workers
+</dt>
+<dd>
+<p>
+        The number of parallel workers to use when updating the working tree.
+        The default is one, i.e. sequential execution. If set to a value less
+        than one, Git will use as many workers as the number of logical cores
+        available. This setting and <code>checkout.thresholdForParallelism</code> affect
+        all commands that perform checkout. E.g. checkout, clone, reset,
+        sparse-checkout, etc.
+</p>
+<div class="paragraph"><p>Note: parallel checkout usually delivers better performance for repositories
+located on SSDs or over NFS. For repositories on spinning disks and/or machines
+with a small number of cores, the default sequential checkout often performs
+better. The size and compression level of a repository might also influence how
+well the parallel version performs.</p></div>
+</dd>
+<dt class="hdlist1">
+checkout.thresholdForParallelism
+</dt>
+<dd>
+<p>
+        When running parallel checkout with a small number of files, the cost
+        of subprocess spawning and inter-process communication might outweigh
+        the parallelization gains. This setting allows to define the minimum
+        number of files for which parallel checkout should be attempted. The
+        default is 100.
+</p>
+</dd>
+<dt class="hdlist1">
 clean.requireForce
 </dt>
 <dd>
@@ -3446,6 +3498,15 @@ clone.defaultRemoteName
         The name of the remote to create when cloning a repository.  Defaults to
         <code>origin</code>, and can be overridden by passing the <code>--origin</code> command-line
         option to <a href="git-clone.html">git-clone(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+clone.rejectShallow
+</dt>
+<dd>
+<p>
+        Reject to clone a repository if it is a shallow one, can be overridden by
+        passing option <code>--reject-shallow</code> in command line. See <a href="git-clone.html">git-clone(1)</a>
 </p>
 </dd>
 <dt class="hdlist1">
@@ -4012,6 +4073,17 @@ commit.verbose
 <p>
         A boolean or int to specify the level of verbose with <code>git commit</code>.
         See <a href="git-commit.html">git-commit(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+commitGraph.generationVersion
+</dt>
+<dd>
+<p>
+        Specifies the type of generation number version to use when writing
+        or reading the commit-graph file. If version 1 is specified, then
+        the corrected commit dates will not be written or read. Defaults to
+        2.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -6799,6 +6871,16 @@ index.recordOffsetTable
 </p>
 </dd>
 <dt class="hdlist1">
+index.sparse
+</dt>
+<dd>
+<p>
+        When enabled, write the index using sparse-directory entries. This
+        has no effect unless <code>core.sparseCheckout</code> and
+        <code>core.sparseCheckoutCone</code> are both enabled. Defaults to <em>false</em>.
+</p>
+</dd>
+<dt class="hdlist1">
 index.threads
 </dt>
 <dd>
@@ -6956,6 +7038,16 @@ log.excludeDecoration
         similar to the <code>--decorate-refs-exclude</code> command-line option, but
         the config option can be overridden by the <code>--decorate-refs</code>
         option.
+</p>
+</dd>
+<dt class="hdlist1">
+log.diffMerges
+</dt>
+<dd>
+<p>
+        Set default diff format to be used for merge commits. See
+        <code>--diff-merges</code> in <a href="git-log.html">git-log(1)</a> for details.
+        Defaults to <code>separate</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -8003,6 +8095,24 @@ pack.useSparse
 </p>
 </dd>
 <dt class="hdlist1">
+pack.preferBitmapTips
+</dt>
+<dd>
+<p>
+        When selecting which commits will receive bitmaps, prefer a
+        commit at the tip of any reference that is a suffix of any value
+        of this configuration over any other commits in the "selection
+        window".
+</p>
+<div class="paragraph"><p>Note that setting this configuration to <code>refs/foo</code> does not mean that
+the commits at the tips of <code>refs/foo/bar</code> and <code>refs/foo/baz</code> will
+necessarily be selected. This is because commits are selected for
+bitmaps from within a series of windows of variable length.</p></div>
+<div class="paragraph"><p>If a commit at the tip of any reference which is a suffix of any value
+of this configuration is seen in a window, it is immediately given
+preference over any other commit in that window.</p></div>
+</dd>
+<dt class="hdlist1">
 pack.writeBitmaps (deprecated)
 </dt>
 <dd>
@@ -8401,15 +8511,15 @@ push.useForceIfIncludes
 </p>
 </dd>
 <dt class="hdlist1">
-rebase.useBuiltin
+push.negotiate
 </dt>
 <dd>
 <p>
-        Unused configuration variable. Used in Git versions 2.20 and
-        2.21 as an escape hatch to enable the legacy shellscript
-        implementation of rebase. Now the built-in rewrite of it in C
-        is always used. Setting this will emit a warning, to alert any
-        remaining users that setting this now does nothing.
+        If set to "true", attempt to reduce the size of the packfile
+        sent by rounds of negotiation in which the client and the
+        server attempt to find commits in common. If "false", Git will
+        rely solely on the server&#8217;s ref advertisement to find commits
+        in common.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -9454,6 +9564,16 @@ stash.useBuiltin
 </p>
 </dd>
 <dt class="hdlist1">
+stash.showIncludeUntracked
+</dt>
+<dd>
+<p>
+        If this is set to true, the <code>git stash show</code> command will show
+        the untracked files of a stash entry.  Defaults to false. See
+        description of <em>show</em> command in <a href="git-stash.html">git-stash(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
 stash.showPatch
 </dt>
 <dd>
@@ -10026,7 +10146,8 @@ uploadpackfilter.allow
 <dd>
 <p>
         Provides a default value for unspecified object filters (see: the
-        below configuration variable).
+        below configuration variable). If set to <code>true</code>, this will also
+        enable all filters which get added in the future.
         Defaults to <code>true</code>.
 </p>
 </dd>
@@ -10037,9 +10158,9 @@ uploadpackfilter.&lt;filter&gt;.allow
 <p>
         Explicitly allow or ban the object filter corresponding to
         <code>&lt;filter&gt;</code>, where <code>&lt;filter&gt;</code> may be one of: <code>blob:none</code>,
-        <code>blob:limit</code>, <code>tree</code>, <code>sparse:oid</code>, or <code>combine</code>. If using
-        combined filters, both <code>combine</code> and all of the nested filter
-        kinds must be allowed. Defaults to <code>uploadpackfilter.allow</code>.
+        <code>blob:limit</code>, <code>object:type</code>, <code>tree</code>, <code>sparse:oid</code>, or <code>combine</code>.
+        If using combined filters, both <code>combine</code> and all of the nested
+        filter kinds must be allowed. Defaults to <code>uploadpackfilter.allow</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -10271,7 +10392,7 @@ looks like</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-15 15:56:49 PDT
+ 2021-06-05 10:09:21 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-rev-list(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -2087,6 +2087,8 @@ together.</p></div>
 or units.  n may be zero.  The suffixes k, m, and g can be used to name
 units in KiB, MiB, or GiB.  For example, <em>blob:limit=1k</em> is the same
 as <em>blob:limit=1024</em>.</p></div>
+<div class="paragraph"><p>The form <em>--filter=object:type=(tag|commit|tree|blob)</em> omits all objects
+which are not of the requested type.</p></div>
 <div class="paragraph"><p>The form <em>--filter=sparse:oid=&lt;blob-ish&gt;</em> uses a sparse-checkout
 specification contained in the blob (or blob-expression) <em>&lt;blob-ish&gt;</em>
 to omit blobs that would not be not required for a sparse checkout on
@@ -2123,6 +2125,16 @@ equivalent.</p></div>
 <dd>
 <p>
         Turn off any previous <code>--filter=</code> argument.
+</p>
+</dd>
+<dt class="hdlist1">
+--filter-provided-objects
+</dt>
+<dd>
+<p>
+        Filter the list of explicitly provided objects, which would otherwise
+        always be printed even if they did not match any of the filters. Only
+        useful with <code>--filter=</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2990,6 +3002,15 @@ author date, short format (<code>YYYY-MM-DD</code>)
 </p>
 </dd>
 <dt class="hdlist1">
+<em>%ah</em>
+</dt>
+<dd>
+<p>
+author date, human style (like the <code>--date=human</code> option of
+        <a href="git-rev-list.html">git-rev-list(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
 <em>%cn</em>
 </dt>
 <dd>
@@ -3097,6 +3118,15 @@ committer date, short format (<code>YYYY-MM-DD</code>)
 </p>
 </dd>
 <dt class="hdlist1">
+<em>%ch</em>
+</dt>
+<dd>
+<p>
+committer date, human style (like the <code>--date=human</code> option of
+        <a href="git-rev-list.html">git-rev-list(1)</a>)
+</p>
+</dd>
+<dt class="hdlist1">
 <em>%d</em>
 </dt>
 <dd>
@@ -3111,6 +3141,34 @@ ref names, like the --decorate option of <a href="git-log.html">git-log(1)</a>
 <p>
 ref names without the " (", ")" wrapping.
 </p>
+</dd>
+<dt class="hdlist1">
+<em>%(describe[:options])</em>
+</dt>
+<dd>
+<p>
+human-readable name, like
+                          <a href="git-describe.html">git-describe(1)</a>; empty string for
+                          undescribable commits.  The <code>describe</code> string
+                          may be followed by a colon and zero or more
+                          comma-separated options.  Descriptions can be
+                          inconsistent when tags are added or removed at
+                          the same time.
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<em>match=&lt;pattern&gt;</em>: Only consider tags matching the given
+   <code>glob(7)</code> pattern, excluding the "refs/tags/" prefix.
+</p>
+</li>
+<li>
+<p>
+<em>exclude=&lt;pattern&gt;</em>: Do not consider tags matching the given
+   <code>glob(7)</code> pattern, excluding the "refs/tags/" prefix.
+</p>
+</li>
+</ul></div>
 </dd>
 <dt class="hdlist1">
 <em>%S</em>
@@ -3300,7 +3358,7 @@ display the trailers of the body as
                           <code>trailers</code> string may be followed by a colon
                           and zero or more comma-separated options.
                           If any option is provided multiple times the
-                          last occurance wins.
+                          last occurrence wins.
 </p>
 <div class="paragraph"><p>The boolean options accept an optional value <code>[=&lt;BOOL&gt;]</code>. The values
 <code>true</code>, <code>false</code>, <code>on</code>, <code>off</code> etc. are all accepted. See the "boolean"
@@ -3565,7 +3623,7 @@ Compare the on-disk size of branches in one group of refs, excluding
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-30 23:01:44 PDT
+ 2021-04-23 10:13:21 PDT
 </div>
 </div>
 </body>

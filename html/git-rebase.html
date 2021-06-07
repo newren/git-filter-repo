@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-rebase(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -925,146 +925,6 @@ desired resolution, you can continue the rebasing process with</p></div>
 <div class="content">
 <pre><code>git rebase --abort</code></pre>
 </div></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_configuration">CONFIGURATION</h2>
-<div class="sectionbody">
-<div class="dlist"><dl>
-<dt class="hdlist1">
-rebase.useBuiltin
-</dt>
-<dd>
-<p>
-        Unused configuration variable. Used in Git versions 2.20 and
-        2.21 as an escape hatch to enable the legacy shellscript
-        implementation of rebase. Now the built-in rewrite of it in C
-        is always used. Setting this will emit a warning, to alert any
-        remaining users that setting this now does nothing.
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.backend
-</dt>
-<dd>
-<p>
-        Default backend to use for rebasing.  Possible choices are
-        <em>apply</em> or <em>merge</em>.  In the future, if the merge backend gains
-        all remaining capabilities of the apply backend, this setting
-        may become unused.
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.stat
-</dt>
-<dd>
-<p>
-        Whether to show a diffstat of what changed upstream since the last
-        rebase. False by default.
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.autoSquash
-</dt>
-<dd>
-<p>
-        If set to true enable <code>--autosquash</code> option by default.
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.autoStash
-</dt>
-<dd>
-<p>
-        When set to true, automatically create a temporary stash entry
-        before the operation begins, and apply it after the operation
-        ends.  This means that you can run rebase on a dirty worktree.
-        However, use with care: the final stash application after a
-        successful rebase might result in non-trivial conflicts.
-        This option can be overridden by the <code>--no-autostash</code> and
-        <code>--autostash</code> options of <a href="git-rebase.html">git-rebase(1)</a>.
-        Defaults to false.
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.missingCommitsCheck
-</dt>
-<dd>
-<p>
-        If set to "warn", git rebase -i will print a warning if some
-        commits are removed (e.g. a line was deleted), however the
-        rebase will still proceed. If set to "error", it will print
-        the previous warning and stop the rebase, <em>git rebase
-        --edit-todo</em> can then be used to correct the error. If set to
-        "ignore", no checking is done.
-        To drop a commit without warning or error, use the <code>drop</code>
-        command in the todo list.
-        Defaults to "ignore".
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.instructionFormat
-</dt>
-<dd>
-<p>
-        A format string, as specified in <a href="git-log.html">git-log(1)</a>, to be used for the
-        todo list during an interactive rebase.  The format will
-        automatically have the long commit hash prepended to the format.
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.abbreviateCommands
-</dt>
-<dd>
-<p>
-        If set to true, <code>git rebase</code> will use abbreviated command names in the
-        todo list resulting in something like this:
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code>        p deadbee The oneline of the commit
-        p fa1afe1 The oneline of the next commit
-        ...</code></pre>
-</div></div>
-<div class="paragraph"><p>instead of:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>        pick deadbee The oneline of the commit
-        pick fa1afe1 The oneline of the next commit
-        ...</code></pre>
-</div></div>
-<div class="paragraph"><p>Defaults to false.</p></div>
-</dd>
-<dt class="hdlist1">
-rebase.rescheduleFailedExec
-</dt>
-<dd>
-<p>
-        Automatically reschedule <code>exec</code> commands that failed. This only makes
-        sense in interactive mode (or when an <code>--exec</code> option was provided).
-        This is the same as specifying the <code>--reschedule-failed-exec</code> option.
-</p>
-</dd>
-<dt class="hdlist1">
-rebase.forkPoint
-</dt>
-<dd>
-<p>
-        If set to false set <code>--no-fork-point</code> option by default.
-</p>
-</dd>
-<dt class="hdlist1">
-sequence.editor
-</dt>
-<dd>
-<p>
-        Text editor used by <code>git rebase -i</code> for editing the rebase instruction file.
-        The value is meant to be interpreted by the shell when it is used.
-        It can be overridden by the <code>GIT_SEQUENCE_EDITOR</code> environment variable.
-        When not configured the default commit message editor is used instead.
-</p>
-</dd>
-</dl></div>
 </div>
 </div>
 <div class="sect1">
@@ -1655,16 +1515,17 @@ without an explicit <code>--interactive</code>.</p></div>
 </dt>
 <dd>
 <p>
-        When the commit log message begins with "squash! &#8230;" (or
-        "fixup! &#8230;"), and there is already a commit in the todo list that
-        matches the same <code>...</code>, automatically modify the todo list of rebase
-        -i so that the commit marked for squashing comes right after the
-        commit to be modified, and change the action of the moved commit
-        from <code>pick</code> to <code>squash</code> (or <code>fixup</code>).  A commit matches the <code>...</code> if
-        the commit subject matches, or if the <code>...</code> refers to the commit&#8217;s
-        hash. As a fall-back, partial matches of the commit subject work,
-        too.  The recommended way to create fixup/squash commits is by using
-        the <code>--fixup</code>/<code>--squash</code> options of <a href="git-commit.html">git-commit(1)</a>.
+        When the commit log message begins with "squash! &#8230;" or "fixup! &#8230;"
+        or "amend! &#8230;", and there is already a commit in the todo list that
+        matches the same <code>...</code>, automatically modify the todo list of
+        <code>rebase -i</code>, so that the commit marked for squashing comes right after
+        the commit to be modified, and change the action of the moved commit
+        from <code>pick</code> to <code>squash</code> or <code>fixup</code> or <code>fixup -C</code> respectively. A commit
+        matches the <code>...</code> if the commit subject matches, or if the <code>...</code> refers
+        to the commit&#8217;s hash. As a fall-back, partial matches of the commit
+        subject work, too. The recommended way to create fixup/amend/squash
+        commits is by using the <code>--fixup</code>, <code>--fixup=amend:</code> or <code>--fixup=reword:</code>
+        and <code>--squash</code> options respectively of <a href="git-commit.html">git-commit(1)</a>.
 </p>
 <div class="paragraph"><p>If the <code>--autosquash</code> option is enabled by default using the
 configuration variable <code>rebase.autoSquash</code>, this option can be
@@ -1697,6 +1558,13 @@ used to override and disable this setting.</p></div>
         Automatically reschedule <code>exec</code> commands that failed. This only makes
         sense in interactive mode (or when an <code>--exec</code> option was provided).
 </p>
+<div class="paragraph"><p>Even though this option applies once a rebase is started, it&#8217;s set for
+the whole rebase at the start based on either the
+<code>rebase.rescheduleFailedExec</code> configuration (see <a href="git-config.html">git-config(1)</a>
+or "CONFIGURATION" below) or whether this option is
+provided. Otherwise an explicit <code>--no-reschedule-failed-exec</code> at the
+start would be overridden by the presence of
+<code>rebase.rescheduleFailedExec=true</code> configuration.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -2337,9 +2205,16 @@ delete the matching line.</p></div>
 "pick" for the second and subsequent commits with "squash" or "fixup".
 If the commits had different authors, the folded commit will be
 attributed to the author of the first commit.  The suggested commit
-message for the folded commit is the concatenation of the commit
-messages of the first commit and of those with the "squash" command,
-but omits the commit messages of commits with the "fixup" command.</p></div>
+message for the folded commit is the concatenation of the first
+commit&#8217;s message with those identified by "squash" commands, omitting the
+messages of commits identified by "fixup" commands, unless "fixup -c"
+is used.  In that case the suggested commit message is only the message
+of the "fixup -c" commit, and an editor is opened allowing you to edit
+the message.  The contents (patch) of the "fixup -c" commit are still
+incorporated into the folded commit. If there is more than one "fixup -c"
+commit, the message from the final one is used.  You can also use
+"fixup -C" to get the same behavior as "fixup -c" except without opening
+an editor.</p></div>
 <div class="paragraph"><p><em>git rebase</em> will stop when "pick" has been replaced with "edit" or
 when a command fails due to merge errors. When you are done editing
 and/or resolving conflicts you can continue with <code>git rebase --continue</code>.</p></div>
@@ -2725,6 +2600,134 @@ merge cmake</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+rebase.backend
+</dt>
+<dd>
+<p>
+        Default backend to use for rebasing.  Possible choices are
+        <em>apply</em> or <em>merge</em>.  In the future, if the merge backend gains
+        all remaining capabilities of the apply backend, this setting
+        may become unused.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.stat
+</dt>
+<dd>
+<p>
+        Whether to show a diffstat of what changed upstream since the last
+        rebase. False by default.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.autoSquash
+</dt>
+<dd>
+<p>
+        If set to true enable <code>--autosquash</code> option by default.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.autoStash
+</dt>
+<dd>
+<p>
+        When set to true, automatically create a temporary stash entry
+        before the operation begins, and apply it after the operation
+        ends.  This means that you can run rebase on a dirty worktree.
+        However, use with care: the final stash application after a
+        successful rebase might result in non-trivial conflicts.
+        This option can be overridden by the <code>--no-autostash</code> and
+        <code>--autostash</code> options of <a href="git-rebase.html">git-rebase(1)</a>.
+        Defaults to false.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.missingCommitsCheck
+</dt>
+<dd>
+<p>
+        If set to "warn", git rebase -i will print a warning if some
+        commits are removed (e.g. a line was deleted), however the
+        rebase will still proceed. If set to "error", it will print
+        the previous warning and stop the rebase, <em>git rebase
+        --edit-todo</em> can then be used to correct the error. If set to
+        "ignore", no checking is done.
+        To drop a commit without warning or error, use the <code>drop</code>
+        command in the todo list.
+        Defaults to "ignore".
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.instructionFormat
+</dt>
+<dd>
+<p>
+        A format string, as specified in <a href="git-log.html">git-log(1)</a>, to be used for the
+        todo list during an interactive rebase.  The format will
+        automatically have the long commit hash prepended to the format.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.abbreviateCommands
+</dt>
+<dd>
+<p>
+        If set to true, <code>git rebase</code> will use abbreviated command names in the
+        todo list resulting in something like this:
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code>        p deadbee The oneline of the commit
+        p fa1afe1 The oneline of the next commit
+        ...</code></pre>
+</div></div>
+<div class="paragraph"><p>instead of:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>        pick deadbee The oneline of the commit
+        pick fa1afe1 The oneline of the next commit
+        ...</code></pre>
+</div></div>
+<div class="paragraph"><p>Defaults to false.</p></div>
+</dd>
+<dt class="hdlist1">
+rebase.rescheduleFailedExec
+</dt>
+<dd>
+<p>
+        Automatically reschedule <code>exec</code> commands that failed. This only makes
+        sense in interactive mode (or when an <code>--exec</code> option was provided).
+        This is the same as specifying the <code>--reschedule-failed-exec</code> option.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.forkPoint
+</dt>
+<dd>
+<p>
+        If set to false set <code>--no-fork-point</code> option by default.
+</p>
+</dd>
+<dt class="hdlist1">
+sequence.editor
+</dt>
+<dd>
+<p>
+        Text editor used by <code>git rebase -i</code> for editing the rebase instruction file.
+        The value is meant to be interpreted by the shell when it is used.
+        It can be overridden by the <code>GIT_SEQUENCE_EDITOR</code> environment variable.
+        When not configured the default commit message editor is used instead.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_bugs">BUGS</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The todo list presented by the deprecated <code>--preserve-merges --interactive</code>
@@ -2762,7 +2765,7 @@ Use <code>--rebase-merges</code> in such scenarios instead.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-15 15:56:49 PDT
+ 2021-06-05 10:09:21 PDT
 </div>
 </div>
 </body>

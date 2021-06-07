@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.10" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
 <title>git-sparse-checkout(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -436,7 +436,7 @@ thead, p.table.header {
 p.table {
   margin-top: 0;
 }
-/* Because the table frame attribute is overriden by CSS in most browsers. */
+/* Because the table frame attribute is overridden by CSS in most browsers. */
 div.tableblock > table[frame="void"] {
   border-style: none;
 }
@@ -794,6 +794,18 @@ THE FUTURE.</p></div>
 <div class="paragraph"><p>When <code>--cone</code> is provided, the <code>core.sparseCheckoutCone</code> setting is
 also set, allowing for better performance with a limited set of
 patterns (see <em>CONE PATTERN SET</em> below).</p></div>
+<div class="paragraph"><p>Use the <code>--[no-]sparse-index</code> option to toggle the use of the sparse
+index format. This reduces the size of the index to be more closely
+aligned with your sparse-checkout definition. This can have significant
+performance advantages for commands such as <code>git status</code> or <code>git add</code>.
+This feature is still experimental. Some commands might be slower with
+a sparse index until they are properly integrated with the feature.</p></div>
+<div class="paragraph"><p><strong>WARNING:</strong> Using a sparse index requires modifying the index in a way
+that is not completely understood by external tools. If you have trouble
+with this compatibility, then run <code>git sparse-checkout init --no-sparse-index</code>
+to rewrite your index to not be sparse. Older versions of Git will not
+understand the sparse directory entries index extension and may fail to
+interact with your repository until it is disabled.</p></div>
 </dd>
 <dt class="hdlist1">
 <em>set</em>
@@ -1009,7 +1021,7 @@ of these restrictions.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-19 21:19:27 PDT
+ 2021-06-05 10:09:21 PDT
 </div>
 </div>
 </body>
