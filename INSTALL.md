@@ -19,15 +19,33 @@ these versions.
 
 # Notes for Windows Users
 
-It seems that the default python on Windows is not fully functional,
-and windows might not allow executing python scripts by default.  See
-[issue 124](https://github.com/newren/git-filter-repo/issues/124),
-[issue 36](https://github.com/newren/git-filter-repo/issues/36), and
-[this git mailing list
-thread](https://lore.kernel.org/git/nycvar.QRO.7.76.6.2004251610300.18039@tvgsbejvaqbjf.bet/)
-for details and workarounds.  I believe that Windows users installing
-git-filter-repo via Scoop will be okay, but those using a manual
-installation or pip install may run into these issues.
+The first hurdle for Windows users is installing a functional version
+of Python (it has been reported that Windows ships with a stripped
+down python-like program that just doesn't work).  python.org probably
+has good instructions here, though many users report a preference
+getting it from the [Microsoft
+Store](https://docs.microsoft.com/en-us/windows/python/beginners) and
+seem to be successful with that (particularly since [msys2 issue
+#27](https://github.com/msys2/msys2-runtime/pull/27) was fixed by the
+Git for Windows maintainer).
+
+Several users also needed to modify the first line of the
+git-filter-repo script to change paths, especially if installing
+git-filter-repo using the pip method instead of Scoop, and
+particularly with older versions of Git for Windows (anything less
+than 2.32.0.windows.1) as GitBash had an unfortunate shebang length
+limitation (see [git-for-windows issue
+#3165](https://github.com/git-for-windows/git/pull/3165)).
+
+For additional details (if needed, though be aware these might not be
+accurate anymore given both git-for-windows and git-filter-repo
+fixes), see
+[#225](https://github.com/newren/git-filter-repo/pull/225),
+[#231](https://github.com/newren/git-filter-repo/pull/231),
+[#124](https://github.com/newren/git-filter-repo/issues/124),
+[#36](https://github.com/newren/git-filter-repo/issues/36), and [this
+git mailing list
+thread](https://lore.kernel.org/git/nycvar.QRO.7.76.6.2004251610300.18039@tvgsbejvaqbjf.bet/).
 
 
 # Manual Installation
