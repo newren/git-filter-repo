@@ -2666,6 +2666,10 @@ class InputFileBackup:
     self.input_file  = input_file
     self.output_file = output_file
 
+  def close(self):
+    self.input_file.close()
+    self.output_file.close()
+
   def read(self, size):
     output = self.input_file.read(size)
     self.output_file.write(output)
@@ -3896,6 +3900,7 @@ class RepoFilter(object):
       # Make sure fast-export completed successfully
       if not self._args.stdin and self._fep.wait():
         raise SystemExit(_("Error: fast-export failed; see above.")) # pragma: no cover
+      self._input.close()
 
     # If we're not the manager of self._output, we should avoid post-run cleanup
     if not self._managed_output:
