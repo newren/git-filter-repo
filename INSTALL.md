@@ -39,8 +39,6 @@ Follow these simple steps:
     
     The folder above could be different depending on your Python's
     version.
-4. Change first line of the git-filter-repo script to
-`#!\python.exe`.
 
 If you have Python installed via
 [WSL](https://docs.microsoft.com/en-us/windows/python/web-frameworks)
