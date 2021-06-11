@@ -20,22 +20,24 @@ these versions.
 # Notes for Windows Users
 
 The first hurdle for Windows users is installing a functional version
-of Python (it has been reported that Windows ships with a stripped
-down python-like program that just doesn't work).  python.org probably
-has good instructions here, though many users report a preference
-getting it from the [Microsoft
+of Python (it has been reported that Windows ships with a [stub or
+stripped down python-like program that just doesn't
+work](https://github.com/newren/git-filter-repo/issues/36#issuecomment-568933825)).
+python.org probably has good instructions here, though many users
+report a preference getting it from the [Microsoft
 Store](https://docs.microsoft.com/en-us/windows/python/beginners) and
 seem to be successful with that (particularly since [msys2 issue
 #27](https://github.com/msys2/msys2-runtime/pull/27) was fixed by the
 Git for Windows maintainer).
 
-Several users also needed to modify the first line of the
-git-filter-repo script to change paths, especially if installing
-git-filter-repo using the pip method instead of Scoop, and
+In the past, several users also needed to modify the first line of the
+git-filter-repo script to change the python path, particularly when
+installing git-filter-repo using the pip method instead of Scoop, and
 particularly with older versions of Git for Windows (anything less
 than 2.32.0.windows.1) as GitBash had an unfortunate shebang length
 limitation (see [git-for-windows issue
-#3165](https://github.com/git-for-windows/git/pull/3165)).
+#3165](https://github.com/git-for-windows/git/pull/3165)).  Hopefully,
+this isn't needed anymore.
 
 For additional details (if needed, though be aware these might not be
 accurate anymore given both git-for-windows and git-filter-repo
@@ -124,16 +126,19 @@ So, installation might look something like the following:
 
 # Installation via [pip](https://pip.pypa.io/)
 
-For those who prefer to install python packages via pip, you merely need
-to run:
+This method is NOT recommended, because [installing via pip does not
+place the package in your
+$PATH](https://stackoverflow.com/questions/35898734/pip-installs-packages-successfully-but-executables-not-found-from-command-line).
+If you go this route, you have to copy the file into an appropriate
+directory (either `git --exec-path` or something else in $PATH), or
+modify your $PATH to include the directory where pip places things,
+but you could have just done that after cloning filter-repo directly
+so this installation method provides virtually no benefit.
+
+However, some people still prefer installing this way.  If you are
+one of them, you can use:
 
     $ pip3 install git-filter-repo
-
-However, the place where pip places that package might not be in your
-$PATH (thus requiring you to manually update your $PATH afterwards),
-and on windows the pip install might not take care of python-specific
-issues for you (see "Notes for Windows Users", above).  As such,
-installation via package managers is recommended instead.
 
 
 # Installation via Makefile
