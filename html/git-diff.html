@@ -806,11 +806,11 @@ files on disk.</p></div>
         --staged is a synonym of --cached.
 </p>
 <div class="paragraph"><p>If --merge-base is given, instead of using &lt;commit&gt;, use the merge base
-of &lt;commit&gt; and HEAD.  <code>git diff --merge-base A</code> is equivalent to
-<code>git diff $(git merge-base A HEAD)</code>.</p></div>
+of &lt;commit&gt; and HEAD.  <code>git diff --cached --merge-base A</code> is equivalent to
+<code>git diff --cached $(git merge-base A HEAD)</code>.</p></div>
 </dd>
 <dt class="hdlist1">
-<em>git diff</em> [&lt;options&gt;] &lt;commit&gt; [--] [&lt;path&gt;&#8230;]
+<em>git diff</em> [&lt;options&gt;] [--merge-base] &lt;commit&gt; [--] [&lt;path&gt;&#8230;]
 </dt>
 <dd>
 <p>
@@ -820,6 +820,9 @@ of &lt;commit&gt; and HEAD.  <code>git diff --merge-base A</code> is equivalent 
         branch name to compare with the tip of a different
         branch.
 </p>
+<div class="paragraph"><p>If --merge-base is given, instead of using &lt;commit&gt;, use the merge base
+of &lt;commit&gt; and HEAD.  <code>git diff --merge-base A</code> is equivalent to
+<code>git diff $(git merge-base A HEAD)</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 <em>git diff</em> [&lt;options&gt;] [--merge-base] &lt;commit&gt; &lt;commit&gt; [--] [&lt;path&gt;&#8230;]
@@ -1756,11 +1759,17 @@ of a delete/create pair.</p></div>
 </dt>
 <dd>
 <p>
-        The <code>-M</code> and <code>-C</code> options require O(n^2) processing time where n
-        is the number of potential rename/copy targets.  This
-        option prevents rename/copy detection from running if
-        the number of rename/copy targets exceeds the specified
-        number.
+        The <code>-M</code> and <code>-C</code> options involve some preliminary steps that
+        can detect subsets of renames/copies cheaply, followed by an
+        exhaustive fallback portion that compares all remaining
+        unpaired destinations to all relevant sources.  (For renames,
+        only remaining unpaired sources are relevant; for copies, all
+        original sources are relevant.)  For N sources and
+        destinations, this exhaustive check is O(N^2).  This option
+        prevents the exhaustive portion of rename/copy detection from
+        running if the number of source/destination files involved
+        exceeds the specified number.  Defaults to diff.renameLimit.
+        Note that a value of 0 is treated as unlimited.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2991,7 +3000,7 @@ Output diff in reverse.
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-15 15:56:49 PDT
+ 2021-08-16 10:13:21 PDT
 </div>
 </div>
 </body>

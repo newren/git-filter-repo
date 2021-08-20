@@ -1095,7 +1095,8 @@ option can be used to override --squash.</p></div>
 <dd>
 <p>
         Automatically create a temporary stash entry before the operation
-        begins, and apply it after the operation ends.  This means
+        begins, record it in the special ref <code>MERGE_AUTOSTASH</code>
+        and apply it after the operation ends.  This means
         that you can run the operation on a dirty worktree.  However, use
         with care: the final stash application after a successful
         merge might result in non-trivial conflicts.
@@ -1134,7 +1135,7 @@ the local merge commits are included in the rebase (see
 <div class="paragraph"><p>When set to <code>preserve</code> (deprecated in favor of <code>merges</code>), rebase with the
 <code>--preserve-merges</code> option passed to <code>git rebase</code> so that locally created
 merge commits will not be flattened.</p></div>
-<div class="paragraph"><p>When false, merge the current branch into the upstream branch.</p></div>
+<div class="paragraph"><p>When false, merge the upstream branch into the current branch.</p></div>
 <div class="paragraph"><p>When <code>interactive</code>, enable the interactive mode of rebase.</p></div>
 <div class="paragraph"><p>See <code>pull.rebase</code>, <code>branch.&lt;name&gt;.rebase</code> and <code>branch.autoSetupRebase</code> in
 <a href="git-config.html">git-config(1)</a> if you want to make <code>git pull</code> always use
@@ -1276,8 +1277,21 @@ commits reachable from any of the given commits.</p></div>
 <div class="paragraph"><p>The argument to this option may be a glob on ref names, a ref, or the (possibly
 abbreviated) SHA-1 of a commit. Specifying a glob is equivalent to specifying
 this option multiple times, one for each matching ref name.</p></div>
-<div class="paragraph"><p>See also the <code>fetch.negotiationAlgorithm</code> configuration variable
-documented in <a href="git-config.html">git-config(1)</a>.</p></div>
+<div class="paragraph"><p>See also the <code>fetch.negotiationAlgorithm</code> and <code>push.negotiate</code>
+configuration variables documented in <a href="git-config.html">git-config(1)</a>, and the
+<code>--negotiate-only</code> option below.</p></div>
+</dd>
+<dt class="hdlist1">
+--negotiate-only
+</dt>
+<dd>
+<p>
+        Do not fetch anything from the server, and instead print the
+        ancestors of the provided <code>--negotiation-tip=*</code> arguments,
+        which we have in common with the server.
+</p>
+<div class="paragraph"><p>Internally this is used to implement the <code>push.negotiate</code> option, see
+<a href="git-config.html">git-config(1)</a>.</p></div>
 </dd>
 <dt class="hdlist1">
 --dry-run
@@ -2250,7 +2264,7 @@ version.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-04 12:41:53 PST
+ 2021-08-16 10:13:21 PDT
 </div>
 </div>
 </body>

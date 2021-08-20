@@ -1086,7 +1086,8 @@ option can be used to override --squash.</p></div>
 <dd>
 <p>
         Automatically create a temporary stash entry before the operation
-        begins, and apply it after the operation ends.  This means
+        begins, record it in the special ref <code>MERGE_AUTOSTASH</code>
+        and apply it after the operation ends.  This means
         that you can run the operation on a dirty worktree.  However, use
         with care: the final stash application after a successful
         merge might result in non-trivial conflicts.
@@ -1744,7 +1745,7 @@ merge.defaultToUpstream
         branches at the remote named by <code>branch.&lt;current branch&gt;.remote</code>
         are consulted, and then they are mapped via <code>remote.&lt;remote&gt;.fetch</code>
         to their corresponding remote-tracking branches, and the tips of
-        these tracking branches are merged.
+        these tracking branches are merged. Defaults to true.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1813,10 +1814,12 @@ merge.renameLimit
 </dt>
 <dd>
 <p>
-        The number of files to consider when performing rename detection
-        during a merge; if not specified, defaults to the value of
-        diff.renameLimit. This setting has no effect if rename detection
-        is turned off.
+        The number of files to consider in the exhaustive portion of
+        rename detection during a merge.  If not specified, defaults
+        to the value of diff.renameLimit.  If neither
+        merge.renameLimit nor diff.renameLimit are specified,
+        currently defaults to 7000.  This setting has no effect if
+        rename detection is turned off.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2151,7 +2154,7 @@ branch.&lt;name&gt;.mergeOptions
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-03-04 12:41:53 PST
+ 2021-07-21 20:51:06 PDT
 </div>
 </div>
 </body>
