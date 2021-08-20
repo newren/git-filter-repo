@@ -91,6 +91,8 @@ github_release: update_docs
 	test -n "$(GITHUB_COM_TOKEN)"
 	test -n "$(TAGNAME)"
 	test -n "$$COMMIT"
+	# Make sure we don't have any staged or unstaged changes
+	git diff --quiet --staged HEAD && git diff --quiet HEAD
 	# Make sure 'jq' is installed
 	type -p jq
 	# Tag the release, push it to GitHub
