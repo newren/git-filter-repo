@@ -722,8 +722,11 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 
 		git filter-repo --analyze &&
 
-		# It should work and overwrite report if run again
-		git filter-repo --analyze &&
+		# It should not work again without a --force
+		test_must_fail git filter-repo --analyze &&
+
+		# With a --force, another run should succeed
+		git filter-repo --analyze --force &&
 
 		test -d .git/filter-repo/analysis &&
 		cd .git/filter-repo/analysis &&
@@ -821,6 +824,38 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		          21         37 2005-04-07 numbers/small.num
 		EOF
 		test_cmp expect path-deleted-sizes.txt
+	)
+'
+
+test_expect_success C_LOCALE_OUTPUT '--analyze --report-dir' '
+	setup_analyze_me &&
+	(
+		cd analyze_me &&
+
+		rm -rf .git/filter-repo &&
+		git filter-repo --analyze --report-dir foobar &&
+
+		# It should not work again without a --force
+		test_must_fail git filter-repo --analyze --report-dir foobar &&
+
+		# With a --force, though, it should overwrite
+		git filter-repo --analyze --report-dir foobar --force &&
+
+		test ! -d .git/filter-repo/analysis &&
+		test -d foobar &&
+
+		cd foobar &&
+
+		# Very simple tests because already tested above.
+		test_path_is_file renames.txt &&
+		test_path_is_file README &&
+		test_path_is_file blob-shas-and-paths.txt &&
+		test_path_is_file directories-all-sizes.txt &&
+		test_path_is_file directories-deleted-sizes.txt &&
+		test_path_is_file extensions-all-sizes.txt &&
+		test_path_is_file extensions-deleted-sizes.txt &&
+		test_path_is_file path-all-sizes.txt &&
+		test_path_is_file path-deleted-sizes.txt
 	)
 '
 
