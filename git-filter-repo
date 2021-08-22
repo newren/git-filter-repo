@@ -1758,6 +1758,12 @@ EXAMPLES
         help=_("Analyze repository history and create a report that may be "
                "useful in determining what to filter in a subsequent run. "
                "Will not modify your repo."))
+    analyze.add_argument('--report-dir',
+        metavar='DIR_OR_FILE',
+        type=os.fsencode,
+        dest='report_dir',
+        help=_("Directory to write report, defaults to GIT_DIR/filter_repo/analysis,"
+               "refuses to run if exists, --force delete existing dir first."))
 
     path = parser.add_argument_group(title=_("Filtering based on paths "
                                              "(see also --filename-callback)"))
@@ -2641,15 +2647,25 @@ class RepoAnalyze(object):
 
   @staticmethod
   def run(args):
-    git_dir = GitUtils.determine_git_dir(b'.')
+    if args.report_dir:
+      reportdir = args.report_dir
+    else:
+      git_dir = GitUtils.determine_git_dir(b'.')
 
     # Create the report directory as necessary
-    results_tmp_dir = os.path.join(git_dir, b'filter-repo')
-    if not os.path.isdir(results_tmp_dir):
-      os.mkdir(results_tmp_dir)
-    reportdir = os.path.join(results_tmp_dir, b"analysis")
-    if not args.force and os.path.isdir(reportdir):
-      shutil.rmtree(reportdir)
+      results_tmp_dir = os.path.join(git_dir, b'filter-repo')
+      if not os.path.isdir(results_tmp_dir):
+        os.mkdir(results_tmp_dir)
+      reportdir = os.path.join(results_tmp_dir, b"analysis")
+
+    if os.path.isdir(reportdir):
+      if args.force:
+        sys.stdout.write(_("Warning: Removing recursively: \"%s\"") % decode(reportdir))
+        shutil.rmtree(reportdir)
+      else:
+        sys.stdout.write(_("Error: dir already exists (use --force to delete): \"%s\"\n") % decode(reportdir))
+        sys.exit(1)
+
     os.mkdir(reportdir)
 
     # Gather the data we need
