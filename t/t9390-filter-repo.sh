@@ -39,6 +39,7 @@ filter_testcase basic basic-filename --invert-paths --path-glob 't*en*'
 filter_testcase basic basic-numbers  --invert-paths --path-regex 'f.*e.*e'
 filter_testcase basic basic-mailmap  --mailmap ../t9390/sample-mailmap
 filter_testcase basic basic-replace  --replace-text ../t9390/sample-replace
+filter_testcase basic basic-message  --replace-message ../t9390/sample-message
 filter_testcase empty empty-keepme   --path keepme
 filter_testcase empty more-empty-keepme --path keepme --prune-empty=always \
 		                                   --prune-degenerate=always

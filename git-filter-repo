@@ -1843,6 +1843,10 @@ EXAMPLES
 
     messages = parser.add_argument_group(title=_("Filtering of commit messages "
                                                "(see also --message-callback)"))
+    messages.add_argument('--replace-message', metavar='EXPRESSIONS_FILE',
+        help=_("A file with expressions that, if found in commit messages, "
+               "will be replaced. This file uses the same syntax as "
+               "--replace-text."))
     messages.add_argument('--preserve-commit-hashes', action='store_true',
         help=_("By default, since commits are rewritten and thus gain new "
                "hashes, references to old commit hashes in commit messages "
@@ -2189,6 +2193,8 @@ EXAMPLES
       args.mailmap = MailmapInfo(args.mailmap)
     if args.replace_text:
       args.replace_text = FilteringOptions.get_replace_text(args.replace_text)
+    if args.replace_message:
+      args.replace_message = FilteringOptions.get_replace_text(args.replace_message)
     if args.strip_blobs_with_ids:
       with open(args.strip_blobs_with_ids, 'br') as f:
         args.strip_blobs_with_ids = set(f.read().split())
@@ -3374,6 +3380,11 @@ class RepoFilter(object):
     if not self._args.preserve_commit_hashes:
       commit.message = self._hash_re.sub(self._translate_commit_hash,
                                          commit.message)
+    if self._args.replace_message:
+      for literal, replacement in self._args.replace_message['literals']:
+        commit.message = commit.message.replace(literal, replacement)
+      for regex,   replacement in self._args.replace_message['regexes']:
+        commit.message = regex.sub(replacement, commit.message)
     if self._message_callback:
       commit.message = self._message_callback(commit.message)
 
@@ -3474,6 +3485,11 @@ class RepoFilter(object):
 
   def _tweak_tag(self, tag):
     # Tweak the tag message according to callbacks
+    if self._args.replace_message:
+      for literal, replacement in self._args.replace_message['literals']:
+        tag.message = tag.message.replace(literal, replacement)
+      for regex,   replacement in self._args.replace_message['regexes']:
+        tag.message = regex.sub(replacement, tag.message)
     if self._message_callback:
       tag.message = self._message_callback(tag.message)
 

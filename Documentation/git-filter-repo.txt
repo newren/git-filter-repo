@@ -181,6 +181,11 @@ Renaming of refs (see also --refname-callback)
 Filtering of commit messages (see also --message-callback)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+--replace-message <expressions_file>::
+	A file with expressions that, if found in commit or tag
+	messages, will be replaced. This file uses the same syntax as
+	--replace-text.
+
 --preserve-commit-hashes::
 	By default, since commits are rewritten and thus gain new
 	hashes, references to old commit hashes in commit messages are
@@ -895,6 +900,26 @@ YYYY-MM-DD.  In the expressions file, there are a few things to note:
     See https://docs.python.org/3/library/re.html for details.
 
 See also the `--blob-callback` from <<CALLBACKS>>.
+
+Updating commit/tag messages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to modify commit or tag messages, you can do so with the
+same syntax as `--replace-text`, explained above.  For example, with a
+file named expressions.txt containing
+
+--------------------------------------------------
+foo==>bar
+--------------------------------------------------
+
+then running
+--------------------------------------------------
+git filter-repo --replace-message expressions.txt
+--------------------------------------------------
+
+will replace `foo` in commit or tag messages with `bar`.
+
+See also the `--message-callback` from <<CALLBACKS>>.
 
 Refname based filtering
 ~~~~~~~~~~~~~~~~~~~~~~~
