@@ -1497,12 +1497,12 @@ class FastExportParser(object):
     # Run over the input and do the filtering
     self._advance_currentline()
     while self._currentline:
-      if   self._currentline.startswith(b'blob'):
+      if self._currentline.startswith(b'commit'):
+        self._parse_commit()
+      elif self._currentline.startswith(b'blob'):
         self._parse_blob()
       elif self._currentline.startswith(b'reset'):
         self._parse_reset()
-      elif self._currentline.startswith(b'commit'):
-        self._parse_commit()
       elif self._currentline.startswith(b'tag'):
         self._parse_tag()
       elif self._currentline.startswith(b'progress'):
