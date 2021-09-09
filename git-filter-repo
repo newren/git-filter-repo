@@ -2022,6 +2022,8 @@ EXAMPLES
                "--refname-callback options such that instead of replacing "
                "old refs with new refnames, it will instead create new "
                "refs and keep the old ones around.  Use with caution."))
+    misc.add_argument('--no-gc', action='store_true',
+        help=_("Do not run 'git gc' after filtering."))
     # WARNING: --refs presents a problem with become-degenerate pruning:
     #   * Excluding a commit also excludes its ancestors so when some other
     #     commit has an excluded ancestor as a parent we have no way of
@@ -2253,7 +2255,7 @@ EXAMPLES
       args.strip_blobs_with_ids = set()
     if (args.partial or args.refs) and not args.replace_refs:
       args.replace_refs = 'update-no-add'
-    args.repack = not (args.partial or args.refs)
+    args.repack = not (args.partial or args.refs or args.no_gc)
     if args.refs or args.source or args.target:
       args.partial = True
     if not args.refs:
