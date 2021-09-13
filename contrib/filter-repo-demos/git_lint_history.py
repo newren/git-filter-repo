@@ -46,13 +46,18 @@ import argparse
 import os
 import subprocess
 import tempfile
+import fnmatch  # noqa
 import shlex
 try:
   import git_filter_repo as fr
 except ImportError:
   raise SystemExit("Error: Couldn't find git_filter_repo.py.  Did you forget to make a symlink to git-filter-repo named git_filter_repo.py or did you forget to put the latter in your PYTHONPATH?")
 
-example_text = '''CALLBACK
+example_text = '''EXTRA OPTIONS AND ARGUMENTS
+
+    are forwarded to git-filter-repo. E.g. '--refs master..feature'
+
+CALLBACK
 
     When you pass --relevant 'BODY', the following style of function
     will be compiled and called:
@@ -91,13 +96,17 @@ parser.add_argument('--relevant', metavar="FUNCTION_BODY",
         help=("Python code for determining whether to apply linter to a "
               "given filename.  Implies --filenames-important.  See CALLBACK "
               "below."))
+parser.add_argument('--relevant-glob', metavar="GLOB", action='append',
+        help=("Glob of paths to include in filtered history. Can be specified "
+              "multiple times to get a union of paths."))
 parser.add_argument('--filenames-important', action='store_true',
         help=("By default, contents are written to a temporary file with a "
               "random name.  If the linting program needs to know the file "
               "basename to operate correctly (e.g. because it needs to know "
               "the file's extension), then pass this argument"))
-parser.add_argument('command', nargs=argparse.REMAINDER,
-        help=("Lint command to run, other than the filename at the end"))
+parser.add_argument('command', nargs=1,
+        help=("Lint command to run, other than the filename at the end. "
+              "E.g. \"black --fast\""))
 
 tmpdir = None
 blobs_handled = {}
@@ -123,14 +132,14 @@ def lint_with_real_filenames(commit, metadata):
         f.write(contents_plus_newline[:-1])
 
       # Lint the file
-      subprocess.check_call(lint_args.command + [filename.decode('utf-8')])
+      subprocess.check_call(shlex.split(lint_args.command[0]) + [filename.decode('utf-8')])
 
       # Get the new contents
       with open(filename, "rb") as f:
         blob = fr.Blob(f.read())
 
       # Insert the new file into the filter's stream, and remove the tempfile
-      filter.insert(blob)
+      rfilter.insert(blob)
       os.remove(filename)
 
       # Record our handling of the blob and use it for this change
@@ -142,21 +151,24 @@ def lint_non_binary_blobs(blob, metadata):
     filename = '.git/info/tmpfile'
     with open(filename, "wb") as f:
       f.write(blob.data)
-    subprocess.check_call(lint_args.command + [filename])
+    subprocess.check_call(shlex.split(lint_args.command[0]) + [filename])
     with open(filename, "rb") as f:
       blob.data = f.read()
     os.remove(filename)
 
 def main(argv1=None):
-  global is_relevant, lint_args, tmpdir, cat_file_process, filter
+  global is_relevant, lint_args, tmpdir, cat_file_process, rfilter
 
   if isinstance(argv1, str):
     argv1 = shlex.split(argv1)
 
-  lint_args = parser.parse_args(argv1)
+  lint_args, rest = parser.parse_known_args(argv1)
   if not lint_args.command:
     raise SystemExit("Error: Need to specify a lint command")
-
+  if lint_args.relevant_glob:
+    if lint_args.relevant:
+      raise SystemExit("--relevant and --relevant-glob given both")
+    lint_args.relevant = 'return ' + ' or '.join("fnmatch.fnmatch(filename, %r)" % x.encode('utf-8') for x in lint_args.relevant_glob)
   if lint_args.filenames_important and not lint_args.relevant:
     lint_args.relevant = 'return True'
   if lint_args.relevant:
@@ -164,20 +176,22 @@ def main(argv1=None):
     exec('def is_relevant(filename):\n  '+'\n  '.join(body.splitlines()),
          globals())
     lint_args.filenames_important = True
-  args = fr.FilteringOptions.default_options()
-  args.force = True
+  args = fr.FilteringOptions.parse_args(rest, error_on_empty=False)
+  if args.partial:
+    # --refs ...  / --partial given, usual on non-clean clones
+    args.force = True
   if lint_args.filenames_important:
     tmpdir = tempfile.mkdtemp().encode()
     cat_file_process = subprocess.Popen(['git', 'cat-file', '--batch'],
                                         stdin = subprocess.PIPE,
                                         stdout = subprocess.PIPE)
-    filter = fr.RepoFilter(args, commit_callback=lint_with_real_filenames)
-    filter.run()
+    rfilter = fr.RepoFilter(args, commit_callback=lint_with_real_filenames)
+    rfilter.run()
     cat_file_process.stdin.close()
     cat_file_process.wait()
   else:
-    filter = fr.RepoFilter(args, blob_callback=lint_non_binary_blobs)
-    filter.run()
+    rfilter = fr.RepoFilter(args, blob_callback=lint_non_binary_blobs)
+    rfilter.run()
 
 if __name__ == '__main__':
   main()
