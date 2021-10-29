@@ -38,6 +38,7 @@ install: snag_docs #fixup_locale
 	ln -sf "$(bindir)/git-filter-repo" "$(pythondir)/git_filter_repo.py"
 	cp -a Documentation/man1/git-filter-repo.1 "$(mandir)/man1/git-filter-repo.1"
 	cp -a Documentation/html/git-filter-repo.html "$(htmldir)/git-filter-repo.html"
+	if which mandb > /dev/null; then mandb; fi
 
 
 #
