@@ -850,6 +850,87 @@ test_expect_success '--replace-text all options' '
 	)
 '
 
+test_expect_success '--replace-text binary zero_byte-0_char' '
+	(
+		set -e
+		set -u
+		REPO=replace-text-detect-binary
+		FILE=mangle.bin
+		OLD_STR=replace-from
+		NEW_STR=replace-with
+		# used with printf, contains a zero byte and a "0" character, binary
+		OLD_CONTENT_FORMAT="${OLD_STR}\\0${OLD_STR}\\n0\\n"
+		# expect content unchanged due to binary
+		NEW_CONTENT_FORMAT="${OLD_CONTENT_FORMAT}"
+
+		rm -rf "${REPO}"
+		git init "${REPO}"
+		cd "${REPO}"
+		echo "${OLD_STR}==>${NEW_STR}" >../replace-rules
+		printf "${NEW_CONTENT_FORMAT}" > ../expect
+		printf "${OLD_CONTENT_FORMAT}" > "${FILE}"
+		git add "${FILE}"
+		git commit -m 'test'
+		git filter-repo --force --replace-text ../replace-rules
+
+		test_cmp ../expect "${FILE}"
+	)
+'
+
+test_expect_success '--replace-text binary zero_byte-no_0_char' '
+	(
+		set -e
+		set -u
+		REPO=replace-text-detect-binary
+		FILE=mangle.bin
+		OLD_STR=replace-from
+		NEW_STR=replace-with
+		# used with printf, contains a zero byte but no "0" character, binary
+		OLD_CONTENT_FORMAT="${OLD_STR}\\0${OLD_STR}\\n"
+		# expect content unchanged due to binary
+		NEW_CONTENT_FORMAT="${OLD_CONTENT_FORMAT}"
+
+		rm -rf "${REPO}"
+		git init "${REPO}"
+		cd "${REPO}"
+		echo "${OLD_STR}==>${NEW_STR}" >../replace-rules
+		printf "${NEW_CONTENT_FORMAT}" > ../expect
+		printf "${OLD_CONTENT_FORMAT}" > "${FILE}"
+		git add "${FILE}"
+		git commit -m 'test'
+		git filter-repo --force --replace-text ../replace-rules
+
+		test_cmp ../expect "${FILE}"
+	)
+'
+
+test_expect_success '--replace-text text-file no_zero_byte-zero_char' '
+	(
+		set -e
+		set -u
+		REPO=replace-text-detect-binary
+		FILE=mangle.bin
+		OLD_STR=replace-from
+		NEW_STR=replace-with
+		# used with printf, contains no zero byte but contains a "0" character, text
+		OLD_CONTENT_FORMAT="${OLD_STR}0\\n0${OLD_STR}\\n0\\n"
+		# expect content changed due to text
+		NEW_CONTENT_FORMAT="${NEW_STR}0\\n0${NEW_STR}\\n0\\n"
+
+		rm -rf "${REPO}"
+		git init "${REPO}"
+		cd "${REPO}"
+		echo "${OLD_STR}==>${NEW_STR}" >../replace-rules
+		printf "${NEW_CONTENT_FORMAT}" > ../expect
+		printf "${OLD_CONTENT_FORMAT}" > "${FILE}"
+		git add "${FILE}"
+		git commit -m 'test'
+		git filter-repo --force --replace-text ../replace-rules
+
+		test_cmp ../expect "${FILE}"
+	)
+'
+
 test_expect_success '--strip-blobs-bigger-than' '
 	setup_analyze_me &&
 	(
