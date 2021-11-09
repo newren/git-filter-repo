@@ -1766,7 +1766,13 @@ EXAMPLES
                "refuses to run if exists, --force delete existing dir first."))
 
     path = parser.add_argument_group(title=_("Filtering based on paths "
-                                             "(see also --filename-callback)"))
+                                             "(see also --filename-callback)"),
+                                     description=textwrap.dedent(_("""
+           These options specify the paths to select.  Note that much like git
+           itself, renames are NOT followed so you may need to specify multiple
+           paths, e.g. `--path olddir/ --path newdir/`
+           """[1:])))
+
     path.add_argument('--invert-paths', action='store_false', dest='inclusive',
         help=_("Invert the selection of files from the specified "
                "--path-{match,glob,regex} options below, i.e. only select "
