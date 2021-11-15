@@ -1724,19 +1724,37 @@ kidding - be patient!)</p></div>
 </div>
 <div class="sect2">
 <h3 id="v2-git-send-email">Sending v2</h3>
-<div class="paragraph"><p>Skip ahead to <a href="#reviewing">Responding to Reviews</a> for information on how to
-handle comments from reviewers. Continue this section when your topic branch is
-shaped the way you want it to look for your patchset v2.</p></div>
-<div class="paragraph"><p>When you&#8217;re ready with the next iteration of your patch, the process is fairly
-similar.</p></div>
-<div class="paragraph"><p>First, generate your v2 patches again:</p></div>
+<div class="paragraph"><p>This section will focus on how to send a v2 of your patchset. To learn what
+should go into v2, skip ahead to <a href="#reviewing">Responding to Reviews</a> for
+information on how to handle comments from reviewers.</p></div>
+<div class="paragraph"><p>We&#8217;ll reuse our <code>psuh</code> topic branch for v2. Before we make any changes, we&#8217;ll
+mark the tip of our v1 branch for easy reference:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git format-patch -v2 --cover-letter -o psuh/ master..psuh</code></pre>
+<pre><code>$ git checkout psuh
+$ git branch psuh-v1</code></pre>
 </div></div>
-<div class="paragraph"><p>This will add your v2 patches, all named like <code>v2-000n-my-commit-subject.patch</code>,
-to the <code>psuh/</code> directory. You may notice that they are sitting alongside the v1
-patches; that&#8217;s fine, but be careful when you are ready to send them.</p></div>
+<div class="paragraph"><p>Refine your patch series by using <code>git rebase -i</code> to adjust commits based upon
+reviewer comments. Once the patch series is ready for submission, generate your
+patches again, but with some new flags:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git format-patch -v2 --cover-letter -o psuh/ --range-diff master..psuh-v1 master..</code></pre>
+</div></div>
+<div class="paragraph"><p>The <code>--range-diff master..psuh-v1</code> parameter tells <code>format-patch</code> to include a
+range-diff between <code>psuh-v1</code> and <code>psuh</code> in the cover letter (see
+<a href="git-range-diff.html">git-range-diff(1)</a>). This helps tell reviewers about the differences
+between your v1 and v2 patches.</p></div>
+<div class="paragraph"><p>The <code>-v2</code> parameter tells <code>format-patch</code> to output your patches
+as version "2". For instance, you may notice that your v2 patches are
+all named like <code>v2-000n-my-commit-subject.patch</code>. <code>-v2</code> will also format
+your patches by prefixing them with "[PATCH v2]" instead of "[PATCH]",
+and your range-diff will be prefaced with "Range-diff against v1".</p></div>
+<div class="paragraph"><p>Afer you run this command, <code>format-patch</code> will output the patches to the <code>psuh/</code>
+directory, alongside the v1 patches. Using a single directory makes it easy to
+refer to the old v1 patches while proofreading the v2 patches, but you will need
+to be careful to send out only the v2 patches. We will use a pattern like
+"psuh/v2-<strong>.patch" (not "psuh/</strong>.patch", which would match v1 and v2 patches).</p></div>
 <div class="paragraph"><p>Edit your cover letter again. Now is a good time to mention what&#8217;s different
 between your last version and now, if it&#8217;s something significant. You do not
 need the exact same body in your second cover letter; focus on explaining to
@@ -1769,7 +1787,7 @@ to the command:</p></div>
 <div class="content">
 <pre><code>$ git send-email --to=target@example.com
                  --in-reply-to="&lt;foo.12345.author@example.com&gt;"
-                 psuh/v2*</code></pre>
+                 psuh/v2-*.patch</code></pre>
 </div></div>
 </div>
 <div class="sect2">
@@ -1912,7 +1930,7 @@ should generate your diffs from <code>&lt;topic&gt;..&lt;mybranch&gt;</code> and
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-07-29 20:14:45 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

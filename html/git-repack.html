@@ -749,7 +749,7 @@ git-repack(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git repack</em> [-a] [-A] [-d] [-f] [-F] [-l] [-n] [-q] [-b] [--window=&lt;n&gt;] [--depth=&lt;n&gt;] [--threads=&lt;n&gt;] [--keep-pack=&lt;pack-name&gt;]</pre>
+<pre class="content"><em>git repack</em> [-a] [-A] [-d] [-f] [-F] [-l] [-n] [-q] [-b] [-m] [--window=&lt;n&gt;] [--depth=&lt;n&gt;] [--threads=&lt;n&gt;] [--keep-pack=&lt;pack-name&gt;] [--write-midx]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -936,10 +936,11 @@ depth is 4095.</p></div>
 <dd>
 <p>
         Write a reachability bitmap index as part of the repack. This
-        only makes sense when used with <code>-a</code> or <code>-A</code>, as the bitmaps
+        only makes sense when used with <code>-a</code>, <code>-A</code> or <code>-m</code>, as the bitmaps
         must be able to refer to all reachable objects. This option
-        overrides the setting of <code>repack.writeBitmaps</code>.  This option
-        has no effect if multiple packfiles are created.
+        overrides the setting of <code>repack.writeBitmaps</code>. This option
+        has no effect if multiple packfiles are created, unless writing a
+        MIDX (in which case a multi-pack bitmap is created).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1031,6 +1032,21 @@ this "roll-up", without respect to their reachability. This is subject
 to change in the future. This option (implying a drastically different
 repack mode) is not guaranteed to work with all other combinations of
 option to <code>git repack</code>.</p></div>
+<div class="paragraph"><p>When writing a multi-pack bitmap, <code>git repack</code> selects the largest resulting
+pack as the preferred pack for object selection by the MIDX (see
+<a href="git-multi-pack-index.html">git-multi-pack-index(1)</a>).</p></div>
+</dd>
+<dt class="hdlist1">
+-m
+</dt>
+<dt class="hdlist1">
+--write-midx
+</dt>
+<dd>
+<p>
+        Write a multi-pack index (see <a href="git-multi-pack-index.html">git-multi-pack-index(1)</a>)
+        containing the non-redundant packs.
+</p>
 </dd>
 </dl></div>
 </div>
@@ -1072,7 +1088,7 @@ attribute <code>delta</code> set to false.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-07-29 20:14:45 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

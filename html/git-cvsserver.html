@@ -880,7 +880,7 @@ looks like</p></div>
 <div class="content">
 <pre><code>   cvspserver stream tcp nowait nobody /usr/bin/git-cvsserver git-cvsserver pserver</code></pre>
 </div></div>
-<div class="paragraph"><p>Only anonymous access is provided by pserve by default. To commit you
+<div class="paragraph"><p>Only anonymous access is provided by pserver by default. To commit you
 will have to create pserver accounts, simply add a gitcvs.authdb
 setting in the config file of the repositories you want the cvsserver
 to allow writes to, for example:</p></div>
@@ -893,21 +893,19 @@ to allow writes to, for example:</p></div>
 for example:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>   myuser:$1Oyx5r9mdGZ2
-   myuser:$1$BA)@$vbnMJMDym7tA32AamXrm./</code></pre>
+<pre><code>   myuser:sqkNi8zPf01HI
+   myuser:$1$9K7FzU28$VfF6EoPYCJEYcVQwATgOP/
+   myuser:$5$.NqmNH1vwfzGpV8B$znZIcumu1tNLATgV2l6e1/mY8RzhUDHMOaVOeL1cxV3</code></pre>
 </div></div>
 <div class="paragraph"><p>You can use the <em>htpasswd</em> facility that comes with Apache to make these
-files, but Apache&#8217;s MD5 crypt method differs from the one used by most C
-library&#8217;s crypt() function, so don&#8217;t use the -m option.</p></div>
-<div class="paragraph"><p>Alternatively you can produce the password with perl&#8217;s crypt() operator:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>   perl -e 'my ($user, $pass) = @ARGV; printf "%s:%s\n", $user, crypt($user, $pass)' $USER password</code></pre>
-</div></div>
+files, but only with the -d option (or -B if your system suports it).</p></div>
+<div class="paragraph"><p>Preferably use the system specific utility that manages password hash
+creation in your platform (e.g. mkpasswd in Linux, encrypt in OpenBSD or
+pwhash in NetBSD) and paste it in the right location.</p></div>
 <div class="paragraph"><p>Then provide your password via the pserver method, for example:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>   cvs -d:pserver:someuser:somepassword &lt;at&gt; server/path/repo.git co &lt;HEAD_name&gt;</code></pre>
+<pre><code>   cvs -d:pserver:someuser:somepassword@server:/path/repo.git co &lt;HEAD_name&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>No special setup is needed for SSH access, other than having Git tools
 in the PATH. If you have clients that do not accept the CVS_SERVER
@@ -916,7 +914,7 @@ environment variable, you can rename <em>git-cvsserver</em> to <code>cvs</code>.
 CVS_SERVER directly in CVSROOT like</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>cvs -d ":ext;CVS_SERVER=git cvsserver:user@server/path/repo.git" co &lt;HEAD_name&gt;</code></pre>
+<pre><code>   cvs -d ":ext;CVS_SERVER=git cvsserver:user@server/path/repo.git" co &lt;HEAD_name&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>This has the advantage that it will be saved in your <em>CVS/Root</em> files and
 you don&#8217;t need to worry about always setting the correct environment
@@ -971,8 +969,8 @@ If you didn&#8217;t specify the CVSROOT/CVS_SERVER directly in the checkout comm
 <div class="content">
 <div class="listingblock">
 <div class="content">
-<pre><code>     export CVSROOT=:ext:user@server:/var/git/project.git
-     export CVS_SERVER="git cvsserver"</code></pre>
+<pre><code>   export CVSROOT=:ext:user@server:/var/git/project.git
+   export CVS_SERVER="git cvsserver"</code></pre>
 </div></div>
 </div></div>
 </li>
@@ -995,7 +993,7 @@ Clients should now be able to check out the project. Use the CVS <em>module</em>
 </p>
 <div class="listingblock">
 <div class="content">
-<pre><code>     cvs co -d project-master master</code></pre>
+<pre><code>   cvs co -d project-master master</code></pre>
 </div></div>
 </li>
 </ol></div>
@@ -1313,7 +1311,7 @@ and <code>gitcvs.allBinary</code> to "guess".</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-07-29 20:14:45 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

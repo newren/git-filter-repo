@@ -752,8 +752,8 @@ git-blame(1) Manual Page
 <pre class="content"><em>git blame</em> [-c] [-b] [-l] [--root] [-t] [-f] [-n] [-s] [-e] [-p] [-w] [--incremental]
             [-L &lt;range&gt;] [-S &lt;revs-file&gt;] [-M] [-C] [-C] [-C] [--since=&lt;date&gt;]
             [--ignore-rev &lt;rev&gt;] [--ignore-revs-file &lt;file&gt;]
-            [--progress] [--abbrev=&lt;n&gt;] [&lt;rev&gt; | --contents &lt;file&gt; | --reverse &lt;rev&gt;..&lt;rev&gt;]
-            [--] &lt;file&gt;</pre>
+            [--color-lines] [--color-by-age] [--progress] [--abbrev=&lt;n&gt;]
+            [&lt;rev&gt; | --contents &lt;file&gt; | --reverse &lt;rev&gt;..&lt;rev&gt;] [--] &lt;file&gt;</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -1065,6 +1065,27 @@ take effect.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--color-lines
+</dt>
+<dd>
+<p>
+        Color line annotations in the default format differently if they come from
+        the same commit as the preceding line. This makes it easier to distinguish
+        code blocks introduced by different commits. The color defaults to cyan and
+        can be adjusted using the <code>color.blame.repeatedLines</code> config option.
+</p>
+</dd>
+<dt class="hdlist1">
+--color-by-age
+</dt>
+<dd>
+<p>
+        Color line annotations depending on the age of the line in the default format.
+        The <code>color.blame.highlightRecent</code> config option controls what color is used for
+        each range of age.
+</p>
+</dd>
+<dt class="hdlist1">
 -h
 </dt>
 <dd>
@@ -1161,6 +1182,32 @@ take effect.</p></div>
 </p>
 </dd>
 </dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_default_format">THE DEFAULT FORMAT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When neither <code>--porcelain</code> nor <code>--incremental</code> option is specified,
+<code>git blame</code> will output annotation for each line with:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+abbreviated object name for the commit the line came from;
+</p>
+</li>
+<li>
+<p>
+author ident (by default author name and date, unless <code>-s</code> or <code>-e</code>
+  is specified); and
+</p>
+</li>
+<li>
+<p>
+line number
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>before the line contents.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1365,7 +1412,7 @@ commit commentary), a blame viewer will not care.</td>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-06-13 09:04:30 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

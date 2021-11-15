@@ -753,7 +753,7 @@ git-bundle(1) Manual Page
                     [--version=&lt;version&gt;] &lt;file&gt; &lt;git-rev-list-args&gt;
 <em>git bundle</em> verify [-q | --quiet] &lt;file&gt;
 <em>git bundle</em> list-heads &lt;file&gt; [&lt;refname&gt;&#8230;]
-<em>git bundle</em> unbundle &lt;file&gt; [&lt;refname&gt;&#8230;]</pre>
+<em>git bundle</em> unbundle [--progress] &lt;file&gt; [&lt;refname&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -761,19 +761,42 @@ git-bundle(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Some workflows require that one or more branches of development on one
-machine be replicated on another machine, but the two machines cannot
-be directly connected, and therefore the interactive Git protocols (git,
-ssh, http) cannot be used.</p></div>
-<div class="paragraph"><p>The <em>git bundle</em> command packages objects and references in an archive
-at the originating machine, which can then be imported into another
-repository using <em>git fetch</em>, <em>git pull</em>, or <em>git clone</em>,
-after moving the archive by some means (e.g., by sneakernet).</p></div>
-<div class="paragraph"><p>As no
-direct connection between the repositories exists, the user must specify a
-basis for the bundle that is held by the destination repository: the
-bundle assumes that all objects in the basis are already in the
-destination repository.</p></div>
+<div class="paragraph"><p>Create, unpack, and manipulate "bundle" files. Bundles are used for
+the "offline" transfer of Git objects without an active "server"
+sitting on the other side of the network connection.</p></div>
+<div class="paragraph"><p>They can be used to create both incremental and full backups of a
+repository, and to relay the state of the references in one repository
+to another.</p></div>
+<div class="paragraph"><p>Git commands that fetch or otherwise "read" via protocols such as
+<code>ssh://</code> and <code>https://</code> can also operate on bundle files. It is
+possible <a href="git-clone.html">git-clone(1)</a> a new repository from a bundle, to use
+<a href="git-fetch.html">git-fetch(1)</a> to fetch from one, and to list the references
+contained within it with <a href="git-ls-remote.html">git-ls-remote(1)</a>. There&#8217;s no
+corresponding "write" support, i.e.a <em>git push</em> into a bundle is not
+supported.</p></div>
+<div class="paragraph"><p>See the "EXAMPLES" section below for examples of how to use bundles.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bundle_format">BUNDLE FORMAT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Bundles are <code>.pack</code> files (see <a href="git-pack-objects.html">git-pack-objects(1)</a>) with a
+header indicating what references are contained within the bundle.</p></div>
+<div class="paragraph"><p>Like the the packed archive format itself bundles can either be
+self-contained, or be created using exclusions.
+See the "OBJECT PREREQUISITES" section below.</p></div>
+<div class="paragraph"><p>Bundles created using revision exclusions are "thin packs" created
+using the <code>--thin</code> option to <a href="git-pack-objects.html">git-pack-objects(1)</a>, and
+unbundled using the <code>--fix-thin</code> option to <a href="git-index-pack.html">git-index-pack(1)</a>.</p></div>
+<div class="paragraph"><p>There is no option to create a "thick pack" when using revision
+exclusions, and users should not be concerned about the difference. By
+using "thin packs", bundles created using exclusions are smaller in
+size. That they&#8217;re "thin" under the hood is merely noted here as a
+curiosity, and as a reference to other documentation.</p></div>
+<div class="paragraph"><p>See <a href="technical/bundle-format.html">the <code>bundle-format</code>
+documentation</a> for more details and the discussion of "thin pack" in
+<a href="technical/pack-format.html">the pack format documentation</a> for
+further details.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -919,25 +942,77 @@ unbundle &lt;file&gt;
 <div class="sect1">
 <h2 id="_specifying_references">SPECIFYING REFERENCES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><em>git bundle</em> will only package references that are shown by
-<em>git show-ref</em>: this includes heads, tags, and remote heads.  References
-such as <code>master~1</code> cannot be packaged, but are perfectly suitable for
-defining the basis.  More than one reference may be packaged, and more
-than one basis can be specified.  The objects packaged are those not
-contained in the union of the given bases.  Each basis can be
-specified explicitly (e.g. <code>^master~10</code>), or implicitly (e.g.
-<code>master~10..master</code>, <code>--since=10.days.ago master</code>).</p></div>
-<div class="paragraph"><p>It is very important that the basis used be held by the destination.
-It is okay to err on the side of caution, causing the bundle file
+<div class="paragraph"><p>Revisions must be accompanied by reference names to be packaged in a
+bundle.</p></div>
+<div class="paragraph"><p>More than one reference may be packaged, and more than one set of prerequisite objects can
+be specified.  The objects packaged are those not contained in the
+union of the prerequisites.</p></div>
+<div class="paragraph"><p>The <em>git bundle create</em> command resolves the reference names for you
+using the same rules as <code>git rev-parse --abbrev-ref=loose</code>. Each
+prerequisite can be specified explicitly (e.g. <code>^master~10</code>), or implicitly
+(e.g. <code>master~10..master</code>, <code>--since=10.days.ago master</code>).</p></div>
+<div class="paragraph"><p>All of these simple cases are OK (assuming we have a "master" and
+"next" branch):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bundle create master.bundle master
+$ echo master | git bundle create master.bundle --stdin
+$ git bundle create master-and-next.bundle master next
+$ (echo master; echo next) | git bundle create master-and-next.bundle --stdin</code></pre>
+</div></div>
+<div class="paragraph"><p>And so are these (and the same but omitted <code>--stdin</code> examples):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bundle create recent-master.bundle master~10..master
+$ git bundle create recent-updates.bundle master~10..master next~5..next</code></pre>
+</div></div>
+<div class="paragraph"><p>A revision name or a range whose right-hand-side cannot be resolved to
+a reference is not accepted:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bundle create HEAD.bundle $(git rev-parse HEAD)
+fatal: Refusing to create empty bundle.
+$ git bundle create master-yesterday.bundle master~10..master~5
+fatal: Refusing to create empty bundle.</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_object_prerequisites">OBJECT PREREQUISITES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When creating bundles it is possible to create a self-contained bundle
+that can be unbundled in a repository with no common history, as well
+as providing negative revisions to exclude objects needed in the
+earlier parts of the history.</p></div>
+<div class="paragraph"><p>Feeding a revision such as <code>new</code> to <code>git bundle create</code> will create a
+bundle file that contains all the objects reachable from the revision
+<code>new</code>. That bundle can be unbundled in any repository to obtain a full
+history that leads to the revision <code>new</code>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bundle create full.bundle new</code></pre>
+</div></div>
+<div class="paragraph"><p>A revision range such as <code>old..new</code> will produce a bundle file that
+will require the revision <code>old</code> (and any objects reachable from it)
+to exist for the bundle to be "unbundle"-able:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ git bundle create full.bundle old..new</code></pre>
+</div></div>
+<div class="paragraph"><p>A self-contained bundle without any prerequisites can be extracted
+into anywhere, even into an empty repository, or be cloned from
+(i.e., <code>new</code>, but not <code>old..new</code>).</p></div>
+<div class="paragraph"><p>It is okay to err on the side of caution, causing the bundle file
 to contain objects already in the destination, as these are ignored
 when unpacking at the destination.</p></div>
-<div class="paragraph"><p><code>git clone</code> can use any bundle created without negative refspecs
-(e.g., <code>new</code>, but not <code>old..new</code>).
-If you want to match <code>git clone --mirror</code>, which would include your
+<div class="paragraph"><p>If you want to match <code>git clone --mirror</code>, which would include your
 refs such as <code>refs/remotes/*</code>, use <code>--all</code>.
 If you want to provide the same set of refs that a clone directly
 from the source repository would get, use <code>--branches --tags</code> for
 the <code>&lt;git-rev-list-args&gt;</code>.</p></div>
+<div class="paragraph"><p>The <em>git bundle verify</em> command can be used to check whether your
+recipient repository has the required prerequisite commits for a
+bundle.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -949,7 +1024,7 @@ For whatever reason, direct connection between A and B is not allowed,
 but we can move data from A to B via some mechanism (CD, email, etc.).
 We want to update R2 with development made on the branch master in R1.</p></div>
 <div class="paragraph"><p>To bootstrap the process, you can first create a bundle that does not have
-any basis. You can use a tag to remember up to what commit you last
+any prerequisites. You can use a tag to remember up to what commit you last
 processed, in order to make it easy to later update the other repository
 with an incremental bundle:</p></div>
 <div class="listingblock">
@@ -994,7 +1069,7 @@ machineB$ git pull</code></pre>
 </div></div>
 <div class="paragraph"><p>If you know up to what commit the intended recipient repository should
 have the necessary objects, you can use that knowledge to specify the
-basis, giving a cut-off point to limit the revisions and objects that go
+prerequisites, giving a cut-off point to limit the revisions and objects that go
 in the resulting bundle. The previous example used the lastR2bundle tag
 for this purpose, but you can use any other options that you would give to
 the <a href="git-log.html">git-log(1)</a> command. Here are more examples:</p></div>
@@ -1003,7 +1078,7 @@ the <a href="git-log.html">git-log(1)</a> command. Here are more examples:</p></
 <div class="content">
 <pre><code>$ git bundle create mybundle v1.0.0..master</code></pre>
 </div></div>
-<div class="paragraph"><p>You can use a basis based on time:</p></div>
+<div class="paragraph"><p>You can use a prerequisite based on time:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git bundle create mybundle --since=10.days master</code></pre>
@@ -1014,7 +1089,7 @@ the <a href="git-log.html">git-log(1)</a> command. Here are more examples:</p></
 <pre><code>$ git bundle create mybundle -10 master</code></pre>
 </div></div>
 <div class="paragraph"><p>You can run <code>git-bundle verify</code> to see if you can extract from a bundle
-that was created with a basis:</p></div>
+that was created with a prerequisite:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git bundle verify mybundle</code></pre>
@@ -1046,7 +1121,7 @@ references when fetching:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-06-13 09:04:30 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

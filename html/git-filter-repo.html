@@ -901,6 +901,9 @@ provides an option to analyze a repository and generate reports that
 </div>
 <div class="sect2">
 <h3 id="_filtering_based_on_paths_see_also_filename_callback">Filtering based on paths (see also --filename-callback)</h3>
+<div class="paragraph"><p>These options specify the paths to select.  Note that much like git
+itself, renames are NOT followed so you may need to specify multiple
+paths, e.g. <code>--path olddir/ --path newdir/</code></p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 --invert-paths
@@ -1068,6 +1071,16 @@ provides an option to analyze a repository and generate reports that
 <div class="sect2">
 <h3 id="_filtering_of_commit_messages_see_also_message_callback">Filtering of commit messages (see also --message-callback)</h3>
 <div class="dlist"><dl>
+<dt class="hdlist1">
+--replace-message &lt;expressions_file&gt;
+</dt>
+<dd>
+<p>
+        A file with expressions that, if found in commit or tag
+        messages, will be replaced. This file uses the same syntax as
+        --replace-text.
+</p>
+</dd>
 <dt class="hdlist1">
 --preserve-commit-hashes
 </dt>
@@ -2031,6 +2044,23 @@ globs and regexes are applied to the entire file, but without any
 <div class="paragraph"><p>See also the <code>--blob-callback</code> from <a href="#CALLBACKS">[CALLBACKS]</a>.</p></div>
 </div>
 <div class="sect2">
+<h3 id="_updating_commit_tag_messages">Updating commit/tag messages</h3>
+<div class="paragraph"><p>If you want to modify commit or tag messages, you can do so with the
+same syntax as <code>--replace-text</code>, explained above.  For example, with a
+file named expressions.txt containing</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>foo==&gt;bar</code></pre>
+</div></div>
+<div class="paragraph"><p>then running</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>git filter-repo --replace-message expressions.txt</code></pre>
+</div></div>
+<div class="paragraph"><p>will replace <code>foo</code> in commit or tag messages with <code>bar</code>.</p></div>
+<div class="paragraph"><p>See also the <code>--message-callback</code> from <a href="#CALLBACKS">[CALLBACKS]</a>.</p></div>
+</div>
+<div class="sect2">
 <h3 id="_refname_based_filtering">Refname based filtering</h3>
 <div class="paragraph"><p>To rename tags, use <code>--tag-rename</code>, e.g.:</p></div>
 <div class="listingblock">
@@ -2679,7 +2709,7 @@ I assume that people use filter-repo for one-shot conversions, not
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-06-08 08:11:07 PDT
+ 2021-11-09 09:48:35 PST
 </div>
 </div>
 </body>

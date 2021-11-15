@@ -789,6 +789,9 @@ or <a href="https://git-scm.com/docs">https://git-scm.com/docs</a>.</p></div>
 <p>
         Prints the Git suite version that the <em>git</em> program came from.
 </p>
+<div class="paragraph"><p>This option is internally converted to <code>git version ...</code> and accepts
+the same options as the <a href="git-version.html">git-version(1)</a> command. If <code>--help</code> is
+also given, it takes precedence over <code>--version</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 --help
@@ -3416,15 +3419,16 @@ for full details.</p></div>
 </dt>
 <dd>
 <p>
-        If set to <code>1</code>, include broken or badly named refs when iterating
-        over lists of refs. In a normal, non-corrupted repository, this
-        does nothing. However, enabling it may help git to detect and
-        abort some operations in the presence of broken refs. Git sets
-        this variable automatically when performing destructive
-        operations like <a href="git-prune.html">git-prune(1)</a>. You should not need to set
-        it yourself unless you want to be paranoid about making sure
-        an operation has touched every ref (e.g., because you are
-        cloning a repository to make a backup).
+        If set to <code>0</code>, ignore broken or badly named refs when iterating
+        over lists of refs. Normally Git will try to include any such
+        refs, which may cause some operations to fail. This is usually
+        preferable, as potentially destructive operations (e.g.,
+        <a href="git-prune.html">git-prune(1)</a>) are better off aborting rather than
+        ignoring broken refs (and thus considering the history they
+        point to as not worth saving). The default value is <code>1</code> (i.e.,
+        be paranoid about detecting and aborting all operations). You
+        should not normally need to set this to <code>0</code>, but it may be
+        useful when trying to salvage data from a corrupted repository.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3463,6 +3467,19 @@ for full details.</p></div>
         <em>key[=value]</em>.  Presence of unknown keys and values must be
         ignored.
 </p>
+<div class="paragraph"><p>Note that servers may need to be configured to allow this variable to
+pass over some transports. It will be propagated automatically when
+accessing local repositories (i.e., <code>file://</code> or a filesystem path), as
+well as over the <code>git://</code> protocol. For git-over-http, it should work
+automatically in most configurations, but see the discussion in
+<a href="git-http-backend.html">git-http-backend(1)</a>. For git-over-ssh, the ssh server may need
+to be configured to allow clients to pass this variable (e.g., by using
+<code>AcceptEnv GIT_PROTOCOL</code> with OpenSSH).</p></div>
+<div class="paragraph"><p>This configuration is optional. If the variable is not propagated, then
+clients will fall back to the original "v0" protocol (but may miss out
+on some performance improvements or features). This variable currently
+only affects clones and fetches; it is not yet used for pushes (but may
+be in the future).</p></div>
 </dd>
 <dt class="hdlist1">
 <code>GIT_OPTIONAL_LOCKS</code>
@@ -3630,7 +3647,7 @@ the Git Security mailing list &lt;<a href="mailto:git-security@googlegroups.com"
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-07-29 20:14:45 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

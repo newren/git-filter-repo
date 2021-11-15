@@ -837,6 +837,8 @@ you try to use an invalid regexp (ret=6).
 </li>
 </ul></div>
 <div class="paragraph"><p>On success, the command returns the exit code 0.</p></div>
+<div class="paragraph"><p>A list of all available configuration variables can be obtained using the
+<code>git help --config</code> command.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1839,6 +1841,14 @@ pathname
         is expanded to the value of <code>$HOME</code>, and <code>~user/</code> to the
         specified user&#8217;s home directory.
 </p>
+<div class="paragraph"><p>If a path starts with <code>%(prefix)/</code>, the remainder is interpreted as a
+path relative to Git&#8217;s "runtime prefix", i.e. relative to the location
+where Git itself was installed. For example, <code>%(prefix)/bin/</code> refers to
+the directory in which the Git executable itself lives. If Git was
+compiled without runtime prefix support, the compiled-in prefix will be
+substituted instead. In the unlikely event that a literal path needs to
+be specified that should <em>not</em> be expanded, it needs to be prefixed by
+<code>./</code>, like so: <code>./%(prefix)/bin</code>.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1956,6 +1966,15 @@ pushRefNeedsUpdate
                 Shown when <a href="git-push.html">git-push(1)</a> rejects a forced update of
                 a branch when its remote-tracking ref has updates that we
                 do not have locally.
+</p>
+</dd>
+<dt class="hdlist1">
+skippedCherryPicks
+</dt>
+<dd>
+<p>
+                Shown when <a href="git-rebase.html">git-rebase(1)</a> skips a commit that has already
+                been cherry-picked onto the upstream branch.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3382,9 +3401,6 @@ branch.&lt;name&gt;.rebase
 <div class="paragraph"><p>When <code>merges</code> (or just <em>m</em>), pass the <code>--rebase-merges</code> option to <em>git rebase</em>
 so that the local merge commits are included in the rebase (see
 <a href="git-rebase.html">git-rebase(1)</a> for details).</p></div>
-<div class="paragraph"><p>When <code>preserve</code> (or just <em>p</em>, deprecated in favor of <code>merges</code>), also pass
-<code>--preserve-merges</code> along to <em>git rebase</em> so that locally committed merge
-commits will not be flattened by running <em>git pull</em>.</p></div>
 <div class="paragraph"><p>When the value is <code>interactive</code> (or just <em>i</em>), the rebase is run in interactive
 mode.</p></div>
 <div class="paragraph"><p><strong>NOTE</strong>: this is a possibly dangerous operation; do <strong>not</strong> use
@@ -3538,28 +3554,29 @@ color.blame.highlightRecent
 </dt>
 <dd>
 <p>
-        This can be used to color the metadata of a blame line depending
-        on age of the line.
+        Specify the line annotation color for <code>git blame --color-by-age</code>
+        depending upon the age of the line.
 </p>
-<div class="paragraph"><p>This setting should be set to a comma-separated list of color and date settings,
-starting and ending with a color, the dates should be set from oldest to newest.
-The metadata will be colored given the colors if the line was introduced
-before the given timestamp, overwriting older timestamped colors.</p></div>
-<div class="paragraph"><p>Instead of an absolute timestamp relative timestamps work as well, e.g.
-2.weeks.ago is valid to address anything older than 2 weeks.</p></div>
-<div class="paragraph"><p>It defaults to <em>blue,12 month ago,white,1 month ago,red</em>, which colors
-everything older than one year blue, recent changes between one month and
-one year old are kept white, and lines introduced within the last month are
-colored red.</p></div>
+<div class="paragraph"><p>This setting should be set to a comma-separated list of color and
+date settings, starting and ending with a color, the dates should be
+set from oldest to newest. The metadata will be colored with the
+specified colors if the line was introduced before the given
+timestamp, overwriting older timestamped colors.</p></div>
+<div class="paragraph"><p>Instead of an absolute timestamp relative timestamps work as well,
+e.g. <code>2.weeks.ago</code> is valid to address anything older than 2 weeks.</p></div>
+<div class="paragraph"><p>It defaults to <code>blue,12 month ago,white,1 month ago,red</code>, which
+colors everything older than one year blue, recent changes between
+one month and one year old are kept white, and lines introduced
+within the last month are colored red.</p></div>
 </dd>
 <dt class="hdlist1">
 color.blame.repeatedLines
 </dt>
 <dd>
 <p>
-        Use the customized color for the part of git-blame output that
-        is repeated meta information per line (such as commit id,
-        author name, date and timezone). Defaults to cyan.
+        Use the specified color to colorize line annotations for
+        <code>git blame --color-lines</code>, if they come from the same commit as the
+        preceding line. Defaults to cyan.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3717,7 +3734,8 @@ color.grep.&lt;slot&gt;
 </dt>
 <dd>
 <p>
-        matching text in selected lines
+        matching text in selected lines. Also, used to customize the following
+        <a href="git-log.html">git-log(1)</a> subcommands: <code>--grep</code>, <code>--author</code> and <code>--committer</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3725,7 +3743,9 @@ color.grep.&lt;slot&gt;
 </dt>
 <dd>
 <p>
-        non-matching text in selected lines
+        non-matching text in selected lines. Also, used to customize the
+        following <a href="git-log.html">git-log(1)</a> subcommands: <code>--grep</code>, <code>--author</code> and
+        <code>--committer</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -5861,7 +5881,7 @@ gpg.format
 <dd>
 <p>
         Specifies which key format to use when signing with <code>--gpg-sign</code>.
-        Default is "openpgp" and another possible value is "x509".
+        Default is "openpgp". Other possible values are "x509", "ssh".
 </p>
 </dd>
 <dt class="hdlist1">
@@ -5872,7 +5892,7 @@ gpg.&lt;format&gt;.program
         Use this to customize the program used for the signing format you
         chose. (see <code>gpg.program</code> and <code>gpg.format</code>) <code>gpg.program</code> can still
         be used as a legacy synonym for <code>gpg.openpgp.program</code>. The default
-        value for <code>gpg.x509.program</code> is "gpgsm".
+        value for <code>gpg.x509.program</code> is "gpgsm" and <code>gpg.ssh.program</code> is "ssh-keygen".
 </p>
 </dd>
 <dt class="hdlist1">
@@ -5916,6 +5936,52 @@ gpg.minTrustLevel
 </li>
 </ul></div>
 </dd>
+</dl></div>
+<div class="paragraph"><p>gpg.ssh.defaultKeyCommand:
+        This command that will be run when user.signingkey is not set and a ssh
+        signature is requested. On successful exit a valid ssh public key is
+        expected in the first line of its output. To automatically use the first
+        available key from your ssh-agent set this to "ssh-add -L".</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+gpg.ssh.allowedSignersFile
+</dt>
+<dd>
+<p>
+        A file containing ssh public keys which you are willing to trust.
+        The file consists of one or more lines of principals followed by an ssh
+        public key.
+        e.g.: <a href="mailto:user1@example.com">user1@example.com</a>,<a href="mailto:user2@example.com">user2@example.com</a> ssh-rsa AAAAX1&#8230;
+        See ssh-keygen(1) "ALLOWED SIGNERS" for details.
+        The principal is only used to identify the key and is available when
+        verifying a signature.
+</p>
+<div class="paragraph"><p>SSH has no concept of trust levels like gpg does. To be able to differentiate
+between valid signatures and trusted signatures the trust level of a signature
+verification is set to <code>fully</code> when the public key is present in the allowedSignersFile.
+Otherwise the trust level is <code>undefined</code> and git verify-commit/tag will fail.</p></div>
+<div class="paragraph"><p>This file can be set to a location outside of the repository and every developer
+maintains their own trust store. A central repository server could generate this
+file automatically from ssh keys with push access to verify the code against.
+In a corporate setting this file is probably generated at a global location
+from automation that already handles developer ssh keys.</p></div>
+<div class="paragraph"><p>A repository that only allows signed commits can store the file
+in the repository itself using a path relative to the top-level of the working tree.
+This way only committers with an already valid key can add or change keys in the keyring.</p></div>
+<div class="paragraph"><p>Using a SSH CA key with the cert-authority option
+(see ssh-keygen(1) "CERTIFICATES") is also valid.</p></div>
+</dd>
+<dt class="hdlist1">
+gpg.ssh.revocationFile
+</dt>
+<dd>
+<p>
+        Either a SSH KRL or a list of revoked public keys (without the principal prefix).
+        See ssh-keygen(1) for details.
+        If a public key is found in this file then it will always be treated
+        as having trust level "never" and signatures will show as invalid.
+</p>
+</dd>
 <dt class="hdlist1">
 gui.commitMsgWidth
 </dt>
@@ -5948,7 +6014,7 @@ gui.encoding
 </dt>
 <dd>
 <p>
-        Specifies the default encoding to use for displaying of
+        Specifies the default character encoding to use for displaying of
         file contents in <a href="git-gui.html">git-gui(1)</a> and <a href="gitk.html">gitk(1)</a>.
         It can be overridden by setting the <em>encoding</em> attribute
         for relevant files (see <a href="gitattributes.html">gitattributes(5)</a>).
@@ -6160,14 +6226,38 @@ help.autoCorrect
 <dd>
 <p>
         If git detects typos and can identify exactly one valid command similar
-        to the error, git will automatically run the intended command after
-        waiting a duration of time defined by this configuration value in
-        deciseconds (0.1 sec).  If this value is 0, the suggested corrections
-        will be shown, but not executed. If it is a negative integer, or
-        "immediate", the suggested command
-        is run immediately. If "never", suggestions are not shown at all. The
-        default value is zero.
+        to the error, git will try to suggest the correct command or even
+        run the suggestion automatically. Possible config values are:
 </p>
+<div class="ulist"><ul>
+<li>
+<p>
+0 (default): show the suggested command.
+</p>
+</li>
+<li>
+<p>
+positive number: run the suggested command after specified
+deciseconds (0.1 sec).
+</p>
+</li>
+<li>
+<p>
+"immediate": run the suggested command immediately.
+</p>
+</li>
+<li>
+<p>
+"prompt": show the suggestion and prompt for confirmation to run
+the command.
+</p>
+</li>
+<li>
+<p>
+"never": don&#8217;t run or show any suggested command.
+</p>
+</li>
+</ul></div>
 </dd>
 <dt class="hdlist1">
 help.htmlPath
@@ -8150,6 +8240,9 @@ pack.writeBitmapHashCache
         pushed since the last gc). The downside is that it consumes 4
         bytes per object of disk space. Defaults to true.
 </p>
+<div class="paragraph"><p>When writing a multi-pack reachability bitmap, no new namehashes are
+computed; instead, any namehashes stored in an existing bitmap are
+permuted into their appropriate location when writing a new bitmap.</p></div>
 </dd>
 <dt class="hdlist1">
 pack.writeReverseIndex
@@ -8336,9 +8429,6 @@ pull.rebase
 <div class="paragraph"><p>When <code>merges</code> (or just <em>m</em>), pass the <code>--rebase-merges</code> option to <em>git rebase</em>
 so that the local merge commits are included in the rebase (see
 <a href="git-rebase.html">git-rebase(1)</a> for details).</p></div>
-<div class="paragraph"><p>When <code>preserve</code> (or just <em>p</em>, deprecated in favor of <code>merges</code>), also pass
-<code>--preserve-merges</code> along to <em>git rebase</em> so that locally committed merge
-commits will not be flattened by running <em>git pull</em>.</p></div>
 <div class="paragraph"><p>When the value is <code>interactive</code> (or just <em>i</em>), the rebase is run in interactive
 mode.</p></div>
 <div class="paragraph"><p><strong>NOTE</strong>: this is a possibly dangerous operation; do <strong>not</strong> use
@@ -10013,13 +10103,16 @@ explicitly exposing it, even if an earlier entry marked it as hidden.
 If you have multiple hideRefs values, later entries override earlier ones
 (and entries in more-specific config files override less-specific ones).</p></div>
 <div class="paragraph"><p>If a namespace is in use, the namespace prefix is stripped from each
-reference before it is matched against <code>transfer.hiderefs</code> patterns.
-For example, if <code>refs/heads/master</code> is specified in <code>transfer.hideRefs</code> and
+reference before it is matched against <code>transfer.hiderefs</code> patterns. In
+order to match refs before stripping, add a <code>^</code> in front of the ref name. If
+you combine <code>!</code> and <code>^</code>, <code>!</code> must be specified first.</p></div>
+<div class="paragraph"><p>For example, if <code>refs/heads/master</code> is specified in <code>transfer.hideRefs</code> and
 the current namespace is <code>foo</code>, then <code>refs/namespaces/foo/refs/heads/master</code>
-is omitted from the advertisements but <code>refs/heads/master</code> and
-<code>refs/namespaces/bar/refs/heads/master</code> are still advertised as so-called
-"have" lines. In order to match refs before stripping, add a <code>^</code> in front of
-the ref name. If you combine <code>!</code> and <code>^</code>, <code>!</code> must be specified first.</p></div>
+is omitted from the advertisements. If <code>uploadpack.allowRefInWant</code> is set,
+<code>upload-pack</code> will treat <code>want-ref refs/heads/master</code> in a protocol v2
+<code>fetch</code> command as if <code>refs/namespaces/foo/refs/heads/master</code> did not exist.
+<code>receive-pack</code>, on the other hand, will still advertise the object id the
+ref is pointing to without mentioning its name (a so-called ".have" line).</p></div>
 <div class="paragraph"><p>Even if you hide refs, a client may still be able to steal the target
 objects via the techniques described in the "SECURITY" section of the
 <a href="gitnamespaces.html">gitnamespaces(7)</a> man page; it&#8217;s best to keep private data in a
@@ -10296,6 +10389,13 @@ user.signingKey
         commit, you can override the default selection with this variable.
         This option is passed unchanged to gpg&#8217;s --local-user parameter,
         so you may specify a key using any method that gpg supports.
+        If gpg.format is set to "ssh" this can contain the literal ssh public
+        key (e.g.: "ssh-rsa XXXXXX identifier") or a file which contains it and
+        corresponds to the private key used for signing. The private key
+        needs to be available via ssh-agent. Alternatively it can be set to
+        a file containing a private key directly. If not set git will call
+        gpg.ssh.defaultKeyCommand (e.g.: "ssh-add -L") and try to use the first
+        key available.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -10401,7 +10501,7 @@ looks like</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-08-16 10:13:21 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

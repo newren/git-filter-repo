@@ -972,6 +972,15 @@ A/B/C</code></pre>
 case-insensitive check. This corrects for case mismatched filenames in the
 <em>git sparse-checkout set</em> command to reflect the expected cone in the working
 directory.</p></div>
+<div class="paragraph"><p>When changing the sparse-checkout patterns in cone mode, Git will inspect each
+tracked directory that is not within the sparse-checkout cone to see if it
+contains any untracked files. If all of those files are ignored due to the
+<code>.gitignore</code> patterns, then the directory will be deleted. If any of the
+untracked files within that directory is not ignored, then no deletions will
+occur within that directory and a warning message will appear. If these files
+are important, then reset your sparse-checkout definition so they are included,
+use <code>git add</code> and <code>git commit</code> to store them, then remove any remaining files
+manually to ensure Git can behave optimally.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1021,7 +1030,7 @@ of these restrictions.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-07-29 20:14:45 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>

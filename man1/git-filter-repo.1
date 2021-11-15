@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/20/2021
+.\"      Date: 11/15/2021
 .\"    Manual: Git Manual
-.\"    Source: Git 2.33.0.dirty
+.\"    Source: Git 2.34.0.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "08/20/2021" "Git 2\&.33\&.0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "11/15/2021" "Git 2\&.34\&.0\&.dirty" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -236,6 +236,8 @@ See also the section called \(lqVERSATILITY\(rq, the section called \(lqDISCUSSI
 Analyze repository history and create a report that may be useful in determining what to filter in a subsequent run (or in determining if a previous filtering command did what you wanted)\&. Will not modify your repo\&.
 .RE
 .SS "Filtering based on paths (see also \-\-filename\-callback)"
+.sp
+These options specify the paths to select\&. Note that much like git itself, renames are NOT followed so you may need to specify multiple paths, e\&.g\&. \fB\-\-path olddir/ \-\-path newdir/\fR
 .PP
 \-\-invert\-paths
 .RS 4
@@ -333,6 +335,11 @@ Read git object ids from each line of the given file, and strip all of them from
 Rename tags starting with <old> to start with <new>\&. For example, \-\-tag\-rename foo:bar will rename tag foo\-1\&.2\&.3 to bar\-1\&.2\&.3; either <old> or <new> can be empty\&.
 .RE
 .SS "Filtering of commit messages (see also \-\-message\-callback)"
+.PP
+\-\-replace\-message <expressions_file>
+.RS 4
+A file with expressions that, if found in commit or tag messages, will be replaced\&. This file uses the same syntax as \-\-replace\-text\&.
+.RE
 .PP
 \-\-preserve\-commit\-hashes
 .RS 4
@@ -1320,6 +1327,37 @@ for details\&.
 .RE
 .sp
 See also the \fB\-\-blob\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
+.SS "Updating commit/tag messages"
+.sp
+If you want to modify commit or tag messages, you can do so with the same syntax as \fB\-\-replace\-text\fR, explained above\&. For example, with a file named expressions\&.txt containing
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+foo==>bar
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+then running
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git filter\-repo \-\-replace\-message expressions\&.txt
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+will replace \fBfoo\fR in commit or tag messages with \fBbar\fR\&.
+.sp
+See also the \fB\-\-message\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
 .SS "Refname based filtering"
 .sp
 To rename tags, use \fB\-\-tag\-rename\fR, e\&.g\&.:

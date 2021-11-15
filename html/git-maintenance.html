@@ -1025,6 +1025,22 @@ pack-refs
         See the <em>TASKS</em> section for the list of accepted <code>&lt;task&gt;</code> values.
 </p>
 </dd>
+<dt class="hdlist1">
+--scheduler=auto|crontab|systemd-timer|launchctl|schtasks
+</dt>
+<dd>
+<p>
+        When combined with the <code>start</code> subcommand, specify the scheduler
+        for running the hourly, daily and weekly executions of
+        <code>git maintenance run</code>.
+        Possible values for <code>&lt;scheduler&gt;</code> are <code>auto</code>, <code>crontab</code>
+        (POSIX), <code>systemd-timer</code> (Linux), <code>launchctl</code> (macOS), and
+        <code>schtasks</code> (Windows). When <code>auto</code> is specified, the
+        appropriate platform-specific scheduler is used; on Linux,
+        <code>systemd-timer</code> is used if available, otherwise
+        <code>crontab</code>. Default is <code>auto</code>.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1119,6 +1135,45 @@ schedule.</p></div>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_background_maintenance_on_linux_systemd_systems">BACKGROUND MAINTENANCE ON LINUX SYSTEMD SYSTEMS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>While Linux supports <code>cron</code>, depending on the distribution, <code>cron</code> may
+be an optional package not necessarily installed. On modern Linux
+distributions, systemd timers are superseding it.</p></div>
+<div class="paragraph"><p>If user systemd timers are available, they will be used as a replacement
+of <code>cron</code>.</p></div>
+<div class="paragraph"><p>In this case, <code>git maintenance start</code> will create user systemd timer units
+and start the timers. The current list of user-scheduled tasks can be found
+by running <code>systemctl --user list-timers</code>. The timers written by <code>git
+maintenance start</code> are similar to this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ systemctl --user list-timers
+NEXT                         LEFT          LAST                         PASSED     UNIT                         ACTIVATES
+Thu 2021-04-29 19:00:00 CEST 42min left    Thu 2021-04-29 18:00:11 CEST 17min ago  git-maintenance@hourly.timer git-maintenance@hourly.service
+Fri 2021-04-30 00:00:00 CEST 5h 42min left Thu 2021-04-29 00:00:11 CEST 18h ago    git-maintenance@daily.timer  git-maintenance@daily.service
+Mon 2021-05-03 00:00:00 CEST 3 days left   Mon 2021-04-26 00:00:11 CEST 3 days ago git-maintenance@weekly.timer git-maintenance@weekly.service</code></pre>
+</div></div>
+<div class="paragraph"><p>One timer is registered for each <code>--schedule=&lt;frequency&gt;</code> option.</p></div>
+<div class="paragraph"><p>The definition of the systemd units can be inspected in the following files:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>~/.config/systemd/user/git-maintenance@.timer
+~/.config/systemd/user/git-maintenance@.service
+~/.config/systemd/user/timers.target.wants/git-maintenance@hourly.timer
+~/.config/systemd/user/timers.target.wants/git-maintenance@daily.timer
+~/.config/systemd/user/timers.target.wants/git-maintenance@weekly.timer</code></pre>
+</div></div>
+<div class="paragraph"><p><code>git maintenance start</code> will overwrite these files and start the timer
+again with <code>systemctl --user</code>, so any customization should be done by
+creating a drop-in file, i.e. a <code>.conf</code> suffixed file in the
+<code>~/.config/systemd/user/git-maintenance@.service.d</code> directory.</p></div>
+<div class="paragraph"><p><code>git maintenance stop</code> will stop the user systemd timers and delete
+the above mentioned files.</p></div>
+<div class="paragraph"><p>For more details, see <code>systemd.timer(5)</code>.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_background_maintenance_on_macos_systems">BACKGROUND MAINTENANCE ON MACOS SYSTEMS</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>While macOS technically supports <code>cron</code>, using <code>crontab -e</code> requires
@@ -1184,7 +1239,7 @@ custom tasks.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-07-29 20:14:45 PDT
+ 2021-11-15 13:27:01 PST
 </div>
 </div>
 </body>
