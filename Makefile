@@ -85,7 +85,7 @@ release: github_release pypi_release
 # Call like this:
 #   make GITHUB_COM_TOKEN=$KEY TAGNAME=v2.23.0 github_release
 github_release: export FILEBASE=git-filter-repo-$(shell echo $(TAGNAME) | tail -c +2)
-github_release: export GIT_INDEX_FILE=$(shell mktemp)
+github_release: export TMP_INDEX_FILE=$(shell mktemp)
 github_release: export COMMIT=$(shell git rev-parse HEAD)
 github_release: update_docs
 	test -n "$(GITHUB_COM_TOKEN)"
@@ -99,14 +99,14 @@ github_release: update_docs
 	git tag -a -m "filter-repo $(TAGNAME)" $(TAGNAME) $$COMMIT
 	git push origin $(TAGNAME)
 	# Create the tarball
-	git read-tree $$COMMIT
+	GIT_INDEX_FILE=$$TMP_INDEX_FILE git read-tree $$COMMIT
 	git ls-tree -r docs | grep filter-repo    \
 		| sed -e 's%\t%\tDocumentation/%' \
-		| git update-index --index-info
-	git write-tree                                    \
+		| GIT_INDEX_FILE=$$TMP_INDEX_FILE git update-index --index-info
+	GIT_INDEX_FILE=$$TMP_INDEX_FILE git write-tree                                    \
 		| xargs git archive --prefix=$(FILEBASE)/ \
 		| xz -c >$(FILEBASE).tar.xz
-	rm $$GIT_INDEX_FILE
+	rm $$TMP_INDEX_FILE
 	# Make GitHub mark our new tag as an official release
 	curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -X POST \
 		https://api.github.com/repos/newren/git-filter-repo/releases \
