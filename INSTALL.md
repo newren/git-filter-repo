@@ -118,7 +118,7 @@ So, installation might look something like the following:
 
    ```
    cp -a git-filter-repo $(git --exec-path)
-   cp -a git-filter-repo.1 $(git --man-path)/man1
+   cp -a git-filter-repo.1 $(git --man-path)/man1 && mandb
    cp -a git-filter-repo.html $(git --html-path)
    ln -s $(git --exec-path)/git-filter-repo \
        $(python -c "import site; print(site.getsitepackages()[-1])")/git_filter_repo.py
