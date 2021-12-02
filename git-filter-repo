@@ -3400,10 +3400,6 @@ class RepoFilter(object):
     commit.file_changes = [v for k,v in sorted(new_file_changes.items())]
 
   def _tweak_commit(self, commit, aux_info):
-    # Change the commit message according to callback
-    if not self._args.preserve_commit_hashes:
-      commit.message = self._hash_re.sub(self._translate_commit_hash,
-                                         commit.message)
     if self._args.replace_message:
       for literal, replacement in self._args.replace_message['literals']:
         commit.message = commit.message.replace(literal, replacement)
@@ -3411,6 +3407,11 @@ class RepoFilter(object):
         commit.message = regex.sub(replacement, commit.message)
     if self._message_callback:
       commit.message = self._message_callback(commit.message)
+
+    # Change the commit message according to callback
+    if not self._args.preserve_commit_hashes:
+      commit.message = self._hash_re.sub(self._translate_commit_hash,
+                                         commit.message)
 
     # Change the author & committer according to mailmap rules
     args = self._args
