@@ -1006,12 +1006,11 @@ class FastExportParser(object):
     changetype = self._currentline[0:1]
     if changetype == b'M':
       (changetype, mode, idnum, path) = self._currentline.split(None, 3)
+      # If idnum is short mark id, then translate it to our id system
       if idnum[0:1] == b':':
         idnum = idnum[1:]
+        idnum = _IDS.translate( int(idnum) )      
       path = path.rstrip(b'\n')
-      # We translate the idnum to our id system
-      if len(idnum) != 40:
-        idnum = _IDS.translate( int(idnum) )
       if idnum is not None:
         if path.startswith(b'"'):
           path = PathQuoting.dequote(path)
