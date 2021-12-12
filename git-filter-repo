@@ -1122,7 +1122,7 @@ class FastExportParser(object):
       blob.old_id = id_
       _IDS.record_rename(id_, blob.id)
 
-    # Call any user callback to allow them to use/modify the blob
+    # Call internal defined callback to allow them to use/modify the blob
     if self._blob_callback:
       self._blob_callback(blob)
 
@@ -1157,7 +1157,7 @@ class FastExportParser(object):
     # Create the reset
     reset = Reset(ref, from_ref)
 
-    # Call any user callback to allow them to modify the reset
+    # Call internal defined callback to allow them to modify the reset
     if self._reset_callback:
       self._reset_callback(reset)
 
@@ -1253,7 +1253,7 @@ class FastExportParser(object):
       commit.old_id = id_
       _IDS.record_rename(id_, commit.id)
 
-    # Call any user callback to allow them to modify the commit
+    # Call internal defined callback to allow them to modify the commit
     aux_info = {'orig_parents': orig_parents,
                 'had_file_changes': had_file_changes}
     if self._commit_callback:
@@ -1303,7 +1303,7 @@ class FastExportParser(object):
       tag.old_id = id_
       _IDS.record_rename(id_, tag.id)
 
-    # Call any user callback to allow them to modify the tag
+    # Call internal defined callback to allow them to modify the tag
     if self._tag_callback:
       self._tag_callback(tag)
 
@@ -1334,7 +1334,7 @@ class FastExportParser(object):
     # Create the progress message
     progress = Progress(message)
 
-    # Call any user callback to allow them to modify the progress messsage
+    # Call internal defined callback to allow them to modify the progress messsage
     if self._progress_callback:
       self._progress_callback(progress)
 
@@ -1360,7 +1360,7 @@ class FastExportParser(object):
     # Create the checkpoint
     checkpoint = Checkpoint()
 
-    # Call any user callback to allow them to drop the checkpoint
+    # Call internal defined callback to allow them to drop the checkpoint
     if self._checkpoint_callback:
       self._checkpoint_callback(checkpoint)
 
@@ -2744,19 +2744,22 @@ class RepoFilter(object):
     # Repo we are exporting
     self._repo_working_dir = None
 
-    # Store callbacks for acting on objects printed by FastExport
-    self._blob_callback        = blob_callback
-    self._commit_callback      = commit_callback
-    self._tag_callback         = tag_callback
-    self._reset_callback       = reset_callback
-    self._done_callback        = done_callback
+    # Store callbacks provided by user for acting on objects printed by FastExport
+    self._user_blob_callback        = blob_callback
+    self._user_commit_callback      = commit_callback
+    self._user_tag_callback         = tag_callback
+    self._user_reset_callback       = reset_callback
 
-    # Store callbacks for acting on slices of FastExport objects
-    self._filename_callback    = filename_callback  # filenames from commits
-    self._message_callback     = message_callback   # commit OR tag message
-    self._name_callback        = name_callback      # author, committer, tagger
-    self._email_callback       = email_callback     # author, committer, tagger
-    self._refname_callback     = refname_callback   # from commit/tag/reset
+    # Store callbacks provided by user for acting on slices of FastExport objects
+    self._user_filename_callback    = filename_callback  # filenames from commits
+    self._user_message_callback     = message_callback   # commit OR tag message
+    self._user_name_callback        = name_callback      # author, committer, tagger
+    self._user_email_callback       = email_callback     # author, committer, tagger
+    self._user_refname_callback     = refname_callback   # from commit/tag/reset
+
+    # Will do nothing
+    self._user_done_callback        = done_callback
+
     self._handle_arg_callbacks()
 
     # Defaults for input
@@ -2841,7 +2844,7 @@ class RepoFilter(object):
            '  '+'\n  '.join(str.splitlines()), globals())
       return callback #namespace['callback']
     def handle(type):
-      callback_field = '_{}_callback'.format(type)
+      callback_field = '_user_{}_callback'.format(type)
       code_string = getattr(self._args, type+'_callback')
       if code_string:
         if os.path.exists(code_string):
@@ -3292,8 +3295,8 @@ class RepoFilter(object):
       for regex,   replacement in self._args.replace_text['regexes']:
         blob.data = regex.sub(replacement, blob.data)
 
-    if self._blob_callback:
-      self._blob_callback(blob, self.callback_metadata())
+    if self._user_blob_callback:
+      self._user_blob_callback(blob, self.callback_metadata())
 
   def _filter_files(self, commit):
     def filename_matches(path_expression, pathname):
@@ -3353,8 +3356,8 @@ class RepoFilter(object):
         original_filename = change.filename
         change.filename = newname(args.path_changes, change.filename,
                                   args.use_base_name, args.inclusive)
-        if self._filename_callback:
-          change.filename = self._filename_callback(change.filename)
+        if self._user_filename_callback:
+          change.filename = self._user_filename_callback(change.filename)
         self._newnames[original_filename] = change.filename
       if not change.filename:
         continue # Filtering criteria excluded this file; move on to next one
@@ -3409,8 +3412,8 @@ class RepoFilter(object):
         commit.message = commit.message.replace(literal, replacement)
       for regex,   replacement in self._args.replace_message['regexes']:
         commit.message = regex.sub(replacement, commit.message)
-    if self._message_callback:
-      commit.message = self._message_callback(commit.message)
+    if self._user_message_callback:
+      commit.message = self._user_message_callback(commit.message)
 
     # Change the author & committer according to mailmap rules
     args = self._args
@@ -3420,19 +3423,19 @@ class RepoFilter(object):
       commit.committer_name, commit.committer_email = \
           args.mailmap.translate(commit.committer_name, commit.committer_email)
     # Change author & committer according to callbacks
-    if self._name_callback:
-      commit.author_name = self._name_callback(commit.author_name)
-      commit.committer_name = self._name_callback(commit.committer_name)
-    if self._email_callback:
-      commit.author_email = self._email_callback(commit.author_email)
-      commit.committer_email = self._email_callback(commit.committer_email)
+    if self._user_name_callback:
+      commit.author_name = self._user_name_callback(commit.author_name)
+      commit.committer_name = self._user_name_callback(commit.committer_name)
+    if self._user_email_callback:
+      commit.author_email = self._user_email_callback(commit.author_email)
+      commit.committer_email = self._user_email_callback(commit.committer_email)
 
     # Sometimes the 'branch' given is a tag; if so, rename it as requested so
     # we don't get any old tagnames
     if self._args.tag_rename:
       commit.branch = RepoFilter._do_tag_rename(args.tag_rename, commit.branch)
-    if self._refname_callback:
-      commit.branch = self._refname_callback(commit.branch)
+    if self._user_refname_callback:
+      commit.branch = self._user_refname_callback(commit.branch)
 
     # Filter or rename the list of file changes
     orig_file_changes = set(commit.file_changes)
@@ -3468,15 +3471,15 @@ class RepoFilter(object):
     # a password from every version of a file that had the password, and some
     # later commit did nothing more than remove that line)
     final_file_changes = set(commit.file_changes)
-    if self._args.replace_text or self._blob_callback:
+    if self._args.replace_text or self._user_blob_callback:
       differences = orig_file_changes.union(final_file_changes)
     else:
       differences = orig_file_changes.symmetric_difference(final_file_changes)
     self._files_tweaked.update(x.filename for x in differences)
 
     # Call the user-defined callback, if any
-    if self._commit_callback:
-      self._commit_callback(commit, self.callback_metadata(aux_info))
+    if self._user_commit_callback:
+      self._user_commit_callback(commit, self.callback_metadata(aux_info))
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
@@ -3514,16 +3517,16 @@ class RepoFilter(object):
         tag.message = tag.message.replace(literal, replacement)
       for regex,   replacement in self._args.replace_message['regexes']:
         tag.message = regex.sub(replacement, tag.message)
-    if self._message_callback:
-      tag.message = self._message_callback(tag.message)
+    if self._user_message_callback:
+      tag.message = self._user_message_callback(tag.message)
 
     # Tweak the tag name according to tag-name-related callbacks
     tag_prefix = b'refs/tags/'
     fullref = tag_prefix+tag.ref
     if self._args.tag_rename:
       fullref = RepoFilter._do_tag_rename(self._args.tag_rename, fullref)
-    if self._refname_callback:
-      fullref = self._refname_callback(fullref)
+    if self._user_refname_callback:
+      fullref = self._user_refname_callback(fullref)
       if not fullref.startswith(tag_prefix):
         msg = "Error: fast-import requires tags to be in refs/tags/ namespace."
         msg += "\n       {} renamed to {}".format(tag_prefix+tag.ref, fullref)
@@ -3534,22 +3537,22 @@ class RepoFilter(object):
     if self._args.mailmap:
       tag.tagger_name, tag.tagger_email = \
           self._args.mailmap.translate(tag.tagger_name, tag.tagger_email)
-    if self._name_callback:
-      tag.tagger_name = self._name_callback(tag.tagger_name)
-    if self._email_callback:
-      tag.tagger_email = self._email_callback(tag.tagger_email)
+    if self._user_name_callback:
+      tag.tagger_name = self._user_name_callback(tag.tagger_name)
+    if self._user_email_callback:
+      tag.tagger_email = self._user_email_callback(tag.tagger_email)
 
     # Call general purpose tag callback
-    if self._tag_callback:
-      self._tag_callback(tag, self.callback_metadata())
+    if self._user_tag_callback:
+      self._user_tag_callback(tag, self.callback_metadata())
 
   def _tweak_reset(self, reset):
     if self._args.tag_rename:
       reset.ref = RepoFilter._do_tag_rename(self._args.tag_rename, reset.ref)
-    if self._refname_callback:
-      reset.ref = self._refname_callback(reset.ref)
-    if self._reset_callback:
-      self._reset_callback(reset, self.callback_metadata())
+    if self._user_refname_callback:
+      reset.ref = self._user_refname_callback(reset.ref)
+    if self._user_reset_callback:
+      self._user_reset_callback(reset, self.callback_metadata())
 
   def results_tmp_dir(self, create_if_missing=True):
     target_working_dir = self._args.target or b'.'
@@ -3641,7 +3644,7 @@ class RepoFilter(object):
       sys.stdin = None # Make sure no one tries to accidentally use it
       self._fe_orig = None
     else:
-      skip_blobs = (self._blob_callback is None and
+      skip_blobs = (self._user_blob_callback is None and
                     self._args.replace_text is None and
                     self._args.source == self._args.target)
       extra_flags = []
@@ -3739,7 +3742,7 @@ class RepoFilter(object):
 
   def _final_commands(self):
     self._finalize_handled = True
-    self._done_callback and self._done_callback()
+    self._user_done_callback and self._user_done_callback()
 
     if not self._args.quiet:
       self._progress_writer.finish()
