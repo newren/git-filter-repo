@@ -95,6 +95,9 @@ parser.add_argument('--filenames-important', action='store_true',
               "random name.  If the linting program needs to know the file "
               "basename to operate correctly (e.g. because it needs to know "
               "the file's extension), then pass this argument"))
+parser.add_argument('--refs', nargs='+',
+                    help=("Limit history rewriting to the specified refs. "
+                          "Implies --partial of git-filter-repo (and all its implications)."))
 parser.add_argument('command', nargs=argparse.REMAINDER,
         help=("Lint command to run, other than the filename at the end"))
 lint_args = parser.parse_args()
@@ -158,6 +161,7 @@ if lint_args.relevant:
   lint_args.filenames_important = True
 args = fr.FilteringOptions.default_options()
 args.force = True
+args.refs = lint_args.refs if lint_args.refs is not None else []
 if lint_args.filenames_important:
   tmpdir = tempfile.mkdtemp().encode()
   cat_file_process = subprocess.Popen(['git', 'cat-file', '--batch'],
