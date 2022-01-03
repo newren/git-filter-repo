@@ -3811,6 +3811,7 @@ class RepoFilter(object):
     batch_check_process = None
     batch_check_output_re = re.compile(b'^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
     with open(os.path.join(metadata_dir, b'ref-map'), 'bw') as f:
+      f.write(("%-40s %-40s %s\n" % (_("old"), _("new"), _("ref"))).encode())
       for refname, old_hash in orig_refs.items():
         if refname not in exported_refs:
           continue
