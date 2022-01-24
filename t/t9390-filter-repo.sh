@@ -83,6 +83,52 @@ setup_path_rename() {
 	)
 }
 
+setup_unrelated_histories() {
+	test -d unrelated_histories && return
+	mkdir unrelated_histories &&
+	test_create_repo unrelated_histories/side-repo &&
+	test_create_repo unrelated_histories/test-repo &&
+	(
+		cd unrelated_histories/side-repo &&
+		echo 1 >test_file &&
+		git add test_file &&
+		git commit -m 1 &&
+
+		echo 2 >test_file &&
+		git add test_file &&
+		git commit -m 2 &&
+
+		git tag test_tag &&
+		git branch some_branch
+	) &&
+	(
+		cd unrelated_histories/test-repo &&
+		echo testing >uninteresting_file &&
+		git add uninteresting_file &&
+		git commit -m test &&
+
+		git remote add side ../side-repo &&
+		git fetch side &&
+		git fetch --tags side &&
+		git merge side/some_branch --allow-unrelated-histories -m "merge" &&
+
+		echo 3 >test_file &&
+		git add test_file &&
+		git commit -m 3
+	)
+}
+
+test_expect_success 'Commits from non-root history' '
+	setup_unrelated_histories &&
+	(
+		git clone file://"$(pwd)"/unrelated_histories/test-repo unrelated_histories_repo &&
+		cd unrelated_histories_repo &&
+		git filter-repo --refs test_tag..HEAD --path another_file &&
+		git log --format=%n --name-only | sort | uniq | grep -v "^\$" >filenames &&
+		test_line_count = 1 filenames
+	)
+'
+
 test_expect_success '--path-rename sequences/tiny:sequences/small' '
 	setup_path_rename &&
 	(
