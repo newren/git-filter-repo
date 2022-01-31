@@ -34,10 +34,11 @@ Documentation/html/git-filter-repo.html:
 	git show origin/docs:html/git-filter-repo.html >Documentation/html/git-filter-repo.html
 
 install: snag_docs #fixup_locale
-	cp -a git-filter-repo "$(bindir)/"
+	install -Dm0755 git-filter-repo "$(bindir)/git-filter-repo"
+	install -dm0755 "$(pythondir)"
 	ln -sf "$(bindir)/git-filter-repo" "$(pythondir)/git_filter_repo.py"
-	cp -a Documentation/man1/git-filter-repo.1 "$(mandir)/man1/git-filter-repo.1"
-	cp -a Documentation/html/git-filter-repo.html "$(htmldir)/git-filter-repo.html"
+	install -Dm0644 Documentation/man1/git-filter-repo.1 "$(mandir)/man1/git-filter-repo.1"
+	install -Dm0644 Documentation/html/git-filter-repo.html "$(htmldir)/git-filter-repo.html"
 	if which mandb > /dev/null; then mandb; fi
 
 
