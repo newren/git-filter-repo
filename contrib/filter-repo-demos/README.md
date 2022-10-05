@@ -16,6 +16,7 @@ lint-history         |Run some lint command on all non-binary files in history.
 clean-ignore         |Delete files from history which match current gitignore rules.
 filter-lamely (or filter&#8209;branch&#8209;ish) |A nearly bug compatible re-implementation of filter-branch (the git testsuite passes using it instead of filter-branch), with some performance tricks to make it several times faster (though it's still glacially slow compared to filter-repo).
 bfg-ish              |A re-implementation of most of BFG Repo Cleaner, with new features and bug fixes.
+convert-svnexternals |Insert Git submodules according to SVN externals.
 
 ## Purpose
 
