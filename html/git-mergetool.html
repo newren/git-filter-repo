@@ -887,6 +887,9 @@ success of the resolution after the custom tool has exited.</p></div>
 <div class="sect1">
 <h2 id="_configuration">CONFIGURATION</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 mergetool.&lt;tool&gt;.path
@@ -966,6 +969,17 @@ mergetool.meld.useAutoMerge
 </p>
 </dd>
 <dt class="hdlist1">
+mergetool.vimdiff.layout
+</dt>
+<dd>
+<p>
+        The vimdiff backend uses this variable to control how its split
+        windows look like. Applies even if you are using Neovim (<code>nvim</code>) or
+        gVim (<code>gvim</code>) as the merge tool. See BACKEND SPECIFIC HINTS section
+        for details.
+</p>
+</dd>
+<dt class="hdlist1">
 mergetool.hideResolved
 </dt>
 <dd>
@@ -1037,6 +1051,274 @@ are successfully merged.</p></div>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_backend_specific_hints">BACKEND SPECIFIC HINTS</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_vimdiff">vimdiff</h3>
+<div class="sect3">
+<h4 id="_description_2">Description</h4>
+<div class="paragraph"><p>When specifying <code>--tool=vimdiff</code> in <code>git mergetool</code> Git will open Vim with a 4
+windows layout distributed in the following way:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>------------------------------------------
+|             |           |              |
+|   LOCAL     |   BASE    |   REMOTE     |
+|             |           |              |
+------------------------------------------
+|                                        |
+|                MERGED                  |
+|                                        |
+------------------------------------------</code></pre>
+</div></div>
+<div class="paragraph"><p><code>LOCAL</code>, <code>BASE</code> and <code>REMOTE</code> are read-only buffers showing the contents of the
+conflicting file in specific commits ("commit you are merging into", "common
+ancestor commit" and "commit you are merging from" respectively)</p></div>
+<div class="paragraph"><p><code>MERGED</code> is a writable buffer where you have to resolve the conflicts (using the
+other read-only buffers as a reference). Once you are done, save and exit Vim as
+usual (<code>:wq</code>) or, if you want to abort, exit using <code>:cq</code>.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_layout_configuration">Layout configuration</h4>
+<div class="paragraph"><p>You can change the windows layout used by Vim by setting configuration variable
+<code>mergetool.vimdiff.layout</code> which accepts a string where the following separators
+have special meaning:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>+</code> is used to "open a new tab"
+</p>
+</li>
+<li>
+<p>
+<code>,</code> is used to "open a new vertical split"
+</p>
+</li>
+<li>
+<p>
+<code>/</code> is used to "open a new horizontal split"
+</p>
+</li>
+<li>
+<p>
+<code>@</code> is used to indicate which is the file containing the final version after
+    solving the conflicts. If not present, <code>MERGED</code> will be used by default.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The precedence of the operators is this one (you can use parentheses to change
+it):</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>`@` &gt; `+` &gt; `/` &gt; `,`</code></pre>
+</div></div>
+<div class="paragraph"><p>Let&#8217;s see some examples to understand how it works:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>layout = "(LOCAL,BASE,REMOTE)/MERGED"</code>
+</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph"><p>This is exactly the same as the default layout we have already seen.</p></div>
+<div class="paragraph"><p>Note that <code>/</code> has precedence over <code>,</code> and thus the parenthesis are not
+needed in this case. The next layout definition is equivalent:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>layout = "LOCAL,BASE,REMOTE / MERGED"</code></pre>
+</div></div>
+</div></div>
+</li>
+<li>
+<p>
+<code>layout = "LOCAL,MERGED,REMOTE"</code>
+</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph"><p>If, for some reason, we are not interested in the <code>BASE</code> buffer.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>------------------------------------------
+|             |           |              |
+|             |           |              |
+|   LOCAL     |   MERGED  |   REMOTE     |
+|             |           |              |
+|             |           |              |
+------------------------------------------</code></pre>
+</div></div>
+</div></div>
+</li>
+<li>
+<p>
+<code>layout = "MERGED"</code>
+</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph"><p>Only the <code>MERGED</code> buffer will be shown. Note, however, that all the other
+ones are still loaded in vim, and you can access them with the "buffers"
+command.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>------------------------------------------
+|                                        |
+|                                        |
+|                 MERGED                 |
+|                                        |
+|                                        |
+------------------------------------------</code></pre>
+</div></div>
+</div></div>
+</li>
+<li>
+<p>
+<code>layout = "@LOCAL,REMOTE"</code>
+</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph"><p>When <code>MERGED</code> is not present in the layout, you must "mark" one of the
+buffers with an asterisk. That will become the buffer you need to edit and
+save after resolving the conflicts.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>------------------------------------------
+|                   |                    |
+|                   |                    |
+|                   |                    |
+|     LOCAL         |    REMOTE          |
+|                   |                    |
+|                   |                    |
+|                   |                    |
+------------------------------------------</code></pre>
+</div></div>
+</div></div>
+</li>
+<li>
+<p>
+<code>layout = "LOCAL,BASE,REMOTE / MERGED + BASE,LOCAL + BASE,REMOTE"</code>
+</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph"><p>Three tabs will open: the first one is a copy of the default layout, while
+the other two only show the differences between (<code>BASE</code> and <code>LOCAL</code>) and
+(<code>BASE</code> and <code>REMOTE</code>) respectively.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>------------------------------------------
+| &lt;TAB #1&gt; |  TAB #2  |  TAB #3  |       |
+------------------------------------------
+|             |           |              |
+|   LOCAL     |   BASE    |   REMOTE     |
+|             |           |              |
+------------------------------------------
+|                                        |
+|                MERGED                  |
+|                                        |
+------------------------------------------</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>------------------------------------------
+|  TAB #1  | &lt;TAB #2&gt; |  TAB #3  |       |
+------------------------------------------
+|                   |                    |
+|                   |                    |
+|                   |                    |
+|     BASE          |    LOCAL           |
+|                   |                    |
+|                   |                    |
+|                   |                    |
+------------------------------------------</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>------------------------------------------
+|  TAB #1  |  TAB #2  | &lt;TAB #3&gt; |       |
+------------------------------------------
+|                   |                    |
+|                   |                    |
+|                   |                    |
+|     BASE          |    REMOTE          |
+|                   |                    |
+|                   |                    |
+|                   |                    |
+------------------------------------------</code></pre>
+</div></div>
+</div></div>
+</li>
+<li>
+<p>
+<code>layout = "LOCAL,BASE,REMOTE / MERGED + BASE,LOCAL + BASE,REMOTE + (LOCAL/BASE/REMOTE),MERGED"</code>
+</p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph"><p>Same as the previous example, but adds a fourth tab with the same
+information as the first tab, with a different layout.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>---------------------------------------------
+|  TAB #1  |  TAB #2  |  TAB #3  | &lt;TAB #4&gt; |
+---------------------------------------------
+|       LOCAL         |                     |
+|---------------------|                     |
+|       BASE          |        MERGED       |
+|---------------------|                     |
+|       REMOTE        |                     |
+---------------------------------------------</code></pre>
+</div></div>
+<div class="paragraph"><p>Note how in the third tab definition we need to use parenthesis to make <code>,</code>
+have precedence over <code>/</code>.</p></div>
+</div></div>
+</li>
+</ul></div>
+</div>
+<div class="sect3">
+<h4 id="_variants">Variants</h4>
+<div class="paragraph"><p>Instead of <code>--tool=vimdiff</code>, you can also use one of these other variants:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>--tool=gvimdiff</code>, to open gVim instead of Vim.
+</p>
+</li>
+<li>
+<p>
+<code>--tool=nvimdiff</code>, to open Neovim instead of Vim.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>When using these variants, in order to specify a custom layout you will have to
+set configuration variables <code>mergetool.gvimdiff.layout</code> and
+<code>mergetool.nvimdiff.layout</code> instead of <code>mergetool.vimdiff.layout</code></p></div>
+<div class="paragraph"><p>In addition, for backwards compatibility with previous Git versions, you can
+also append <code>1</code>, <code>2</code> or <code>3</code> to either <code>vimdiff</code> or any of the variants (ex:
+<code>vimdiff3</code>, <code>nvimdiff1</code>, etc&#8230;) to use a predefined layout.
+In other words, using <code>--tool=[g,n,]vimdiffx</code> is the same as using
+<code>--tool=[g,n,]vimdiff</code> and setting configuration variable
+<code>mergetool.[g,n,]vimdiff.layout</code> to&#8230;</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>x=1</code>: <code>"@LOCAL, REMOTE"</code>
+</p>
+</li>
+<li>
+<p>
+<code>x=2</code>: <code>"LOCAL, MERGED, REMOTE"</code>
+</p>
+</li>
+<li>
+<p>
+<code>x=3</code>: <code>"MERGED"</code>
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Example: using <code>--tool=gvimdiff2</code> will open <code>gvim</code> with three columns (LOCAL,
+MERGED and REMOTE).</p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
@@ -1047,7 +1329,7 @@ are successfully merged.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-10-06 09:57:11 PDT
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

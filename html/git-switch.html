@@ -942,8 +942,7 @@ should result in deletion of the path).</p></div>
         The same as <code>--merge</code> option above, but changes the way the
         conflicting hunks are presented, overriding the
         <code>merge.conflictStyle</code> configuration variable.  Possible values are
-        "merge" (default) and "diff3" (in addition to what is shown by
-        "merge" style, shows the original contents).
+        "merge" (default), "diff3", and "zdiff3".
 </p>
 </dd>
 <dt class="hdlist1">
@@ -975,7 +974,7 @@ should result in deletion of the path).</p></div>
 -t
 </dt>
 <dt class="hdlist1">
---track
+--track [direct|inherit]
 </dt>
 <dd>
 <p>
@@ -1110,6 +1109,79 @@ always create a new name for it (without switching away):</p></div>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+checkout.defaultRemote
+</dt>
+<dd>
+<p>
+        When you run <code>git checkout &lt;something&gt;</code>
+        or <code>git switch &lt;something&gt;</code> and only have one
+        remote, it may implicitly fall back on checking out and
+        tracking e.g. <code>origin/&lt;something&gt;</code>. This stops working as soon
+        as you have more than one remote with a <code>&lt;something&gt;</code>
+        reference. This setting allows for setting the name of a
+        preferred remote that should always win when it comes to
+        disambiguation. The typical use-case is to set this to
+        <code>origin</code>.
+</p>
+<div class="paragraph"><p>Currently this is used by <a href="git-switch.html">git-switch(1)</a> and
+<a href="git-checkout.html">git-checkout(1)</a> when <code>git checkout &lt;something&gt;</code>
+or <code>git switch &lt;something&gt;</code>
+will checkout the <code>&lt;something&gt;</code> branch on another remote,
+and by <a href="git-worktree.html">git-worktree(1)</a> when <code>git worktree add</code> refers to a
+remote branch. This setting might be used for other checkout-like
+commands or functionality in the future.</p></div>
+</dd>
+<dt class="hdlist1">
+checkout.guess
+</dt>
+<dd>
+<p>
+        Provides the default value for the <code>--guess</code> or <code>--no-guess</code>
+        option in <code>git checkout</code> and <code>git switch</code>. See
+        <a href="git-switch.html">git-switch(1)</a> and <a href="git-checkout.html">git-checkout(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+checkout.workers
+</dt>
+<dd>
+<p>
+        The number of parallel workers to use when updating the working tree.
+        The default is one, i.e. sequential execution. If set to a value less
+        than one, Git will use as many workers as the number of logical cores
+        available. This setting and <code>checkout.thresholdForParallelism</code> affect
+        all commands that perform checkout. E.g. checkout, clone, reset,
+        sparse-checkout, etc.
+</p>
+<div class="paragraph"><p>Note: parallel checkout usually delivers better performance for repositories
+located on SSDs or over NFS. For repositories on spinning disks and/or machines
+with a small number of cores, the default sequential checkout often performs
+better. The size and compression level of a repository might also influence how
+well the parallel version performs.</p></div>
+</dd>
+<dt class="hdlist1">
+checkout.thresholdForParallelism
+</dt>
+<dd>
+<p>
+        When running parallel checkout with a small number of files, the cost
+        of subprocess spawning and inter-process communication might outweigh
+        the parallelization gains. This setting allows to define the minimum
+        number of files for which parallel checkout should be attempted. The
+        default is 100.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="git-checkout.html">git-checkout(1)</a>,
@@ -1127,7 +1199,7 @@ always create a new name for it (without switching away):</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

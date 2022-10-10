@@ -750,9 +750,9 @@ git-ls-files(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git ls-files</em> [-z] [-t] [-v] [-f]
-                (--[cached|deleted|others|ignored|stage|unmerged|killed|modified])*
-                (-[c|d|o|i|s|u|k|m])*
-                [--eol]
+                [-c|--cached] [-d|--deleted] [-o|--others] [-i|--|ignored]
+                [-s|--stage] [-u|--unmerged] [-k|--|killed] [-m|--modified]
+                [--directory [--no-empty-directory]] [--eol]
                 [--deduplicate]
                 [-x &lt;pattern&gt;|--exclude=&lt;pattern&gt;]
                 [-X &lt;file&gt;|--exclude-from=&lt;file&gt;]
@@ -760,7 +760,7 @@ git-ls-files(1) Manual Page
                 [--exclude-standard]
                 [--error-unmatch] [--with-tree=&lt;tree-ish&gt;]
                 [--full-name] [--recurse-submodules]
-                [--abbrev[=&lt;n&gt;]] [--] [&lt;file&gt;&#8230;]</pre>
+                [--abbrev[=&lt;n&gt;]] [--format=&lt;format&gt;] [--] [&lt;file&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -1086,7 +1086,7 @@ other
 <dd>
 <p>
         Recursively calls ls-files on each active submodule in the repository.
-        Currently there is only support for the --cached mode.
+        Currently there is only support for the --cached and --stage modes.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1131,6 +1131,29 @@ and in the working tree ("w/&lt;eolinfo&gt;") are shown for regular files,
 followed by the  ("attr/&lt;eolattr&gt;").</p></div>
 </dd>
 <dt class="hdlist1">
+--sparse
+</dt>
+<dd>
+<p>
+        If the index is sparse, show the sparse directories without expanding
+        to the contained files. Sparse directories will be shown with a
+        trailing slash, such as "x/" for a sparse directory "x".
+</p>
+</dd>
+<dt class="hdlist1">
+--format=&lt;format&gt;
+</dt>
+<dd>
+<p>
+        A string that interpolates <code>%(fieldname)</code> from the result being shown.
+        It also interpolates <code>%%</code> to <code>%</code>, and <code>%xx</code> where <code>xx</code> are hex digits
+        interpolates to character with hex code <code>xx</code>; for example <code>%00</code>
+        interpolates to <code>\0</code> (NUL), <code>%09</code> to <code>\t</code> (TAB) and %0a to <code>\n</code> (LF).
+        --format cannot be combined with <code>-s</code>, <code>-o</code>, <code>-k</code>, <code>-t</code>, <code>--resolve-undo</code>
+        and <code>--eol</code>.
+</p>
+</dd>
+<dt class="hdlist1">
 --
 </dt>
 <dd>
@@ -1172,6 +1195,79 @@ path. (see <a href="git-read-tree.html">git-read-tree(1)</a> for more informatio
 quoted as explained for the configuration variable <code>core.quotePath</code>
 (see <a href="git-config.html">git-config(1)</a>).  Using <code>-z</code> the filename is output
 verbatim and the line is terminated by a NUL byte.</p></div>
+<div class="paragraph"><p>It is possible to print in a custom format by using the <code>--format</code>
+option, which is able to interpolate different fields using
+a <code>%(fieldname)</code> notation. For example, if you only care about the
+"objectname" and "path" fields, you can execute with a specific
+"--format" like</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>git ls-files --format='%(objectname) %(path)'</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_field_names">FIELD NAMES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The way each path is shown can be customized by using the
+<code>--format=&lt;format&gt;</code> option, where the %(fieldname) in the
+&lt;format&gt; string for various aspects of the index entry are
+interpolated.  The following "fieldname" are understood:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+objectmode
+</dt>
+<dd>
+<p>
+        The mode of the file which is recorded in the index.
+</p>
+</dd>
+<dt class="hdlist1">
+objectname
+</dt>
+<dd>
+<p>
+        The name of the file which is recorded in the index.
+</p>
+</dd>
+<dt class="hdlist1">
+stage
+</dt>
+<dd>
+<p>
+        The stage of the file which is recorded in the index.
+</p>
+</dd>
+<dt class="hdlist1">
+eolinfo:index
+</dt>
+<dt class="hdlist1">
+eolinfo:worktree
+</dt>
+<dd>
+<p>
+        The &lt;eolinfo&gt; (see the description of the <code>--eol</code> option) of
+        the contents in the index or in the worktree for the path.
+</p>
+</dd>
+<dt class="hdlist1">
+eolattr
+</dt>
+<dd>
+<p>
+        The &lt;eolattr&gt; (see the description of the <code>--eol</code> option)
+        that applies to the path.
+</p>
+</dd>
+<dt class="hdlist1">
+path
+</dt>
+<dd>
+<p>
+        The pathname of the file which is recorded in the index.
+</p>
+</dd>
+</dl></div>
 </div>
 </div>
 <div class="sect1">
@@ -1231,7 +1327,7 @@ pattern file appears in.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 09:20:10 PST
+ 2022-09-16 17:50:33 PDT
 </div>
 </div>
 </body>

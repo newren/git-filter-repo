@@ -749,7 +749,7 @@ git-shortlog(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git shortlog</em> [&lt;options&gt;] [&lt;revision range&gt;] [[--] &lt;path&gt;&#8230;]
+<pre class="content"><em>git shortlog</em> [&lt;options&gt;] [&lt;revision-range&gt;] [[--] &lt;path&gt;&#8230;]
 git log --pretty=short | <em>git shortlog</em> [&lt;options&gt;]</pre>
 <div class="attribution">
 </div></div>
@@ -890,16 +890,16 @@ counts both authors and co-authors.</p></div>
 them.</p></div>
 </dd>
 <dt class="hdlist1">
-&lt;revision range&gt;
+&lt;revision-range&gt;
 </dt>
 <dd>
 <p>
         Show only commits in the specified revision range.  When no
-        &lt;revision range&gt; is specified, it defaults to <code>HEAD</code> (i.e. the
+        &lt;revision-range&gt; is specified, it defaults to <code>HEAD</code> (i.e. the
         whole history leading to the current commit).  <code>origin..HEAD</code>
         specifies all the commits reachable from the current commit
         (i.e. <code>HEAD</code>), but not from <code>origin</code>. For a complete list of
-        ways to spell &lt;revision range&gt;, see the "Specifying Ranges"
+        ways to spell &lt;revision-range&gt;, see the "Specifying Ranges"
         section of <a href="gitrevisions.html">gitrevisions(7)</a>.
 </p>
 </dd>
@@ -958,6 +958,16 @@ ordering and formatting options, such as <code>--reverse</code>.</p></div>
 <dd>
 <p>
         Show commits more recent than a specific date.
+</p>
+</dd>
+<dt class="hdlist1">
+--since-as-filter=&lt;date&gt;
+</dt>
+<dd>
+<p>
+        Show all commits more recent than a specific date. This visits
+        all commits in the range, rather than stopping at the first commit which
+        is older than a specific date.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1143,13 +1153,26 @@ parents) and <code>--max-parents=-1</code> (negative numbers denote no upper lim
 </dt>
 <dd>
 <p>
-        Follow only the first parent commit upon seeing a merge
-        commit.  This option can give a better overview when
-        viewing the evolution of a particular topic branch,
-        because merges into a topic branch tend to be only about
-        adjusting to updated upstream from time to time, and
-        this option allows you to ignore the individual commits
-        brought in to your history by such a merge.
+        When finding commits to include, follow only the first
+        parent commit upon seeing a merge commit.  This option
+        can give a better overview when viewing the evolution of
+        a particular topic branch, because merges into a topic
+        branch tend to be only about adjusting to updated upstream
+        from time to time, and this option allows you to ignore
+        the individual commits brought in to your history by such
+        a merge.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude-first-parent-only
+</dt>
+<dd>
+<p>
+        When finding commits to exclude (with a <em>&#94;</em>), follow only
+        the first parent commit upon seeing a merge commit.
+        This can be used to find the set of changes in a topic branch
+        from the point where it diverged from the remote branch, given
+        that arbitrary merges can be valid topic branch changes.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1514,15 +1537,17 @@ Default mode
 </p>
 </dd>
 <dt class="hdlist1">
---ancestry-path
+--ancestry-path[=&lt;commit&gt;]
 </dt>
 <dd>
 <p>
         When given a range of commits to display (e.g. <em>commit1..commit2</em>
-        or <em>commit2 &#94;commit1</em>), only display commits that exist
-        directly on the ancestry chain between the <em>commit1</em> and
-        <em>commit2</em>, i.e. commits that are both descendants of <em>commit1</em>,
-        and ancestors of <em>commit2</em>.
+        or <em>commit2 &#94;commit1</em>), only display commits in that range
+        that are ancestors of &lt;commit&gt;, descendants of &lt;commit&gt;, or
+        &lt;commit&gt; itself.  If no commit is specified, use <em>commit1</em> (the
+        excluded part of the range) as &lt;commit&gt;.  Can be passed multiple
+        times; if so, a commit is included if it is any of the commits
+        given or if it is an ancestor or descendant of one of them.
 </p>
 </dd>
 </dl></div>
@@ -1765,14 +1790,13 @@ If after this parent rewriting, <code>C'</code> is a root or merge commit (has
 <div class="paragraph"><p>There is another simplification mode available:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
---ancestry-path
+--ancestry-path[=&lt;commit&gt;]
 </dt>
 <dd>
 <p>
-        Limit the displayed commits to those directly on the ancestry
-        chain between the &#8220;from&#8221; and &#8220;to&#8221; commits in the given commit
-        range. I.e. only display commits that are ancestor of the &#8220;to&#8221;
-        commit and descendants of the &#8220;from&#8221; commit.
+        Limit the displayed commits to those which are an ancestor of
+        &lt;commit&gt;, or which are a descendant of &lt;commit&gt;, or are &lt;commit&gt;
+        itself.
 </p>
 <div class="paragraph"><p>As an example use case, consider the following commit history:</p></div>
 <div class="listingblock">
@@ -1801,6 +1825,26 @@ option does. Applied to the <em>D..M</em> range, it results in:</p></div>
                   G---H---I---J
                                \
                                 L--M</code></pre>
+</div></div>
+<div class="paragraph"><p>We can also use <code>--ancestry-path=D</code> instead of <code>--ancestry-path</code> which
+means the same thing when applied to the <em>D..M</em> range but is just more
+explicit.</p></div>
+<div class="paragraph"><p>If we instead are interested in a given topic within this range, and all
+commits affected by that topic, we may only want to view the subset of
+<code>D..M</code> which contain that topic in their ancestry path.  So, using
+<code>--ancestry-path=H D..M</code> for example would result in:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>                E
+                 \
+                  G---H---I---J
+                               \
+                                L--M</code></pre>
+</div></div>
+<div class="paragraph"><p>Whereas <code>--ancestry-path=K D..M</code> would result in</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>                K---------------L--M</code></pre>
 </div></div>
 </dd>
 </dl></div>
@@ -1853,7 +1897,7 @@ merge commits <code>O</code> and <code>P</code>. With parent rewriting, the resu
 not actually contribute a change to <code>file.txt</code>. They only merged a topic
 that was based on an older version of <code>file.txt</code>. This is a common
 issue in repositories using a workflow where many contributors work in
-parallel and merge their topic branches along a single trunk: manu
+parallel and merge their topic branches along a single trunk: many
 unrelated merges appear in the <code>--full-history</code> results.</p></div>
 <div class="paragraph"><p>When using the <code>--simplify-merges</code> option, the commits <code>O</code> and <code>P</code>
 disappear from the results. This is because the rewritten second parents
@@ -1956,7 +2000,7 @@ the current directory.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 09:20:10 PST
+ 2022-06-28 20:23:28 PDT
 </div>
 </div>
 </body>

@@ -757,7 +757,8 @@ git-branch(1) Manual Page
         [--points-at &lt;object&gt;] [--format=&lt;format&gt;]
         [(-r | --remotes) | (-a | --all)]
         [--list] [&lt;pattern&gt;&#8230;]
-<em>git branch</em> [--track | --no-track] [-f] &lt;branchname&gt; [&lt;start-point&gt;]
+<em>git branch</em> [--track[=(direct|inherit)] | --no-track] [-f]
+        [--recurse-submodules] &lt;branchname&gt; [&lt;start-point&gt;]
 <em>git branch</em> (--set-upstream-to=&lt;upstream&gt; | -u &lt;upstream&gt;) [&lt;branchname&gt;]
 <em>git branch</em> --unset-upstream [&lt;branchname&gt;]
 <em>git branch</em> (-m | -M) [&lt;oldbranch&gt;] &lt;newbranch&gt;
@@ -1068,23 +1069,34 @@ way to clean up all obsolete remote-tracking branches.</p></div>
 -t
 </dt>
 <dt class="hdlist1">
---track
+--track[=(direct|inherit)]
 </dt>
 <dd>
 <p>
         When creating a new branch, set up <code>branch.&lt;name&gt;.remote</code> and
-        <code>branch.&lt;name&gt;.merge</code> configuration entries to mark the
-        start-point branch as "upstream" from the new branch. This
+        <code>branch.&lt;name&gt;.merge</code> configuration entries to set "upstream" tracking
+        configuration for the new branch. This
         configuration will tell git to show the relationship between the
         two branches in <code>git status</code> and <code>git branch -v</code>. Furthermore,
         it directs <code>git pull</code> without arguments to pull from the
         upstream when the new branch is checked out.
 </p>
-<div class="paragraph"><p>This behavior is the default when the start point is a remote-tracking branch.
-Set the branch.autoSetupMerge configuration variable to <code>false</code> if you
-want <code>git switch</code>, <code>git checkout</code> and <code>git branch</code> to always behave as if <code>--no-track</code>
-were given. Set it to <code>always</code> if you want this behavior when the
-start-point is either a local or remote-tracking branch.</p></div>
+<div class="paragraph"><p>The exact upstream branch is chosen depending on the optional argument:
+<code>-t</code>, <code>--track</code>, or <code>--track=direct</code> means to use the start-point branch
+itself as the upstream; <code>--track=inherit</code> means to copy the upstream
+configuration of the start-point branch.</p></div>
+<div class="paragraph"><p>The branch.autoSetupMerge configuration variable specifies how <code>git switch</code>,
+<code>git checkout</code> and <code>git branch</code> should behave when neither <code>--track</code> nor
+<code>--no-track</code> are specified:</p></div>
+<div class="paragraph"><p>The default option, <code>true</code>, behaves as though <code>--track=direct</code>
+were given whenever the start-point is a remote-tracking branch.
+<code>false</code> behaves as if <code>--no-track</code> were given. <code>always</code> behaves as though
+<code>--track=direct</code> were given. <code>inherit</code> behaves as though <code>--track=inherit</code>
+were given. <code>simple</code> behaves as though <code>--track=direct</code> were given only when
+the start-point is a remote-tracking branch and the new branch has the same
+name as the remote branch.</p></div>
+<div class="paragraph"><p>See <a href="git-pull.html">git-pull(1)</a> and <a href="git-config.html">git-config(1)</a> for additional discussion on
+how the <code>branch.&lt;name&gt;.remote</code> and <code>branch.&lt;name&gt;.merge</code> options are used.</p></div>
 </dd>
 <dt class="hdlist1">
 --no-track
@@ -1092,8 +1104,28 @@ start-point is either a local or remote-tracking branch.</p></div>
 <dd>
 <p>
         Do not set up "upstream" configuration, even if the
-        branch.autoSetupMerge configuration variable is true.
+        branch.autoSetupMerge configuration variable is set.
 </p>
+</dd>
+<dt class="hdlist1">
+--recurse-submodules
+</dt>
+<dd>
+<p>
+        THIS OPTION IS EXPERIMENTAL! Causes the current command to
+        recurse into submodules if <code>submodule.propagateBranches</code> is
+        enabled. See <code>submodule.propagateBranches</code> in
+        <a href="git-config.html">git-config(1)</a>. Currently, only branch creation is
+        supported.
+</p>
+<div class="paragraph"><p>When used in branch creation, a new branch &lt;branchname&gt; will be created
+in the superproject and all of the submodules in the superproject&#8217;s
+&lt;start-point&gt;. In submodules, the branch will point to the submodule
+commit in the superproject&#8217;s &lt;start-point&gt; but the branch&#8217;s tracking
+information will be set up based on the submodule&#8217;s branches and remotes
+e.g. <code>git branch --recurse-submodules topic origin/main</code> will create the
+submodule branch "topic" that points to the submodule commit in the
+superproject&#8217;s "origin/main", but tracks the submodule&#8217;s "origin/main".</p></div>
 </dd>
 <dt class="hdlist1">
 --set-upstream
@@ -1254,6 +1286,156 @@ start-point is either a local or remote-tracking branch.</p></div>
 <div class="paragraph"><p><code>pager.branch</code> is only respected when listing branches, i.e., when
 <code>--list</code> is used or implied. The default is to use a pager.
 See <a href="git-config.html">git-config(1)</a>.</p></div>
+<div class="paragraph"><p>Everything above this line in this section isn&#8217;t included from the
+<a href="git-config.html">git-config(1)</a> documentation. The content that follows is the
+same as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+branch.autoSetupMerge
+</dt>
+<dd>
+<p>
+        Tells <em>git branch</em>, <em>git switch</em> and <em>git checkout</em> to set up new branches
+        so that <a href="git-pull.html">git-pull(1)</a> will appropriately merge from the
+        starting point branch. Note that even if this option is not set,
+        this behavior can be chosen per-branch using the <code>--track</code>
+        and <code>--no-track</code> options. The valid settings are: <code>false</code>&#8201;&#8212;&#8201;no
+        automatic setup is done; <code>true</code>&#8201;&#8212;&#8201;automatic setup is done when the
+        starting point is a remote-tracking branch; <code>always</code>&#8201;&#8212;&#8201;        automatic setup is done when the starting point is either a
+        local branch or remote-tracking branch; <code>inherit</code>&#8201;&#8212;&#8201;if the starting point
+        has a tracking configuration, it is copied to the new
+        branch; <code>simple</code>&#8201;&#8212;&#8201;automatic setup is done only when the starting point
+        is a remote-tracking branch and the new branch has the same name as the
+        remote branch. This option defaults to true.
+</p>
+</dd>
+<dt class="hdlist1">
+branch.autoSetupRebase
+</dt>
+<dd>
+<p>
+        When a new branch is created with <em>git branch</em>, <em>git switch</em> or <em>git checkout</em>
+        that tracks another branch, this variable tells Git to set
+        up pull to rebase instead of merge (see "branch.&lt;name&gt;.rebase").
+        When <code>never</code>, rebase is never automatically set to true.
+        When <code>local</code>, rebase is set to true for tracked branches of
+        other local branches.
+        When <code>remote</code>, rebase is set to true for tracked branches of
+        remote-tracking branches.
+        When <code>always</code>, rebase will be set to true for all tracking
+        branches.
+        See "branch.autoSetupMerge" for details on how to set up a
+        branch to track another branch.
+        This option defaults to never.
+</p>
+</dd>
+<dt class="hdlist1">
+branch.sort
+</dt>
+<dd>
+<p>
+        This variable controls the sort ordering of branches when displayed by
+        <a href="git-branch.html">git-branch(1)</a>. Without the "--sort=&lt;value&gt;" option provided, the
+        value of this variable will be used as the default.
+        See <a href="git-for-each-ref.html">git-for-each-ref(1)</a> field names for valid values.
+</p>
+</dd>
+<dt class="hdlist1">
+branch.&lt;name&gt;.remote
+</dt>
+<dd>
+<p>
+        When on branch &lt;name&gt;, it tells <em>git fetch</em> and <em>git push</em>
+        which remote to fetch from/push to.  The remote to push to
+        may be overridden with <code>remote.pushDefault</code> (for all branches).
+        The remote to push to, for the current branch, may be further
+        overridden by <code>branch.&lt;name&gt;.pushRemote</code>.  If no remote is
+        configured, or if you are not on any branch and there is more than
+        one remote defined in the repository, it defaults to <code>origin</code> for
+        fetching and <code>remote.pushDefault</code> for pushing.
+        Additionally, <code>.</code> (a period) is the current local repository
+        (a dot-repository), see <code>branch.&lt;name&gt;.merge</code>'s final note below.
+</p>
+</dd>
+<dt class="hdlist1">
+branch.&lt;name&gt;.pushRemote
+</dt>
+<dd>
+<p>
+        When on branch &lt;name&gt;, it overrides <code>branch.&lt;name&gt;.remote</code> for
+        pushing.  It also overrides <code>remote.pushDefault</code> for pushing
+        from branch &lt;name&gt;.  When you pull from one place (e.g. your
+        upstream) and push to another place (e.g. your own publishing
+        repository), you would want to set <code>remote.pushDefault</code> to
+        specify the remote to push to for all branches, and use this
+        option to override it for a specific branch.
+</p>
+</dd>
+<dt class="hdlist1">
+branch.&lt;name&gt;.merge
+</dt>
+<dd>
+<p>
+        Defines, together with branch.&lt;name&gt;.remote, the upstream branch
+        for the given branch. It tells <em>git fetch</em>/<em>git pull</em>/<em>git rebase</em> which
+        branch to merge and can also affect <em>git push</em> (see push.default).
+        When in branch &lt;name&gt;, it tells <em>git fetch</em> the default
+        refspec to be marked for merging in FETCH_HEAD. The value is
+        handled like the remote part of a refspec, and must match a
+        ref which is fetched from the remote given by
+        "branch.&lt;name&gt;.remote".
+        The merge information is used by <em>git pull</em> (which at first calls
+        <em>git fetch</em>) to lookup the default branch for merging. Without
+        this option, <em>git pull</em> defaults to merge the first refspec fetched.
+        Specify multiple values to get an octopus merge.
+        If you wish to setup <em>git pull</em> so that it merges into &lt;name&gt; from
+        another branch in the local repository, you can point
+        branch.&lt;name&gt;.merge to the desired branch, and use the relative path
+        setting <code>.</code> (a period) for branch.&lt;name&gt;.remote.
+</p>
+</dd>
+<dt class="hdlist1">
+branch.&lt;name&gt;.mergeOptions
+</dt>
+<dd>
+<p>
+        Sets default options for merging into branch &lt;name&gt;. The syntax and
+        supported options are the same as those of <a href="git-merge.html">git-merge(1)</a>, but
+        option values containing whitespace characters are currently not
+        supported.
+</p>
+</dd>
+<dt class="hdlist1">
+branch.&lt;name&gt;.rebase
+</dt>
+<dd>
+<p>
+        When true, rebase the branch &lt;name&gt; on top of the fetched branch,
+        instead of merging the default branch from the default remote when
+        "git pull" is run. See "pull.rebase" for doing this in a non
+        branch-specific manner.
+</p>
+<div class="paragraph"><p>When <code>merges</code> (or just <em>m</em>), pass the <code>--rebase-merges</code> option to <em>git rebase</em>
+so that the local merge commits are included in the rebase (see
+<a href="git-rebase.html">git-rebase(1)</a> for details).</p></div>
+<div class="paragraph"><p>When the value is <code>interactive</code> (or just <em>i</em>), the rebase is run in interactive
+mode.</p></div>
+<div class="paragraph"><p><strong>NOTE</strong>: this is a possibly dangerous operation; do <strong>not</strong> use
+it unless you understand the implications (see <a href="git-rebase.html">git-rebase(1)</a>
+for details).</p></div>
+</dd>
+<dt class="hdlist1">
+branch.&lt;name&gt;.description
+</dt>
+<dd>
+<p>
+        Branch description, can be edited with
+        <code>git branch --edit-description</code>. Branch description is
+        automatically added in the format-patch cover letter or
+        request-pull summary.
+</p>
+</dd>
+</dl></div>
 </div>
 </div>
 <div class="sect1">
@@ -1398,7 +1580,7 @@ a branch?&#8221;</a> in the Git User&#8217;s Manual.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

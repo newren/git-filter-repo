@@ -754,7 +754,7 @@ git-stash(1) Manual Page
 <em>git stash</em> drop [-q|--quiet] [&lt;stash&gt;]
 <em>git stash</em> ( pop | apply ) [--index] [-q|--quiet] [&lt;stash&gt;]
 <em>git stash</em> branch &lt;branchname&gt; [&lt;stash&gt;]
-<em>git stash</em> [push [-p|--patch] [-k|--[no-]keep-index] [-q|--quiet]
+<em>git stash</em> [push [-p|--patch] [-S|--staged] [-k|--[no-]keep-index] [-q|--quiet]
              [-u|--include-untracked] [-a|--all] [-m|--message &lt;message&gt;]
              [--pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]]
              [--] [&lt;pathspec&gt;&#8230;]]
@@ -792,7 +792,7 @@ stash index (e.g. the integer <code>n</code> is equivalent to <code>stash@{n}</c
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-push [-p|--patch] [-k|--[no-]keep-index] [-u|--include-untracked] [-a|--all] [-q|--quiet] [-m|--message &lt;message&gt;] [--pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]] [--] [&lt;pathspec&gt;&#8230;]
+push [-p|--patch] [-S|--staged] [-k|--[no-]keep-index] [-u|--include-untracked] [-a|--all] [-q|--quiet] [-m|--message &lt;message&gt;] [--pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]] [--] [&lt;pathspec&gt;&#8230;]
 </dt>
 <dd>
 <p>
@@ -808,7 +808,7 @@ are <code>stash -p</code> which acts as alias for <code>stash push -p</code> and
 which are allowed after a double hyphen <code>--</code> for disambiguation.</p></div>
 </dd>
 <dt class="hdlist1">
-save [-p|--patch] [-k|--[no-]keep-index] [-u|--include-untracked] [-a|--all] [-q|--quiet] [&lt;message&gt;]
+save [-p|--patch] [-S|--staged] [-k|--[no-]keep-index] [-u|--include-untracked] [-a|--all] [-q|--quiet] [&lt;message&gt;]
 </dt>
 <dd>
 <p>
@@ -1031,6 +1031,21 @@ to learn how to operate the <code>--patch</code> mode.</p></div>
 <code>--no-keep-index</code> to override this.</p></div>
 </dd>
 <dt class="hdlist1">
+-S
+</dt>
+<dt class="hdlist1">
+--staged
+</dt>
+<dd>
+<p>
+        This option is only valid for <code>push</code> and <code>save</code> commands.
+</p>
+<div class="paragraph"><p>Stash only the changes that are currently staged. This is similar to
+basic <code>git commit</code> except the state is committed to the stash instead
+of current branch.</p></div>
+<div class="paragraph"><p>The <code>--patch</code> option has priority over this one.</p></div>
+</dd>
+<dt class="hdlist1">
 --pathspec-from-file=&lt;file&gt;
 </dt>
 <dd>
@@ -1207,6 +1222,28 @@ $ git commit foo -m 'Remaining parts'</code></pre>
 </div></div>
 </dd>
 <dt class="hdlist1">
+Saving unrelated changes for future use
+</dt>
+<dd>
+<p>
+When you are in the middle of massive changes and you find some
+unrelated issue that you don&#8217;t want to forget to fix, you can do the
+change(s), stage them, and use <code>git stash push --staged</code> to stash them
+out for future use. This is similar to committing the staged changes,
+only the commit ends-up being in the stash and not on the current branch.
+</p>
+<div class="listingblock">
+<div class="content">
+<pre><code># ... hack hack hack ...
+$ git add --patch foo           # add unrelated changes to the index
+$ git stash push --staged       # save these changes to the stash
+# ... hack hack hack, finish curent changes ...
+$ git commit -m 'Massive'       # commit fully tested changes
+$ git switch fixup-branch       # switch to another branch
+$ git stash pop                 # to finish work on the saved changes</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
 Recovering stash entries that were cleared/dropped erroneously
 </dt>
 <dd>
@@ -1222,6 +1259,46 @@ your repository, but not reachable any more:
 grep commit | cut -d\  -f3 |
 xargs git log --merges --no-walk --grep=WIP</code></pre>
 </div></div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+stash.showIncludeUntracked
+</dt>
+<dd>
+<p>
+        If this is set to true, the <code>git stash show</code> command will show
+        the untracked files of a stash entry.  Defaults to false. See
+        description of <em>show</em> command in <a href="git-stash.html">git-stash(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+stash.showPatch
+</dt>
+<dd>
+<p>
+        If this is set to true, the <code>git stash show</code> command without an
+        option will show the stash entry in patch form.  Defaults to false.
+        See description of <em>show</em> command in <a href="git-stash.html">git-stash(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+stash.showStat
+</dt>
+<dd>
+<p>
+        If this is set to true, the <code>git stash show</code> command without an
+        option will show diffstat of the stash entry.  Defaults to true.
+        See description of <em>show</em> command in <a href="git-stash.html">git-stash(1)</a>.
+</p>
 </dd>
 </dl></div>
 </div>
@@ -1247,7 +1324,7 @@ xargs git log --merges --no-walk --grep=WIP</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 09:20:10 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

@@ -1489,13 +1489,13 @@ config file would appear like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>        [remote "&lt;name&gt;"]
-                url = &lt;url&gt;
+                url = &lt;URL&gt;
                 pushurl = &lt;pushurl&gt;
                 push = &lt;refspec&gt;
                 fetch = &lt;refspec&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>The <code>&lt;pushurl&gt;</code> is used for pushes only. It is optional and defaults
-to <code>&lt;url&gt;</code>.</p></div>
+to <code>&lt;URL&gt;</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_named_file_in_code_git_dir_remotes_code">Named file in <code>$GIT_DIR/remotes</code></h3>
@@ -1524,9 +1524,9 @@ The URL in this file will be used to access the repository.
 This file should have the following format:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>        &lt;url&gt;#&lt;head&gt;</code></pre>
+<pre><code>        &lt;URL&gt;#&lt;head&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p><code>&lt;url&gt;</code> is required; <code>#&lt;head&gt;</code> is optional.</p></div>
+<div class="paragraph"><p><code>&lt;URL&gt;</code> is required; <code>#&lt;head&gt;</code> is optional.</p></div>
 <div class="paragraph"><p>Depending on the operation, git will use one of the following
 refspecs, if you don&#8217;t provide one on the command line.
 <code>&lt;branch&gt;</code> is the name of this file in <code>$GIT_DIR/branches</code> and
@@ -1961,6 +1961,218 @@ As in #1, the attacker chooses an object ID X to steal. The victim sends
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+push.autoSetupRemote
+</dt>
+<dd>
+<p>
+        If set to "true" assume <code>--set-upstream</code> on default push when no
+        upstream tracking exists for the current branch; this option
+        takes effect with push.default options <em>simple</em>, <em>upstream</em>,
+        and <em>current</em>. It is useful if by default you want new branches
+        to be pushed to the default remote (like the behavior of
+        <em>push.default=current</em>) and you also want the upstream tracking
+        to be set. Workflows most likely to benefit from this option are
+        <em>simple</em> central workflows where all branches are expected to
+        have the same name on the remote.
+</p>
+</dd>
+<dt class="hdlist1">
+push.default
+</dt>
+<dd>
+<p>
+        Defines the action <code>git push</code> should take if no refspec is
+        given (whether from the command-line, config, or elsewhere).
+        Different values are well-suited for
+        specific workflows; for instance, in a purely central workflow
+        (i.e. the fetch source is equal to the push destination),
+        <code>upstream</code> is probably what you want.  Possible values are:
+</p>
+<div class="openblock">
+<div class="content">
+<div class="ulist"><ul>
+<li>
+<p>
+<code>nothing</code> - do not push anything (error out) unless a refspec is
+  given. This is primarily meant for people who want to
+  avoid mistakes by always being explicit.
+</p>
+</li>
+<li>
+<p>
+<code>current</code> - push the current branch to update a branch with the same
+  name on the receiving end.  Works in both central and non-central
+  workflows.
+</p>
+</li>
+<li>
+<p>
+<code>upstream</code> - push the current branch back to the branch whose
+  changes are usually integrated into the current branch (which is
+  called <code>@{upstream}</code>).  This mode only makes sense if you are
+  pushing to the same repository you would normally pull from
+  (i.e. central workflow).
+</p>
+</li>
+<li>
+<p>
+<code>tracking</code> - This is a deprecated synonym for <code>upstream</code>.
+</p>
+</li>
+<li>
+<p>
+<code>simple</code> - pushes the current branch with the same name on the remote.
+</p>
+<div class="paragraph"><p>If you are working on a centralized workflow (pushing to the same repository you
+pull from, which is typically <code>origin</code>), then you need to configure an upstream
+branch with the same name.</p></div>
+<div class="paragraph"><p>This mode is the default since Git 2.0, and is the safest option suited for
+beginners.</p></div>
+</li>
+<li>
+<p>
+<code>matching</code> - push all branches having the same name on both ends.
+  This makes the repository you are pushing to remember the set of
+  branches that will be pushed out (e.g. if you always push <em>maint</em>
+  and <em>master</em> there and no other branches, the repository you push
+  to will have these two branches, and your local <em>maint</em> and
+  <em>master</em> will be pushed there).
+</p>
+<div class="paragraph"><p>To use this mode effectively, you have to make sure <em>all</em> the
+branches you would push out are ready to be pushed out before
+running <em>git push</em>, as the whole point of this mode is to allow you
+to push all of the branches in one go.  If you usually finish work
+on only one branch and push out the result, while other branches are
+unfinished, this mode is not for you.  Also this mode is not
+suitable for pushing into a shared central repository, as other
+people may add new branches there, or update the tip of existing
+branches outside your control.</p></div>
+<div class="paragraph"><p>This used to be the default, but not since Git 2.0 (<code>simple</code> is the
+new default).</p></div>
+</li>
+</ul></div>
+</div></div>
+</dd>
+<dt class="hdlist1">
+push.followTags
+</dt>
+<dd>
+<p>
+        If set to true enable <code>--follow-tags</code> option by default.  You
+        may override this configuration at time of push by specifying
+        <code>--no-follow-tags</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+push.gpgSign
+</dt>
+<dd>
+<p>
+        May be set to a boolean value, or the string <em>if-asked</em>. A true
+        value causes all pushes to be GPG signed, as if <code>--signed</code> is
+        passed to <a href="git-push.html">git-push(1)</a>. The string <em>if-asked</em> causes
+        pushes to be signed if the server supports it, as if
+        <code>--signed=if-asked</code> is passed to <em>git push</em>. A false value may
+        override a value from a lower-priority config file. An explicit
+        command-line flag always overrides this config option.
+</p>
+</dd>
+<dt class="hdlist1">
+push.pushOption
+</dt>
+<dd>
+<p>
+        When no <code>--push-option=&lt;option&gt;</code> argument is given from the
+        command line, <code>git push</code> behaves as if each &lt;value&gt; of
+        this variable is given as <code>--push-option=&lt;value&gt;</code>.
+</p>
+<div class="paragraph"><p>This is a multi-valued variable, and an empty value can be used in a
+higher priority configuration file (e.g. <code>.git/config</code> in a
+repository) to clear the values inherited from a lower priority
+configuration files (e.g. <code>$HOME/.gitconfig</code>).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Example:
+
+/etc/gitconfig
+  push.pushoption = a
+  push.pushoption = b
+
+~/.gitconfig
+  push.pushoption = c
+
+repo/.git/config
+  push.pushoption =
+  push.pushoption = b
+
+This will result in only b (a and c are cleared).</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+push.recurseSubmodules
+</dt>
+<dd>
+<p>
+        Make sure all submodule commits used by the revisions to be pushed
+        are available on a remote-tracking branch. If the value is <em>check</em>
+        then Git will verify that all submodule commits that changed in the
+        revisions to be pushed are available on at least one remote of the
+        submodule. If any commits are missing, the push will be aborted and
+        exit with non-zero status. If the value is <em>on-demand</em> then all
+        submodules that changed in the revisions to be pushed will be
+        pushed. If on-demand was not able to push all necessary revisions
+        it will also be aborted and exit with non-zero status. If the value
+        is <em>no</em> then default behavior of ignoring submodules when pushing
+        is retained. You may override this configuration at time of push by
+        specifying <em>--recurse-submodules=check|on-demand|no</em>.
+        If not set, <em>no</em> is used by default, unless <em>submodule.recurse</em> is
+        set (in which case a <em>true</em> value means <em>on-demand</em>).
+</p>
+</dd>
+<dt class="hdlist1">
+push.useForceIfIncludes
+</dt>
+<dd>
+<p>
+        If set to "true", it is equivalent to specifying
+        <code>--force-if-includes</code> as an option to <a href="git-push.html">git-push(1)</a>
+        in the command line. Adding <code>--no-force-if-includes</code> at the
+        time of push overrides this configuration setting.
+</p>
+</dd>
+<dt class="hdlist1">
+push.negotiate
+</dt>
+<dd>
+<p>
+        If set to "true", attempt to reduce the size of the packfile
+        sent by rounds of negotiation in which the client and the
+        server attempt to find commits in common. If "false", Git will
+        rely solely on the server&#8217;s ref advertisement to find commits
+        in common.
+</p>
+</dd>
+<dt class="hdlist1">
+push.useBitmaps
+</dt>
+<dd>
+<p>
+        If set to "false", disable use of bitmaps for "git push" even if
+        <code>pack.useBitmaps</code> is "true", without preventing other git operations
+        from using bitmaps. Default is true.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
@@ -1971,7 +2183,7 @@ As in #1, the attacker chooses an object ID X to steal. The victim sends
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-10-06 09:57:11 PDT
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

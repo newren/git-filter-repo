@@ -749,10 +749,10 @@ git-p4(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git p4 clone</em> [&lt;sync options&gt;] [&lt;clone options&gt;] &lt;p4 depot path&gt;&#8230;
-<em>git p4 sync</em> [&lt;sync options&gt;] [&lt;p4 depot path&gt;&#8230;]
+<pre class="content"><em>git p4 clone</em> [&lt;sync-options&gt;] [&lt;clone-options&gt;] &lt;p4-depot-path&gt;&#8230;
+<em>git p4 sync</em> [&lt;sync-options&gt;] [&lt;p4-depot-path&gt;&#8230;]
 <em>git p4 rebase</em>
-<em>git p4 submit</em> [&lt;submit options&gt;] [&lt;master branch name&gt;]</pre>
+<em>git p4 submit</em> [&lt;submit-options&gt;] [&lt;master-branch-name&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -1260,7 +1260,7 @@ options described above.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---commit &lt;sha1&gt;|&lt;sha1..sha1&gt;
+--commit (&lt;sha1&gt;|&lt;sha1&gt;..&lt;sha1&gt;)
 </dt>
 <dd>
 <p>
@@ -1654,7 +1654,52 @@ git-p4.pathEncoding
         Git expects paths encoded as UTF-8. Use this config to tell git-p4
         what encoding Perforce had used for the paths. This encoding is used
         to transcode the paths to UTF-8. As an example, Perforce on Windows
-        often uses "cp1252" to encode path names.
+        often uses "cp1252" to encode path names. If this option is passed
+        into a p4 clone request, it is persisted in the resulting new git
+        repo.
+</p>
+</dd>
+<dt class="hdlist1">
+git-p4.metadataDecodingStrategy
+</dt>
+<dd>
+<p>
+        Perforce keeps the encoding of a changelist descriptions and user
+        full names as stored by the client on a given OS. The p4v client
+        uses the OS-local encoding, and so different users can end up storing
+        different changelist descriptions or user full names in different
+        encodings, in the same depot.
+        Git tolerates inconsistent/incorrect encodings in commit messages
+        and author names, but expects them to be specified in utf-8.
+        git-p4 can use three different decoding strategies in handling the
+        encoding uncertainty in Perforce: <em>passthrough</em> simply passes the
+        original bytes through from Perforce to git, creating usable but
+        incorrectly-encoded data when the Perforce data is encoded as
+        anything other than utf-8. <em>strict</em> expects the Perforce data to be
+        encoded as utf-8, and fails to import when this is not true.
+        <em>fallback</em> attempts to interpret the data as utf-8, and otherwise
+        falls back to using a secondary encoding - by default the common
+        windows encoding <em>cp-1252</em> - with upper-range bytes escaped if
+        decoding with the fallback encoding also fails.
+        Under python2 the default strategy is <em>passthrough</em> for historical
+        reasons, and under python3 the default is <em>fallback</em>.
+        When <em>strict</em> is selected and decoding fails, the error message will
+        propose changing this config parameter as a workaround. If this
+        option is passed into a p4 clone request, it is persisted into the
+        resulting new git repo.
+</p>
+</dd>
+<dt class="hdlist1">
+git-p4.metadataFallbackEncoding
+</dt>
+<dd>
+<p>
+        Specify the fallback encoding to use when decoding Perforce author
+        names and changelists descriptions using the <em>fallback</em> strategy
+        (see git-p4.metadataDecodingStrategy). The fallback encoding will
+        only be used when decoding as utf-8 fails. This option defaults to
+        cp1252, a common windows encoding. If this option is passed into a
+        p4 clone request, it is persisted into the resulting new git repo.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1929,7 +1974,7 @@ Each commit imported by <em>git p4</em> has a line at the end of the log
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 09:20:10 PST
+ 2022-08-31 14:31:31 PDT
 </div>
 </div>
 </body>

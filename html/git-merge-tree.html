@@ -740,7 +740,7 @@ git-merge-tree(1) Manual Page
 <h2>NAME</h2>
 <div class="sectionbody">
 <p>git-merge-tree -
-   Show three-way merge without touching index
+   Perform merge without touching index or working tree
 </p>
 </div>
 </div>
@@ -749,23 +749,296 @@ git-merge-tree(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git merge-tree</em> &lt;base-tree&gt; &lt;branch1&gt; &lt;branch2&gt;</pre>
+<pre class="content"><em>git merge-tree</em> [--write-tree] [&lt;options&gt;] &lt;branch1&gt; &lt;branch2&gt;
+<em>git merge-tree</em> [--trivial-merge] &lt;base-tree&gt; &lt;branch1&gt; &lt;branch2&gt; (deprecated)</pre>
 <div class="attribution">
 </div></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_description">DESCRIPTION</h2>
+<h2 id="NEWMERGE">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Reads three tree-ish, and output trivial merge results and
-conflicting stages to the standard output.  This is similar to
-what three-way <em>git read-tree -m</em> does, but instead of storing the
-results in the index, the command outputs the entries to the
-standard output.</p></div>
-<div class="paragraph"><p>This is meant to be used by higher level scripts to compute
-merge results outside of the index, and stuff the results back into the
-index.  For this reason, the output from the command omits
-entries that match the &lt;branch1&gt; tree.</p></div>
+<div class="paragraph"><p>This command has a modern <code>--write-tree</code> mode and a deprecated
+<code>--trivial-merge</code> mode.  With the exception of the
+<a href="#DEPMERGE">DEPRECATED DESCRIPTION</a> section at the end, the rest of
+this documentation describes modern <code>--write-tree</code> mode.</p></div>
+<div class="paragraph"><p>Performs a merge, but does not make any new commits and does not read
+from or write to either the working tree or index.</p></div>
+<div class="paragraph"><p>The performed merge will use the same feature as the "real"
+<a href="git-merge.html">git-merge(1)</a>, including:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+three way content merges of individual files
+</p>
+</li>
+<li>
+<p>
+rename detection
+</p>
+</li>
+<li>
+<p>
+proper directory/file conflict handling
+</p>
+</li>
+<li>
+<p>
+recursive ancestor consolidation (i.e. when there is more than one
+    merge base, creating a virtual merge base by merging the merge bases)
+</p>
+</li>
+<li>
+<p>
+etc.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>After the merge completes, a new toplevel tree object is created.  See
+<code>OUTPUT</code> below for details.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+-z
+</dt>
+<dd>
+<p>
+        Do not quote filenames in the &lt;Conflicted file info&gt; section,
+        and end each filename with a NUL character rather than
+        newline.  Also begin the messages section with a NUL character
+        instead of a newline.  See <a href="#OUTPUT">[OUTPUT]</a> below for more information.
+</p>
+</dd>
+<dt class="hdlist1">
+--name-only
+</dt>
+<dd>
+<p>
+        In the Conflicted file info section, instead of writing a list
+        of (mode, oid, stage, path) tuples to output for conflicted
+        files, just provide a list of filenames with conflicts (and
+        do not list filenames multiple times if they have multiple
+        conflicting stages).
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]messages
+</dt>
+<dd>
+<p>
+        Write any informational messages such as "Auto-merging &lt;path&gt;"
+        or CONFLICT notices to the end of stdout.  If unspecified, the
+        default is to include these messages if there are merge
+        conflicts, and to omit them otherwise.
+</p>
+</dd>
+<dt class="hdlist1">
+--allow-unrelated-histories
+</dt>
+<dd>
+<p>
+        merge-tree will by default error out if the two branches specified
+        share no common history.  This flag can be given to override that
+        check and make the merge proceed anyway.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="OUTPUT">OUTPUT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>For a successful merge, the output from git-merge-tree is simply one
+line:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;OID of toplevel tree&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Whereas for a conflicted merge, the output is by default of the form:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;OID of toplevel tree&gt;
+&lt;Conflicted file info&gt;
+&lt;Informational messages&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>These are discussed individually below.</p></div>
+<div class="sect2">
+<h3 id="OIDTLT">OID of toplevel tree</h3>
+<div class="paragraph"><p>This is a tree object that represents what would be checked out in the
+working tree at the end of <code>git merge</code>.  If there were conflicts, then
+files within this tree may have embedded conflict markers.  This section
+is always followed by a newline (or NUL if <code>-z</code> is passed).</p></div>
+</div>
+<div class="sect2">
+<h3 id="CFI">Conflicted file info</h3>
+<div class="paragraph"><p>This is a sequence of lines with the format</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;mode&gt; &lt;object&gt; &lt;stage&gt; &lt;filename&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>The filename will be quoted as explained for the configuration
+variable <code>core.quotePath</code> (see <a href="git-config.html">git-config(1)</a>).  However, if
+the <code>--name-only</code> option is passed, the mode, object, and stage will
+be omitted.  If <code>-z</code> is passed, the "lines" are terminated by a NUL
+character instead of a newline character.</p></div>
+</div>
+<div class="sect2">
+<h3 id="IM">Informational messages</h3>
+<div class="paragraph"><p>This always starts with a blank line (or NUL if <code>-z</code> is passed) to
+separate it from the previous sections, and then has free-form
+messages about the merge, such as:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+"Auto-merging &lt;file&gt;"
+</p>
+</li>
+<li>
+<p>
+"CONFLICT (rename/delete): &lt;oldfile&gt; renamed&#8230;but deleted in&#8230;"
+</p>
+</li>
+<li>
+<p>
+"Failed to merge submodule &lt;submodule&gt; (&lt;reason&gt;)"
+</p>
+</li>
+<li>
+<p>
+"Warning: cannot merge binary files: &lt;filename&gt;"
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Note that these free-form messages will never have a NUL character
+in or between them, even if -z is passed.  It is simply a large block
+of text taking up the remainder of the output.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exit_status">EXIT STATUS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>For a successful, non-conflicted merge, the exit status is 0.  When the
+merge has conflicts, the exit status is 1.  If the merge is not able to
+complete (or start) due to some kind of error, the exit status is
+something other than 0 or 1 (and the output is unspecified).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_usage_notes">USAGE NOTES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This command is intended as low-level plumbing, similar to
+<a href="git-hash-object.html">git-hash-object(1)</a>, <a href="git-mktree.html">git-mktree(1)</a>,
+<a href="git-commit-tree.html">git-commit-tree(1)</a>, <a href="git-write-tree.html">git-write-tree(1)</a>,
+<a href="git-update-ref.html">git-update-ref(1)</a>, and <a href="git-mktag.html">git-mktag(1)</a>.  Thus, it can be
+used as a part of a series of steps such as:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>NEWTREE=$(git merge-tree --write-tree $BRANCH1 $BRANCH2)
+test $? -eq 0 || die "There were conflicts..."
+NEWCOMMIT=$(git commit-tree $NEWTREE -p $BRANCH1 -p $BRANCH2)
+git update-ref $BRANCH1 $NEWCOMMIT</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that when the exit status is non-zero, <code>NEWTREE</code> in this sequence
+will contain a lot more output than just a tree.</p></div>
+<div class="paragraph"><p>For conflicts, the output includes the same information that you&#8217;d get
+with <a href="git-merge.html">git-merge(1)</a>:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+what would be written to the working tree (the
+    <a href="#OIDTLT">OID of toplevel tree</a>)
+</p>
+</li>
+<li>
+<p>
+the higher order stages that would be written to the index (the
+    <a href="#CFI">Conflicted file info</a>)
+</p>
+</li>
+<li>
+<p>
+any messages that would have been printed to stdout (the
+    <a href="#IM">Informational messages</a>)
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mistakes_to_avoid">MISTAKES TO AVOID</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Do NOT look through the resulting toplevel tree to try to find which
+files conflict; parse the <a href="#CFI">Conflicted file info</a> section instead.
+Not only would parsing an entire tree be horrendously slow in large
+repositories, there are numerous types of conflicts not representable by
+conflict markers (modify/delete, mode conflict, binary file changed on
+both sides, file/directory conflicts, various rename conflict
+permutations, etc.)</p></div>
+<div class="paragraph"><p>Do NOT interpret an empty <a href="#CFI">Conflicted file info</a> list as a clean
+merge; check the exit status.  A merge can have conflicts without having
+individual files conflict (there are a few types of directory rename
+conflicts that fall into this category, and others might also be added
+in the future).</p></div>
+<div class="paragraph"><p>Do NOT attempt to guess or make the user guess the conflict types from
+the <a href="#CFI">Conflicted file info</a> list.  The information there is
+insufficient to do so.  For example: Rename/rename(1to2) conflicts (both
+sides renamed the same file differently) will result in three different
+file having higher order stages (but each only has one higher order
+stage), with no way (short of the <a href="#IM">Informational messages</a> section)
+to determine which three files are related.  File/directory conflicts
+also result in a file with exactly one higher order stage.
+Possibly-involved-in-directory-rename conflicts (when
+"merge.directoryRenames" is unset or set to "conflicts") also result in
+a file with exactly one higher order stage.  In all cases, the
+<a href="#IM">Informational messages</a> section has the necessary info, though it
+is not designed to be machine parseable.</p></div>
+<div class="paragraph"><p>Do NOT assume that each paths from <a href="#CFI">Conflicted file info</a>, and
+the logical conflicts in the <a href="#IM">Informational messages</a> have a
+one-to-one mapping, nor that there is a one-to-many mapping, nor a
+many-to-one mapping.  Many-to-many mappings exist, meaning that each
+path can have many logical conflict types in a single merge, and each
+logical conflict type can affect many paths.</p></div>
+<div class="paragraph"><p>Do NOT assume all filenames listed in the <a href="#IM">Informational messages</a>
+section had conflicts.  Messages can be included for files that have no
+conflicts, such as "Auto-merging &lt;file&gt;".</p></div>
+<div class="paragraph"><p>AVOID taking the OIDS from the <a href="#CFI">Conflicted file info</a> and
+re-merging them to present the conflicts to the user.  This will lose
+information.  Instead, look up the version of the file found within the
+<a href="#OIDTLT">OID of toplevel tree</a> and show that instead.  In particular,
+the latter will have conflict markers annotated with the original
+branch/commit being merged and, if renames were involved, the original
+filename.  While you could include the original branch/commit in the
+conflict marker annotations when re-merging, the original filename is
+not available from the <a href="#CFI">Conflicted file info</a> and thus you would
+be losing information that might help the user resolve the conflict.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="DEPMERGE">DEPRECATED DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Per the <a href="#NEWMERGE">DESCRIPTION</a> and unlike the rest of this
+documentation, this section describes the deprecated <code>--trivial-merge</code>
+mode.</p></div>
+<div class="paragraph"><p>Other than the optional <code>--trivial-merge</code>, this mode accepts no
+options.</p></div>
+<div class="paragraph"><p>This mode reads three tree-ish, and outputs trivial merge results and
+conflicting stages to the standard output in a semi-diff format.
+Since this was designed for higher level scripts to consume and merge
+the results back into the index, it omits entries that match
+&lt;branch1&gt;.  The result of this second form is similar to what
+three-way <em>git read-tree -m</em> does, but instead of storing the results
+in the index, the command outputs the entries to the standard output.</p></div>
+<div class="paragraph"><p>This form not only has limited applicability (a trivial merge cannot
+handle content merges of individual files, rename detection, proper
+directory/file conflict handling, etc.), the output format is also
+difficult to work with, and it will generally be less performant than
+the first form even on successful merges (especially if working in
+large repositories).</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -779,7 +1052,7 @@ entries that match the &lt;branch1&gt; tree.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2017-12-22 18:32:40 PST
+ 2022-09-21 11:12:12 PDT
 </div>
 </div>
 </body>

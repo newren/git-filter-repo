@@ -750,7 +750,7 @@ git-ls-tree(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git ls-tree</em> [-d] [-r] [-t] [-l] [-z]
-            [--name-only] [--name-status] [--full-name] [--full-tree] [--abbrev[=&lt;n&gt;]]
+            [--name-only] [--name-status] [--object-only] [--full-name] [--full-tree] [--abbrev[=&lt;n&gt;]] [--format=&lt;format&gt;]
             &lt;tree-ish&gt; [&lt;path&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
@@ -852,6 +852,20 @@ the behaviour is similar to that of "/bin/ls" in that the <em>&lt;path&gt;</em> 
 <dd>
 <p>
         List only filenames (instead of the "long" output), one per line.
+        Cannot be combined with <code>--object-only</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+--object-only
+</dt>
+<dd>
+<p>
+        List only names of the objects, one per line. Cannot be combined
+        with <code>--name-only</code> or <code>--name-status</code>.
+        This is equivalent to specifying <code>--format='%(objectname)'</code>, but
+        for both this option and that exact format the command takes a
+        hand-optimized codepath instead of going through the generic
+        formatting mechanism.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -884,6 +898,21 @@ the behaviour is similar to that of "/bin/ls" in that the <em>&lt;path&gt;</em> 
 </p>
 </dd>
 <dt class="hdlist1">
+--format=&lt;format&gt;
+</dt>
+<dd>
+<p>
+        A string that interpolates <code>%(fieldname)</code> from the result
+        being shown. It also interpolates <code>%%</code> to <code>%</code>, and
+        <code>%xx</code> where <code>xx</code> are hex digits interpolates to character
+        with hex code <code>xx</code>; for example <code>%00</code> interpolates to
+        <code>\0</code> (NUL), <code>%09</code> to <code>\t</code> (TAB) and <code>%0a</code> to <code>\n</code> (LF).
+        When specified, <code>--format</code> cannot be combined with other
+        format-altering options, including <code>--long</code>, <code>--name-only</code>
+        and <code>--object-only</code>.
+</p>
+</dd>
+<dt class="hdlist1">
 [&lt;path&gt;&#8230;]
 </dt>
 <dd>
@@ -899,24 +928,93 @@ the behaviour is similar to that of "/bin/ls" in that the <em>&lt;path&gt;</em> 
 <div class="sect1">
 <h2 id="_output_format">Output Format</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>The output format of <code>ls-tree</code> is determined by either the <code>--format</code>
+option, or other format-altering options such as <code>--name-only</code> etc.
+(see <code>--format</code> above).</p></div>
+<div class="paragraph"><p>The use of certain <code>--format</code> directives is equivalent to using those
+options, but invoking the full formatting machinery can be slower than
+using an appropriate formatting option.</p></div>
+<div class="paragraph"><p>In cases where the <code>--format</code> would exactly map to an existing option
+<code>ls-tree</code> will use the appropriate faster path. Thus the default format
+is equivalent to:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;mode&gt; SP &lt;type&gt; SP &lt;object&gt; TAB &lt;file&gt;</code></pre>
+<pre><code>%(objectmode) %(objecttype) %(objectname)%x09%(path)</code></pre>
 </div></div>
 <div class="paragraph"><p>This output format is compatible with what <code>--index-info --stdin</code> of
 <em>git update-index</em> expects.</p></div>
 <div class="paragraph"><p>When the <code>-l</code> option is used, format changes to</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;mode&gt; SP &lt;type&gt; SP &lt;object&gt; SP &lt;object size&gt; TAB &lt;file&gt;</code></pre>
+<pre><code>%(objectmode) %(objecttype) %(objectname) %(objectsize:padded)%x09%(path)</code></pre>
 </div></div>
-<div class="paragraph"><p>Object size identified by &lt;object&gt; is given in bytes, and right-justified
+<div class="paragraph"><p>Object size identified by &lt;objectname&gt; is given in bytes, and right-justified
 with minimum width of 7 characters.  Object size is given only for blobs
 (file) entries; for other entries <code>-</code> character is used in place of size.</p></div>
 <div class="paragraph"><p>Without the <code>-z</code> option, pathnames with "unusual" characters are
 quoted as explained for the configuration variable <code>core.quotePath</code>
 (see <a href="git-config.html">git-config(1)</a>).  Using <code>-z</code> the filename is output
 verbatim and the line is terminated by a NUL byte.</p></div>
+<div class="paragraph"><p>Customized format:</p></div>
+<div class="paragraph"><p>It is possible to print in a custom format by using the <code>--format</code> option,
+which is able to interpolate different fields using a <code>%(fieldname)</code> notation.
+For example, if you only care about the "objectname" and "path" fields, you
+can execute with a specific "--format" like</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>git ls-tree --format='%(objectname) %(path)' &lt;tree-ish&gt;</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_field_names">FIELD NAMES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Various values from structured fields can be used to interpolate
+into the resulting output. For each outputing line, the following
+names can be used:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+objectmode
+</dt>
+<dd>
+<p>
+        The mode of the object.
+</p>
+</dd>
+<dt class="hdlist1">
+objecttype
+</dt>
+<dd>
+<p>
+        The type of the object (<code>commit</code>, <code>blob</code> or <code>tree</code>).
+</p>
+</dd>
+<dt class="hdlist1">
+objectname
+</dt>
+<dd>
+<p>
+        The name of the object.
+</p>
+</dd>
+<dt class="hdlist1">
+objectsize[:padded]
+</dt>
+<dd>
+<p>
+        The size of a <code>blob</code> object ("-" if it&#8217;s a <code>commit</code> or <code>tree</code>).
+        It also supports a padded format of size with "%(objectsize:padded)".
+</p>
+</dd>
+<dt class="hdlist1">
+path
+</dt>
+<dd>
+<p>
+        The pathname of the object.
+</p>
+</dd>
+</dl></div>
 </div>
 </div>
 <div class="sect1">
@@ -930,7 +1028,7 @@ verbatim and the line is terminated by a NUL byte.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-10-06 09:57:11 PDT
+ 2022-08-31 14:31:31 PDT
 </div>
 </div>
 </body>

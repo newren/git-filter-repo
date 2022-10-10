@@ -1030,7 +1030,9 @@ for "git add --no-all &lt;pathspec&gt;&#8230;", i.e. ignored removed files.</p><
         forcibly add them again to the index.  This is useful after
         changing <code>core.autocrlf</code> configuration or the <code>text</code> attribute
         in order to correct files added with wrong CRLF/LF line endings.
-        This option implies <code>-u</code>.
+        This option implies <code>-u</code>. Lone CR characters are untouched, thus
+        while a CRLF cleans to LF, a CRCRLF sequence is only partially
+        cleaned to CRLF.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1366,6 +1368,41 @@ modifying the contents of context or removal lines
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+add.ignoreErrors
+</dt>
+<dt class="hdlist1">
+add.ignore-errors (deprecated)
+</dt>
+<dd>
+<p>
+        Tells <em>git add</em> to continue adding files when some files cannot be
+        added due to indexing errors. Equivalent to the <code>--ignore-errors</code>
+        option of <a href="git-add.html">git-add(1)</a>.  <code>add.ignore-errors</code> is deprecated,
+        as it does not follow the usual naming convention for configuration
+        variables.
+</p>
+</dd>
+<dt class="hdlist1">
+add.interactive.useBuiltin
+</dt>
+<dd>
+<p>
+        Set to <code>false</code> to fall back to the original Perl implementation of
+        the interactive version of <a href="git-add.html">git-add(1)</a> instead of the built-in
+        version. Is <code>true</code> by default.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="git-status.html">git-status(1)</a>
@@ -1387,7 +1424,7 @@ modifying the contents of context or removal lines
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

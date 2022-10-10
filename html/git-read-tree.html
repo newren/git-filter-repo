@@ -1230,16 +1230,24 @@ have finished your work-in-progress), attempt the merge again.</p></div>
 <div class="sect1">
 <h2 id="_sparse_checkout">SPARSE CHECKOUT</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>Note: The skip-worktree capabilities in <a href="git-update-index.html">git-update-index(1)</a>
+and <code>read-tree</code> predated the introduction of
+<a href="git-sparse-checkout.html">git-sparse-checkout(1)</a>.  Users are encouraged to use the
+<code>sparse-checkout</code> command in preference to these plumbing commands for
+sparse-checkout/skip-worktree related needs.  However, the information
+below might be useful to users trying to understand the pattern style
+used in non-cone mode of the <code>sparse-checkout</code> command.</p></div>
 <div class="paragraph"><p>"Sparse checkout" allows populating the working directory sparsely.
-It uses the skip-worktree bit (see <a href="git-update-index.html">git-update-index(1)</a>) to tell
-Git whether a file in the working directory is worth looking at.</p></div>
+It uses the skip-worktree bit (see <a href="git-update-index.html">git-update-index(1)</a>) to
+tell Git whether a file in the working directory is worth looking at.</p></div>
 <div class="paragraph"><p><em>git read-tree</em> and other merge-based commands (<em>git merge</em>, <em>git
 checkout</em>&#8230;) can help maintaining the skip-worktree bitmap and working
 directory update. <code>$GIT_DIR/info/sparse-checkout</code> is used to
 define the skip-worktree reference bitmap. When <em>git read-tree</em> needs
 to update the working directory, it resets the skip-worktree bit in the index
 based on this file, which uses the same syntax as .gitignore files.
-If an entry matches a pattern in this file, skip-worktree will not be
+If an entry matches a pattern in this file, or the entry corresponds to
+a file present in the working tree, then skip-worktree will not be
 set on that entry. Otherwise, skip-worktree will be set.</p></div>
 <div class="paragraph"><p>Then it compares the new skip-worktree value with the previous one. If
 skip-worktree turns from set to unset, it will add the corresponding
@@ -1271,8 +1279,8 @@ support.</p></div>
 <div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><a href="git-write-tree.html">git-write-tree(1)</a>; <a href="git-ls-files.html">git-ls-files(1)</a>;
-<a href="gitignore.html">gitignore(5)</a>; <a href="git-sparse-checkout.html">git-sparse-checkout(1)</a>;</p></div>
+<div class="paragraph"><p><a href="git-write-tree.html">git-write-tree(1)</a>, <a href="git-ls-files.html">git-ls-files(1)</a>,
+<a href="gitignore.html">gitignore(5)</a>, <a href="git-sparse-checkout.html">git-sparse-checkout(1)</a></p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1286,7 +1294,7 @@ support.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-09-16 17:50:33 PDT
 </div>
 </div>
 </body>

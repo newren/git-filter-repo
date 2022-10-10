@@ -1,0 +1,1496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
+<title>gitformat-index(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overridden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitformat-index(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitformat-index -
+   Git index format
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content">$GIT_DIR/index</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Git index format</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_git_index_file_has_the_following_format">The Git index file has the following format</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>All binary numbers are in network byte order.
+In a repository using the traditional SHA-1, checksums and object IDs
+(object names) mentioned below are all computed using SHA-1.  Similarly,
+in SHA-256 repositories, these values are computed using SHA-256.
+Version 2 is described here unless stated otherwise.</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+A 12-byte header consisting of
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte signature:
+  The signature is { 'D', 'I', 'R', 'C' } (stands for "dircache")</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte version number:
+  The current supported versions are 2, 3 and 4.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit number of index entries.</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+A number of sorted index entries (see below).
+</p>
+</li>
+<li>
+<p>
+Extensions
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Extensions are identified by signature. Optional extensions can
+be ignored if Git does not understand them.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte extension signature. If the first byte is 'A'..'Z' the
+extension is optional and can be ignored.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit size of the extension</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Extension data</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Hash checksum over the content of the index file before this checksum.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_index_entry">Index entry</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>Index entries are sorted in ascending order on the name field,
+interpreted as a string of unsigned bytes (i.e. memcmp() order, no
+localization, no special casing of directory separator '/'). Entries
+with the same name are sorted by their stage field.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>An index entry typically represents a file. However, if sparse-checkout
+is enabled in cone mode (`core.sparseCheckoutCone` is enabled) and the
+`extensions.sparseIndex` extension is enabled, then the index may
+contain entries for directories outside of the sparse-checkout definition.
+These entries have mode `040000`, include the `SKIP_WORKTREE` bit, and
+the path ends in a directory separator.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit ctime seconds, the last time a file's metadata changed
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit ctime nanosecond fractions
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit mtime seconds, the last time a file's data changed
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit mtime nanosecond fractions
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit dev
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit ino
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit mode, split into (high to low bits)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-bit object type
+  valid values in binary are 1000 (regular file), 1010 (symbolic link)
+  and 1110 (gitlink)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>3-bit unused</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>9-bit unix permission. Only 0755 and 0644 are valid for regular files.
+Symbolic links and gitlinks have value 0 in this field.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit uid
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit gid
+  this is stat(2) data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>32-bit file size
+  This is the on-disk size from stat(2), truncated to 32-bit.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Object name for the represented object</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>A 16-bit 'flags' field split into (high to low bits)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-bit assume-valid flag</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-bit extended flag (must be zero in version 2)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>2-bit stage (during merge)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>12-bit name length if the length is less than 0xFFF; otherwise 0xFFF
+is stored in this field.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>(Version 3 or later) A 16-bit field, only applicable if the
+"extended flag" above is 1, split into (high to low bits).</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-bit reserved for future</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-bit skip-worktree flag (used by sparse checkout)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-bit intent-to-add flag (used by "git add -N")</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>13-bit unused, must be zero</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Entry path name (variable length) relative to top level directory
+  (without leading slash). '/' is used as path separator. The special
+  path components ".", ".." and ".git" (without quotes) are disallowed.
+  Trailing slash is also disallowed.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The exact encoding is undefined, but the '.' and '/' characters
+are encoded in 7-bit ASCII and the encoding cannot contain a NUL
+byte (iow, this is a UNIX pathname).</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>(Version 4) In version 4, the entry path name is prefix-compressed
+  relative to the path name for the previous entry (the very first
+  entry is encoded as if the path name for the previous entry is an
+  empty string).  At the beginning of an entry, an integer N in the
+  variable width encoding (the same encoding as the offset is encoded
+  for OFS_DELTA pack entries; see linkgit:gitformat-pack[5]) is stored, followed
+  by a NUL-terminated string S.  Removing N bytes from the end of the
+  path name for the previous entry, and replacing it with the string S
+  yields the path name for this entry.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-8 nul bytes as necessary to pad the entry to a multiple of eight bytes
+while keeping the name NUL-terminated.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>(Version 4) In version 4, the padding after the pathname does not
+exist.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Interpretation of index entries in split index mode is completely
+different. See below for details.</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_extensions">Extensions</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_cache_tree">Cache tree</h3>
+<div class="literalblock">
+<div class="content">
+<pre><code>Since the index does not record entries for directories, the cache
+entries cannot describe tree objects that already exist in the object
+database for regions of the index that are unchanged from an existing
+commit. The cache tree extension stores a recursive tree structure that
+describes the trees that already exist and completely match sections of
+the cache entries. This speeds up tree object generation from the index
+for a new commit by only computing the trees that are "new" to that
+commit. It also assists when comparing the index to another tree, such
+as `HEAD^{tree}`, since sections of the index can be skipped when a tree
+comparison demonstrates equality.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The recursive tree structure uses nodes that store a number of cache
+entries, a list of subnodes, and an object ID (OID). The OID references
+the existing tree for that node, if it is known to exist. The subnodes
+correspond to subdirectories that themselves have cache tree nodes. The
+number of cache entries corresponds to the number of cache entries in
+the index that describe paths within that tree's directory.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The extension tracks the full directory structure in the cache tree
+extension, but this is generally smaller than the full cache entry list.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>When a path is updated in index, Git invalidates all nodes of the
+recursive cache tree corresponding to the parent directories of that
+path. We store these tree nodes as being "invalid" by using "-1" as the
+number of cache entries. Invalid nodes still store a span of index
+entries, allowing Git to focus its efforts when reconstructing a full
+cache tree.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The signature for this extension is { 'T', 'R', 'E', 'E' }.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>A series of entries fill the entire extension; each of which
+consists of:</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+NUL-terminated path component (relative to its parent directory);
+</p>
+</li>
+<li>
+<p>
+ASCII decimal number of entries in the index that is covered by the
+    tree this entry represents (entry_count);
+</p>
+</li>
+<li>
+<p>
+A space (ASCII 32);
+</p>
+</li>
+<li>
+<p>
+ASCII decimal number that represents the number of subtrees this
+    tree has;
+</p>
+</li>
+<li>
+<p>
+A newline (ASCII 10); and
+</p>
+</li>
+<li>
+<p>
+Object name for the object that would result from writing this span
+    of index as a tree.
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>An entry can be in an invalidated state and is represented by having
+a negative number in the entry_count field. In this case, there is no
+object name and the next entry starts immediately after the newline.
+When writing an invalid entry, -1 should always be used as entry_count.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The entries are written out in the top-down, depth-first order.  The
+first entry represents the root level of the repository, followed by the
+first subtree--let's call this A--of the root level (with its name
+relative to the root level), followed by the first subtree of A (with
+its name relative to A), and so on. The specified number of subtrees
+indicates when the current level of the recursive stack is complete.</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 id="_resolve_undo">Resolve undo</h3>
+<div class="literalblock">
+<div class="content">
+<pre><code>A conflict is represented in the index as a set of higher stage entries.
+When a conflict is resolved (e.g. with "git add path"), these higher
+stage entries will be removed and a stage-0 entry with proper resolution
+is added.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>When these higher stage entries are removed, they are saved in the
+resolve undo extension, so that conflicts can be recreated (e.g. with
+"git checkout -m"), in case users want to redo a conflict resolution
+from scratch.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The signature for this extension is { 'R', 'E', 'U', 'C' }.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>A series of entries fill the entire extension; each of which
+consists of:</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+NUL-terminated pathname the entry describes (relative to the root of
+    the repository, i.e. full pathname);
+</p>
+</li>
+<li>
+<p>
+Three NUL-terminated ASCII octal numbers, entry mode of entries in
+    stage 1 to 3 (a missing stage is represented by "0" in this field);
+    and
+</p>
+</li>
+<li>
+<p>
+At most three object names of the entry in stages from 1 to 3
+    (nothing is written for a missing stage).
+</p>
+</li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 id="_split_index">Split index</h3>
+<div class="literalblock">
+<div class="content">
+<pre><code>In split index mode, the majority of index entries could be stored
+in a separate file. This extension records the changes to be made on
+top of that to produce the final index.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The signature for this extension is { 'l', 'i', 'n', 'k' }.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The extension consists of:</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Hash of the shared index file. The shared index file path
+    is $GIT_DIR/sharedindex.&lt;hash&gt;. If all bits are zero, the
+    index does not require a shared index file.
+</p>
+</li>
+<li>
+<p>
+An ewah-encoded delete bitmap, each bit represents an entry in the
+    shared index. If a bit is set, its corresponding entry in the
+    shared index will be removed from the final index.  Note, because
+    a delete operation changes index entry positions, but we do need
+    original positions in replace phase, it&#8217;s best to just mark
+    entries for removal, then do a mass deletion after replacement.
+</p>
+</li>
+<li>
+<p>
+An ewah-encoded replace bitmap, each bit represents an entry in
+    the shared index. If a bit is set, its corresponding entry in the
+    shared index will be replaced with an entry in this index
+    file. All replaced entries are stored in sorted order in this
+    index. The first "1" bit in the replace bitmap corresponds to the
+    first index entry, the second "1" bit to the second entry and so
+    on. Replaced entries may have empty path names to save space.
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>The remaining index entries after replaced ones will be added to the
+final index. These added entries are also sorted by entry name then
+stage.</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_untracked_cache">Untracked cache</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>Untracked cache saves the untracked file list and necessary data to
+verify the cache. The signature for this extension is { 'U', 'N',
+'T', 'R' }.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The extension starts with</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+A sequence of NUL-terminated strings, preceded by the size of the
+    sequence in variable width encoding. Each string describes the
+    environment where the cache can be used.
+</p>
+</li>
+<li>
+<p>
+Stat data of $GIT_DIR/info/exclude. See "Index entry" section from
+    ctime field until "file size".
+</p>
+</li>
+<li>
+<p>
+Stat data of core.excludesFile
+</p>
+</li>
+<li>
+<p>
+32-bit dir_flags (see struct dir_struct)
+</p>
+</li>
+<li>
+<p>
+Hash of $GIT_DIR/info/exclude. A null hash means the file
+    does not exist.
+</p>
+</li>
+<li>
+<p>
+Hash of core.excludesFile. A null hash means the file does
+    not exist.
+</p>
+</li>
+<li>
+<p>
+NUL-terminated string of per-dir exclude file name. This usually
+    is ".gitignore".
+</p>
+</li>
+<li>
+<p>
+The number of following directory blocks, variable width
+    encoding. If this number is zero, the extension ends here with a
+    following NUL.
+</p>
+</li>
+<li>
+<p>
+A number of directory blocks in depth-first-search order, each
+    consists of
+</p>
+</li>
+<li>
+<p>
+The number of untracked entries, variable width encoding.
+</p>
+</li>
+<li>
+<p>
+The number of sub-directory blocks, variable width encoding.
+</p>
+</li>
+<li>
+<p>
+The directory name terminated by NUL.
+</p>
+</li>
+<li>
+<p>
+A number of untracked file/dir names terminated by NUL.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The remaining data of each directory block is grouped by type:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+An ewah bitmap, the n-th bit marks whether the n-th directory has
+    valid untracked cache entries.
+</p>
+</li>
+<li>
+<p>
+An ewah bitmap, the n-th bit records "check-only" bit of
+    read_directory_recursive() for the n-th directory.
+</p>
+</li>
+<li>
+<p>
+An ewah bitmap, the n-th bit indicates whether hash and stat data
+    is valid for the n-th directory and exists in the next data.
+</p>
+</li>
+<li>
+<p>
+An array of stat data. The n-th data corresponds with the n-th
+    "one" bit in the previous ewah bitmap.
+</p>
+</li>
+<li>
+<p>
+An array of hashes. The n-th hash corresponds with the n-th "one" bit
+    in the previous ewah bitmap.
+</p>
+</li>
+<li>
+<p>
+One NUL.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_file_system_monitor_cache">File System Monitor cache</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>The file system monitor cache tracks files for which the core.fsmonitor
+hook has told us about changes.  The signature for this extension is
+{ 'F', 'S', 'M', 'N' }.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The extension starts with</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+32-bit version number: the current supported versions are 1 and 2.
+</p>
+</li>
+<li>
+<p>
+(Version 1)
+    64-bit time: the extension data reflects all changes through the given
+        time which is stored as the nanoseconds elapsed since midnight,
+        January 1, 1970.
+</p>
+</li>
+<li>
+<p>
+(Version 2)
+    A null terminated string: an opaque token defined by the file system
+    monitor application.  The extension data reflects all changes relative
+    to that token.
+</p>
+</li>
+<li>
+<p>
+32-bit bitmap size: the size of the CE_FSMONITOR_VALID bitmap.
+</p>
+</li>
+<li>
+<p>
+An ewah bitmap, the n-th bit indicates whether the n-th index entry
+    is not CE_FSMONITOR_VALID.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_end_of_index_entry">End of Index Entry</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>The End of Index Entry (EOIE) is used to locate the end of the variable
+length index entries and the beginning of the extensions. Code can take
+advantage of this to quickly locate the index extensions without having
+to parse through all of the index entries.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Because it must be able to be loaded before the variable length cache
+entries and other index extensions, this extension must be written last.
+The signature for this extension is { 'E', 'O', 'I', 'E' }.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The extension consists of:</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+32-bit offset to the end of the index entries
+</p>
+</li>
+<li>
+<p>
+Hash over the extension types and their sizes (but not
+        their contents).  E.g. if we have "TREE" extension that is N-bytes
+        long, "REUC" extension that is M-bytes long, followed by "EOIE",
+        then the hash would be:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Hash("TREE" + &lt;binary representation of N&gt; +
+        "REUC" + &lt;binary representation of M&gt;)</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_index_entry_offset_table">Index Entry Offset Table</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>The Index Entry Offset Table (IEOT) is used to help address the CPU
+cost of loading the index by enabling multi-threading the process of
+converting cache entries from the on-disk format to the in-memory format.
+The signature for this extension is { 'I', 'E', 'O', 'T' }.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The extension consists of:</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+32-bit version (currently 1)
+</p>
+</li>
+<li>
+<p>
+A number of index offset entries each consisting of:
+</p>
+</li>
+<li>
+<p>
+32-bit offset from the beginning of the file to the first cache entry
+        in this block of entries.
+</p>
+</li>
+<li>
+<p>
+32-bit count of cache entries in this block
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sparse_directory_entries">Sparse Directory Entries</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>When using sparse-checkout in cone mode, some entire directories within
+the index can be summarized by pointing to a tree object instead of the
+entire expanded list of paths within that tree. An index containing such
+entries is a "sparse index". Index format versions 4 and less were not
+implemented with such entries in mind. Thus, for these versions, an
+index containing sparse directory entries will include this extension
+with signature { 's', 'd', 'i', 'r' }. Like the split-index extension,
+tools should avoid interacting with a sparse index unless they understand
+this extension.</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2022-09-16 17:50:33 PDT
+</div>
+</div>
+</body>
+</html>

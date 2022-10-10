@@ -1393,7 +1393,7 @@ individual files.  The second is the amount of space taken up by
 those "loose" objects.</p><p>You can save space and make Git faster by moving these loose objects in
 to a "pack file", which stores a group of objects in an efficient
 compressed format; the details of how pack files are formatted can be
-found in <a class="ulink" href="technical/pack-format.html" target="_top">pack format</a>.</p><p>To put the loose objects into a pack, just run git repack:</p><pre class="screen">$ git repack
+found in <a class="ulink" href="gitformat-pack.html" target="_top">gitformat-pack(5)</a>.</p><p>To put the loose objects into a pack, just run git repack:</p><pre class="screen">$ git repack
 Counting objects: 6020, done.
 Delta compression using up to 4 threads.
 Compressing objects: 100% (6020/6020), done.
@@ -2298,7 +2298,7 @@ This commit is referred to as a "merge commit", or sometimes just a
 ls-tree", "git add", "git grep", "git diff", "git checkout",
 and many other commands to
 limit the scope of operations to some subset of the tree or
-worktree.  See the documentation of each command for whether
+working tree.  See the documentation of each command for whether
 paths are relative to the current directory or toplevel.  The
 pathspec syntax is as follows:</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 any path matches itself
@@ -2422,7 +2422,7 @@ exclude
 </dd><dt><span class="term">
 <a name="def_per_worktree_ref"></a>per-worktree ref
 </span></dt><dd>
-        Refs that are per-<a class="link" href="#def_working_tree">worktree</a>, rather than
+        Refs that are per-<a class="link" href="#def_worktree">worktree</a>, rather than
         global.  This is presently only <a class="link" href="#def_HEAD">HEAD</a> and any refs
         that start with <code class="literal">refs/bisect/</code>, but might later include other
         unusual refs.
@@ -2671,6 +2671,16 @@ The most notable example is <code class="literal">HEAD</code>.</p></dd><dt><span
         The tree of actual checked out files.  The working tree normally
         contains the contents of the <a class="link" href="#def_HEAD">HEAD</a> commit’s tree,
         plus any local changes that you have made but not yet committed.
+</dd><dt><span class="term">
+<a name="def_worktree"></a>worktree
+</span></dt><dd>
+        A repository can have zero (i.e. bare repository) or one or
+        more worktrees attached to it. One "worktree" consists of a
+        "working tree" and repository metadata, most of which are
+        shared among other worktrees of a single repository, and
+        some of which are maintained separately per worktree
+        (e.g. the index, HEAD and pseudorefs like MERGE_HEAD,
+        per-worktree refs and per-worktree configuration file).
 </dd></dl></div></div></div><div class="appendix"><div class="titlepage"><div><div><h1 class="title"><a name="git-quick-start"></a>Appendix A. Git Quick Reference</h1></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl class="toc"><dt><span class="section"><a href="#quick-creating-a-new-repository">Creating a new repository</a></span></dt><dt><span class="section"><a href="#managing-branches">Managing branches</a></span></dt><dt><span class="section"><a href="#exploring-history">Exploring history</a></span></dt><dt><span class="section"><a href="#making-changes">Making changes</a></span></dt><dt><span class="section"><a href="#merging">Merging</a></span></dt><dt><span class="section"><a href="#sharing-your-changes">Sharing your changes</a></span></dt><dt><span class="section"><a href="#repository-maintenance">Repository maintenance</a></span></dt></dl></div><p>This is a quick summary of the major commands; the previous chapters
 explain how these work in more detail.</p><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="quick-creating-a-new-repository"></a>Creating a new repository</h2></div></div></div><p>From a tarball:</p><pre class="screen">$ tar xzf project.tar.gz
 $ cd project

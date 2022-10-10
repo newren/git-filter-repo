@@ -749,14 +749,14 @@ git-clone(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git clone</em> [--template=&lt;template_directory&gt;]
+<pre class="content"><em>git clone</em> [--template=&lt;template-directory&gt;]
           [-l] [-s] [--no-hardlinks] [-q] [-n] [--bare] [--mirror]
           [-o &lt;name&gt;] [-b &lt;name&gt;] [-u &lt;upload-pack&gt;] [--reference &lt;repository&gt;]
-          [--dissociate] [--separate-git-dir &lt;git dir&gt;]
+          [--dissociate] [--separate-git-dir &lt;git-dir&gt;]
           [--depth &lt;depth&gt;] [--[no-]single-branch] [--no-tags]
           [--recurse-submodules[=&lt;pathspec&gt;]] [--[no-]shallow-submodules]
           [--[no-]remote-submodules] [--jobs &lt;n&gt;] [--sparse] [--[no-]reject-shallow]
-          [--filter=&lt;filter&gt;] [--] &lt;repository&gt;
+          [--filter=&lt;filter&gt; [--also-filter-submodules]] [--] &lt;repository&gt;
           [&lt;directory&gt;]</pre>
 <div class="attribution">
 </div></div>
@@ -978,10 +978,10 @@ objects from the source repository into a pack in the cloned repository.</p></di
 </dt>
 <dd>
 <p>
-        Initialize the sparse-checkout file so the working
-        directory starts with only the files in the root
-        of the repository. The sparse-checkout file can be
-        modified to grow the working directory as needed.
+        Employ a sparse-checkout, with only files in the toplevel
+        directory initially being present.  The
+        <a href="git-sparse-checkout.html">git-sparse-checkout(1)</a> command can be used to grow the
+        working directory as needed.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -997,6 +997,16 @@ objects from the source repository into a pack in the cloned repository.</p></di
         <code>--filter=blob:limit=&lt;size&gt;</code> will filter out all blobs of size
         at least <code>&lt;size&gt;</code>. For more details on filter specifications, see
         the <code>--filter</code> option in <a href="git-rev-list.html">git-rev-list(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+--also-filter-submodules
+</dt>
+<dd>
+<p>
+        Also apply the partial clone filter to any submodules in the repository.
+        Requires <code>--filter</code> and <code>--recurse-submodules</code>. This can be turned on by
+        default by setting the <code>clone.filterSubmodules</code> config option.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1055,7 +1065,7 @@ objects from the source repository into a pack in the cloned repository.</p></di
 </p>
 </dd>
 <dt class="hdlist1">
---template=&lt;template_directory&gt;
+--template=&lt;template-directory&gt;
 </dt>
 <dd>
 <p>
@@ -1187,7 +1197,7 @@ or <code>--mirror</code> is given)</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---separate-git-dir=&lt;git dir&gt;
+--separate-git-dir=&lt;git-dir&gt;
 </dt>
 <dd>
 <p>
@@ -1230,6 +1240,18 @@ or <code>--mirror</code> is given)</p></div>
         explicitly given (<code>repo</code> for <code>/path/to/repo.git</code> and <code>foo</code>
         for <code>host.xz:foo/.git</code>).  Cloning into an existing directory
         is only allowed if the directory is empty.
+</p>
+</dd>
+<dt class="hdlist1">
+--bundle-uri=&lt;uri&gt;
+</dt>
+<dd>
+<p>
+        Before fetching from the remote, fetch a bundle from the given
+        <code>&lt;uri&gt;</code> and unbundle the data into the local repository. The refs
+        in the bundle will be stored under the hidden <code>refs/bundle/*</code>
+        namespace. This option is incompatible with <code>--depth</code>,
+        <code>--shallow-since</code>, and <code>--shallow-exclude</code>.
 </p>
 </dd>
 </dl></div>
@@ -1420,6 +1442,63 @@ Create a bare repository to publish your changes to the public:
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+init.templateDir
+</dt>
+<dd>
+<p>
+        Specify the directory from which templates will be copied.
+        (See the "TEMPLATE DIRECTORY" section of <a href="git-init.html">git-init(1)</a>.)
+</p>
+</dd>
+<dt class="hdlist1">
+init.defaultBranch
+</dt>
+<dd>
+<p>
+        Allows overriding the default branch name e.g. when initializing
+        a new repository.
+</p>
+</dd>
+<dt class="hdlist1">
+clone.defaultRemoteName
+</dt>
+<dd>
+<p>
+        The name of the remote to create when cloning a repository.  Defaults to
+        <code>origin</code>, and can be overridden by passing the <code>--origin</code> command-line
+        option to <a href="git-clone.html">git-clone(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+clone.rejectShallow
+</dt>
+<dd>
+<p>
+        Reject to clone a repository if it is a shallow one, can be overridden by
+        passing option <code>--reject-shallow</code> in command line. See <a href="git-clone.html">git-clone(1)</a>
+</p>
+</dd>
+<dt class="hdlist1">
+clone.filterSubmodules
+</dt>
+<dd>
+<p>
+        If a partial clone filter is provided (see <code>--filter</code> in
+        <a href="git-rev-list.html">git-rev-list(1)</a>) and <code>--recurse-submodules</code> is used, also apply
+        the filter to submodules.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
@@ -1430,7 +1509,7 @@ Create a bare repository to publish your changes to the public:
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 09:20:10 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

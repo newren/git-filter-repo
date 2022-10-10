@@ -752,7 +752,8 @@ git-merge(1) Manual Page
 <pre class="content"><em>git merge</em> [-n] [--stat] [--no-commit] [--squash] [--[no-]edit]
         [--no-verify] [-s &lt;strategy&gt;] [-X &lt;strategy-option&gt;] [-S[&lt;keyid&gt;]]
         [--[no-]allow-unrelated-histories]
-        [--[no-]rerere-autoupdate] [-m &lt;msg&gt;] [-F &lt;file&gt;] [&lt;commit&gt;&#8230;]
+        [--[no-]rerere-autoupdate] [-m &lt;msg&gt;] [-F &lt;file&gt;]
+        [--into-name &lt;branch&gt;] [&lt;commit&gt;&#8230;]
 <em>git merge</em> (--continue | --abort | --quit)</pre>
 <div class="attribution">
 </div></div>
@@ -1122,6 +1123,16 @@ used to give a good default for automated <em>git merge</em>
 invocations. The automated message can include the branch description.</p></div>
 </dd>
 <dt class="hdlist1">
+--into-name &lt;branch&gt;
+</dt>
+<dd>
+<p>
+        Prepare the default merge message as if merging to the branch
+        <code>&lt;branch&gt;</code>, instead of the name of the real branch to which
+        the merge is made.
+</p>
+</dd>
+<dt class="hdlist1">
 -F &lt;file&gt;
 </dt>
 <dt class="hdlist1">
@@ -1143,8 +1154,13 @@ will be appended to the specified message.</p></div>
 </dt>
 <dd>
 <p>
-        Allow the rerere mechanism to update the index with the
-        result of auto-conflict resolution if possible.
+        After the rerere mechanism reuses a recorded resolution on
+        the current conflict to update the files in the working
+        tree, allow it to also update the index with the result of
+        resolution.  <code>--no-rerere-autoupdate</code> is a good way to
+        double-check what <code>rerere</code> did and catch potential
+        mismerges, before committing the result to the index with a
+        separate <code>git add</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1338,7 +1354,8 @@ from the RCS suite to present such a conflicted hunk, like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>Here are lines that are either unchanged from the common
-ancestor, or cleanly resolved because only one side changed.
+ancestor, or cleanly resolved because only one side changed,
+or cleanly resolved because both sides changed the same way.
 &lt;&lt;&lt;&lt;&lt;&lt;&lt; yours:sample.txt
 Conflict resolution is hard;
 let's go shopping.
@@ -1356,16 +1373,36 @@ Barbie&#8217;s remark on your side.  The only thing you can tell is that your
 side wants to say it is hard and you&#8217;d prefer to go shopping, while the
 other side wants to claim it is easy.</p></div>
 <div class="paragraph"><p>An alternative style can be used by setting the "merge.conflictStyle"
-configuration variable to "diff3".  In "diff3" style, the above conflict
-may look like this:</p></div>
+configuration variable to either "diff3" or "zdiff3".  In "diff3"
+style, the above conflict may look like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>Here are lines that are either unchanged from the common
-ancestor, or cleanly resolved because only one side changed.
+ancestor, or cleanly resolved because only one side changed,
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; yours:sample.txt
+or cleanly resolved because both sides changed the same way.
+Conflict resolution is hard;
+let's go shopping.
+||||||| base:sample.txt
+or cleanly resolved because both sides changed identically.
+Conflict resolution is hard.
+=======
+or cleanly resolved because both sides changed the same way.
+Git makes conflict resolution easy.
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; theirs:sample.txt
+And here is another line that is cleanly resolved or unmodified.</code></pre>
+</div></div>
+<div class="paragraph"><p>while in "zdiff3" style, it may look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Here are lines that are either unchanged from the common
+ancestor, or cleanly resolved because only one side changed,
+or cleanly resolved because both sides changed the same way.
 &lt;&lt;&lt;&lt;&lt;&lt;&lt; yours:sample.txt
 Conflict resolution is hard;
 let's go shopping.
-|||||||
+||||||| base:sample.txt
+or cleanly resolved because both sides changed identically.
 Conflict resolution is hard.
 =======
 Git makes conflict resolution easy.
@@ -1745,6 +1782,21 @@ substitutes the changed version instead.</p></div>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
+branch.&lt;name&gt;.mergeOptions
+</dt>
+<dd>
+<p>
+        Sets default options for merging into branch &lt;name&gt;. The syntax and
+        supported options are the same as those of <em>git merge</em>, but option
+        values containing whitespace characters are currently not supported.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Everything above this line in this section isn&#8217;t included from the
+<a href="git-config.html">git-config(1)</a> documentation. The content that follows is the
+same as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
 merge.conflictStyle
 </dt>
 <dd>
@@ -1754,7 +1806,14 @@ merge.conflictStyle
         shows a <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> conflict marker, changes made by one side,
         a <code>=======</code> marker, changes made by the other side, and then
         a <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> marker.  An alternate style, "diff3", adds a <code>|||||||</code>
-        marker and the original text before the <code>=======</code> marker.
+        marker and the original text before the <code>=======</code> marker.  The
+        "merge" style tends to produce smaller conflict regions than diff3,
+        both because of the exclusion of the original text, and because
+        when a subset of lines match on the two sides they are just pulled
+        out of the conflict region.  Another alternate style, "zdiff3", is
+        similar to diff3 but removes matching lines on the two sides from
+        the conflict region when those matching lines appear near either
+        the beginning or end of a conflict region.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1934,173 +1993,272 @@ merge.guitool
         Any other value is treated as a custom merge tool and requires that a
         corresponding mergetool.&lt;guitool&gt;.cmd variable is defined.
 </p>
-<div class="ulist"><ul>
-<li>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>araxis</code>
+</dt>
+<dd>
 <p>
-araxis
+Use Araxis Merge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>bc</code>
+</dt>
+<dd>
 <p>
-bc
+Use Beyond Compare (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>bc3</code>
+</dt>
+<dd>
 <p>
-bc3
+Use Beyond Compare (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>bc4</code>
+</dt>
+<dd>
 <p>
-bc4
+Use Beyond Compare (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>codecompare</code>
+</dt>
+<dd>
 <p>
-codecompare
+Use Code Compare (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>deltawalker</code>
+</dt>
+<dd>
 <p>
-deltawalker
+Use DeltaWalker (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>diffmerge</code>
+</dt>
+<dd>
 <p>
-diffmerge
+Use DiffMerge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>diffuse</code>
+</dt>
+<dd>
 <p>
-diffuse
+Use Diffuse (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>ecmerge</code>
+</dt>
+<dd>
 <p>
-ecmerge
+Use ECMerge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>emerge</code>
+</dt>
+<dd>
 <p>
-emerge
+Use Emacs' Emerge
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>examdiff</code>
+</dt>
+<dd>
 <p>
-examdiff
+Use ExamDiff Pro (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>guiffy</code>
+</dt>
+<dd>
 <p>
-guiffy
+Use Guiffy&#8217;s Diff Tool (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>gvimdiff</code>
+</dt>
+<dd>
 <p>
-gvimdiff
+Use gVim (requires a graphical session) with a custom layout (see <code>git help mergetool</code>'s <code>BACKEND SPECIFIC HINTS</code> section)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>gvimdiff1</code>
+</dt>
+<dd>
 <p>
-gvimdiff1
+Use gVim (requires a graphical session) with a 2 panes layout (LOCAL and REMOTE)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>gvimdiff2</code>
+</dt>
+<dd>
 <p>
-gvimdiff2
+Use gVim (requires a graphical session) with a 3 panes layout (LOCAL, MERGED and REMOTE)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>gvimdiff3</code>
+</dt>
+<dd>
 <p>
-gvimdiff3
+Use gVim (requires a graphical session) where only the MERGED file is shown
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>kdiff3</code>
+</dt>
+<dd>
 <p>
-kdiff3
+Use KDiff3 (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>meld</code>
+</dt>
+<dd>
 <p>
-meld
+Use Meld (requires a graphical session) with optional <code>auto merge</code> (see <code>git help mergetool</code>'s <code>CONFIGURATION</code> section)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>nvimdiff</code>
+</dt>
+<dd>
 <p>
-nvimdiff
+Use Neovim with a custom layout (see <code>git help mergetool</code>'s <code>BACKEND SPECIFIC HINTS</code> section)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>nvimdiff1</code>
+</dt>
+<dd>
 <p>
-nvimdiff1
+Use Neovim with a 2 panes layout (LOCAL and REMOTE)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>nvimdiff2</code>
+</dt>
+<dd>
 <p>
-nvimdiff2
+Use Neovim with a 3 panes layout (LOCAL, MERGED and REMOTE)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>nvimdiff3</code>
+</dt>
+<dd>
 <p>
-nvimdiff3
+Use Neovim where only the MERGED file is shown
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>opendiff</code>
+</dt>
+<dd>
 <p>
-opendiff
+Use FileMerge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>p4merge</code>
+</dt>
+<dd>
 <p>
-p4merge
+Use HelixCore P4Merge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>smerge</code>
+</dt>
+<dd>
 <p>
-smerge
+Use Sublime Merge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>tkdiff</code>
+</dt>
+<dd>
 <p>
-tkdiff
+Use TkDiff (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>tortoisemerge</code>
+</dt>
+<dd>
 <p>
-tortoisemerge
+Use TortoiseMerge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>vimdiff</code>
+</dt>
+<dd>
 <p>
-vimdiff
+Use Vim with a custom layout (see <code>git help mergetool</code>'s <code>BACKEND SPECIFIC HINTS</code> section)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>vimdiff1</code>
+</dt>
+<dd>
 <p>
-vimdiff1
+Use Vim with a 2 panes layout (LOCAL and REMOTE)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>vimdiff2</code>
+</dt>
+<dd>
 <p>
-vimdiff2
+Use Vim with a 3 panes layout (LOCAL, MERGED and REMOTE)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>vimdiff3</code>
+</dt>
+<dd>
 <p>
-vimdiff3
+Use Vim where only the MERGED file is shown
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>winmerge</code>
+</dt>
+<dd>
 <p>
-winmerge
+Use WinMerge (requires a graphical session)
 </p>
-</li>
-<li>
+</dd>
+<dt class="hdlist1">
+<code>xxdiff</code>
+</dt>
+<dd>
 <p>
-xxdiff
+Use xxdiff (requires a graphical session)
 </p>
-</li>
-</ul></div>
+</dd>
+</dl></div>
 </dd>
 <dt class="hdlist1">
 merge.verbosity
@@ -2143,16 +2301,6 @@ merge.&lt;driver&gt;.recursive
         See <a href="gitattributes.html">gitattributes(5)</a> for details.
 </p>
 </dd>
-<dt class="hdlist1">
-branch.&lt;name&gt;.mergeOptions
-</dt>
-<dd>
-<p>
-        Sets default options for merging into branch &lt;name&gt;. The syntax and
-        supported options are the same as those of <em>git merge</em>, but option
-        values containing whitespace characters are currently not supported.
-</p>
-</dd>
 </dl></div>
 </div>
 </div>
@@ -2178,7 +2326,7 @@ branch.&lt;name&gt;.mergeOptions
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

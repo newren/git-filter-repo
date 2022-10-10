@@ -759,8 +759,10 @@ A bugfix should be based on <code>maint</code> in general. If the bug is not
 <li>
 <p>
 A new feature should be based on <code>master</code> in general. If the new
-  feature depends on a topic that is in <code>seen</code>, but not in <code>master</code>,
-  base your work on the tip of that topic.
+  feature depends on other topics that are in <code>next</code>, but not in
+  <code>master</code>, fork a branch from the tip of <code>master</code>, merge these topics
+  to the branch, and work on that branch.  You can remind yourself of
+  how you prepared the base with <code>git log --first-parent master..</code>.
 </p>
 </li>
 <li>
@@ -774,10 +776,10 @@ Corrections and enhancements to a topic not yet in <code>master</code> should
 <li>
 <p>
 In the exceptional case that a new feature depends on several topics
-  not in <code>master</code>, start working on <code>next</code> or <code>seen</code> privately and send
-  out patches for discussion. Before the final merge, you may have to
-  wait until some of the dependent topics graduate to <code>master</code>, and
-  rebase your work.
+  not in <code>master</code>, start working on <code>next</code> or <code>seen</code> privately and
+  send out patches only for discussion. Once your new feature starts
+  to stabilize, you would have to rebase it (see the "depends on other
+  topics" above).
 </p>
 </li>
 <li>
@@ -816,8 +818,13 @@ to have.</p></div>
 <code>t/README</code> for guidance.</p></div>
 <div class="paragraph" id="tests"><p>When adding a new feature, make sure that you have new tests to show
 the feature triggers the new behavior when it should, and to show the
-feature does not trigger when it shouldn&#8217;t.  After any code change, make
-sure that the entire test suite passes.</p></div>
+feature does not trigger when it shouldn&#8217;t.  After any code change,
+make sure that the entire test suite passes.  When fixing a bug, make
+sure you have new tests that break if somebody else breaks what you
+fixed by accident to avoid regression.  Also, try merging your work to
+<em>next</em> and <em>seen</em> and make sure the tests still pass; topics by others
+that are still in flight may have unexpected interactions with what
+you are trying to do in your topic.</p></div>
 <div class="paragraph"><p>Pushing to a fork of <a href="https://github.com/git/git">https://github.com/git/git</a> will use their CI
 integration to test your changes on Linux, Mac and Windows. See the
 <a href="#GHCI">GitHub CI</a> section for details.</p></div>
@@ -842,6 +849,41 @@ run <code>git diff --check</code> on your changes before you commit.</p></div>
 </div>
 <div class="sect2">
 <h3 id="describe-changes">Describe your changes well.</h3>
+<div class="paragraph"><p>The log message that explains your changes is just as important as the
+changes themselves.  Your code may be clearly written with in-code
+comment to sufficiently explain how it works with the surrounding
+code, but those who need to fix or enhance your code in the future
+will need to know <em>why</em> your code does what it does, for a few
+reasons:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Your code may be doing something differently from what you wanted it
+  to do.  Writing down what you actually wanted to achieve will help
+  them fix your code and make it do what it should have been doing
+  (also, you often discover your own bugs yourself, while writing the
+  log message to summarize the thought behind it).
+</p>
+</li>
+<li>
+<p>
+Your code may be doing things that were only necessary for your
+  immediate needs (e.g. "do X to directories" without implementing or
+  even designing what is to be done on files).  Writing down why you
+  excluded what the code does not do will help guide future developers.
+  Writing down "we do X to directories, because directories have
+  characteristic Y" would help them infer "oh, files also have the same
+  characteristic Y, so perhaps doing X to them would also make sense?".
+  Saying "we don&#8217;t do the same X to files, because &#8230;" will help them
+  decide if the reasoning is sound (in which case they do not waste
+  time extending your code to cover files), or reason differently (in
+  which case, they can explain why they extend your code to cover
+  files, too).
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>The goal of your log message is to convey the <em>why</em> behind your
+change to help future developers.</p></div>
 <div class="paragraph"><p>The first line of the commit message should be a short description (50
 characters is the soft limit, see DISCUSSION in <a href="git-commit.html">git-commit(1)</a>),
 and should skip the full stop.  It is also conventional in most cases to
@@ -888,14 +930,41 @@ alternate solutions considered but discarded, if any.
 </p>
 </li>
 </ol></div>
+<div class="paragraph" id="present-tense"><p>The problem statement that describes the status quo is written in the
+present tense.  Write "The code does X when it is given input Y",
+instead of "The code used to do Y when given input X".  You do not
+have to say "Currently"---the status quo in the problem statement is
+about the code <em>without</em> your change, by project convention.</p></div>
 <div class="paragraph" id="imperative-mood"><p>Describe your changes in imperative mood, e.g. "make xyzzy do frotz"
 instead of "[This patch] makes xyzzy do frotz" or "[I] changed xyzzy
 to do frotz", as if you are giving orders to the codebase to change
 its behavior.  Try to make sure your explanation can be understood
 without external resources. Instead of giving a URL to a mailing list
 archive, summarize the relevant points of the discussion.</p></div>
-<div class="paragraph" id="commit-reference"><p>If you want to reference a previous commit in the history of a stable
-branch, use the format "abbreviated hash (subject, date)", like this:</p></div>
+<div class="paragraph" id="commit-reference"><p>There are a few reasons why you may want to refer to another commit in
+the "more stable" part of the history (i.e. on branches like <code>maint</code>,
+<code>master</code>, and <code>next</code>):</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+A commit that introduced the root cause of a bug you are fixing.
+</p>
+</li>
+<li>
+<p>
+A commit that introduced a feature that you are enhancing.
+</p>
+</li>
+<li>
+<p>
+A commit that conflicts with your work when you made a trial merge
+  of your work into <code>next</code> and <code>seen</code> for testing.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>When you reference a commit on a more stable branch (like <code>master</code>,
+<code>maint</code> and <code>next</code>), use the format "abbreviated hash (subject,
+date)", like this:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>        Commit f86a374 (pack-bitmap.c: fix a memleak, 2015-03-30)
@@ -1024,9 +1093,10 @@ receiving end can handle them just fine.</p></div>
 or include any extra files which do not relate to what your patch
 is trying to achieve. Make sure to review
 your patch after generating it, to ensure accuracy.  Before
-sending out, please make sure it cleanly applies to the <code>master</code>
-branch head.  If you are preparing a work based on "next" branch,
-that is fine, but please mark it as such.</p></div>
+sending out, please make sure it cleanly applies to the base you
+have chosen in the "Decide what to base your work on" section,
+and unless it targets the <code>master</code> branch (which is the default),
+mark your patches as such.</p></div>
 </div>
 <div class="sect2">
 <h3 id="send-patches">Sending your patches.</h3>
@@ -1116,7 +1186,10 @@ Security mailing list<span class="footnoteref"><br /><a href="#_footnote_securit
 <div class="paragraph"><p>Send your patch with "To:" set to the mailing list, with "cc:" listing
 people who are involved in the area you are touching (the <code>git
 contacts</code> command in <code>contrib/contacts/</code> can help to
-identify them), to solicit comments and reviews.</p></div>
+identify them), to solicit comments and reviews.  Also, when you made
+trial merges of your topic to <code>next</code> and <code>seen</code>, you may have noticed
+work by others conflicting with your changes.  There is a good possibility
+that these people may know the area you are touching well.</p></div>
 <div class="paragraph"><p>After the list reached a consensus that it is a good idea to apply the
 patch, re-send it with "To:" set to the maintainer<span class="footnote"><br />[The current maintainer: <a href="mailto:gitster@pobox.com">gitster@pobox.com</a>]<br /></span>
 and "cc:" the list<span class="footnote"><br />[The mailing list: <a href="mailto:git@vger.kernel.org">git@vger.kernel.org</a>]<br /></span> for inclusion.  This is especially relevant
@@ -1149,7 +1222,12 @@ repositories.</p></div>
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>git://ozlabs.org/~paulus/gitk</code></pre>
+<pre><code>git://git.ozlabs.org/~paulus/gitk</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Those who are interested in improve gitk can volunteer to help Paul
+in maintaining it cf. &lt;YntxL/fTplFm8lr6@cleo&gt;.</code></pre>
 </div></div>
 </li>
 <li>
@@ -1244,7 +1322,7 @@ Read the Git mailing list, the maintainer regularly posts messages
 </div>
 </div>
 <div class="sect1">
-<h2 id="_github_ci_a_id_ghci_a">GitHub CI<a id="GHCI"></a>]</h2>
+<h2 id="_github_ci_a_id_ghci_a">GitHub CI<a id="GHCI"></a></h2>
 <div class="sectionbody">
 <div class="paragraph"><p>With an account at GitHub, you can use GitHub CI to test your changes
 on Linux, Mac and Windows. See
@@ -1262,7 +1340,7 @@ Fork <a href="https://github.com/git/git">https://github.com/git/git</a> to your
 </ol></div>
 <div class="paragraph"><p>After the initial setup, CI will run whenever you push new changes
 to your fork of Git on GitHub.  You can monitor the test state of all your
-branches here: <a href="https://github.com/&lt;Your">https://github.com/&lt;Your</a> GitHub handle&gt;/git/actions/workflows/main.yml</p></div>
+branches here: <code>https://github.com/&lt;Your GitHub handle&gt;/git/actions/workflows/main.yml</code></p></div>
 <div class="paragraph"><p>If a branch did not pass all test cases then it is marked with a red
 cross. In that case you can click on the failing job and navigate to
 "ci/run-build-and-tests.sh" and/or "ci/print-test-failures.sh". You
@@ -1366,7 +1444,7 @@ this problem around.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 14:34:40 PST
+ 2022-09-21 07:18:16 PDT
 </div>
 </div>
 </body>

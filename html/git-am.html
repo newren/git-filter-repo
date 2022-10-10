@@ -756,8 +756,9 @@ git-am(1) Manual Page
          [--exclude=&lt;path&gt;] [--include=&lt;path&gt;] [--reject] [-q | --quiet]
          [--[no-]scissors] [-S[&lt;keyid&gt;]] [--patch-format=&lt;format&gt;]
          [--quoted-cr=&lt;action&gt;]
+         [--empty=(stop|drop|keep)]
          [(&lt;mbox&gt; | &lt;Maildir&gt;)&#8230;]
-<em>git am</em> (--continue | --skip | --abort | --quit | --show-current-patch[=(diff|raw)])</pre>
+<em>git am</em> (--continue | --skip | --abort | --quit | --show-current-patch[=(diff|raw)] | --allow-empty)</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -857,6 +858,19 @@ current branch.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--empty=(stop|drop|keep)
+</dt>
+<dd>
+<p>
+        By default, or when the option is set to <em>stop</em>, the command
+        errors out on an input e-mail message lacking a patch
+        and stops into the middle of the current am session. When this
+        option is set to <em>drop</em>, skip such an e-mail message instead.
+        When this option is set to <em>keep</em>, create an empty commit,
+        recording the contents of the e-mail message as its log.
+</p>
+</dd>
+<dt class="hdlist1">
 -m
 </dt>
 <dt class="hdlist1">
@@ -943,8 +957,13 @@ default.   You can use <code>--no-utf8</code> to override this.</p></div>
 </dt>
 <dd>
 <p>
-        Allow the rerere mechanism to update the index with the
-        result of auto-conflict resolution if possible.
+        After the rerere mechanism reuses a recorded resolution on
+        the current conflict to update the files in the working
+        tree, allow it to also update the index with the result of
+        resolution.  <code>--no-rerere-autoupdate</code> is a good way to
+        double-check what <code>rerere</code> did and catch potential
+        mismerges, before committing the result to the index with a
+        separate <code>git add</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1116,6 +1135,16 @@ default.   You can use <code>--no-utf8</code> to override this.</p></div>
         Defaults to <code>raw</code>.
 </p>
 </dd>
+<dt class="hdlist1">
+--allow-empty
+</dt>
+<dd>
+<p>
+        After a patch failure on an input e-mail message lacking a patch,
+        create an empty commit with the contents of the e-mail message
+        as its log message.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1193,6 +1222,41 @@ information.</p></div>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+am.keepcr
+</dt>
+<dd>
+<p>
+        If true, git-am will call git-mailsplit for patches in mbox format
+        with parameter <code>--keep-cr</code>. In this case git-mailsplit will
+        not remove <code>\r</code> from lines ending with <code>\r\n</code>. Can be overridden
+        by giving <code>--no-keep-cr</code> from the command line.
+        See <a href="git-am.html">git-am(1)</a>, <a href="git-mailsplit.html">git-mailsplit(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+am.threeWay
+</dt>
+<dd>
+<p>
+        By default, <code>git am</code> will fail if the patch does not apply cleanly. When
+        set to true, this setting tells <code>git am</code> to fall back on 3-way merge if
+        the patch records the identity of blobs it is supposed to apply to and
+        we have those blobs available locally (equivalent to giving the <code>--3way</code>
+        option from the command line). Defaults to <code>false</code>.
+        See <a href="git-am.html">git-am(1)</a>.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="git-apply.html">git-apply(1)</a>.</p></div>
@@ -1209,7 +1273,7 @@ information.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

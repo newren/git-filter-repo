@@ -1,0 +1,1286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
+<title>gitprotocol-http(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overridden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitprotocol-http(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitprotocol-http -
+   Git HTTP-based protocols
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content">&lt;over-the-wire-protocol&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Git supports two HTTP based transfer protocols.  A "dumb" protocol
+which requires only a standard HTTP server on the server end of the
+connection, and a "smart" protocol which requires a Git aware CGI
+(or server module).  This document describes both protocols.</p></div>
+<div class="paragraph"><p>As a design feature smart clients can automatically upgrade "dumb"
+protocol URLs to smart URLs.  This permits all users to have the
+same published URL, and the peers automatically select the most
+efficient transport available to them.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_url_format">URL Format</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>URLs for Git repositories accessed by HTTP use the standard HTTP
+URL syntax documented by RFC 1738, so they are of the form:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>http://&lt;host&gt;:&lt;port&gt;/&lt;path&gt;?&lt;searchpart&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Within this documentation the placeholder <code>$GIT_URL</code> will stand for
+the http:// repository URL entered by the end-user.</p></div>
+<div class="paragraph"><p>Servers SHOULD handle all requests to locations matching <code>$GIT_URL</code>, as
+both the "smart" and "dumb" HTTP protocols used by Git operate
+by appending additional path components onto the end of the user
+supplied <code>$GIT_URL</code> string.</p></div>
+<div class="paragraph"><p>An example of a dumb client requesting for a loose object:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$GIT_URL:     http://example.com:8080/git/repo.git
+URL request:  http://example.com:8080/git/repo.git/objects/d0/49f6c27a2244e12041955e262a404c7faba355</code></pre>
+</div></div>
+<div class="paragraph"><p>An example of a smart request to a catch-all gateway:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$GIT_URL:     http://example.com/daemon.cgi?svc=git&amp;q=
+URL request:  http://example.com/daemon.cgi?svc=git&amp;q=/info/refs&amp;service=git-receive-pack</code></pre>
+</div></div>
+<div class="paragraph"><p>An example of a request to a submodule:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$GIT_URL:     http://example.com/git/repo.git/path/submodule.git
+URL request:  http://example.com/git/repo.git/path/submodule.git/info/refs</code></pre>
+</div></div>
+<div class="paragraph"><p>Clients MUST strip a trailing <code>/</code>, if present, from the user supplied
+<code>$GIT_URL</code> string to prevent empty path tokens (<code>//</code>) from appearing
+in any URL sent to a server.  Compatible clients MUST expand
+<code>$GIT_URL/info/refs</code> as <code>foo/info/refs</code> and not <code>foo//info/refs</code>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_authentication">Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Standard HTTP authentication is used if authentication is required
+to access a repository, and MAY be configured and enforced by the
+HTTP server software.</p></div>
+<div class="paragraph"><p>Because Git repositories are accessed by standard path components
+server administrators MAY use directory based permissions within
+their HTTP server to control repository access.</p></div>
+<div class="paragraph"><p>Clients SHOULD support Basic authentication as described by RFC 2617.
+Servers SHOULD support Basic authentication by relying upon the
+HTTP server placed in front of the Git server software.</p></div>
+<div class="paragraph"><p>Servers SHOULD NOT require HTTP cookies for the purposes of
+authentication or access control.</p></div>
+<div class="paragraph"><p>Clients and servers MAY support other common forms of HTTP based
+authentication, such as Digest authentication.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ssl">SSL</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Clients and servers SHOULD support SSL, particularly to protect
+passwords when relying on Basic HTTP authentication.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_session_state">Session State</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The Git over HTTP protocol (much like HTTP itself) is stateless
+from the perspective of the HTTP server side.  All state MUST be
+retained and managed by the client process.  This permits simple
+round-robin load-balancing on the server side, without needing to
+worry about state management.</p></div>
+<div class="paragraph"><p>Clients MUST NOT require state management on the server side in
+order to function correctly.</p></div>
+<div class="paragraph"><p>Servers MUST NOT require HTTP cookies in order to function correctly.
+Clients MAY store and forward HTTP cookies during request processing
+as described by RFC 2616 (HTTP/1.1).  Servers SHOULD ignore any
+cookies sent by a client.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_general_request_processing">General Request Processing</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Except where noted, all standard HTTP behavior SHOULD be assumed
+by both client and server.  This includes (but is not necessarily
+limited to):</p></div>
+<div class="paragraph"><p>If there is no repository at <code>$GIT_URL</code>, or the resource pointed to by a
+location matching <code>$GIT_URL</code> does not exist, the server MUST NOT respond
+with <code>200 OK</code> response.  A server SHOULD respond with
+<code>404 Not Found</code>, <code>410 Gone</code>, or any other suitable HTTP status code
+which does not imply the resource exists as requested.</p></div>
+<div class="paragraph"><p>If there is a repository at <code>$GIT_URL</code>, but access is not currently
+permitted, the server MUST respond with the <code>403 Forbidden</code> HTTP
+status code.</p></div>
+<div class="paragraph"><p>Servers SHOULD support both HTTP 1.0 and HTTP 1.1.
+Servers SHOULD support chunked encoding for both request and response
+bodies.</p></div>
+<div class="paragraph"><p>Clients SHOULD support both HTTP 1.0 and HTTP 1.1.
+Clients SHOULD support chunked encoding for both request and response
+bodies.</p></div>
+<div class="paragraph"><p>Servers MAY return ETag and/or Last-Modified headers.</p></div>
+<div class="paragraph"><p>Clients MAY revalidate cached entities by including If-Modified-Since
+and/or If-None-Match request headers.</p></div>
+<div class="paragraph"><p>Servers MAY return <code>304 Not Modified</code> if the relevant headers appear
+in the request and the entity has not changed.  Clients MUST treat
+<code>304 Not Modified</code> identical to <code>200 OK</code> by reusing the cached entity.</p></div>
+<div class="paragraph"><p>Clients MAY reuse a cached entity without revalidation if the
+Cache-Control and/or Expires header permits caching.  Clients and
+servers MUST follow RFC 2616 for cache controls.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_discovering_references">Discovering References</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>All HTTP clients MUST begin either a fetch or a push exchange by
+discovering the references available on the remote repository.</p></div>
+<div class="sect2">
+<h3 id="_dumb_clients">Dumb Clients</h3>
+<div class="paragraph"><p>HTTP clients that only support the "dumb" protocol MUST discover
+references by making a request for the special info/refs file of
+the repository.</p></div>
+<div class="paragraph"><p>Dumb HTTP clients MUST make a <code>GET</code> request to <code>$GIT_URL/info/refs</code>,
+without any search/query parameters.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>C: GET $GIT_URL/info/refs HTTP/1.0</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>S: 200 OK
+S:
+S: 95dcfa3633004da0049d3d0fa03f80589cbcaf31  refs/heads/maint
+S: d049f6c27a2244e12041955e262a404c7faba355  refs/heads/master
+S: 2cb58b79488a98d2721cea644875a8dd0026b115  refs/tags/v1.0
+S: a3c2e2402b99163d1d59756e5f207ae21cccba4c  refs/tags/v1.0^{}</code></pre>
+</div></div>
+<div class="paragraph"><p>The Content-Type of the returned info/refs entity SHOULD be
+<code>text/plain; charset=utf-8</code>, but MAY be any content type.
+Clients MUST NOT attempt to validate the returned Content-Type.
+Dumb servers MUST NOT return a return type starting with
+<code>application/x-git-</code>.</p></div>
+<div class="paragraph"><p>Cache-Control headers MAY be returned to disable caching of the
+returned entity.</p></div>
+<div class="paragraph"><p>When examining the response clients SHOULD only examine the HTTP
+status code.  Valid responses are <code>200 OK</code>, or <code>304 Not Modified</code>.</p></div>
+<div class="paragraph"><p>The returned content is a UNIX formatted text file describing
+each ref and its known value.  The file SHOULD be sorted by name
+according to the C locale ordering.  The file SHOULD NOT include
+the default ref named <code>HEAD</code>.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>info_refs   =  *( ref_record )
+ref_record  =  any_ref / peeled_ref</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>any_ref     =  obj-id HTAB refname LF
+peeled_ref  =  obj-id HTAB refname LF
+               obj-id HTAB refname "^{}" LF</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_smart_clients">Smart Clients</h3>
+<div class="paragraph"><p>HTTP clients that support the "smart" protocol (or both the
+"smart" and "dumb" protocols) MUST discover references by making
+a parameterized request for the info/refs file of the repository.</p></div>
+<div class="paragraph"><p>The request MUST contain exactly one query parameter,
+<code>service=$servicename</code>, where <code>$servicename</code> MUST be the service
+name the client wishes to contact to complete the operation.
+The request MUST NOT contain additional query parameters.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>C: GET $GIT_URL/info/refs?service=git-upload-pack HTTP/1.0</code></pre>
+</div></div>
+<div class="paragraph"><p>dumb server reply:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>S: 200 OK
+S:
+S: 95dcfa3633004da0049d3d0fa03f80589cbcaf31  refs/heads/maint
+S: d049f6c27a2244e12041955e262a404c7faba355  refs/heads/master
+S: 2cb58b79488a98d2721cea644875a8dd0026b115  refs/tags/v1.0
+S: a3c2e2402b99163d1d59756e5f207ae21cccba4c  refs/tags/v1.0^{}</code></pre>
+</div></div>
+<div class="paragraph"><p>smart server reply:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>S: 200 OK
+S: Content-Type: application/x-git-upload-pack-advertisement
+S: Cache-Control: no-cache
+S:
+S: 001e# service=git-upload-pack\n
+S: 0000
+S: 004895dcfa3633004da0049d3d0fa03f80589cbcaf31 refs/heads/maint\0multi_ack\n
+S: 003fd049f6c27a2244e12041955e262a404c7faba355 refs/heads/master\n
+S: 003c2cb58b79488a98d2721cea644875a8dd0026b115 refs/tags/v1.0\n
+S: 003fa3c2e2402b99163d1d59756e5f207ae21cccba4c refs/tags/v1.0^{}\n
+S: 0000</code></pre>
+</div></div>
+<div class="paragraph"><p>The client may send Extra Parameters (see
+<a href="gitprotocol-pack.html">gitprotocol-pack(5)</a>) as a colon-separated string
+in the Git-Protocol HTTP header.</p></div>
+<div class="paragraph"><p>Uses the <code>--http-backend-info-refs</code> option to
+<a href="git-upload-pack.html">git-upload-pack(1)</a>.</p></div>
+<div class="sect3">
+<h4 id="_dumb_server_response">Dumb Server Response</h4>
+<div class="paragraph"><p>Dumb servers MUST respond with the dumb server reply format.</p></div>
+<div class="paragraph"><p>See the prior section under dumb clients for a more detailed
+description of the dumb server response.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_smart_server_response">Smart Server Response</h4>
+<div class="paragraph"><p>If the server does not recognize the requested service name, or the
+requested service name has been disabled by the server administrator,
+the server MUST respond with the <code>403 Forbidden</code> HTTP status code.</p></div>
+<div class="paragraph"><p>Otherwise, smart servers MUST respond with the smart server reply
+format for the requested service name.</p></div>
+<div class="paragraph"><p>Cache-Control headers SHOULD be used to disable caching of the
+returned entity.</p></div>
+<div class="paragraph"><p>The Content-Type MUST be <code>application/x-$servicename-advertisement</code>.
+Clients SHOULD fall back to the dumb protocol if another content
+type is returned.  When falling back to the dumb protocol clients
+SHOULD NOT make an additional request to <code>$GIT_URL/info/refs</code>, but
+instead SHOULD use the response already in hand.  Clients MUST NOT
+continue if they do not support the dumb protocol.</p></div>
+<div class="paragraph"><p>Clients MUST validate the status code is either <code>200 OK</code> or
+<code>304 Not Modified</code>.</p></div>
+<div class="paragraph"><p>Clients MUST validate the first five bytes of the response entity
+matches the regex <code>^[0-9a-f]{4}#</code>.  If this test fails, clients
+MUST NOT continue.</p></div>
+<div class="paragraph"><p>Clients MUST parse the entire response as a sequence of pkt-line
+records.</p></div>
+<div class="paragraph"><p>Clients MUST verify the first pkt-line is <code># service=$servicename</code>.
+Servers MUST set $servicename to be the request parameter value.
+Servers SHOULD include an LF at the end of this line.
+Clients MUST ignore an LF at the end of the line.</p></div>
+<div class="paragraph"><p>Servers MUST terminate the response with the magic <code>0000</code> end
+pkt-line marker.</p></div>
+<div class="paragraph"><p>The returned response is a pkt-line stream describing each ref and
+its known value.  The stream SHOULD be sorted by name according to
+the C locale ordering.  The stream SHOULD include the default ref
+named <code>HEAD</code> as the first ref.  The stream MUST include capability
+declarations behind a NUL on the first ref.</p></div>
+<div class="paragraph"><p>The returned response contains "version 1" if "version=1" was sent as an
+Extra Parameter.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>smart_reply     =  PKT-LINE("# service=$servicename" LF)
+                   "0000"
+                   *1("version 1")
+                   ref_list
+                   "0000"
+ref_list        =  empty_list / non_empty_list</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>empty_list      =  PKT-LINE(zero-id SP "capabilities^{}" NUL cap-list LF)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>non_empty_list  =  PKT-LINE(obj-id SP name NUL cap_list LF)
+                   *ref_record</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>cap-list        =  capability *(SP capability)
+capability      =  1*(LC_ALPHA / DIGIT / "-" / "_")
+LC_ALPHA        =  %x61-7A</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>ref_record      =  any_ref / peeled_ref
+any_ref         =  PKT-LINE(obj-id SP name LF)
+peeled_ref      =  PKT-LINE(obj-id SP name LF)
+                   PKT-LINE(obj-id SP name "^{}" LF</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_smart_service_git_upload_pack">Smart Service git-upload-pack</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This service reads from the repository pointed to by <code>$GIT_URL</code>.</p></div>
+<div class="paragraph"><p>Clients MUST first perform ref discovery with
+<code>$GIT_URL/info/refs?service=git-upload-pack</code>.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>C: POST $GIT_URL/git-upload-pack HTTP/1.0
+C: Content-Type: application/x-git-upload-pack-request
+C:
+C: 0032want 0a53e9ddeaddad63ad106860237bbf53411d11a7\n
+C: 0032have 441b40d833fdfa93eb2908e52742248faf0ee993\n
+C: 0000</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>S: 200 OK
+S: Content-Type: application/x-git-upload-pack-result
+S: Cache-Control: no-cache
+S:
+S: ....ACK %s, continue
+S: ....NAK</code></pre>
+</div></div>
+<div class="paragraph"><p>Clients MUST NOT reuse or revalidate a cached response.
+Servers MUST include sufficient Cache-Control headers
+to prevent caching of the response.</p></div>
+<div class="paragraph"><p>Servers SHOULD support all capabilities defined here.</p></div>
+<div class="paragraph"><p>Clients MUST send at least one "want" command in the request body.
+Clients MUST NOT reference an id in a "want" command which did not
+appear in the response obtained through ref discovery unless the
+server advertises capability <code>allow-tip-sha1-in-want</code> or
+<code>allow-reachable-sha1-in-want</code>.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>compute_request   =  want_list
+                     have_list
+                     request_end
+request_end       =  "0000" / "done"</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>want_list         =  PKT-LINE(want SP cap_list LF)
+                     *(want_pkt)
+want_pkt          =  PKT-LINE(want LF)
+want              =  "want" SP id
+cap_list          =  capability *(SP capability)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>have_list         =  *PKT-LINE("have" SP id LF)</code></pre>
+</div></div>
+<div class="paragraph"><p>TODO: Document this further.</p></div>
+<div class="sect2">
+<h3 id="_the_negotiation_algorithm">The Negotiation Algorithm</h3>
+<div class="paragraph"><p>The computation to select the minimal pack proceeds as follows
+(C = client, S = server):</p></div>
+<div class="paragraph"><p><em>init step:</em></p></div>
+<div class="paragraph"><p>C: Use ref discovery to obtain the advertised refs.</p></div>
+<div class="paragraph"><p>C: Place any object seen into set <code>advertised</code>.</p></div>
+<div class="paragraph"><p>C: Build an empty set, <code>common</code>, to hold the objects that are later
+   determined to be on both ends.</p></div>
+<div class="paragraph"><p>C: Build a set, <code>want</code>, of the objects from <code>advertised</code> the client
+   wants to fetch, based on what it saw during ref discovery.</p></div>
+<div class="paragraph"><p>C: Start a queue, <code>c_pending</code>, ordered by commit time (popping newest
+   first).  Add all client refs.  When a commit is popped from
+   the queue its parents SHOULD be automatically inserted back.
+   Commits MUST only enter the queue once.</p></div>
+<div class="paragraph"><p><em>one compute step:</em></p></div>
+<div class="paragraph"><p>C: Send one <code>$GIT_URL/git-upload-pack</code> request:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>C: 0032want &lt;want #1&gt;...............................
+C: 0032want &lt;want #2&gt;...............................
+....
+C: 0032have &lt;common #1&gt;.............................
+C: 0032have &lt;common #2&gt;.............................
+....
+C: 0032have &lt;have #1&gt;...............................
+C: 0032have &lt;have #2&gt;...............................
+....
+C: 0000</code></pre>
+</div></div>
+<div class="paragraph"><p>The stream is organized into "commands", with each command
+appearing by itself in a pkt-line.  Within a command line,
+the text leading up to the first space is the command name,
+and the remainder of the line to the first LF is the value.
+Command lines are terminated with an LF as the last byte of
+the pkt-line value.</p></div>
+<div class="paragraph"><p>Commands MUST appear in the following order, if they appear
+at all in the request stream:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+"want"
+</p>
+</li>
+<li>
+<p>
+"have"
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The stream is terminated by a pkt-line flush (<code>0000</code>).</p></div>
+<div class="paragraph"><p>A single "want" or "have" command MUST have one hex formatted
+object name as its value.  Multiple object names MUST be sent by sending
+multiple commands. Object names MUST be given using the object format
+negotiated through the <code>object-format</code> capability (default SHA-1).</p></div>
+<div class="paragraph"><p>The <code>have</code> list is created by popping the first 32 commits
+from <code>c_pending</code>.  Less can be supplied if <code>c_pending</code> empties.</p></div>
+<div class="paragraph"><p>If the client has sent 256 "have" commits and has not yet
+received one of those back from <code>s_common</code>, or the client has
+emptied <code>c_pending</code> it SHOULD include a "done" command to let
+the server know it won&#8217;t proceed:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>C: 0009done</code></pre>
+</div></div>
+<div class="paragraph"><p>S: Parse the git-upload-pack request:</p></div>
+<div class="paragraph"><p>Verify all objects in <code>want</code> are directly reachable from refs.</p></div>
+<div class="paragraph"><p>The server MAY walk backwards through history or through
+the reflog to permit slightly stale requests.</p></div>
+<div class="paragraph"><p>If no "want" objects are received, send an error:
+TODO: Define error if no "want" lines are requested.</p></div>
+<div class="paragraph"><p>If any "want" object is not reachable, send an error:
+TODO: Define error if an invalid "want" is requested.</p></div>
+<div class="paragraph"><p>Create an empty list, <code>s_common</code>.</p></div>
+<div class="paragraph"><p>If "have" was sent:</p></div>
+<div class="paragraph"><p>Loop through the objects in the order supplied by the client.</p></div>
+<div class="paragraph"><p>For each object, if the server has the object reachable from
+a ref, add it to <code>s_common</code>.  If a commit is added to <code>s_common</code>,
+do not add any ancestors, even if they also appear in <code>have</code>.</p></div>
+<div class="paragraph"><p>S: Send the git-upload-pack response:</p></div>
+<div class="paragraph"><p>If the server has found a closed set of objects to pack or the
+request ends with "done", it replies with the pack.
+TODO: Document the pack based response</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>S: PACK...</code></pre>
+</div></div>
+<div class="paragraph"><p>The returned stream is the side-band-64k protocol supported
+by the git-upload-pack service, and the pack is embedded into
+stream 1.  Progress messages from the server side MAY appear
+in stream 2.</p></div>
+<div class="paragraph"><p>Here a "closed set of objects" is defined to have at least
+one path from every "want" to at least one "common" object.</p></div>
+<div class="paragraph"><p>If the server needs more information, it replies with a
+status continue response:
+TODO: Document the non-pack response</p></div>
+<div class="paragraph"><p>C: Parse the upload-pack response:
+   TODO: Document parsing response</p></div>
+<div class="paragraph"><p><em>Do another compute step.</em></p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_smart_service_git_receive_pack">Smart Service git-receive-pack</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This service reads from the repository pointed to by <code>$GIT_URL</code>.</p></div>
+<div class="paragraph"><p>Clients MUST first perform ref discovery with
+<code>$GIT_URL/info/refs?service=git-receive-pack</code>.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>C: POST $GIT_URL/git-receive-pack HTTP/1.0
+C: Content-Type: application/x-git-receive-pack-request
+C:
+C: ....0a53e9ddeaddad63ad106860237bbf53411d11a7 441b40d833fdfa93eb2908e52742248faf0ee993 refs/heads/maint\0 report-status
+C: 0000
+C: PACK....</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>S: 200 OK
+S: Content-Type: application/x-git-receive-pack-result
+S: Cache-Control: no-cache
+S:
+S: ....</code></pre>
+</div></div>
+<div class="paragraph"><p>Clients MUST NOT reuse or revalidate a cached response.
+Servers MUST include sufficient Cache-Control headers
+to prevent caching of the response.</p></div>
+<div class="paragraph"><p>Servers SHOULD support all capabilities defined here.</p></div>
+<div class="paragraph"><p>Clients MUST send at least one command in the request body.
+Within the command portion of the request body clients SHOULD send
+the id obtained through ref discovery as old_id.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>update_request  =  command_list
+                   "PACK" &lt;binary data&gt;</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>command_list    =  PKT-LINE(command NUL cap_list LF)
+                   *(command_pkt)
+command_pkt     =  PKT-LINE(command LF)
+cap_list        =  *(SP capability) SP</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>command         =  create / delete / update
+create          =  zero-id SP new_id SP name
+delete          =  old_id SP zero-id SP name
+update          =  old_id SP new_id SP name</code></pre>
+</div></div>
+<div class="paragraph"><p>TODO: Document this further.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_references">REFERENCES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="http://www.ietf.org/rfc/rfc1738.txt">RFC 1738: Uniform Resource Locators (URL)</a>
+<a href="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616: Hypertext Transfer Protocol&#8201;&#8212;&#8201;HTTP/1.1</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">SEE ALSO</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><a href="gitprotocol-pack.html">gitprotocol-pack(5)</a>
+<a href="gitprotocol-capabilities.html">gitprotocol-capabilities(5)</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2022-09-16 17:50:33 PDT
+</div>
+</div>
+</body>
+</html>

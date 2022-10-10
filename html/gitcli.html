@@ -761,6 +761,18 @@ arguments.  Here are the rules:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
+Options come first and then args.
+    A subcommand may take dashed options (which may take their own
+    arguments, e.g. "--max-parents 2") and arguments.  You SHOULD
+    give dashed options first and then arguments.  Some commands may
+    accept dashed options after you have already gave non-option
+    arguments (which may make the command ambiguous), but you should
+    not rely on it (because eventually we may find a way to fix
+    these ambiguity by enforcing the "options then args" rule).
+</p>
+</li>
+<li>
+<p>
 Revisions come first and then paths.
    E.g. in <code>git diff v1.0 v2.0 arch/x86 include/asm-x86</code>,
    <code>v1.0</code> and <code>v2.0</code> are revisions and <code>arch/x86</code> and <code>include/asm-x86</code>
@@ -831,19 +843,19 @@ scripting Git:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-it&#8217;s preferred to use the non-dashed form of Git commands, which means that
+It&#8217;s preferred to use the non-dashed form of Git commands, which means that
    you should prefer <code>git foo</code> to <code>git-foo</code>.
 </p>
 </li>
 <li>
 <p>
-splitting short options to separate words (prefer <code>git foo -a -b</code>
+Splitting short options to separate words (prefer <code>git foo -a -b</code>
    to <code>git foo -ab</code>, the latter may not even work).
 </p>
 </li>
 <li>
 <p>
-when a command-line option takes an argument, use the <em>stuck</em> form.  In
+When a command-line option takes an argument, use the <em>stuck</em> form.  In
    other words, write <code>git foo -oArg</code> instead of <code>git foo -o Arg</code> for short
    options, and <code>git foo --long-opt=Arg</code> instead of <code>git foo --long-opt Arg</code>
    for long options.  An option that takes optional option-argument must be
@@ -852,7 +864,7 @@ when a command-line option takes an argument, use the <em>stuck</em> form.  In
 </li>
 <li>
 <p>
-when you give a revision parameter to a command, make sure the parameter is
+When you give a revision parameter to a command, make sure the parameter is
    not ambiguous with a name of a file in the work tree.  E.g. do not write
    <code>git log -1 HEAD</code> but write <code>git log -1 HEAD --</code>; the former will not work
    if you happen to have a file called <code>HEAD</code> in the work tree.
@@ -860,7 +872,7 @@ when you give a revision parameter to a command, make sure the parameter is
 </li>
 <li>
 <p>
-many commands allow a long option <code>--option</code> to be abbreviated
+Many commands allow a long option <code>--option</code> to be abbreviated
    only to their unique prefix (e.g. if there is no other option
    whose name begins with <code>opt</code>, you may be able to spell <code>--opt</code> to
    invoke the <code>--option</code> flag), but you should fully spell them out
@@ -1040,7 +1052,7 @@ The two options can be specified together to ask a command to work
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-09-30 23:04:56 PDT
+ 2022-08-31 14:31:31 PDT
 </div>
 </div>
 </body>

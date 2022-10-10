@@ -763,6 +763,7 @@ git-grep(1) Manual Page
            [--break] [--heading] [-p | --show-function]
            [-A &lt;post-context&gt;] [-B &lt;pre-context&gt;] [-C &lt;context&gt;]
            [-W | --function-context]
+           [(-m | --max-count) &lt;num&gt;]
            [--threads &lt;num&gt;]
            [-f &lt;file&gt;] [-e] &lt;pattern&gt;
            [--and|--or|--not|(|)|-e &lt;pattern&gt;&#8230;]
@@ -1221,6 +1222,21 @@ providing this option will cause it to die.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+-m &lt;num&gt;
+</dt>
+<dt class="hdlist1">
+--max-count &lt;num&gt;
+</dt>
+<dd>
+<p>
+        Limit the amount of matches per file. When using the <code>-v</code> or
+        <code>--invert-match</code> option, the search stops after the specified
+        number of non-matches. A value of -1 will return unlimited
+        results (the default). A value of 0 will exit immediately with
+        a non-zero status.
+</p>
+</dd>
+<dt class="hdlist1">
 --threads &lt;num&gt;
 </dt>
 <dd>
@@ -1391,6 +1407,9 @@ performance in this case, it might be desirable to use <code>--threads=1</code>.
 <div class="sect1">
 <h2 id="_configuration">CONFIGURATION</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 grep.lineNumber
@@ -1416,7 +1435,8 @@ grep.patternType
         Set the default matching behavior. Using a value of <em>basic</em>, <em>extended</em>,
         <em>fixed</em>, or <em>perl</em> will enable the <code>--basic-regexp</code>, <code>--extended-regexp</code>,
         <code>--fixed-strings</code>, or <code>--perl-regexp</code> option accordingly, while the
-        value <em>default</em> will return to the default matching behavior.
+        value <em>default</em> will use the <code>grep.extendedRegexp</code> option to choose
+        between <em>basic</em> and <em>extended</em>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1469,7 +1489,7 @@ grep.fallbackToNoIndex
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-10-06 09:57:11 PDT
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

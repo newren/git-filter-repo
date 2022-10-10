@@ -1,0 +1,1602 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
+<title>gitformat-pack(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overridden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitformat-pack(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitformat-pack -
+   Git pack format
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content">$GIT_DIR/objects/pack/pack-<strong>.{pack,idx}
+$GIT_DIR/objects/pack/pack-</strong>.rev
+$GIT_DIR/objects/pack/pack-*.mtimes
+$GIT_DIR/objects/pack/multi-pack-index</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The Git pack format is now Git stores most of its primary repository
+data. Over the lietime af a repository loose objects (if any) and
+smaller packs are consolidated into larger pack(s). See
+<a href="git-gc.html">git-gc(1)</a> and <a href="git-pack-objects.html">git-pack-objects(1)</a>.</p></div>
+<div class="paragraph"><p>The pack format is also used over-the-wire, see
+e.g. <a href="gitprotocol-v2.html">gitprotocol-v2(5)</a>, as well as being a part of
+other container formats in the case of <a href="gitformat-bundle.html">gitformat-bundle(5)</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_checksums_and_object_ids">Checksums and object IDs</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In a repository using the traditional SHA-1, pack checksums, index checksums,
+and object IDs (object names) mentioned below are all computed using SHA-1.
+Similarly, in SHA-256 repositories, these values are computed using SHA-256.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pack_pack_files_have_the_following_format">pack-*.pack files have the following format:</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+A header appears at the beginning and consists of the following:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte signature:
+    The signature is: {'P', 'A', 'C', 'K'}</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte version number (network byte order):
+    Git currently accepts version number 2 or 3 but
+    generates version 2 only.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte number of objects contained in the pack (network byte order)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Observation: we cannot have more than 4G versions ;-) and
+more than 4G objects in a pack.</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+The header is followed by number of object entries, each of
+     which looks like this:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>(undeltified representation)
+n-byte type and length (3-bit type, (n-1)*7+4-bit length)
+compressed data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>(deltified representation)
+n-byte type and length (3-bit type, (n-1)*7+4-bit length)
+base object name if OBJ_REF_DELTA or a negative relative
+    offset from the delta object's position in the pack if this
+    is an OBJ_OFS_DELTA object
+compressed delta data</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Observation: length of each object is encoded in a variable
+length format and is not constrained to 32-bit or anything.</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+The trailer records a pack checksum of all of the above.
+</p>
+</li>
+</ul></div>
+<div class="sect2">
+<h3 id="_object_types">Object types</h3>
+<div class="paragraph"><p>Valid object types are:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+OBJ_COMMIT (1)
+</p>
+</li>
+<li>
+<p>
+OBJ_TREE (2)
+</p>
+</li>
+<li>
+<p>
+OBJ_BLOB (3)
+</p>
+</li>
+<li>
+<p>
+OBJ_TAG (4)
+</p>
+</li>
+<li>
+<p>
+OBJ_OFS_DELTA (6)
+</p>
+</li>
+<li>
+<p>
+OBJ_REF_DELTA (7)
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Type 5 is reserved for future expansion. Type 0 is invalid.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_size_encoding">Size encoding</h3>
+<div class="paragraph"><p>This document uses the following "size encoding" of non-negative
+integers: From each byte, the seven least significant bits are
+used to form the resulting integer. As long as the most significant
+bit is 1, this process continues; the byte with MSB 0 provides the
+last seven bits.  The seven-bit chunks are concatenated. Later
+values are more significant.</p></div>
+<div class="paragraph"><p>This size encoding should not be confused with the "offset encoding",
+which is also used in this document.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_deltified_representation">Deltified representation</h3>
+<div class="paragraph"><p>Conceptually there are only four object types: commit, tree, tag and
+blob. However to save space, an object could be stored as a "delta" of
+another "base" object. These representations are assigned new types
+ofs-delta and ref-delta, which is only valid in a pack file.</p></div>
+<div class="paragraph"><p>Both ofs-delta and ref-delta store the "delta" to be applied to
+another object (called <em>base object</em>) to reconstruct the object. The
+difference between them is, ref-delta directly encodes base object
+name. If the base object is in the same pack, ofs-delta encodes
+the offset of the base object in the pack instead.</p></div>
+<div class="paragraph"><p>The base object could also be deltified if it&#8217;s in the same pack.
+Ref-delta can also refer to an object outside the pack (i.e. the
+so-called "thin pack"). When stored on disk however, the pack should
+be self contained to avoid cyclic dependency.</p></div>
+<div class="paragraph"><p>The delta data starts with the size of the base object and the
+size of the object to be reconstructed. These sizes are
+encoded using the size encoding from above.  The remainder of
+the delta data is a sequence of instructions to reconstruct the object
+from the base object. If the base object is deltified, it must be
+converted to canonical form first. Each instruction appends more and
+more data to the target object until it&#8217;s complete. There are two
+supported instructions so far: one for copy a byte range from the
+source object and one for inserting new data embedded in the
+instruction itself.</p></div>
+<div class="paragraph"><p>Each instruction has variable length. Instruction type is determined
+by the seventh bit of the first octet. The following diagrams follow
+the convention in RFC 1951 (Deflate compressed data format).</p></div>
+<div class="sect3">
+<h4 id="_instruction_to_copy_from_base_object">Instruction to copy from base object</h4>
+<div class="literalblock">
+<div class="content">
+<pre><code>+----------+---------+---------+---------+---------+-------+-------+-------+
+| 1xxxxxxx | offset1 | offset2 | offset3 | offset4 | size1 | size2 | size3 |
++----------+---------+---------+---------+---------+-------+-------+-------+</code></pre>
+</div></div>
+<div class="paragraph"><p>This is the instruction format to copy a byte range from the source
+object. It encodes the offset to copy from and the number of bytes to
+copy. Offset and size are in little-endian order.</p></div>
+<div class="paragraph"><p>All offset and size bytes are optional. This is to reduce the
+instruction size when encoding small offsets or sizes. The first seven
+bits in the first octet determines which of the next seven octets is
+present. If bit zero is set, offset1 is present. If bit one is set
+offset2 is present and so on.</p></div>
+<div class="paragraph"><p>Note that a more compact instruction does not change offset and size
+encoding. For example, if only offset2 is omitted like below, offset3
+still contains bits 16-23. It does not become offset2 and contains
+bits 8-15 even if it&#8217;s right next to offset1.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>+----------+---------+---------+
+| 10000101 | offset1 | offset3 |
++----------+---------+---------+</code></pre>
+</div></div>
+<div class="paragraph"><p>In its most compact form, this instruction only takes up one byte
+(0x80) with both offset and size omitted, which will have default
+values zero. There is another exception: size zero is automatically
+converted to 0x10000.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_instruction_to_add_new_data">Instruction to add new data</h4>
+<div class="literalblock">
+<div class="content">
+<pre><code>+----------+============+
+| 0xxxxxxx |    data    |
++----------+============+</code></pre>
+</div></div>
+<div class="paragraph"><p>This is the instruction to construct target object without the base
+object. The following data is appended to the target object. The first
+seven bits of the first octet determines the size of data in
+bytes. The size must be non-zero.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_reserved_instruction">Reserved instruction</h4>
+<div class="literalblock">
+<div class="content">
+<pre><code>+----------+============
+| 00000000 |
++----------+============</code></pre>
+</div></div>
+<div class="paragraph"><p>This is the instruction reserved for future expansion.</p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_original_version_1_pack_idx_files_have_the_following_format">Original (version 1) pack-*.idx files have the following format:</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+The header consists of 256 4-byte network byte order
+    integers.  N-th entry of this table records the number of
+    objects in the corresponding pack, the first byte of whose
+    object name is less than or equal to N.  This is called the
+    <em>first-level fan-out</em> table.
+</p>
+</li>
+<li>
+<p>
+The header is followed by sorted 24-byte entries, one entry
+    per object in the pack.  Each entry is:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte network byte order integer, recording where the
+object is stored in the packfile as the offset from the
+beginning.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>one object name of the appropriate size.</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+The file is concluded with a trailer:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>A copy of the pack checksum at the end of the corresponding
+packfile.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Index checksum of all of the above.</code></pre>
+</div></div>
+</li>
+</ul></div>
+<div class="paragraph"><p>Pack Idx file:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>        --  +--------------------------------+
+fanout      | fanout[0] = 2 (for example)    |-.
+table       +--------------------------------+ |
+            | fanout[1]                      | |
+            +--------------------------------+ |
+            | fanout[2]                      | |
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ |
+            | fanout[255] = total objects    |---.
+        --  +--------------------------------+ | |
+main        | offset                         | | |
+index       | object name 00XXXXXXXXXXXXXXXX | | |
+table       +--------------------------------+ | |
+            | offset                         | | |
+            | object name 00XXXXXXXXXXXXXXXX | | |
+            +--------------------------------+&lt;+ |
+          .-| offset                         |   |
+          | | object name 01XXXXXXXXXXXXXXXX |   |
+          | +--------------------------------+   |
+          | | offset                         |   |
+          | | object name 01XXXXXXXXXXXXXXXX |   |
+          | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   |
+          | | offset                         |   |
+          | | object name FFXXXXXXXXXXXXXXXX |   |
+        --| +--------------------------------+&lt;--+
+trailer   | | packfile checksum              |
+          | +--------------------------------+
+          | | idxfile checksum               |
+          | +--------------------------------+
+          .-------.
+                  |
+Pack file entry: &lt;+</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>packed object header:
+   1-byte size extension bit (MSB)
+          type (next 3 bit)
+          size0 (lower 4-bit)
+   n-byte sizeN (as long as MSB is set, each 7-bit)
+           size0..sizeN form 4+7+7+..+7 bit integer, size0
+           is the least significant part, and sizeN is the
+           most significant part.
+packed object data:
+   If it is not DELTA, then deflated bytes (the size above
+           is the size before compression).
+   If it is REF_DELTA, then
+     base object name (the size above is the
+           size of the delta data that follows).
+     delta data, deflated.
+   If it is OFS_DELTA, then
+     n-byte offset (see below) interpreted as a negative
+           offset from the type-byte of the header of the
+           ofs-delta entry (the size above is the size of
+           the delta data that follows).
+     delta data, deflated.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>offset encoding:
+     n bytes with MSB set in all but the last one.
+     The offset is then the number constructed by
+     concatenating the lower 7 bit of each byte, and
+     for n &gt;= 2 adding 2^7 + 2^14 + ... + 2^(7*(n-1))
+     to the result.</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_version_2_pack_idx_files_support_packs_larger_than_4_gib_and">Version 2 pack-*.idx files support packs larger than 4 GiB, and</h2>
+<div class="sectionbody">
+<div class="literalblock">
+<div class="content">
+<pre><code>have some other reorganizations.  They have the format:</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+A 4-byte magic number <em>\377tOc</em> which is an unreasonable
+    fanout[0] value.
+</p>
+</li>
+<li>
+<p>
+A 4-byte version number (= 2)
+</p>
+</li>
+<li>
+<p>
+A 256-entry fan-out table just like v1.
+</p>
+</li>
+<li>
+<p>
+A table of sorted object names.  These are packed together
+    without offset values to reduce the cache footprint of the
+    binary search for a specific object name.
+</p>
+</li>
+<li>
+<p>
+A table of 4-byte CRC32 values of the packed object data.
+    This is new in v2 so compressed data can be copied directly
+    from pack to pack during repacking without undetected
+    data corruption.
+</p>
+</li>
+<li>
+<p>
+A table of 4-byte offset values (in network byte order).
+    These are usually 31-bit pack file offsets, but large
+    offsets are encoded as an index into the next table with
+    the msbit set.
+</p>
+</li>
+<li>
+<p>
+A table of 8-byte offset entries (empty for pack files less
+    than 2 GiB).  Pack files are organized with heavily used
+    objects toward the front, so most object references should
+    not need to refer to this table.
+</p>
+</li>
+<li>
+<p>
+The same trailer as a v1 pack file:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>A copy of the pack checksum at the end of
+corresponding packfile.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Index checksum of all of the above.</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pack_rev_files_have_the_format">pack-*.rev files have the format:</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+A 4-byte magic number <em>0x52494458</em> (<em>RIDX</em>).
+</p>
+</li>
+<li>
+<p>
+A 4-byte version identifier (= 1).
+</p>
+</li>
+<li>
+<p>
+A 4-byte hash function identifier (= 1 for SHA-1, 2 for SHA-256).
+</p>
+</li>
+<li>
+<p>
+A table of index positions (one per packed object, num_objects in
+    total, each a 4-byte unsigned integer in network order), sorted by
+    their corresponding offsets in the packfile.
+</p>
+</li>
+<li>
+<p>
+A trailer, containing a:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>checksum of the corresponding packfile, and</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>a checksum of all of the above.</code></pre>
+</div></div>
+</li>
+</ul></div>
+<div class="paragraph"><p>All 4-byte numbers are in network order.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pack_mtimes_files_have_the_format">pack-*.mtimes files have the format:</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>All 4-byte numbers are in network byte order.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+A 4-byte magic number <em>0x4d544d45</em> (<em>MTME</em>).
+</p>
+</li>
+<li>
+<p>
+A 4-byte version identifier (= 1).
+</p>
+</li>
+<li>
+<p>
+A 4-byte hash function identifier (= 1 for SHA-1, 2 for SHA-256).
+</p>
+</li>
+<li>
+<p>
+A table of 4-byte unsigned integers. The ith value is the
+    modification time (mtime) of the ith object in the corresponding
+    pack by lexicographic (index) order. The mtimes count standard
+    epoch seconds.
+</p>
+</li>
+<li>
+<p>
+A trailer, containing a checksum of the corresponding packfile,
+    and a checksum of all of the above (each having length according
+    to the specified hash function).
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_pack_index_midx_files_have_the_following_format">multi-pack-index (MIDX) files have the following format:</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The multi-pack-index files refer to multiple pack-files and loose objects.</p></div>
+<div class="paragraph"><p>In order to allow extensions that add extra data to the MIDX, we organize
+the body into "chunks" and provide a lookup table at the beginning of the
+body. The header includes certain length values, such as the number of packs,
+the number of base MIDX files, hash lengths and types.</p></div>
+<div class="paragraph"><p>All 4-byte numbers are in network order.</p></div>
+<div class="paragraph"><p>HEADER:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte signature:
+    The signature is: {'M', 'I', 'D', 'X'}</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-byte version number:
+    Git only writes or recognizes version 1.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-byte Object Id Version
+    We infer the length of object IDs (OIDs) from this value:
+        1 =&gt; SHA-1
+        2 =&gt; SHA-256
+    If the hash type does not match the repository's hash algorithm,
+    the multi-pack-index file should be ignored with a warning
+    presented to the user.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-byte number of "chunks"</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1-byte number of base multi-pack-index files:
+    This value is currently always zero.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>4-byte number of pack files</code></pre>
+</div></div>
+<div class="paragraph"><p>CHUNK LOOKUP:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>(C + 1) * 12 bytes providing the chunk offsets:
+    First 4 bytes describe chunk id. Value 0 is a terminating label.
+    Other 8 bytes provide offset in current file for chunk to start.
+    (Chunks are provided in file-order, so you can infer the length
+    using the next chunk position if necessary.)</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The CHUNK LOOKUP matches the table of contents from
+the chunk-based file format, see linkgit:gitformat-chunk[5].</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>The remaining data in the body is described one chunk at a time, and
+these chunks may be given in any order. Chunks are required unless
+otherwise specified.</code></pre>
+</div></div>
+<div class="paragraph"><p>CHUNK DATA:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Packfile Names (ID: {'P', 'N', 'A', 'M'})
+    Stores the packfile names as concatenated, null-terminated strings.
+    Packfiles must be listed in lexicographic order for fast lookups by
+    name. This is the only chunk not guaranteed to be a multiple of four
+    bytes in length, so should be the last chunk for alignment reasons.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>OID Fanout (ID: {'O', 'I', 'D', 'F'})
+    The ith entry, F[i], stores the number of OIDs with first
+    byte at most i. Thus F[255] stores the total
+    number of objects.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>OID Lookup (ID: {'O', 'I', 'D', 'L'})
+    The OIDs for all objects in the MIDX are stored in lexicographic
+    order in this chunk.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Object Offsets (ID: {'O', 'O', 'F', 'F'})
+    Stores two 4-byte values for every object.
+    1: The pack-int-id for the pack storing this object.
+    2: The offset within the pack.
+        If all offsets are less than 2^32, then the large offset chunk
+        will not exist and offsets are stored as in IDX v1.
+        If there is at least one offset value larger than 2^32-1, then
+        the large offset chunk must exist, and offsets larger than
+        2^31-1 must be stored in it instead. If the large offset chunk
+        exists and the 31st bit is on, then removing that bit reveals
+        the row in the large offsets containing the 8-byte offset of
+        this object.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[Optional] Object Large Offsets (ID: {'L', 'O', 'F', 'F'})
+    8-byte offsets into large packfiles.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[Optional] Bitmap pack order (ID: {'R', 'I', 'D', 'X'})
+    A list of MIDX positions (one per object in the MIDX, num_objects in
+    total, each a 4-byte unsigned integer in network byte order), sorted
+    according to their relative bitmap/pseudo-pack positions.</code></pre>
+</div></div>
+<div class="paragraph"><p>TRAILER:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Index checksum of the above contents.</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_pack_index_reverse_indexes">multi-pack-index reverse indexes</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Similar to the pack-based reverse index, the multi-pack index can also
+be used to generate a reverse index.</p></div>
+<div class="paragraph"><p>Instead of mapping between offset, pack-, and index position, this
+reverse index maps between an object&#8217;s position within the MIDX, and
+that object&#8217;s position within a pseudo-pack that the MIDX describes
+(i.e., the ith entry of the multi-pack reverse index holds the MIDX
+position of ith object in pseudo-pack order).</p></div>
+<div class="paragraph"><p>To clarify the difference between these orderings, consider a multi-pack
+reachability bitmap (which does not yet exist, but is what we are
+building towards here). Each bit needs to correspond to an object in the
+MIDX, and so we need an efficient mapping from bit position to MIDX
+position.</p></div>
+<div class="paragraph"><p>One solution is to let bits occupy the same position in the oid-sorted
+index stored by the MIDX. But because oids are effectively random, their
+resulting reachability bitmaps would have no locality, and thus compress
+poorly. (This is the reason that single-pack bitmaps use the pack
+ordering, and not the .idx ordering, for the same purpose.)</p></div>
+<div class="paragraph"><p>So we&#8217;d like to define an ordering for the whole MIDX based around
+pack ordering, which has far better locality (and thus compresses more
+efficiently). We can think of a pseudo-pack created by the concatenation
+of all of the packs in the MIDX. E.g., if we had a MIDX with three packs
+(a, b, c), with 10, 15, and 20 objects respectively, we can imagine an
+ordering of the objects like:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>|a,0|a,1|...|a,9|b,0|b,1|...|b,14|c,0|c,1|...|c,19|</code></pre>
+</div></div>
+<div class="paragraph"><p>where the ordering of the packs is defined by the MIDX&#8217;s pack list,
+and then the ordering of objects within each pack is the same as the
+order in the actual packfile.</p></div>
+<div class="paragraph"><p>Given the list of packs and their counts of objects, you can
+naïvely reconstruct that pseudo-pack ordering (e.g., the object at
+position 27 must be (c,1) because packs "a" and "b" consumed 25 of the
+slots). But there&#8217;s a catch. Objects may be duplicated between packs, in
+which case the MIDX only stores one pointer to the object (and thus we&#8217;d
+want only one slot in the bitmap).</p></div>
+<div class="paragraph"><p>Callers could handle duplicates themselves by reading objects in order
+of their bit-position, but that&#8217;s linear in the number of objects, and
+much too expensive for ordinary bitmap lookups. Building a reverse index
+solves this, since it is the logical inverse of the index, and that
+index has already removed duplicates. But, building a reverse index on
+the fly can be expensive. Since we already have an on-disk format for
+pack-based reverse indexes, let&#8217;s reuse it for the MIDX&#8217;s pseudo-pack,
+too.</p></div>
+<div class="paragraph"><p>Objects from the MIDX are ordered as follows to string together the
+pseudo-pack. Let <code>pack(o)</code> return the pack from which <code>o</code> was selected
+by the MIDX, and define an ordering of packs based on their numeric ID
+(as stored by the MIDX). Let <code>offset(o)</code> return the object offset of <code>o</code>
+within <code>pack(o)</code>. Then, compare <code>o1</code> and <code>o2</code> as follows:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+If one of <code>pack(o1)</code> and <code>pack(o2)</code> is preferred and the other
+    is not, then the preferred one sorts first.
+</p>
+<div class="paragraph"><p>(This is a detail that allows the MIDX bitmap to determine which
+pack should be used by the pack-reuse mechanism, since it can ask
+the MIDX for the pack containing the object at bit position 0).</p></div>
+</li>
+<li>
+<p>
+If <code>pack(o1) ≠ pack(o2)</code>, then sort the two objects in descending
+    order based on the pack ID.
+</p>
+</li>
+<li>
+<p>
+Otherwise, <code>pack(o1) = pack(o2)</code>, and the objects are sorted in
+    pack-order (i.e., <code>o1</code> sorts ahead of <code>o2</code> exactly when <code>offset(o1)
+    &lt; offset(o2)</code>).
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>In short, a MIDX&#8217;s pseudo-pack is the de-duplicated concatenation of
+objects in packs stored by the MIDX, laid out in pack order, and the
+packs arranged in MIDX order (with the preferred pack coming first).</p></div>
+<div class="paragraph"><p>The MIDX&#8217;s reverse index is stored in the optional <em>RIDX</em> chunk within
+the MIDX itself.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cruft_packs">cruft packs</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The cruft packs feature offer an alternative to Git&#8217;s traditional mechanism of
+removing unreachable objects. This document provides an overview of Git&#8217;s
+pruning mechanism, and how a cruft pack can be used instead to accomplish the
+same.</p></div>
+<div class="sect2">
+<h3 id="_background">Background</h3>
+<div class="paragraph"><p>To remove unreachable objects from your repository, Git offers <code>git repack -Ad</code>
+(see <a href="git-repack.html">git-repack(1)</a>). Quoting from the documentation:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[...] unreachable objects in a previous pack become loose, unpacked objects,
+instead of being left in the old pack. [...] loose unreachable objects will be
+pruned according to normal expiry rules with the next 'git gc' invocation.</code></pre>
+</div></div>
+<div class="paragraph"><p>Unreachable objects aren&#8217;t removed immediately, since doing so could race with
+an incoming push which may reference an object which is about to be deleted.
+Instead, those unreachable objects are stored as loose objects and stay that way
+until they are older than the expiration window, at which point they are removed
+by <a href="git-prune.html">git-prune(1)</a>.</p></div>
+<div class="paragraph"><p>Git must store these unreachable objects loose in order to keep track of their
+per-object mtimes. If these unreachable objects were written into one big pack,
+then either freshening that pack (because an object contained within it was
+re-written) or creating a new pack of unreachable objects would cause the pack&#8217;s
+mtime to get updated, and the objects within it would never leave the expiration
+window. Instead, objects are stored loose in order to keep track of the
+individual object mtimes and avoid a situation where all cruft objects are
+freshened at once.</p></div>
+<div class="paragraph"><p>This can lead to undesirable situations when a repository contains many
+unreachable objects which have not yet left the grace period. Having large
+directories in the shards of <code>.git/objects</code> can lead to decreased performance in
+the repository. But given enough unreachable objects, this can lead to inode
+starvation and degrade the performance of the whole system. Since we
+can never pack those objects, these repositories often take up a large amount of
+disk space, since we can only zlib compress them, but not store them in delta
+chains.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_cruft_packs_2">Cruft packs</h3>
+<div class="paragraph"><p>A cruft pack eliminates the need for storing unreachable objects in a loose
+state by including the per-object mtimes in a separate file alongside a single
+pack containing all loose objects.</p></div>
+<div class="paragraph"><p>A cruft pack is written by <code>git repack --cruft</code> when generating a new pack.
+<a href="git-pack-objects.html">git-pack-objects(1)</a>'s <code>--cruft</code> option. Note that <code>git repack --cruft</code>
+is a classic all-into-one repack, meaning that everything in the resulting pack is
+reachable, and everything else is unreachable. Once written, the <code>--cruft</code>
+option instructs <code>git repack</code> to generate another pack containing only objects
+not packed in the previous step (which equates to packing all unreachable
+objects together). This progresses as follows:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Enumerate every object, marking any object which is (a) not contained in a
+     kept-pack, and (b) whose mtime is within the grace period as a traversal
+     tip.
+</p>
+</li>
+<li>
+<p>
+Perform a reachability traversal based on the tips gathered in the previous
+     step, adding every object along the way to the pack.
+</p>
+</li>
+<li>
+<p>
+Write the pack out, along with a <code>.mtimes</code> file that records the per-object
+     timestamps.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>This mode is invoked internally by <a href="git-repack.html">git-repack(1)</a> when instructed to
+write a cruft pack. Crucially, the set of in-core kept packs is exactly the set
+of packs which will not be deleted by the repack; in other words, they contain
+all of the repository&#8217;s reachable objects.</p></div>
+<div class="paragraph"><p>When a repository already has a cruft pack, <code>git repack --cruft</code> typically only
+adds objects to it. An exception to this is when <code>git repack</code> is given the
+<code>--cruft-expiration</code> option, which allows the generated cruft pack to omit
+expired objects instead of waiting for <a href="git-gc.html">git-gc(1)</a> to expire those objects
+later on.</p></div>
+<div class="paragraph"><p>It is <a href="git-gc.html">git-gc(1)</a> that is typically responsible for removing expired
+unreachable objects.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_caution_for_mixed_version_environments">Caution for mixed-version environments</h3>
+<div class="paragraph"><p>Repositories that have cruft packs in them will continue to work with any older
+version of Git. Note, however, that previous versions of Git which do not
+understand the <code>.mtimes</code> file will use the cruft pack&#8217;s mtime as the mtime for
+all of the objects in it. In other words, do not expect older (pre-cruft pack)
+versions of Git to interpret or even read the contents of the <code>.mtimes</code> file.</p></div>
+<div class="paragraph"><p>Note that having mixed versions of Git GC-ing the same repository can lead to
+unreachable objects never being completely pruned. This can happen under the
+following circumstances:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+An older version of Git running GC explodes the contents of an existing
+    cruft pack loose, using the cruft pack&#8217;s mtime.
+</p>
+</li>
+<li>
+<p>
+A newer version running GC collects those loose objects into a cruft pack,
+    where the .mtime file reflects the loose object&#8217;s actual mtimes, but the
+    cruft pack mtime is "now".
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Repeating this process will lead to unreachable objects not getting pruned as a
+result of repeatedly resetting the objects' mtimes to the present time.</p></div>
+<div class="paragraph"><p>If you are GC-ing repositories in a mixed version environment, consider omitting
+the <code>--cruft</code> option when using <a href="git-repack.html">git-repack(1)</a> and <a href="git-gc.html">git-gc(1)</a>, and
+leaving the <code>gc.cruftPacks</code> configuration unset until all writers understand
+cruft packs.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_alternatives">Alternatives</h3>
+<div class="paragraph"><p>Notable alternatives to this design include:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The location of the per-object mtime data, and
+</p>
+</li>
+<li>
+<p>
+Storing unreachable objects in multiple cruft packs.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>On the location of mtime data, a new auxiliary file tied to the pack was chosen
+to avoid complicating the <code>.idx</code> format. If the <code>.idx</code> format were ever to gain
+support for optional chunks of data, it may make sense to consolidate the
+<code>.mtimes</code> format into the <code>.idx</code> itself.</p></div>
+<div class="paragraph"><p>Storing unreachable objects among multiple cruft packs (e.g., creating a new
+cruft pack during each repacking operation including only unreachable objects
+which aren&#8217;t already stored in an earlier cruft pack) is significantly more
+complicated to construct, and so aren&#8217;t pursued here. The obvious drawback to
+the current implementation is that the entire cruft pack must be re-written from
+scratch.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2022-09-16 17:50:33 PDT
+</div>
+</div>
+</body>
+</html>

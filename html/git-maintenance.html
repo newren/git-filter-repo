@@ -749,7 +749,9 @@ git-maintenance(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git maintenance</em> run [&lt;options&gt;]</pre>
+<pre class="content"><em>git maintenance</em> run [&lt;options&gt;]
+<em>git maintenance</em> start [--scheduler=&lt;scheduler&gt;]
+<em>git maintenance</em> (stop|register|unregister)</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -772,6 +774,39 @@ Git repository.</p></div>
 <h2 id="_subcommands">SUBCOMMANDS</h2>
 <div class="sectionbody">
 <div class="dlist"><dl>
+<dt class="hdlist1">
+run
+</dt>
+<dd>
+<p>
+        Run one or more maintenance tasks. If one or more <code>--task</code> options
+        are specified, then those tasks are run in that order. Otherwise,
+        the tasks are determined by which <code>maintenance.&lt;task&gt;.enabled</code>
+        config options are true. By default, only <code>maintenance.gc.enabled</code>
+        is true.
+</p>
+</dd>
+<dt class="hdlist1">
+start
+</dt>
+<dd>
+<p>
+        Start running maintenance on the current repository. This performs
+        the same config updates as the <code>register</code> subcommand, then updates
+        the background scheduler to run <code>git maintenance run --scheduled</code>
+        on an hourly basis.
+</p>
+</dd>
+<dt class="hdlist1">
+stop
+</dt>
+<dd>
+<p>
+        Halt the background maintenance schedule. The current repository
+        is not removed from the list of maintained repositories, in case
+        the background maintenance is restarted later.
+</p>
+</dd>
 <dt class="hdlist1">
 register
 </dt>
@@ -822,39 +857,6 @@ task:</p></div>
 <div class="paragraph"><p><code>git maintenance register</code> will also disable foreground maintenance by
 setting <code>maintenance.auto = false</code> in the current repository. This config
 setting will remain after a <code>git maintenance unregister</code> command.</p></div>
-</dd>
-<dt class="hdlist1">
-run
-</dt>
-<dd>
-<p>
-        Run one or more maintenance tasks. If one or more <code>--task</code> options
-        are specified, then those tasks are run in that order. Otherwise,
-        the tasks are determined by which <code>maintenance.&lt;task&gt;.enabled</code>
-        config options are true. By default, only <code>maintenance.gc.enabled</code>
-        is true.
-</p>
-</dd>
-<dt class="hdlist1">
-start
-</dt>
-<dd>
-<p>
-        Start running maintenance on the current repository. This performs
-        the same config updates as the <code>register</code> subcommand, then updates
-        the background scheduler to run <code>git maintenance run --scheduled</code>
-        on an hourly basis.
-</p>
-</dd>
-<dt class="hdlist1">
-stop
-</dt>
-<dd>
-<p>
-        Halt the background maintenance schedule. The current repository
-        is not removed from the list of maintained repositories, in case
-        the background maintenance is restarted later.
-</p>
 </dd>
 <dt class="hdlist1">
 unregister
@@ -1229,6 +1231,121 @@ custom tasks.</p></div>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+maintenance.auto
+</dt>
+<dd>
+<p>
+        This boolean config option controls whether some commands run
+        <code>git maintenance run --auto</code> after doing their normal work. Defaults
+        to true.
+</p>
+</dd>
+<dt class="hdlist1">
+maintenance.strategy
+</dt>
+<dd>
+<p>
+        This string config option provides a way to specify one of a few
+        recommended schedules for background maintenance. This only affects
+        which tasks are run during <code>git maintenance run --schedule=X</code>
+        commands, provided no <code>--task=&lt;task&gt;</code> arguments are provided.
+        Further, if a <code>maintenance.&lt;task&gt;.schedule</code> config value is set,
+        then that value is used instead of the one provided by
+        <code>maintenance.strategy</code>. The possible strategy strings are:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>none</code>: This default setting implies no task are run at any schedule.
+</p>
+</li>
+<li>
+<p>
+<code>incremental</code>: This setting optimizes for performing small maintenance
+  activities that do not delete any data. This does not schedule the <code>gc</code>
+  task, but runs the <code>prefetch</code> and <code>commit-graph</code> tasks hourly, the
+  <code>loose-objects</code> and <code>incremental-repack</code> tasks daily, and the <code>pack-refs</code>
+  task weekly.
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
+maintenance.&lt;task&gt;.enabled
+</dt>
+<dd>
+<p>
+        This boolean config option controls whether the maintenance task
+        with name <code>&lt;task&gt;</code> is run when no <code>--task</code> option is specified to
+        <code>git maintenance run</code>. These config values are ignored if a
+        <code>--task</code> option exists. By default, only <code>maintenance.gc.enabled</code>
+        is true.
+</p>
+</dd>
+<dt class="hdlist1">
+maintenance.&lt;task&gt;.schedule
+</dt>
+<dd>
+<p>
+        This config option controls whether or not the given <code>&lt;task&gt;</code> runs
+        during a <code>git maintenance run --schedule=&lt;frequency&gt;</code> command. The
+        value must be one of "hourly", "daily", or "weekly".
+</p>
+</dd>
+<dt class="hdlist1">
+maintenance.commit-graph.auto
+</dt>
+<dd>
+<p>
+        This integer config option controls how often the <code>commit-graph</code> task
+        should be run as part of <code>git maintenance run --auto</code>. If zero, then
+        the <code>commit-graph</code> task will not run with the <code>--auto</code> option. A
+        negative value will force the task to run every time. Otherwise, a
+        positive value implies the command should run when the number of
+        reachable commits that are not in the commit-graph file is at least
+        the value of <code>maintenance.commit-graph.auto</code>. The default value is
+        100.
+</p>
+</dd>
+<dt class="hdlist1">
+maintenance.loose-objects.auto
+</dt>
+<dd>
+<p>
+        This integer config option controls how often the <code>loose-objects</code> task
+        should be run as part of <code>git maintenance run --auto</code>. If zero, then
+        the <code>loose-objects</code> task will not run with the <code>--auto</code> option. A
+        negative value will force the task to run every time. Otherwise, a
+        positive value implies the command should run when the number of
+        loose objects is at least the value of <code>maintenance.loose-objects.auto</code>.
+        The default value is 100.
+</p>
+</dd>
+<dt class="hdlist1">
+maintenance.incremental-repack.auto
+</dt>
+<dd>
+<p>
+        This integer config option controls how often the <code>incremental-repack</code>
+        task should be run as part of <code>git maintenance run --auto</code>. If zero,
+        then the <code>incremental-repack</code> task will not run with the <code>--auto</code>
+        option. A negative value will force the task to run every time.
+        Otherwise, a positive value implies the command should run when the
+        number of pack-files not in the multi-pack-index is at least the value
+        of <code>maintenance.incremental-repack.auto</code>. The default value is 10.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
@@ -1239,7 +1356,7 @@ custom tasks.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

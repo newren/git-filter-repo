@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 11/15/2021
+.\"      Date: 10/10/2022
 .\"    Manual: Git Manual
-.\"    Source: Git 2.34.0.dirty
+.\"    Source: Git 2.38.0.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "11/15/2021" "Git 2\&.34\&.0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "10/10/2022" "Git 2\&.38\&.0\&.dirty" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -529,7 +529,7 @@ Pass \-\-quiet to other git commands called\&.
 .RE
 .SH "OUTPUT"
 .sp
-Every time filter\-repo is run, files are created in the \fB\&.git/filter\-repo/\fR directory\&. These files overwritten unconditionally on every run\&.
+Every time filter\-repo is run, files are created in the \fB\&.git/filter\-repo/\fR directory\&. These files are overwritten unconditionally on every run\&.
 .SS "Commit map"
 .sp
 The \fB\&.git/filter\-repo/commit\-map\fR file contains a mapping of how all commits were (or were not) changed\&.
@@ -575,7 +575,7 @@ All commits in range of the rewrite will be listed, even commits that are unchan
 .sp -1
 .IP \(bu 2.3
 .\}
-An all\-zeros hash, or null SHA, represents a non\-existant object\&. When in the "new" column, this means the commit was removed entirely\&.
+An all\-zeros hash, or null SHA, represents a non\-existent object\&. When in the "new" column, this means the commit was removed entirely\&.
 .RE
 .SS "Reference map"
 .sp
@@ -589,7 +589,7 @@ The \fB\&.git/filter\-repo/ref\-map\fR file contains a mapping of which local re
 .sp -1
 .IP \(bu 2.3
 .\}
-A header is the first line with the text "old" and "new"
+A header is the first line with the text "old", "new" and "ref"
 .RE
 .sp
 .RS 4
@@ -611,7 +611,7 @@ Reference mappings are in no particular order
 .sp -1
 .IP \(bu 2.3
 .\}
-An all\-zeros hash, or null SHA, represents a non\-existant object\&. When in the "new" column, this means the ref was removed entirely\&.
+An all\-zeros hash, or null SHA, represents a non\-existent object\&. When in the "new" column, this means the ref was removed entirely\&.
 .RE
 .SH "FRESH CLONE SAFETY CHECK AND \-\-FORCE"
 .sp
@@ -1512,7 +1512,7 @@ def foo_callback(foo):
 .sp
 Thus, you just need to make sure your \fIBODY\fR modifies and returns \fIfoo\fR appropriately\&. One important thing to note for all callbacks is that filter\-repo uses bytestrings (see \m[blue]\fBhttps://docs\&.python\&.org/3/library/stdtypes\&.html#bytes\fR\m[]) everywhere instead of strings\&.
 .sp
-There are four callbacks that allow you to operate directly on raw objects that contain data that\(cqs easy to write in \fBfast-import\fR(1) format:
+There are four callbacks that allow you to operate directly on raw objects that contain data that\(cqs easy to write in \fBgit-fast-import\fR(1) format:
 .sp
 .if n \{\
 .RS 4
@@ -2297,7 +2297,7 @@ options will continue to be supported since there are people with usecases for t
 \fBComments on reversibility\fR
 .RS 4
 .sp
-Some people are interested in reversibility of of a rewrite; e\&.g\&. rewrite history, possibly add some commits, then unrewrite and get the original history back plus a few new "unrewritten" commits\&. Obviously this is impossible if your rewrite involves throwing away information (e\&.g\&. filtering out files or replacing several different strings with \fB***REMOVED***\fR), but may be possible with some rewrites\&. filter\-repo is likely to be a poor fit for this type of workflow for a few reasons:
+Some people are interested in reversibility of a rewrite; e\&.g\&. rewrite history, possibly add some commits, then unrewrite and get the original history back plus a few new "unrewritten" commits\&. Obviously this is impossible if your rewrite involves throwing away information (e\&.g\&. filtering out files or replacing several different strings with \fB***REMOVED***\fR), but may be possible with some rewrites\&. filter\-repo is likely to be a poor fit for this type of workflow for a few reasons:
 .sp
 .RS 4
 .ie n \{\
@@ -2340,7 +2340,7 @@ rewriting of commit hashes will probably be reversible, but it is possible for r
 .sp -1
 .IP \(bu 2.3
 .\}
-filter\-repo defaults to several forms of unreversible rewriting that you may need to turn off (e\&.g\&. the last two bullet points above or reencoding commit messages into UTF\-8); it\(cqs possible that additional forms of unreversible rewrites will be added in the future\&.
+filter\-repo defaults to several forms of irreversible rewriting that you may need to turn off (e\&.g\&. the last two bullet points above or reencoding commit messages into UTF\-8); it\(cqs possible that additional forms of irreversible rewrites will be added in the future\&.
 .RE
 .sp
 .RS 4

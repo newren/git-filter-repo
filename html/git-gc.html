@@ -806,6 +806,15 @@ other housekeeping tasks (e.g. rerere, working trees, reflog&#8230;) will
 be performed as well.</p></div>
 </dd>
 <dt class="hdlist1">
+--cruft
+</dt>
+<dd>
+<p>
+        When expiring unreachable objects, pack them separately into a
+        cruft pack instead of storing them as loose objects.
+</p>
+</dd>
+<dt class="hdlist1">
 --prune=&lt;date&gt;
 </dt>
 <dd>
@@ -883,8 +892,9 @@ users and their repositories.</p></div>
 <div class="sect1">
 <h2 id="_configuration">CONFIGURATION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The below documentation is the same as what&#8217;s found in
-<a href="git-config.html">git-config(1)</a>:</p></div>
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 gc.aggressiveDepth
@@ -1009,17 +1019,29 @@ gc.packRefs
 </p>
 </dd>
 <dt class="hdlist1">
+gc.cruftPacks
+</dt>
+<dd>
+<p>
+        Store unreachable objects in a cruft pack (see
+        <a href="git-repack.html">git-repack(1)</a>) instead of as loose objects. The default
+        is <code>false</code>.
+</p>
+</dd>
+<dt class="hdlist1">
 gc.pruneExpire
 </dt>
 <dd>
 <p>
-        When <em>git gc</em> is run, it will call <em>prune --expire 2.weeks.ago</em>.
-        Override the grace period with this config variable.  The value
-        "now" may be used to disable this grace period and always prune
-        unreachable objects immediately, or "never" may be used to
-        suppress pruning.  This feature helps prevent corruption when
-        <em>git gc</em> runs concurrently with another process writing to the
-        repository; see the "NOTES" section of <a href="git-gc.html">git-gc(1)</a>.
+        When <em>git gc</em> is run, it will call <em>prune --expire 2.weeks.ago</em>
+        (and <em>repack --cruft --cruft-expiration 2.weeks.ago</em> if using
+        cruft packs via <code>gc.cruftPacks</code> or <code>--cruft</code>).  Override the
+        grace period with this config variable.  The value "now" may be
+        used to disable this grace period and always prune unreachable
+        objects immediately, or "never" may be used to suppress pruning.
+        This feature helps prevent corruption when <em>git gc</em> runs
+        concurrently with another process writing to the repository; see
+        the "NOTES" section of <a href="git-gc.html">git-gc(1)</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1165,7 +1187,7 @@ seems to be low in practice).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-10-06 09:57:11 PDT
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

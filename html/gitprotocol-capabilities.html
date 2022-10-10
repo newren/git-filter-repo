@@ -1,0 +1,1161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
+<title>gitprotocol-capabilities(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overridden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitprotocol-capabilities(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitprotocol-capabilities -
+   Protocol v0 and v1 capabilities
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content">&lt;over-the-wire-protocol&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">this document describes capabilities for versions 0 and 1 of the pack
+protocol. For version 2, please refer to the <a href="gitprotocol-v2.html">gitprotocol-v2(5)</a>
+doc.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Servers SHOULD support all capabilities defined in this document.</p></div>
+<div class="paragraph"><p>On the very first line of the initial server response of either
+receive-pack and upload-pack the first reference is followed by
+a NUL byte and then a list of space delimited server capabilities.
+These allow the server to declare what it can and cannot support
+to the client.</p></div>
+<div class="paragraph"><p>Client will then send a space separated list of capabilities it wants
+to be in effect. The client MUST NOT ask for capabilities the server
+did not say it supports.</p></div>
+<div class="paragraph"><p>Server MUST diagnose and abort if capabilities it does not understand
+was sent.  Server MUST NOT ignore capabilities that client requested
+and server advertised.  As a consequence of these rules, server MUST
+NOT advertise capabilities it does not understand.</p></div>
+<div class="paragraph"><p>The <em>atomic</em>, <em>report-status</em>, <em>report-status-v2</em>, <em>delete-refs</em>, <em>quiet</em>,
+and <em>push-cert</em> capabilities are sent and recognized by the receive-pack
+(push to server) process.</p></div>
+<div class="paragraph"><p>The <em>ofs-delta</em> and <em>side-band-64k</em> capabilities are sent and recognized
+by both upload-pack and receive-pack protocols.  The <em>agent</em> and <em>session-id</em>
+capabilities may optionally be sent in both protocols.</p></div>
+<div class="paragraph"><p>All other capabilities are only recognized by the upload-pack (fetch
+from server) process.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_ack">multi_ack</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <em>multi_ack</em> capability allows the server to return "ACK obj-id
+continue" as soon as it finds a commit that it can use as a common
+base, between the client&#8217;s wants and the client&#8217;s have set.</p></div>
+<div class="paragraph"><p>By sending this early, the server can potentially head off the client
+from walking any further down that particular branch of the client&#8217;s
+repository history.  The client may still need to walk down other
+branches, sending have lines for those, until the server has a
+complete cut across the DAG, or the client has said "done".</p></div>
+<div class="paragraph"><p>Without multi_ack, a client sends have lines in --date-order until
+the server has found a common base.  That means the client will send
+have lines that are already known by the server to be common, because
+they overlap in time with another branch that the server hasn&#8217;t found
+a common base on yet.</p></div>
+<div class="paragraph"><p>For example suppose the client has commits in caps that the server
+doesn&#8217;t and the server has commits in lower case that the client
+doesn&#8217;t, as in the following diagram:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>   +---- u ---------------------- x
+  /              +----- y
+ /              /
+a -- b -- c -- d -- E -- F
+   \
+    +--- Q -- R -- S</code></pre>
+</div></div>
+<div class="paragraph"><p>If the client wants x,y and starts out by saying have F,S, the server
+doesn&#8217;t know what F,S is.  Eventually the client says "have d" and
+the server sends "ACK d continue" to let the client know to stop
+walking down that line (so don&#8217;t send c-b-a), but it&#8217;s not done yet,
+it needs a base for x. The client keeps going with S-R-Q, until a
+gets reached, at which point the server has a clear base and it all
+ends.</p></div>
+<div class="paragraph"><p>Without multi_ack the client would have sent that c-b-a chain anyway,
+interleaved with S-R-Q.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_ack_detailed">multi_ack_detailed</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This is an extension of multi_ack that permits client to better
+understand the server&#8217;s in-memory state. See <a href="gitprotocol-pack.html">gitprotocol-pack(5)</a>,
+section "Packfile Negotiation" for more information.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_no_done">no-done</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This capability should only be used with the smart HTTP protocol. If
+multi_ack_detailed and no-done are both present, then the sender is
+free to immediately send a pack following its first "ACK obj-id ready"
+message.</p></div>
+<div class="paragraph"><p>Without no-done in the smart HTTP protocol, the server session would
+end and the client has to make another trip to send "done" before
+the server can send the pack. no-done removes the last round and
+thus slightly reduces latency.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_thin_pack">thin-pack</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>A thin pack is one with deltas which reference base objects not
+contained within the pack (but are known to exist at the receiving
+end). This can reduce the network traffic significantly, but it
+requires the receiving end to know how to "thicken" these packs by
+adding the missing bases to the pack.</p></div>
+<div class="paragraph"><p>The upload-pack server advertises <em>thin-pack</em> when it can generate
+and send a thin pack. A client requests the <em>thin-pack</em> capability
+when it understands how to "thicken" it, notifying the server that
+it can receive such a pack. A client MUST NOT request the
+<em>thin-pack</em> capability if it cannot turn a thin pack into a
+self-contained pack.</p></div>
+<div class="paragraph"><p>Receive-pack, on the other hand, is assumed by default to be able to
+handle thin packs, but can ask the client not to use the feature by
+advertising the <em>no-thin</em> capability. A client MUST NOT send a thin
+pack if the server advertises the <em>no-thin</em> capability.</p></div>
+<div class="paragraph"><p>The reasons for this asymmetry are historical. The receive-pack
+program did not exist until after the invention of thin packs, so
+historically the reference implementation of receive-pack always
+understood thin packs. Adding <em>no-thin</em> later allowed receive-pack
+to disable the feature in a backwards-compatible manner.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_side_band_side_band_64k">side-band, side-band-64k</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This capability means that server can send, and client understand multiplexed
+progress reports and error info interleaved with the packfile itself.</p></div>
+<div class="paragraph"><p>These two options are mutually exclusive. A modern client always
+favors <em>side-band-64k</em>.</p></div>
+<div class="paragraph"><p>Either mode indicates that the packfile data will be streamed broken
+up into packets of up to either 1000 bytes in the case of <em>side_band</em>,
+or 65520 bytes in the case of <em>side_band_64k</em>. Each packet is made up
+of a leading 4-byte pkt-line length of how much data is in the packet,
+followed by a 1-byte stream code, followed by the actual data.</p></div>
+<div class="paragraph"><p>The stream code can be one of:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>1 - pack data
+2 - progress messages
+3 - fatal error message just before stream aborts</code></pre>
+</div></div>
+<div class="paragraph"><p>The "side-band-64k" capability came about as a way for newer clients
+that can handle much larger packets to request packets that are
+actually crammed nearly full, while maintaining backward compatibility
+for the older clients.</p></div>
+<div class="paragraph"><p>Further, with side-band and its up to 1000-byte messages, it&#8217;s actually
+999 bytes of payload and 1 byte for the stream code. With side-band-64k,
+same deal, you have up to 65519 bytes of data and 1 byte for the stream
+code.</p></div>
+<div class="paragraph"><p>The client MUST send only maximum of one of "side-band" and "side-
+band-64k".  Server MUST diagnose it as an error if client requests
+both.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ofs_delta">ofs-delta</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Server can send, and client understand PACKv2 with delta referring to
+its base by position in pack rather than by an obj-id.  That is, they can
+send/read OBJ_OFS_DELTA (aka type 6) in a packfile.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_agent">agent</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The server may optionally send a capability of the form <code>agent=X</code> to
+notify the client that the server is running version <code>X</code>. The client may
+optionally return its own agent string by responding with an <code>agent=Y</code>
+capability (but it MUST NOT do so if the server did not mention the
+agent capability). The <code>X</code> and <code>Y</code> strings may contain any printable
+ASCII characters except space (i.e., the byte range 32 &lt; x &lt; 127), and
+are typically of the form "package/version" (e.g., "git/1.8.3.1"). The
+agent strings are purely informative for statistics and debugging
+purposes, and MUST NOT be used to programmatically assume the presence
+or absence of particular features.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_object_format">object-format</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This capability, which takes a hash algorithm as an argument, indicates
+that the server supports the given hash algorithms.  It may be sent
+multiple times; if so, the first one given is the one used in the ref
+advertisement.</p></div>
+<div class="paragraph"><p>When provided by the client, this indicates that it intends to use the
+given hash algorithm to communicate.  The algorithm provided must be one
+that the server supports.</p></div>
+<div class="paragraph"><p>If this capability is not provided, it is assumed that the only
+supported algorithm is SHA-1.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_symref">symref</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This parameterized capability is used to inform the receiver which symbolic ref
+points to which ref; for example, "symref=HEAD:refs/heads/master" tells the
+receiver that HEAD points to master. This capability can be repeated to
+represent multiple symrefs.</p></div>
+<div class="paragraph"><p>Servers SHOULD include this capability for the HEAD symref if it is one of the
+refs being sent.</p></div>
+<div class="paragraph"><p>Clients MAY use the parameters from this capability to select the proper initial
+branch when cloning a repository.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_shallow">shallow</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This capability adds "deepen", "shallow" and "unshallow" commands to
+the  fetch-pack/upload-pack protocol so clients can request shallow
+clones.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deepen_since">deepen-since</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This capability adds "deepen-since" command to fetch-pack/upload-pack
+protocol so the client can request shallow clones that are cut at a
+specific time, instead of depth. Internally it&#8217;s equivalent of doing
+"rev-list --max-age=&lt;timestamp&gt;" on the server side. "deepen-since"
+cannot be used with "deepen".</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deepen_not">deepen-not</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This capability adds "deepen-not" command to fetch-pack/upload-pack
+protocol so the client can request shallow clones that are cut at a
+specific revision, instead of depth. Internally it&#8217;s equivalent of
+doing "rev-list --not &lt;rev&gt;" on the server side. "deepen-not"
+cannot be used with "deepen", but can be used with "deepen-since".</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deepen_relative">deepen-relative</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If this capability is requested by the client, the semantics of
+"deepen" command is changed. The "depth" argument is the depth from
+the current shallow boundary, instead of the depth from remote refs.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_no_progress">no-progress</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The client was started with "git clone -q" or something, and doesn&#8217;t
+want that side band 2.  Basically the client just says "I do not
+wish to receive stream 2 on sideband, so do not send it to me, and if
+you did, I will drop it on the floor anyway".  However, the sideband
+channel 3 is still used for error responses.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_include_tag">include-tag</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <em>include-tag</em> capability is about sending annotated tags if we are
+sending objects they point to.  If we pack an object to the client, and
+a tag object points exactly at that object, we pack the tag object too.
+In general this allows a client to get all new annotated tags when it
+fetches a branch, in a single network connection.</p></div>
+<div class="paragraph"><p>Clients MAY always send include-tag, hardcoding it into a request when
+the server advertises this capability. The decision for a client to
+request include-tag only has to do with the client&#8217;s desires for tag
+data, whether or not a server had advertised objects in the
+refs/tags/* namespace.</p></div>
+<div class="paragraph"><p>Servers MUST pack the tags if their referrant is packed and the client
+has requested include-tags.</p></div>
+<div class="paragraph"><p>Clients MUST be prepared for the case where a server has ignored
+include-tag and has not actually sent tags in the pack.  In such
+cases the client SHOULD issue a subsequent fetch to acquire the tags
+that include-tag would have otherwise given the client.</p></div>
+<div class="paragraph"><p>The server SHOULD send include-tag, if it supports it, regardless
+of whether or not there are tags available.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_report_status">report-status</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The receive-pack process can receive a <em>report-status</em> capability,
+which tells it that the client wants a report of what happened after
+a packfile upload and reference update.  If the pushing client requests
+this capability, after unpacking and updating references the server
+will respond with whether the packfile unpacked successfully and if
+each reference was updated successfully.  If any of those were not
+successful, it will send back an error message.  See <a href="gitprotocol-pack.html">gitprotocol-pack(5)</a>
+for example messages.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_report_status_v2">report-status-v2</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Capability <em>report-status-v2</em> extends capability <em>report-status</em> by
+adding new "option" directives in order to support reference rewritten by
+the "proc-receive" hook.  The "proc-receive" hook may handle a command
+for a pseudo-reference which may create or update a reference with
+different name, new-oid, and old-oid.  While the capability
+<em>report-status</em> cannot report for such case.  See <a href="gitprotocol-pack.html">gitprotocol-pack(5)</a>
+for details.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_delete_refs">delete-refs</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the server sends back the <em>delete-refs</em> capability, it means that
+it is capable of accepting a zero-id value as the target
+value of a reference update.  It is not sent back by the client, it
+simply informs the client that it can be sent zero-id values
+to delete references.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quiet">quiet</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the receive-pack server advertises the <em>quiet</em> capability, it is
+capable of silencing human-readable progress output which otherwise may
+be shown when processing the received pack. A send-pack client should
+respond with the <em>quiet</em> capability to suppress server-side progress
+reporting if the local progress reporting is also being suppressed
+(e.g., via <code>push -q</code>, or if stderr does not go to a tty).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_atomic">atomic</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the server sends the <em>atomic</em> capability it is capable of accepting
+atomic pushes. If the pushing client requests this capability, the server
+will update the refs in one atomic transaction. Either all refs are
+updated or none.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_push_options">push-options</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the server sends the <em>push-options</em> capability it is able to accept
+push options after the update commands have been sent, but before the
+packfile is streamed. If the pushing client requests this capability,
+the server will pass the options to the pre- and post- receive hooks
+that process this push request.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_allow_tip_sha1_in_want">allow-tip-sha1-in-want</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the upload-pack server advertises this capability, fetch-pack may
+send "want" lines with object names that exist at the server but are not
+advertised by upload-pack. For historical reasons, the name of this
+capability contains "sha1". Object names are always given using the
+object format negotiated through the <em>object-format</em> capability.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_allow_reachable_sha1_in_want">allow-reachable-sha1-in-want</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the upload-pack server advertises this capability, fetch-pack may
+send "want" lines with object names that exist at the server but are not
+advertised by upload-pack. For historical reasons, the name of this
+capability contains "sha1". Object names are always given using the
+object format negotiated through the <em>object-format</em> capability.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_push_cert_lt_nonce_gt">push-cert=&lt;nonce&gt;</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The receive-pack server that advertises this capability is willing
+to accept a signed push certificate, and asks the &lt;nonce&gt; to be
+included in the push certificate.  A send-pack client MUST NOT
+send a push-cert packet unless the receive-pack server advertises
+this capability.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_filter">filter</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If the upload-pack server advertises the <em>filter</em> capability,
+fetch-pack may send "filter" commands to request a partial clone
+or partial fetch and request that the server omit various objects
+from the packfile.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_session_id_lt_session_id_gt">session-id=&lt;session id&gt;</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The server may advertise a session ID that can be used to identify this process
+across multiple requests. The client may advertise its own session ID back to
+the server as well.</p></div>
+<div class="paragraph"><p>Session IDs should be unique to a given process. They must fit within a
+packet-line, and must not contain non-printable or whitespace characters. The
+current implementation uses trace2 session IDs (see
+<a href="technical/api-trace2.html">api-trace2</a> for details), but this may change
+and users of the session ID should not rely on this fact.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2022-10-08 14:40:28 PDT
+</div>
+</div>
+</body>
+</html>

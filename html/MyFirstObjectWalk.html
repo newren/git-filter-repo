@@ -814,15 +814,20 @@ running, enable trace output by setting the environment variable <code>GIT_TRACE
 </tr></table>
 </div>
 <div class="paragraph"><p>Add usage text and <code>-h</code> handling, like all subcommands should consistently do
-(our test suite will notice and complain if you fail to do so).</p></div>
+(our test suite will notice and complain if you fail to do so).
+We&#8217;ll need to include the <code>parse-options.h</code> header.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
+<pre><code>#include "parse-options.h"
+
+...
+
+int cmd_walken(int argc, const char **argv, const char *prefix)
 {
         const char * const walken_usage[] = {
                 N_("git walken"),
                 NULL,
-        }
+        };
         struct option options[] = {
                 OPT_END()
         };
@@ -973,10 +978,15 @@ callback will be invoked once per each configuration value which Git knows about
 <div class="paragraph"><p>Similarly to the default values, we don&#8217;t have anything to do here yet
 ourselves; however, we should call <code>git_default_config()</code> if we aren&#8217;t calling
 any other existing config callbacks.</p></div>
-<div class="paragraph"><p>Add a new function to <code>builtin/walken.c</code>:</p></div>
+<div class="paragraph"><p>Add a new function to <code>builtin/walken.c</code>.
+We&#8217;ll also need to include the <code>config.h</code> header:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>static int git_walken_config(const char *var, const char *value, void *cb)
+<pre><code>#include "config.h"
+
+...
+
+static int git_walken_config(const char *var, const char *value, void *cb)
 {
         /*
          * For now, we don't have any custom configuration, so fall back to
@@ -1005,10 +1015,15 @@ initialize the <code>rev_info</code> object which we will use to perform the wal
 typically done by calling <code>repo_init_revisions()</code> with the repository you intend
 to target, as well as the <code>prefix</code> argument of <code>cmd_walken</code> and your <code>rev_info</code>
 struct.</p></div>
-<div class="paragraph"><p>Add the <code>struct rev_info</code> and the <code>repo_init_revisions()</code> call:</p></div>
+<div class="paragraph"><p>Add the <code>struct rev_info</code> and the <code>repo_init_revisions()</code> call.
+We&#8217;ll also need to include the <code>revision.h</code> header:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>int cmd_walken(int argc, const char **argv, const char *prefix)
+<pre><code>#include "revision.h"
+
+...
+
+int cmd_walken(int argc, const char **argv, const char *prefix)
 {
         /* This can go wherever you like in your declarations.*/
         struct rev_info rev;
@@ -1300,18 +1315,13 @@ function shows that the all-object walk is being performed by
 <code>traverse_commit_list()</code> or <code>traverse_commit_list_filtered()</code>. Those two
 functions reside in <code>list-objects.c</code>; examining the source shows that, despite
 the name, these functions traverse all kinds of objects. Let&#8217;s have a look at
-the arguments to <code>traverse_commit_list_filtered()</code>, which are a superset of the
-arguments to the unfiltered version.</p></div>
+the arguments to <code>traverse_commit_list()</code>.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>struct list_objects_filter_options *filter_options</code>: This is a struct which
-  stores a filter-spec as outlined in <code>Documentation/rev-list-options.txt</code>.
-</p>
-</li>
-<li>
-<p>
-<code>struct rev_info *revs</code>: This is the <code>rev_info</code> used for the walk.
+<code>struct rev_info *revs</code>: This is the <code>rev_info</code> used for the walk. If
+  its <code>filter</code> member is not <code>NULL</code>, then <code>filter</code> contains information for
+  how to filter the object list.
 </p>
 </li>
 <li>
@@ -1332,6 +1342,9 @@ arguments to the unfiltered version.</p></div>
   and <code>show_object</code>.
 </p>
 </li>
+</ul></div>
+<div class="paragraph"><p>In addition, <code>traverse_commit_list_filtered()</code> has an additional parameter:</p></div>
+<div class="ulist"><ul>
 <li>
 <p>
 <code>struct oidset *omitted</code>: A linked-list of object IDs which the provided
@@ -1339,9 +1352,8 @@ arguments to the unfiltered version.</p></div>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>It looks like this <code>traverse_commit_list_filtered()</code> uses callbacks we provide
-instead of needing us to call it repeatedly ourselves. Cool! Let&#8217;s add the
-callbacks first.</p></div>
+<div class="paragraph"><p>It looks like these methods use callbacks we provide instead of needing us
+to call it repeatedly ourselves. Cool! Let&#8217;s add the callbacks first.</p></div>
 <div class="paragraph"><p>For the sake of this tutorial, we&#8217;ll simply keep track of how many of each kind
 of object we find. At file scope in <code>builtin/walken.c</code> add the following
 tracking variables:</p></div>
@@ -1432,10 +1444,15 @@ ready to call <code>prepare_revision_walk()</code>.</p></div>
         tree_count = 0;</code></pre>
 </div></div>
 <div class="paragraph"><p>Let&#8217;s start by calling just the unfiltered walk and reporting our counts.
-Complete your implementation of <code>walken_object_walk()</code>:</p></div>
+Complete your implementation of <code>walken_object_walk()</code>.
+We&#8217;ll also need to include the <code>list-objects.h</code> header.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>        traverse_commit_list(rev, walken_show_commit, walken_show_object, NULL);
+<pre><code>#include "list-objects.h"
+
+...
+
+        traverse_commit_list(rev, walken_show_commit, walken_show_object, NULL);
 
         printf("commits %d\nblobs %d\ntags %d\ntrees %d\n", commit_count,
                 blob_count, tag_count, tree_count);
@@ -1512,19 +1529,9 @@ be traversed during a walk; you can imagine a breadth-first tree traversal to
 help understand. In our case, that means we omit trees and blobs not directly
 referenced by <code>HEAD</code> or <code>HEAD</code>'s history, because we begin the walk with only
 <code>HEAD</code> in the <code>pending</code> list.)</p></div>
-<div class="paragraph"><p>First, we&#8217;ll need to <code>#include "list-objects-filter-options.h"</code> and set up the
-<code>struct list_objects_filter_options</code> at the top of the function.</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>static void walken_object_walk(struct rev_info *rev)
-{
-        struct list_objects_filter_options filter_options = {};
-
-        ...</code></pre>
-</div></div>
 <div class="paragraph"><p>For now, we are not going to track the omitted objects, so we&#8217;ll replace those
 parameters with <code>NULL</code>. For the sake of simplicity, we&#8217;ll add a simple
-build-time branch to use our filter or not. Replace the line calling
+build-time branch to use our filter or not. Preface the line calling
 <code>traverse_commit_list()</code> with the following, which will remind us which kind of
 walk we&#8217;ve just performed:</p></div>
 <div class="listingblock">
@@ -1532,18 +1539,16 @@ walk we&#8217;ve just performed:</p></div>
 <pre><code>        if (0) {
                 /* Unfiltered: */
                 trace_printf(_("Unfiltered object walk.\n"));
-                traverse_commit_list(rev, walken_show_commit,
-                                walken_show_object, NULL);
         } else {
                 trace_printf(
                         _("Filtered object walk with filterspec 'tree:1'.\n"));
-                parse_list_objects_filter(&amp;filter_options, "tree:1");
-
-                traverse_commit_list_filtered(&amp;filter_options, rev,
-                        walken_show_commit, walken_show_object, NULL, NULL);
-        }</code></pre>
+                CALLOC_ARRAY(rev-&gt;filter, 1);
+                parse_list_objects_filter(rev-&gt;filter, "tree:1");
+        }
+        traverse_commit_list(rev, walken_show_commit,
+                             walken_show_object, NULL);</code></pre>
 </div></div>
-<div class="paragraph"><p><code>struct list_objects_filter_options</code> is usually built directly from a command
+<div class="paragraph"><p>The <code>rev-&gt;filter</code> member is usually built directly from a command
 line argument, so the module provides an easy way to build one from a string.
 Even though we aren&#8217;t taking user input right now, we can still build one with
 a hardcoded string using <code>parse_list_objects_filter()</code>.</p></div>
@@ -1579,7 +1584,7 @@ object:</p></div>
 <div class="content">
 <pre><code>        ...
 
-                traverse_commit_list_filtered(&amp;filter_options, rev,
+                traverse_commit_list_filtered(rev,
                         walken_show_commit, walken_show_object, NULL, &amp;omitted);
 
         ...</code></pre>
@@ -1717,7 +1722,7 @@ Changed the display order of the filtered object walk
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 09:20:10 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

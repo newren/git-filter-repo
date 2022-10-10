@@ -749,8 +749,14 @@ git-cat-file(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git cat-file</em> (-t [--allow-unknown-type]| -s [--allow-unknown-type]| -e | -p | &lt;type&gt; | --textconv | --filters ) [--path=&lt;path&gt;] &lt;object&gt;
-<em>git cat-file</em> (--batch[=&lt;format&gt;] | --batch-check[=&lt;format&gt;]) [ --textconv | --filters ] [--follow-symlinks]</pre>
+<pre class="content"><em>git cat-file</em> &lt;type&gt; &lt;object&gt;
+<em>git cat-file</em> (-e | -p) &lt;object&gt;
+<em>git cat-file</em> (-t | -s) [--allow-unknown-type] &lt;object&gt;
+<em>git cat-file</em> (--batch | --batch-check | --batch-command) [--batch-all-objects]
+             [--buffer] [--follow-symlinks] [--unordered]
+             [--textconv | --filters] [-z]
+<em>git cat-file</em> (--textconv | --filters)
+             [&lt;rev&gt;:&lt;path|tree-ish&gt; | --path=&lt;path|tree-ish&gt; &lt;rev&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -834,6 +840,19 @@ whitespace, so that the appropriate drivers can be determined.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--[no-]mailmap
+</dt>
+<dt class="hdlist1">
+--[no-]use-mailmap
+</dt>
+<dd>
+<p>
+       Use mailmap file to map author, committer and tagger names
+       and email addresses to canonical real names and email addresses.
+       See <a href="git-shortlog.html">git-shortlog(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
 --textconv
 </dt>
 <dd>
@@ -896,6 +915,56 @@ whitespace, so that the appropriate drivers can be determined.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--batch-command
+</dt>
+<dt class="hdlist1">
+--batch-command=&lt;format&gt;
+</dt>
+<dd>
+<p>
+        Enter a command mode that reads commands and arguments from stdin. May
+        only be combined with <code>--buffer</code>, <code>--textconv</code> or <code>--filters</code>. In the
+        case of <code>--textconv</code> or <code>--filters</code>, the input lines also need to specify
+        the path, separated by whitespace. See the section <code>BATCH OUTPUT</code> below
+        for details.
+</p>
+<div class="paragraph"><p><code>--batch-command</code> recognizes the following commands:</p></div>
+<div class="openblock">
+<div class="content">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+contents &lt;object&gt;
+</dt>
+<dd>
+<p>
+        Print object contents for object reference <code>&lt;object&gt;</code>. This corresponds to
+        the output of <code>--batch</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+info &lt;object&gt;
+</dt>
+<dd>
+<p>
+        Print object info for object reference <code>&lt;object&gt;</code>. This corresponds to the
+        output of <code>--batch-check</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+flush
+</dt>
+<dd>
+<p>
+        Used with <code>--buffer</code> to execute all preceding commands that were issued
+        since the beginning or since the last flush was issued. When <code>--buffer</code>
+        is used, no output will come until a <code>flush</code> is issued. When <code>--buffer</code>
+        is not used, commands are flushed each time without issuing <code>flush</code>.
+</p>
+</dd>
+</dl></div>
+</div></div>
+</dd>
+<dt class="hdlist1">
 --batch-all-objects
 </dt>
 <dd>
@@ -918,7 +987,7 @@ whitespace, so that the appropriate drivers can be determined.</p></div>
         that a process can interactively read and write from
         <code>cat-file</code>. With this option, the output uses normal stdio
         buffering; this is much more efficient when invoking
-        <code>--batch-check</code> on a large number of objects.
+        <code>--batch-check</code> or <code>--batch-command</code> on a large number of objects.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1011,6 +1080,16 @@ respectively print:</p></div>
 </div></div>
 </div></div>
 </dd>
+<dt class="hdlist1">
+-z
+</dt>
+<dd>
+<p>
+        Only meaningful with <code>--batch</code>, <code>--batch-check</code>, or
+        <code>--batch-command</code>; input is NUL-delimited instead of
+        newline-delimited.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1032,6 +1111,12 @@ will be returned.</p></div>
 from stdin, one per line, and print information about them. By default,
 the whole line is considered as an object, as if it were fed to
 <a href="git-rev-parse.html">git-rev-parse(1)</a>.</p></div>
+<div class="paragraph"><p>When <code>--batch-command</code> is given, <code>cat-file</code> will read commands from stdin,
+one per line, and print information based on the command given. With
+<code>--batch-command</code>, the <code>info</code> command followed by an object will print
+information about the object the same way <code>--batch-check</code> would, and the
+<code>contents</code> command followed by an object prints contents in the same way
+<code>--batch</code> would.</p></div>
 <div class="paragraph"><p>You can specify the information shown for each object by using a custom
 <code>&lt;format&gt;</code>. The <code>&lt;format&gt;</code> is copied literally to stdout for each
 object, with placeholders of the form <code>%(atom)</code> expanded, followed by a
@@ -1097,9 +1182,9 @@ newline. The available atoms are:</p></div>
 </dl></div>
 <div class="paragraph"><p>If no format is specified, the default format is <code>%(objectname)
 %(objecttype) %(objectsize)</code>.</p></div>
-<div class="paragraph"><p>If <code>--batch</code> is specified, the object information is followed by the
-object contents (consisting of <code>%(objectsize)</code> bytes), followed by a
-newline.</p></div>
+<div class="paragraph"><p>If <code>--batch</code> is specified, or if <code>--batch-command</code> is used with the <code>contents</code>
+command, the object information is followed by the object contents (consisting
+of <code>%(objectsize)</code> bytes), followed by a newline.</p></div>
 <div class="paragraph"><p>For example, <code>--batch</code> without a custom format would produce:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1188,7 +1273,7 @@ will be reported.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-09-16 17:50:33 PDT
 </div>
 </div>
 </body>

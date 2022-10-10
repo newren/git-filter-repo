@@ -752,7 +752,7 @@ git-checkout(1) Manual Page
 <pre class="content"><em>git checkout</em> [-q] [-f] [-m] [&lt;branch&gt;]
 <em>git checkout</em> [-q] [-f] [-m] --detach [&lt;branch&gt;]
 <em>git checkout</em> [-q] [-f] [-m] [--detach] &lt;commit&gt;
-<em>git checkout</em> [-q] [-f] [-m] [[-b|-B|--orphan] &lt;new_branch&gt;] [&lt;start_point&gt;]
+<em>git checkout</em> [-q] [-f] [-m] [[-b|-B|--orphan] &lt;new-branch&gt;] [&lt;start-point&gt;]
 <em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
 <em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] --pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]
 <em>git checkout</em> (-p|--patch) [&lt;tree-ish&gt;] [--] [&lt;pathspec&gt;&#8230;]</pre>
@@ -792,7 +792,7 @@ rather expensive side-effects to show only the tracking information,
 if exists, for the current branch.</p></div>
 </dd>
 <dt class="hdlist1">
-<em>git checkout</em> -b|-B &lt;new_branch&gt; [&lt;start point&gt;]
+<em>git checkout</em> -b|-B &lt;new-branch&gt; [&lt;start-point&gt;]
 </dt>
 <dd>
 <p>
@@ -803,11 +803,11 @@ if exists, for the current branch.</p></div>
         <code>--track</code> without <code>-b</code> implies branch creation; see the
         description of <code>--track</code> below.
 </p>
-<div class="paragraph"><p>If <code>-B</code> is given, <code>&lt;new_branch&gt;</code> is created if it doesn&#8217;t exist; otherwise, it
+<div class="paragraph"><p>If <code>-B</code> is given, <code>&lt;new-branch&gt;</code> is created if it doesn&#8217;t exist; otherwise, it
 is reset. This is the transactional equivalent of</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git branch -f &lt;branch&gt; [&lt;start point&gt;]
+<pre><code>$ git branch -f &lt;branch&gt; [&lt;start-point&gt;]
 $ git checkout &lt;branch&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>that is to say, the branch is not reset/created unless "git checkout" is
@@ -940,21 +940,21 @@ on your side branch as <code>theirs</code> (i.e. "one contributor&#8217;s work o
 of it").</p></div>
 </dd>
 <dt class="hdlist1">
--b &lt;new_branch&gt;
+-b &lt;new-branch&gt;
 </dt>
 <dd>
 <p>
-        Create a new branch named <code>&lt;new_branch&gt;</code> and start it at
-        <code>&lt;start_point&gt;</code>; see <a href="git-branch.html">git-branch(1)</a> for details.
+        Create a new branch named <code>&lt;new-branch&gt;</code> and start it at
+        <code>&lt;start-point&gt;</code>; see <a href="git-branch.html">git-branch(1)</a> for details.
 </p>
 </dd>
 <dt class="hdlist1">
--B &lt;new_branch&gt;
+-B &lt;new-branch&gt;
 </dt>
 <dd>
 <p>
-        Creates the branch <code>&lt;new_branch&gt;</code> and start it at <code>&lt;start_point&gt;</code>;
-        if it already exists, then reset it to <code>&lt;start_point&gt;</code>. This is
+        Creates the branch <code>&lt;new-branch&gt;</code> and start it at <code>&lt;start-point&gt;</code>;
+        if it already exists, then reset it to <code>&lt;start-point&gt;</code>. This is
         equivalent to running "git branch" with "-f"; see
         <a href="git-branch.html">git-branch(1)</a> for details.
 </p>
@@ -963,7 +963,7 @@ of it").</p></div>
 -t
 </dt>
 <dt class="hdlist1">
---track
+--track[=(direct|inherit)]
 </dt>
 <dd>
 <p>
@@ -1042,19 +1042,19 @@ variable.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---orphan &lt;new_branch&gt;
+--orphan &lt;new-branch&gt;
 </dt>
 <dd>
 <p>
-        Create a new <em>orphan</em> branch, named <code>&lt;new_branch&gt;</code>, started from
-        <code>&lt;start_point&gt;</code> and switch to it.  The first commit made on this
+        Create a new <em>orphan</em> branch, named <code>&lt;new-branch&gt;</code>, started from
+        <code>&lt;start-point&gt;</code> and switch to it.  The first commit made on this
         new branch will have no parents and it will be the root of a new
         history totally disconnected from all the other branches and
         commits.
 </p>
 <div class="paragraph"><p>The index and the working tree are adjusted as if you had previously run
-<code>git checkout &lt;start_point&gt;</code>.  This allows you to start a new history
-that records a set of paths similar to <code>&lt;start_point&gt;</code> by easily running
+<code>git checkout &lt;start-point&gt;</code>.  This allows you to start a new history
+that records a set of paths similar to <code>&lt;start-point&gt;</code> by easily running
 <code>git commit -a</code> to make the root commit.</p></div>
 <div class="paragraph"><p>This can be useful when you want to publish the tree from a commit
 without exposing its full history. You might want to do this to publish
@@ -1062,7 +1062,7 @@ an open source branch of a project whose current tree is "clean", but
 whose full history contains proprietary or otherwise encumbered bits of
 code.</p></div>
 <div class="paragraph"><p>If you want to start a disconnected history that records a set of paths
-that is totally different from the one of <code>&lt;start_point&gt;</code>, then you should
+that is totally different from the one of <code>&lt;start-point&gt;</code>, then you should
 clear the index and the working tree right after creating the orphan
 branch by running <code>git rm -rf .</code> from the top level of the working tree.
 Afterwards you will be ready to prepare your new files, repopulating the
@@ -1112,8 +1112,7 @@ the conflicted merge in the specified paths.</p></div>
         The same as <code>--merge</code> option above, but changes the way the
         conflicting hunks are presented, overriding the
         <code>merge.conflictStyle</code> configuration variable.  Possible values are
-        "merge" (default) and "diff3" (in addition to what is shown by
-        "merge" style, shows the original contents).
+        "merge" (default), "diff3", and "zdiff3".
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1233,7 +1232,7 @@ merge base of <code>A</code> and <code>B</code> if there is exactly one merge ba
 leave out at most one of <code>A</code> and <code>B</code>, in which case it defaults to <code>HEAD</code>.</p></div>
 </dd>
 <dt class="hdlist1">
-&lt;new_branch&gt;
+&lt;new-branch&gt;
 </dt>
 <dd>
 <p>
@@ -1241,7 +1240,7 @@ leave out at most one of <code>A</code> and <code>B</code>, in which case it def
 </p>
 </dd>
 <dt class="hdlist1">
-&lt;start_point&gt;
+&lt;start-point&gt;
 </dt>
 <dd>
 <p>
@@ -1544,6 +1543,79 @@ $ git add frotz</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+checkout.defaultRemote
+</dt>
+<dd>
+<p>
+        When you run <code>git checkout &lt;something&gt;</code>
+        or <code>git switch &lt;something&gt;</code> and only have one
+        remote, it may implicitly fall back on checking out and
+        tracking e.g. <code>origin/&lt;something&gt;</code>. This stops working as soon
+        as you have more than one remote with a <code>&lt;something&gt;</code>
+        reference. This setting allows for setting the name of a
+        preferred remote that should always win when it comes to
+        disambiguation. The typical use-case is to set this to
+        <code>origin</code>.
+</p>
+<div class="paragraph"><p>Currently this is used by <a href="git-switch.html">git-switch(1)</a> and
+<a href="git-checkout.html">git-checkout(1)</a> when <code>git checkout &lt;something&gt;</code>
+or <code>git switch &lt;something&gt;</code>
+will checkout the <code>&lt;something&gt;</code> branch on another remote,
+and by <a href="git-worktree.html">git-worktree(1)</a> when <code>git worktree add</code> refers to a
+remote branch. This setting might be used for other checkout-like
+commands or functionality in the future.</p></div>
+</dd>
+<dt class="hdlist1">
+checkout.guess
+</dt>
+<dd>
+<p>
+        Provides the default value for the <code>--guess</code> or <code>--no-guess</code>
+        option in <code>git checkout</code> and <code>git switch</code>. See
+        <a href="git-switch.html">git-switch(1)</a> and <a href="git-checkout.html">git-checkout(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+checkout.workers
+</dt>
+<dd>
+<p>
+        The number of parallel workers to use when updating the working tree.
+        The default is one, i.e. sequential execution. If set to a value less
+        than one, Git will use as many workers as the number of logical cores
+        available. This setting and <code>checkout.thresholdForParallelism</code> affect
+        all commands that perform checkout. E.g. checkout, clone, reset,
+        sparse-checkout, etc.
+</p>
+<div class="paragraph"><p>Note: parallel checkout usually delivers better performance for repositories
+located on SSDs or over NFS. For repositories on spinning disks and/or machines
+with a small number of cores, the default sequential checkout often performs
+better. The size and compression level of a repository might also influence how
+well the parallel version performs.</p></div>
+</dd>
+<dt class="hdlist1">
+checkout.thresholdForParallelism
+</dt>
+<dd>
+<p>
+        When running parallel checkout with a small number of files, the cost
+        of subprocess spawning and inter-process communication might outweigh
+        the parallelization gains. This setting allows to define the minimum
+        number of files for which parallel checkout should be attempted. The
+        default is 100.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="git-switch.html">git-switch(1)</a>,
@@ -1561,7 +1633,7 @@ $ git add frotz</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 13:27:01 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

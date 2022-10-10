@@ -923,17 +923,24 @@ instead.  <code>--no-symlinks</code> is the default on Windows.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_config_variables">CONFIG VARIABLES</h2>
+<h2 id="_configuration">CONFIGURATION</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><em>git difftool</em> falls back to <em>git mergetool</em> config variables when the
 difftool equivalents have not been defined.</p></div>
+<div class="paragraph"><p>Everything above this line in this section isn&#8217;t included from the
+<a href="git-config.html">git-config(1)</a> documentation. The content that follows is the
+same as what&#8217;s found there:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 diff.tool
 </dt>
 <dd>
 <p>
-        The default diff tool to use.
+        Controls which diff tool is used by <a href="git-difftool.html">git-difftool(1)</a>.
+        This variable overrides the value configured in <code>merge.tool</code>.
+        The list below shows the valid built-in values.
+        Any other value is treated as a custom diff tool and requires
+        that a corresponding difftool.&lt;tool&gt;.cmd variable is defined.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -941,8 +948,27 @@ diff.guitool
 </dt>
 <dd>
 <p>
-        The default diff tool to use when <code>--gui</code> is specified.
+        Controls which diff tool is used by <a href="git-difftool.html">git-difftool(1)</a> when
+        the -g/--gui flag is specified. This variable overrides the value
+        configured in <code>merge.guitool</code>. The list below shows the valid
+        built-in values. Any other value is treated as a custom diff tool
+        and requires that a corresponding difftool.&lt;guitool&gt;.cmd variable
+        is defined.
 </p>
+</dd>
+<dt class="hdlist1">
+difftool.&lt;tool&gt;.cmd
+</dt>
+<dd>
+<p>
+        Specify the command to invoke the specified diff tool.
+        The specified command is evaluated in shell with the following
+        variables available:  <em>LOCAL</em> is set to the name of the temporary
+        file containing the contents of the diff pre-image and <em>REMOTE</em>
+        is set to the name of the temporary file containing the contents
+        of the diff post-image.
+</p>
+<div class="paragraph"><p>See the <code>--tool=&lt;tool&gt;</code> option in <a href="git-difftool.html">git-difftool(1)</a> for more details.</p></div>
 </dd>
 <dt class="hdlist1">
 difftool.&lt;tool&gt;.path
@@ -954,13 +980,13 @@ difftool.&lt;tool&gt;.path
 </p>
 </dd>
 <dt class="hdlist1">
-difftool.&lt;tool&gt;.cmd
+difftool.trustExitCode
 </dt>
 <dd>
 <p>
-        Specify the command to invoke the specified diff tool.
+        Exit difftool if the invoked diff tool returns a non-zero exit status.
 </p>
-<div class="paragraph"><p>See the <code>--tool=&lt;tool&gt;</code> option above for more details.</p></div>
+<div class="paragraph"><p>See the <code>--trust-exit-code</code> option in <a href="git-difftool.html">git-difftool(1)</a> for more details.</p></div>
 </dd>
 <dt class="hdlist1">
 difftool.prompt
@@ -969,15 +995,6 @@ difftool.prompt
 <p>
         Prompt before each invocation of the diff tool.
 </p>
-</dd>
-<dt class="hdlist1">
-difftool.trustExitCode
-</dt>
-<dd>
-<p>
-        Exit difftool if the invoked diff tool returns a non-zero exit status.
-</p>
-<div class="paragraph"><p>See the <code>--trust-exit-code</code> option above for more details.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1024,7 +1041,7 @@ difftool.trustExitCode
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-10-06 09:57:11 PDT
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

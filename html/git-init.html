@@ -749,10 +749,10 @@ git-init(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git init</em> [-q | --quiet] [--bare] [--template=&lt;template_directory&gt;]
-          [--separate-git-dir &lt;git dir&gt;] [--object-format=&lt;format&gt;]
+<pre class="content"><em>git init</em> [-q | --quiet] [--bare] [--template=&lt;template-directory&gt;]
+          [--separate-git-dir &lt;git-dir&gt;] [--object-format=&lt;format&gt;]
           [-b &lt;branch-name&gt; | --initial-branch=&lt;branch-name&gt;]
-          [--shared[=&lt;permissions&gt;]] [directory]</pre>
+          [--shared[=&lt;permissions&gt;]] [&lt;directory&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -817,7 +817,7 @@ repositories may change in backwards-incompatible ways.  Only use
 <code>--object-format=sha256</code> for testing purposes.</p></div>
 </dd>
 <dt class="hdlist1">
---template=&lt;template_directory&gt;
+--template=&lt;template-directory&gt;
 </dt>
 <dd>
 <p>
@@ -826,7 +826,7 @@ DIRECTORY" section below.)
 </p>
 </dd>
 <dt class="hdlist1">
---separate-git-dir=&lt;git dir&gt;
+--separate-git-dir=&lt;git-dir&gt;
 </dt>
 <dd>
 <p>
@@ -852,7 +852,7 @@ customized via the <code>init.defaultBranch</code> configuration variable).
 </p>
 </dd>
 <dt class="hdlist1">
---shared[=(false|true|umask|group|all|world|everybody|0xxx)]
+--shared[=(false|true|umask|group|all|world|everybody|&lt;perm&gt;)]
 </dt>
 <dd>
 <p>
@@ -899,15 +899,18 @@ Same as <em>group</em>, but make the repository readable by all users.
 </p>
 </dd>
 <dt class="hdlist1">
-<em>0xxx</em>
+<em>&lt;perm&gt;</em>
 </dt>
 <dd>
 <p>
-<em>0xxx</em> is an octal number and each file will have mode <em>0xxx</em>. <em>0xxx</em> will
-override users' umask(2) value (and not only loosen permissions as <em>group</em> and
-<em>all</em> does). <em>0640</em> will create a repository which is group-readable, but not
-group-writable or accessible to others. <em>0660</em> will create a repo that is
-readable and writable to the current user and group, but inaccessible to others.
+<em>&lt;perm&gt;</em> is a 3-digit octal number prefixed with &#8216;0` and each file
+will have mode <em>&lt;perm&gt;</em>. <em>&lt;perm&gt;</em> will override users&#8217; umask(2)
+value (and not only loosen permissions as <em>group</em> and <em>all</em>
+does). <em>0640</em> will create a repository which is group-readable, but
+not group-writable or accessible to others. <em>0660</em> will create a repo
+that is readable and writable to the current user and group, but
+inaccessible to others (directories and executable files get their
+<code>x</code> bit from the <code>r</code> bit for corresponding classes of users).
 </p>
 </dd>
 </dl></div>
@@ -993,6 +996,34 @@ Record the pristine state as the first commit in the history.
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+init.templateDir
+</dt>
+<dd>
+<p>
+        Specify the directory from which templates will be copied.
+        (See the "TEMPLATE DIRECTORY" section of <a href="git-init.html">git-init(1)</a>.)
+</p>
+</dd>
+<dt class="hdlist1">
+init.defaultBranch
+</dt>
+<dd>
+<p>
+        Allows overriding the default branch name e.g. when initializing
+        a new repository.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
@@ -1003,7 +1034,7 @@ Record the pristine state as the first commit in the history.
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-11-15 09:20:10 PST
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

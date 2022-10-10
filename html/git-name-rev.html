@@ -808,14 +808,44 @@ format parsable by <em>git rev-parse</em>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---stdin
+--annotate-stdin
 </dt>
 <dd>
 <p>
         Transform stdin by substituting all the 40-character SHA-1
         hexes (say $hex) with "$hex ($rev_name)".  When used with
         --name-only, substitute with "$rev_name", omitting $hex
-        altogether.  Intended for the scripter&#8217;s use.
+        altogether.
+</p>
+<div class="paragraph"><p>For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ cat sample.txt
+
+An abbreviated revision 2ae0a9cb82 will not be substituted.
+The full name after substitution is 2ae0a9cb8298185a94e5998086f380a355dd8907,
+while its tree object is 70d105cc79e63b81cfdcb08a15297c23e60b07ad
+
+$ git name-rev --annotate-stdin &lt;sample.txt
+
+An abbreviated revision 2ae0a9cb82 will not be substituted.
+The full name after substitution is 2ae0a9cb8298185a94e5998086f380a355dd8907 (master),
+while its tree object is 70d105cc79e63b81cfdcb08a15297c23e60b07ad
+
+$ git name-rev --name-only --annotate-stdin &lt;sample.txt
+
+An abbreviated revision 2ae0a9cb82 will not be substituted.
+The full name after substitution is master,
+while its tree object is 70d105cc79e63b81cfdcb08a15297c23e60b07ad</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+--stdin
+</dt>
+<dd>
+<p>
+        This option is deprecated in favor of <em>git name-rev --annotate-stdin</em>.
+        They are functionally equivalent.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -881,7 +911,7 @@ not the context.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-09-30 23:04:56 PDT
+ 2022-08-31 14:31:31 PDT
 </div>
 </div>
 </body>

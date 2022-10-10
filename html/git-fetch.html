@@ -911,7 +911,8 @@ configuration variables documented in <a href="git-config.html">git-config(1)</a
         ancestors of the provided <code>--negotiation-tip=*</code> arguments,
         which we have in common with the server.
 </p>
-<div class="paragraph"><p>Internally this is used to implement the <code>push.negotiate</code> option, see
+<div class="paragraph"><p>This is incompatible with <code>--recurse-submodules=[yes|on-demand]</code>.
+Internally this is used to implement the <code>push.negotiate</code> option, see
 <a href="git-config.html">git-config(1)</a>.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1053,6 +1054,19 @@ configuration variables documented in <a href="git-config.html">git-config(1)</a
 </p>
 </dd>
 <dt class="hdlist1">
+--refetch
+</dt>
+<dd>
+<p>
+        Instead of negotiating with the server to avoid transferring commits and
+        associated objects that are already present locally, this option fetches
+        all objects as a fresh clone would. Use this to reapply a partial clone
+        filter from configuration or using <code>--filter=</code> when the filter
+        definition has changed. Automatic post-fetch maintenance will perform
+        object database pack consolidation to remove any duplicate objects.
+</p>
+</dd>
+<dt class="hdlist1">
 --refmap=&lt;refspec&gt;
 </dt>
 <dd>
@@ -1090,16 +1104,22 @@ configuration variables documented in <a href="git-config.html">git-config(1)</a
 <dd>
 <p>
         This option controls if and under what conditions new commits of
-        populated submodules should be fetched too. It can be used as a
-        boolean option to completely disable recursion when set to <em>no</em> or to
-        unconditionally recurse into all populated submodules when set to
-        <em>yes</em>, which is the default when this option is used without any
-        value. Use <em>on-demand</em> to only recurse into a populated submodule
-        when the superproject retrieves a commit that updates the submodule&#8217;s
-        reference to a commit that isn&#8217;t already in the local submodule
-        clone. By default, <em>on-demand</em> is used, unless
-        <code>fetch.recurseSubmodules</code> is set (see <a href="git-config.html">git-config(1)</a>).
+        submodules should be fetched too. When recursing through submodules,
+        <code>git fetch</code> always attempts to fetch "changed" submodules, that is, a
+        submodule that has commits that are referenced by a newly fetched
+        superproject commit but are missing in the local submodule clone. A
+        changed submodule can be fetched as long as it is present locally e.g.
+        in <code>$GIT_DIR/modules/</code> (see <a href="gitsubmodules.html">gitsubmodules(7)</a>); if the upstream
+        adds a new submodule, that submodule cannot be fetched until it is
+        cloned e.g. by <code>git submodule update</code>.
 </p>
+<div class="paragraph"><p>When set to <em>on-demand</em>, only changed submodules are fetched. When set
+to <em>yes</em>, all populated submodules are fetched and submodules that are
+both unpopulated and changed are fetched. When set to <em>no</em>, submodules
+are never fetched.</p></div>
+<div class="paragraph"><p>When unspecified, this uses the value of <code>fetch.recurseSubmodules</code> if it
+is set (see <a href="git-config.html">git-config(1)</a>), defaulting to <em>on-demand</em> if unset.
+When this option is used without any value, it defaults to <em>yes</em>.</p></div>
 </dd>
 <dt class="hdlist1">
 -j
@@ -1569,13 +1589,13 @@ config file would appear like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>        [remote "&lt;name&gt;"]
-                url = &lt;url&gt;
+                url = &lt;URL&gt;
                 pushurl = &lt;pushurl&gt;
                 push = &lt;refspec&gt;
                 fetch = &lt;refspec&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>The <code>&lt;pushurl&gt;</code> is used for pushes only. It is optional and defaults
-to <code>&lt;url&gt;</code>.</p></div>
+to <code>&lt;URL&gt;</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_named_file_in_code_git_dir_remotes_code">Named file in <code>$GIT_DIR/remotes</code></h3>
@@ -1604,9 +1624,9 @@ The URL in this file will be used to access the repository.
 This file should have the following format:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>        &lt;url&gt;#&lt;head&gt;</code></pre>
+<pre><code>        &lt;URL&gt;#&lt;head&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p><code>&lt;url&gt;</code> is required; <code>#&lt;head&gt;</code> is optional.</p></div>
+<div class="paragraph"><p><code>&lt;URL&gt;</code> is required; <code>#&lt;head&gt;</code> is optional.</p></div>
 <div class="paragraph"><p>Depending on the operation, git will use one of the following
 refspecs, if you don&#8217;t provide one on the command line.
 <code>&lt;branch&gt;</code> is the name of this file in <code>$GIT_DIR/branches</code> and
@@ -1973,14 +1993,178 @@ As in #1, the attacker chooses an object ID X to steal. The victim sends
 </div>
 </div>
 <div class="sect1">
+<h2 id="_configuration">CONFIGURATION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Everything below this line in this section is selectively included
+from the <a href="git-config.html">git-config(1)</a> documentation. The content is the same
+as what&#8217;s found there:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+fetch.recurseSubmodules
+</dt>
+<dd>
+<p>
+        This option controls whether <code>git fetch</code> (and the underlying fetch
+        in <code>git pull</code>) will recursively fetch into populated submodules.
+        This option can be set either to a boolean value or to <em>on-demand</em>.
+        Setting it to a boolean changes the behavior of fetch and pull to
+        recurse unconditionally into submodules when set to true or to not
+        recurse at all when set to false. When set to <em>on-demand</em>, fetch and
+        pull will only recurse into a populated submodule when its
+        superproject retrieves a commit that updates the submodule&#8217;s
+        reference.
+        Defaults to <em>on-demand</em>, or to the value of <em>submodule.recurse</em> if set.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.fsckObjects
+</dt>
+<dd>
+<p>
+        If it is set to true, git-fetch-pack will check all fetched
+        objects. See <code>transfer.fsckObjects</code> for what&#8217;s
+        checked. Defaults to false. If not set, the value of
+        <code>transfer.fsckObjects</code> is used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.fsck.&lt;msg-id&gt;
+</dt>
+<dd>
+<p>
+        Acts like <code>fsck.&lt;msg-id&gt;</code>, but is used by
+        <a href="git-fetch-pack.html">git-fetch-pack(1)</a> instead of <a href="git-fsck.html">git-fsck(1)</a>. See
+        the <code>fsck.&lt;msg-id&gt;</code> documentation for details.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.fsck.skipList
+</dt>
+<dd>
+<p>
+        Acts like <code>fsck.skipList</code>, but is used by
+        <a href="git-fetch-pack.html">git-fetch-pack(1)</a> instead of <a href="git-fsck.html">git-fsck(1)</a>. See
+        the <code>fsck.skipList</code> documentation for details.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.unpackLimit
+</dt>
+<dd>
+<p>
+        If the number of objects fetched over the Git native
+        transfer is below this
+        limit, then the objects will be unpacked into loose object
+        files. However if the number of received objects equals or
+        exceeds this limit then the received pack will be stored as
+        a pack, after adding any missing delta bases.  Storing the
+        pack from a push can make the push operation complete faster,
+        especially on slow filesystems.  If not set, the value of
+        <code>transfer.unpackLimit</code> is used instead.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.prune
+</dt>
+<dd>
+<p>
+        If true, fetch will automatically behave as if the <code>--prune</code>
+        option was given on the command line.  See also <code>remote.&lt;name&gt;.prune</code>
+        and the PRUNING section of <a href="git-fetch.html">git-fetch(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.pruneTags
+</dt>
+<dd>
+<p>
+        If true, fetch will automatically behave as if the
+        <code>refs/tags/*:refs/tags/*</code> refspec was provided when pruning,
+        if not set already. This allows for setting both this option
+        and <code>fetch.prune</code> to maintain a 1=1 mapping to upstream
+        refs. See also <code>remote.&lt;name&gt;.pruneTags</code> and the PRUNING
+        section of <a href="git-fetch.html">git-fetch(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.output
+</dt>
+<dd>
+<p>
+        Control how ref update status is printed. Valid values are
+        <code>full</code> and <code>compact</code>. Default value is <code>full</code>. See section
+        OUTPUT in <a href="git-fetch.html">git-fetch(1)</a> for detail.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.negotiationAlgorithm
+</dt>
+<dd>
+<p>
+        Control how information about the commits in the local repository
+        is sent when negotiating the contents of the packfile to be sent by
+        the server.  Set to "consecutive" to use an algorithm that walks
+        over consecutive commits checking each one.  Set to "skipping" to
+        use an algorithm that skips commits in an effort to converge
+        faster, but may result in a larger-than-necessary packfile; or set
+        to "noop" to not send any information at all, which will almost
+        certainly result in a larger-than-necessary packfile, but will skip
+        the negotiation step.  Set to "default" to override settings made
+        previously and use the default behaviour.  The default is normally
+        "consecutive", but if <code>feature.experimental</code> is true, then the
+        default is "skipping".  Unknown values will cause <em>git fetch</em> to
+        error out.
+</p>
+<div class="paragraph"><p>See also the <code>--negotiate-only</code> and <code>--negotiation-tip</code> options to
+<a href="git-fetch.html">git-fetch(1)</a>.</p></div>
+</dd>
+<dt class="hdlist1">
+fetch.showForcedUpdates
+</dt>
+<dd>
+<p>
+        Set to false to enable <code>--no-show-forced-updates</code> in
+        <a href="git-fetch.html">git-fetch(1)</a> and <a href="git-pull.html">git-pull(1)</a> commands.
+        Defaults to true.
+</p>
+</dd>
+<dt class="hdlist1">
+fetch.parallel
+</dt>
+<dd>
+<p>
+        Specifies the maximal number of fetch operations to be run in parallel
+        at a time (submodules, or remotes when the <code>--multiple</code> option of
+        <a href="git-fetch.html">git-fetch(1)</a> is in effect).
+</p>
+<div class="paragraph"><p>A value of 0 will give some reasonable default. If unset, it defaults to 1.</p></div>
+<div class="paragraph"><p>For submodules, this setting can be overridden using the <code>submodule.fetchJobs</code>
+config setting.</p></div>
+</dd>
+<dt class="hdlist1">
+fetch.writeCommitGraph
+</dt>
+<dd>
+<p>
+        Set to true to write a commit-graph after every <code>git fetch</code> command
+        that downloads a pack-file from a remote. Using the <code>--split</code> option,
+        most executions will create a very small commit-graph file on top of
+        the existing commit-graph file(s). Occasionally, these files will
+        merge and the write may take longer. Having an updated commit-graph
+        file helps performance of many Git commands, including <code>git merge-base</code>,
+        <code>git push -f</code>, and <code>git log --graph</code>. Defaults to false.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_bugs">BUGS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Using --recurse-submodules can only fetch new commits in already checked
-out submodules right now. When e.g. upstream added a new submodule in the
-just fetched commits of the superproject the submodule itself cannot be
-fetched, making it impossible to check out that submodule later without
-having to do a fetch again. This is expected to be fixed in a future Git
-version.</p></div>
+<div class="paragraph"><p>Using --recurse-submodules can only fetch new commits in submodules that are
+present locally e.g. in <code>$GIT_DIR/modules/</code>. If the upstream adds a new
+submodule, that submodule cannot be fetched until it is cloned e.g. by <code>git
+submodule update</code>. This is expected to be fixed in a future Git version.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -2000,7 +2184,7 @@ version.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2021-10-06 09:57:11 PDT
+ 2022-10-08 14:40:28 PDT
 </div>
 </div>
 </body>

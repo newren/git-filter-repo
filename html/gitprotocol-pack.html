@@ -1,0 +1,1501 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 9.1.0" />
+<title>gitprotocol-pack(5)</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overridden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="manpage">
+<div id="header">
+<h1>
+gitprotocol-pack(5) Manual Page
+</h1>
+<h2>NAME</h2>
+<div class="sectionbody">
+<p>gitprotocol-pack -
+   How packs are transferred over-the-wire
+</p>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_synopsis">SYNOPSIS</h2>
+<div class="sectionbody">
+<div class="verseblock">
+<pre class="content">&lt;over-the-wire-protocol&gt;</pre>
+<div class="attribution">
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Git supports transferring data in packfiles over the ssh://, git://, http:// and
+file:// transports.  There exist two sets of protocols, one for pushing
+data from a client to a server and another for fetching data from a
+server to a client.  The three transports (ssh, git, file) use the same
+protocol to transfer data. http is documented in <a href="gitprotocol-http.html">gitprotocol-http(5)</a>.</p></div>
+<div class="paragraph"><p>The processes invoked in the canonical Git implementation are <em>upload-pack</em>
+on the server side and <em>fetch-pack</em> on the client side for fetching data;
+then <em>receive-pack</em> on the server and <em>send-pack</em> on the client for pushing
+data.  The protocol functions to have a server tell a client what is
+currently on the server, then for the two to negotiate the smallest amount
+of data to send in order to fully update one or the other.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pkt_line_format">pkt-line Format</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The descriptions below build on the pkt-line format described in
+<a href="gitprotocol-common.html">gitprotocol-common(5)</a>. When the grammar indicate <code>PKT-LINE(...)</code>, unless
+otherwise noted the usual pkt-line LF rules apply: the sender SHOULD
+include a LF, but the receiver MUST NOT complain if it is not present.</p></div>
+<div class="paragraph"><p>An error packet is a special pkt-line that contains an error string.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  error-line     =  PKT-LINE("ERR" SP explanation-text)</code></pre>
+</div></div>
+<div class="paragraph"><p>Throughout the protocol, where <code>PKT-LINE(...)</code> is expected, an error packet MAY
+be sent. Once this packet is sent by a client or a server, the data transfer
+process defined in this protocol is terminated.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_transports">Transports</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>There are three transports over which the packfile protocol is
+initiated.  The Git transport is a simple, unauthenticated server that
+takes the command (almost always <em>upload-pack</em>, though Git
+servers can be configured to be globally writable, in which <em>receive-
+pack</em> initiation is also allowed) with which the client wishes to
+communicate and executes it and connects it to the requesting
+process.</p></div>
+<div class="paragraph"><p>In the SSH transport, the client just runs the <em>upload-pack</em>
+or <em>receive-pack</em> process on the server over the SSH protocol and then
+communicates with that invoked process over the SSH connection.</p></div>
+<div class="paragraph"><p>The file:// transport runs the <em>upload-pack</em> or <em>receive-pack</em>
+process locally and communicates with it over a pipe.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_extra_parameters">Extra Parameters</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The protocol provides a mechanism in which clients can send additional
+information in its first message to the server. These are called "Extra
+Parameters", and are supported by the Git, SSH, and HTTP protocols.</p></div>
+<div class="paragraph"><p>Each Extra Parameter takes the form of <code>&lt;key&gt;=&lt;value&gt;</code> or <code>&lt;key&gt;</code>.</p></div>
+<div class="paragraph"><p>Servers that receive any such Extra Parameters MUST ignore all
+unrecognized keys. Currently, the only Extra Parameter recognized is
+"version" with a value of <em>1</em> or <em>2</em>.  See <a href="gitprotocol-v2.html">gitprotocol-v2(5)</a> for more
+information on protocol version 2.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git_transport">Git Transport</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The Git transport starts off by sending the command and repository
+on the wire using the pkt-line format, followed by a NUL byte and a
+hostname parameter, terminated by a NUL byte.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>0033git-upload-pack /project.git\0host=myserver.com\0</code></pre>
+</div></div>
+<div class="paragraph"><p>The transport may send Extra Parameters by adding an additional NUL
+byte, and then adding one or more NUL-terminated strings:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>003egit-upload-pack /project.git\0host=myserver.com\0\0version=1\0</code></pre>
+</div></div>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre><code>git-proto-request = request-command SP pathname NUL
+                    [ host-parameter NUL ] [ NUL extra-parameters ]
+request-command   = "git-upload-pack" / "git-receive-pack" /
+                    "git-upload-archive"   ; case sensitive
+pathname          = *( %x01-ff ) ; exclude NUL
+host-parameter    = "host=" hostname [ ":" port ]
+extra-parameters  = 1*extra-parameter
+extra-parameter   = 1*( %x01-ff ) NUL</code></pre>
+</div></div>
+</div></div>
+<div class="paragraph"><p>host-parameter is used for the
+git-daemon name based virtual hosting.  See --interpolated-path
+option to git daemon, with the %H/%CH format characters.</p></div>
+<div class="paragraph"><p>Basically what the Git client is doing to connect to an <em>upload-pack</em>
+process on the server side over the Git protocol is this:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$ echo -e -n \
+  "003agit-upload-pack /schacon/gitbook.git\0host=example.com\0" |
+  nc -v example.com 9418</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ssh_transport">SSH Transport</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Initiating the upload-pack or receive-pack processes over SSH is
+executing the binary on the server via SSH remote execution.
+It is basically equivalent to running this:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$ ssh git.example.com "git-upload-pack '/project.git'"</code></pre>
+</div></div>
+<div class="paragraph"><p>For a server to support Git pushing and pulling for a given user over
+SSH, that user needs to be able to execute one or both of those
+commands via the SSH shell that they are provided on login.  On some
+systems, that shell access is limited to only being able to run those
+two commands, or even just one of them.</p></div>
+<div class="paragraph"><p>In an ssh:// format URI, it&#8217;s absolute in the URI, so the <em>/</em> after
+the host name (or port number) is sent as an argument, which is then
+read by the remote git-upload-pack exactly as is, so it&#8217;s effectively
+an absolute path in the remote filesystem.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>   git clone ssh://user@example.com/project.git
+                |
+                v
+ssh user@example.com "git-upload-pack '/project.git'"</code></pre>
+</div></div>
+<div class="paragraph"><p>In a "user@host:path" format URI, its relative to the user&#8217;s home
+directory, because the Git client will run:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>   git clone user@example.com:project.git
+                  |
+                  v
+ssh user@example.com "git-upload-pack 'project.git'"</code></pre>
+</div></div>
+<div class="paragraph"><p>The exception is if a <em>~</em> is used, in which case
+we execute it without the leading <em>/</em>.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>   ssh://user@example.com/~alice/project.git,
+                  |
+                  v
+ssh user@example.com "git-upload-pack '~alice/project.git'"</code></pre>
+</div></div>
+<div class="paragraph"><p>Depending on the value of the <code>protocol.version</code> configuration variable,
+Git may attempt to send Extra Parameters as a colon-separated string in
+the GIT_PROTOCOL environment variable. This is done only if
+the <code>ssh.variant</code> configuration variable indicates that the ssh command
+supports passing environment variables as an argument.</p></div>
+<div class="paragraph"><p>A few things to remember here:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The "command name" is spelled with dash (e.g. git-upload-pack), but
+  this can be overridden by the client;
+</p>
+</li>
+<li>
+<p>
+The repository path is always quoted with single quotes.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fetching_data_from_a_server">Fetching Data From a Server</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When one Git repository wants to get data that a second repository
+has, the first can <em>fetch</em> from the second.  This operation determines
+what data the server has that the client does not then streams that
+data down to the client in packfile format.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reference_discovery">Reference Discovery</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>When the client initially connects the server will immediately respond
+with a version number (if "version=1" is sent as an Extra Parameter),
+and a listing of each reference it has (all branches and tags) along
+with the object name that each reference currently points to.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>$ echo -e -n "0045git-upload-pack /schacon/gitbook.git\0host=example.com\0\0version=1\0" |
+   nc -v example.com 9418
+000eversion 1
+00887217a7c7e582c46cec22a130adf4b9d7d950fba0 HEAD\0multi_ack thin-pack
+             side-band side-band-64k ofs-delta shallow no-progress include-tag
+00441d3fcd5ced445d1abc402225c0b8a1299641f497 refs/heads/integration
+003f7217a7c7e582c46cec22a130adf4b9d7d950fba0 refs/heads/master
+003cb88d2441cac0977faf98efc80305012112238d9d refs/tags/v0.9
+003c525128480b96c89e6418b1e40909bf6c5b2d580f refs/tags/v1.0
+003fe92df48743b7bc7d26bcaabfddde0a1e20cae47c refs/tags/v1.0^{}
+0000</code></pre>
+</div></div>
+<div class="paragraph"><p>The returned response is a pkt-line stream describing each ref and
+its current value.  The stream MUST be sorted by name according to
+the C locale ordering.</p></div>
+<div class="paragraph"><p>If HEAD is a valid ref, HEAD MUST appear as the first advertised
+ref.  If HEAD is not a valid ref, HEAD MUST NOT appear in the
+advertisement list at all, but other refs may still appear.</p></div>
+<div class="paragraph"><p>The stream MUST include capability declarations behind a NUL on the
+first ref. The peeled value of a ref (that is "ref^{}") MUST be
+immediately after the ref itself, if presented. A conforming server
+MUST peel the ref if it&#8217;s an annotated tag.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  advertised-refs  =  *1("version 1")
+                      (no-refs / list-of-refs)
+                      *shallow
+                      flush-pkt
+
+  no-refs          =  PKT-LINE(zero-id SP "capabilities^{}"
+                      NUL capability-list)
+
+  list-of-refs     =  first-ref *other-ref
+  first-ref        =  PKT-LINE(obj-id SP refname
+                      NUL capability-list)
+
+  other-ref        =  PKT-LINE(other-tip / other-peeled)
+  other-tip        =  obj-id SP refname
+  other-peeled     =  obj-id SP refname "^{}"
+
+  shallow          =  PKT-LINE("shallow" SP obj-id)
+
+  capability-list  =  capability *(SP capability)
+  capability       =  1*(LC_ALPHA / DIGIT / "-" / "_")
+  LC_ALPHA         =  %x61-7A</code></pre>
+</div></div>
+<div class="paragraph"><p>Server and client MUST use lowercase for obj-id, both MUST treat obj-id
+as case-insensitive.</p></div>
+<div class="paragraph"><p>See protocol-capabilities.txt for a list of allowed server capabilities
+and descriptions.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_packfile_negotiation">Packfile Negotiation</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>After reference and capabilities discovery, the client can decide to
+terminate the connection by sending a flush-pkt, telling the server it can
+now gracefully terminate, and disconnect, when it does not need any pack
+data. This can happen with the ls-remote command, and also can happen when
+the client already is up to date.</p></div>
+<div class="paragraph"><p>Otherwise, it enters the negotiation phase, where the client and
+server determine what the minimal packfile necessary for transport is,
+by telling the server what objects it wants, its shallow objects
+(if any), and the maximum commit depth it wants (if any).  The client
+will also send a list of the capabilities it wants to be in effect,
+out of what the server said it could do with the first <em>want</em> line.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  upload-request    =  want-list
+                       *shallow-line
+                       *1depth-request
+                       [filter-request]
+                       flush-pkt
+
+  want-list         =  first-want
+                       *additional-want
+
+  shallow-line      =  PKT-LINE("shallow" SP obj-id)
+
+  depth-request     =  PKT-LINE("deepen" SP depth) /
+                       PKT-LINE("deepen-since" SP timestamp) /
+                       PKT-LINE("deepen-not" SP ref)
+
+  first-want        =  PKT-LINE("want" SP obj-id SP capability-list)
+  additional-want   =  PKT-LINE("want" SP obj-id)
+
+  depth             =  1*DIGIT
+
+  filter-request    =  PKT-LINE("filter" SP filter-spec)</code></pre>
+</div></div>
+<div class="paragraph"><p>Clients MUST send all the obj-ids it wants from the reference
+discovery phase as <em>want</em> lines. Clients MUST send at least one
+<em>want</em> command in the request body. Clients MUST NOT mention an
+obj-id in a <em>want</em> command which did not appear in the response
+obtained through ref discovery.</p></div>
+<div class="paragraph"><p>The client MUST write all obj-ids which it only has shallow copies
+of (meaning that it does not have the parents of a commit) as
+<em>shallow</em> lines so that the server is aware of the limitations of
+the client&#8217;s history.</p></div>
+<div class="paragraph"><p>The client now sends the maximum commit history depth it wants for
+this transaction, which is the number of commits it wants from the
+tip of the history, if any, as a <em>deepen</em> line.  A depth of 0 is the
+same as not making a depth request. The client does not want to receive
+any commits beyond this depth, nor does it want objects needed only to
+complete those commits. Commits whose parents are not received as a
+result are defined as shallow and marked as such in the server. This
+information is sent back to the client in the next step.</p></div>
+<div class="paragraph"><p>The client can optionally request that pack-objects omit various
+objects from the packfile using one of several filtering techniques.
+These are intended for use with partial clone and partial fetch
+operations. An object that does not meet a filter-spec value is
+omitted unless explicitly requested in a <em>want</em> line. See <code>rev-list</code>
+for possible filter-spec values.</p></div>
+<div class="paragraph"><p>Once all the <em>want&#8217;s and 'shallow&#8217;s (and optional 'deepen</em>) are
+transferred, clients MUST send a flush-pkt, to tell the server side
+that it is done sending the list.</p></div>
+<div class="paragraph"><p>Otherwise, if the client sent a positive depth request, the server
+will determine which commits will and will not be shallow and
+send this information to the client. If the client did not request
+a positive depth, this step is skipped.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  shallow-update   =  *shallow-line
+                      *unshallow-line
+                      flush-pkt
+
+  shallow-line     =  PKT-LINE("shallow" SP obj-id)
+
+  unshallow-line   =  PKT-LINE("unshallow" SP obj-id)</code></pre>
+</div></div>
+<div class="paragraph"><p>If the client has requested a positive depth, the server will compute
+the set of commits which are no deeper than the desired depth. The set
+of commits start at the client&#8217;s wants.</p></div>
+<div class="paragraph"><p>The server writes <em>shallow</em> lines for each
+commit whose parents will not be sent as a result. The server writes
+an <em>unshallow</em> line for each commit which the client has indicated is
+shallow, but is no longer shallow at the currently requested depth
+(that is, its parents will now be sent). The server MUST NOT mark
+as unshallow anything which the client has not indicated was shallow.</p></div>
+<div class="paragraph"><p>Now the client will send a list of the obj-ids it has using <em>have</em>
+lines, so the server can make a packfile that only contains the objects
+that the client needs. In multi_ack mode, the canonical implementation
+will send up to 32 of these at a time, then will send a flush-pkt. The
+canonical implementation will skip ahead and send the next 32 immediately,
+so that there is always a block of 32 "in-flight on the wire" at a time.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  upload-haves      =  have-list
+                       compute-end
+
+  have-list         =  *have-line
+  have-line         =  PKT-LINE("have" SP obj-id)
+  compute-end       =  flush-pkt / PKT-LINE("done")</code></pre>
+</div></div>
+<div class="paragraph"><p>If the server reads <em>have</em> lines, it then will respond by ACKing any
+of the obj-ids the client said it had that the server also has. The
+server will ACK obj-ids differently depending on which ack mode is
+chosen by the client.</p></div>
+<div class="paragraph"><p>In multi_ack mode:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+the server will respond with <em>ACK obj-id continue</em> for any common
+    commits.
+</p>
+</li>
+<li>
+<p>
+once the server has found an acceptable common base commit and is
+    ready to make a packfile, it will blindly ACK all <em>have</em> obj-ids
+    back to the client.
+</p>
+</li>
+<li>
+<p>
+the server will then send a <em>NAK</em> and then wait for another response
+    from the client - either a <em>done</em> or another list of <em>have</em> lines.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>In multi_ack_detailed mode:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+the server will differentiate the ACKs where it is signaling
+    that it is ready to send data with <em>ACK obj-id ready</em> lines, and
+    signals the identified common commits with <em>ACK obj-id common</em> lines.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Without either multi_ack or multi_ack_detailed:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+upload-pack sends "ACK obj-id" on the first common object it finds.
+   After that it says nothing until the client gives it a "done".
+</p>
+</li>
+<li>
+<p>
+upload-pack sends "NAK" on a flush-pkt if no common object
+   has been found yet.  If one has been found, and thus an ACK
+   was already sent, it&#8217;s silent on the flush-pkt.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>After the client has gotten enough ACK responses that it can determine
+that the server has enough information to send an efficient packfile
+(in the canonical implementation, this is determined when it has received
+enough ACKs that it can color everything left in the --date-order queue
+as common with the server, or the --date-order queue is empty), or the
+client determines that it wants to give up (in the canonical implementation,
+this is determined when the client sends 256 <em>have</em> lines without getting
+any of them ACKed by the server - meaning there is nothing in common and
+the server should just send all of its objects), then the client will send
+a <em>done</em> command.  The <em>done</em> command signals to the server that the client
+is ready to receive its packfile data.</p></div>
+<div class="paragraph"><p>However, the 256 limit <strong>only</strong> turns on in the canonical client
+implementation if we have received at least one "ACK %s continue"
+during a prior round.  This helps to ensure that at least one common
+ancestor is found before we give up entirely.</p></div>
+<div class="paragraph"><p>Once the <em>done</em> line is read from the client, the server will either
+send a final <em>ACK obj-id</em> or it will send a <em>NAK</em>. <em>obj-id</em> is the object
+name of the last commit determined to be common. The server only sends
+ACK after <em>done</em> if there is at least one common base and multi_ack or
+multi_ack_detailed is enabled. The server always sends NAK after <em>done</em>
+if there is no common base found.</p></div>
+<div class="paragraph"><p>Instead of <em>ACK</em> or <em>NAK</em>, the server may send an error message (for
+example, if it does not recognize an object in a <em>want</em> line received
+from the client).</p></div>
+<div class="paragraph"><p>Then the server will start sending its packfile data.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  server-response = *ack_multi ack / nak
+  ack_multi       = PKT-LINE("ACK" SP obj-id ack_status)
+  ack_status      = "continue" / "common" / "ready"
+  ack             = PKT-LINE("ACK" SP obj-id)
+  nak             = PKT-LINE("NAK")</code></pre>
+</div></div>
+<div class="paragraph"><p>A simple clone may look like this (with no <em>have</em> lines):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>   C: 0054want 74730d410fcb6603ace96f1dc55ea6196122532d multi_ack \
+     side-band-64k ofs-delta\n
+   C: 0032want 7d1665144a3a975c05f1f43902ddaf084e784dbe\n
+   C: 0032want 5a3f6be755bbb7deae50065988cbfa1ffa9ab68a\n
+   C: 0032want 7e47fe2bd8d01d481f44d7af0531bd93d3b21c01\n
+   C: 0032want 74730d410fcb6603ace96f1dc55ea6196122532d\n
+   C: 0000
+   C: 0009done\n
+
+   S: 0008NAK\n
+   S: [PACKFILE]</code></pre>
+</div></div>
+<div class="paragraph"><p>An incremental update (fetch) response might look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>   C: 0054want 74730d410fcb6603ace96f1dc55ea6196122532d multi_ack \
+     side-band-64k ofs-delta\n
+   C: 0032want 7d1665144a3a975c05f1f43902ddaf084e784dbe\n
+   C: 0032want 5a3f6be755bbb7deae50065988cbfa1ffa9ab68a\n
+   C: 0000
+   C: 0032have 7e47fe2bd8d01d481f44d7af0531bd93d3b21c01\n
+   C: [30 more have lines]
+   C: 0032have 74730d410fcb6603ace96f1dc55ea6196122532d\n
+   C: 0000
+
+   S: 003aACK 7e47fe2bd8d01d481f44d7af0531bd93d3b21c01 continue\n
+   S: 003aACK 74730d410fcb6603ace96f1dc55ea6196122532d continue\n
+   S: 0008NAK\n
+
+   C: 0009done\n
+
+   S: 0031ACK 74730d410fcb6603ace96f1dc55ea6196122532d\n
+   S: [PACKFILE]</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_packfile_data">Packfile Data</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Now that the client and server have finished negotiation about what
+the minimal amount of data that needs to be sent to the client is, the server
+will construct and send the required data in packfile format.</p></div>
+<div class="paragraph"><p>See <a href="gitformat-pack.html">gitformat-pack(5)</a> for what the packfile itself actually looks like.</p></div>
+<div class="paragraph"><p>If <em>side-band</em> or <em>side-band-64k</em> capabilities have been specified by
+the client, the server will send the packfile data multiplexed.</p></div>
+<div class="paragraph"><p>Each packet starting with the packet-line length of the amount of data
+that follows, followed by a single byte specifying the sideband the
+following data is coming in on.</p></div>
+<div class="paragraph"><p>In <em>side-band</em> mode, it will send up to 999 data bytes plus 1 control
+code, for a total of up to 1000 bytes in a pkt-line.  In <em>side-band-64k</em>
+mode it will send up to 65519 data bytes plus 1 control code, for a
+total of up to 65520 bytes in a pkt-line.</p></div>
+<div class="paragraph"><p>The sideband byte will be a <em>1</em>, <em>2</em> or a <em>3</em>. Sideband <em>1</em> will contain
+packfile data, sideband <em>2</em> will be used for progress information that the
+client will generally print to stderr and sideband <em>3</em> is used for error
+information.</p></div>
+<div class="paragraph"><p>If no <em>side-band</em> capability was specified, the server will stream the
+entire packfile without multiplexing.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pushing_data_to_a_server">Pushing Data To a Server</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Pushing data to a server will invoke the <em>receive-pack</em> process on the
+server, which will allow the client to tell it which references it should
+update and then send all the data the server will need for those new
+references to be complete.  Once all the data is received and validated,
+the server will then update its references to what the client specified.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_authentication">Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The protocol itself contains no authentication mechanisms.  That is to be
+handled by the transport, such as SSH, before the <em>receive-pack</em> process is
+invoked.  If <em>receive-pack</em> is configured over the Git transport, those
+repositories will be writable by anyone who can access that port (9418) as
+that transport is unauthenticated.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reference_discovery_2">Reference Discovery</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The reference discovery phase is done nearly the same way as it is in the
+fetching protocol. Each reference obj-id and name on the server is sent
+in packet-line format to the client, followed by a flush-pkt.  The only
+real difference is that the capability listing is different - the only
+possible values are <em>report-status</em>, <em>report-status-v2</em>, <em>delete-refs</em>,
+<em>ofs-delta</em>, <em>atomic</em> and <em>push-options</em>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reference_update_request_and_packfile_transfer">Reference Update Request and Packfile Transfer</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Once the client knows what references the server is at, it can send a
+list of reference update requests.  For each reference on the server
+that it wants to update, it sends a line listing the obj-id currently on
+the server, the obj-id the client would like to update it to and the name
+of the reference.</p></div>
+<div class="paragraph"><p>This list is followed by a flush-pkt.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  update-requests   =  *shallow ( command-list | push-cert )
+
+  shallow           =  PKT-LINE("shallow" SP obj-id)
+
+  command-list      =  PKT-LINE(command NUL capability-list)
+                       *PKT-LINE(command)
+                       flush-pkt
+
+  command           =  create / delete / update
+  create            =  zero-id SP new-id  SP name
+  delete            =  old-id  SP zero-id SP name
+  update            =  old-id  SP new-id  SP name
+
+  old-id            =  obj-id
+  new-id            =  obj-id
+
+  push-cert         = PKT-LINE("push-cert" NUL capability-list LF)
+                      PKT-LINE("certificate version 0.1" LF)
+                      PKT-LINE("pusher" SP ident LF)
+                      PKT-LINE("pushee" SP url LF)
+                      PKT-LINE("nonce" SP nonce LF)
+                      *PKT-LINE("push-option" SP push-option LF)
+                      PKT-LINE(LF)
+                      *PKT-LINE(command LF)
+                      *PKT-LINE(gpg-signature-lines LF)
+                      PKT-LINE("push-cert-end" LF)
+
+  push-option       =  1*( VCHAR | SP )</code></pre>
+</div></div>
+<div class="paragraph"><p>If the server has advertised the <em>push-options</em> capability and the client has
+specified <em>push-options</em> as part of the capability list above, the client then
+sends its push options followed by a flush-pkt.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  push-options      =  *PKT-LINE(push-option) flush-pkt</code></pre>
+</div></div>
+<div class="paragraph"><p>For backwards compatibility with older Git servers, if the client sends a push
+cert and push options, it MUST send its push options both embedded within the
+push cert and after the push cert. (Note that the push options within the cert
+are prefixed, but the push options after the cert are not.) Both these lists
+MUST be the same, modulo the prefix.</p></div>
+<div class="paragraph"><p>After that the packfile that
+should contain all the objects that the server will need to complete the new
+references will be sent.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  packfile          =  "PACK" 28*(OCTET)</code></pre>
+</div></div>
+<div class="paragraph"><p>If the receiving end does not support delete-refs, the sending end MUST
+NOT ask for delete command.</p></div>
+<div class="paragraph"><p>If the receiving end does not support push-cert, the sending end
+MUST NOT send a push-cert command.  When a push-cert command is
+sent, command-list MUST NOT be sent; the commands recorded in the
+push certificate is used instead.</p></div>
+<div class="paragraph"><p>The packfile MUST NOT be sent if the only command used is <em>delete</em>.</p></div>
+<div class="paragraph"><p>A packfile MUST be sent if either create or update command is used,
+even if the server already has all the necessary objects.  In this
+case the client MUST send an empty packfile.   The only time this
+is likely to happen is if the client is creating
+a new branch or a tag that points to an existing obj-id.</p></div>
+<div class="paragraph"><p>The server will receive the packfile, unpack it, then validate each
+reference that is being updated that it hasn&#8217;t changed while the request
+was being processed (the obj-id is still the same as the old-id), and
+it will run any update hooks to make sure that the update is acceptable.
+If all of that is fine, the server will then update the references.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_push_certificate">Push Certificate</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>A push certificate begins with a set of header lines.  After the
+header and an empty line, the protocol commands follow, one per
+line. Note that the trailing LF in push-cert PKT-LINEs is <em>not</em>
+optional; it must be present.</p></div>
+<div class="paragraph"><p>Currently, the following header fields are defined:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>pusher</code> ident
+</dt>
+<dd>
+<p>
+        Identify the GPG key in "Human Readable Name &lt;<a href="mailto:email@address">email@address</a>&gt;"
+        format.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>pushee</code> url
+</dt>
+<dd>
+<p>
+        The repository URL (anonymized, if the URL contains
+        authentication material) the user who ran <code>git push</code>
+        intended to push into.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>nonce</code> nonce
+</dt>
+<dd>
+<p>
+        The <em>nonce</em> string the receiving repository asked the
+        pushing user to include in the certificate, to prevent
+        replay attacks.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The GPG signature lines are a detached signature for the contents
+recorded in the push certificate before the signature block begins.
+The detached signature is used to certify that the commands were
+given by the pusher, who must be the signer.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_report_status">Report Status</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>After receiving the pack data from the sender, the receiver sends a
+report if <em>report-status</em> or <em>report-status-v2</em> capability is in effect.
+It is a short listing of what happened in that update.  It will first
+list the status of the packfile unpacking as either <em>unpack ok</em> or
+<em>unpack [error]</em>.  Then it will list the status for each of the references
+that it tried to update.  Each line is either <em>ok [refname]</em> if the
+update was successful, or <em>ng [refname] [error]</em> if the update was not.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  report-status     = unpack-status
+                      1*(command-status)
+                      flush-pkt
+
+  unpack-status     = PKT-LINE("unpack" SP unpack-result)
+  unpack-result     = "ok" / error-msg
+
+  command-status    = command-ok / command-fail
+  command-ok        = PKT-LINE("ok" SP refname)
+  command-fail      = PKT-LINE("ng" SP refname SP error-msg)
+
+  error-msg         = 1*(OCTET) ; where not "ok"</code></pre>
+</div></div>
+<div class="paragraph"><p>The <em>report-status-v2</em> capability extends the protocol by adding new option
+lines in order to support reporting of reference rewritten by the
+<em>proc-receive</em> hook.  The <em>proc-receive</em> hook may handle a command for a
+pseudo-reference which may create or update one or more references, and each
+reference may have different name, different new-oid, and different old-oid.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  report-status-v2  = unpack-status
+                      1*(command-status-v2)
+                      flush-pkt
+
+  unpack-status     = PKT-LINE("unpack" SP unpack-result)
+  unpack-result     = "ok" / error-msg
+
+  command-status-v2 = command-ok-v2 / command-fail
+  command-ok-v2     = command-ok
+                      *option-line
+
+  command-ok        = PKT-LINE("ok" SP refname)
+  command-fail      = PKT-LINE("ng" SP refname SP error-msg)
+
+  error-msg         = 1*(OCTET) ; where not "ok"
+
+  option-line       = *1(option-refname)
+                      *1(option-old-oid)
+                      *1(option-new-oid)
+                      *1(option-forced-update)
+
+  option-refname    = PKT-LINE("option" SP "refname" SP refname)
+  option-old-oid    = PKT-LINE("option" SP "old-oid" SP obj-id)
+  option-new-oid    = PKT-LINE("option" SP "new-oid" SP obj-id)
+  option-force      = PKT-LINE("option" SP "forced-update")</code></pre>
+</div></div>
+<div class="paragraph"><p>Updates can be unsuccessful for a number of reasons.  The reference can have
+changed since the reference discovery phase was originally sent, meaning
+someone pushed in the meantime.  The reference being pushed could be a
+non-fast-forward reference and the update hooks or configuration could be
+set to not allow that, etc.  Also, some references can be updated while others
+can be rejected.</p></div>
+<div class="paragraph"><p>An example client/server communication might look like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>   S: 006274730d410fcb6603ace96f1dc55ea6196122532d refs/heads/local\0report-status delete-refs ofs-delta\n
+   S: 003e7d1665144a3a975c05f1f43902ddaf084e784dbe refs/heads/debug\n
+   S: 003f74730d410fcb6603ace96f1dc55ea6196122532d refs/heads/master\n
+   S: 003d74730d410fcb6603ace96f1dc55ea6196122532d refs/heads/team\n
+   S: 0000
+
+   C: 00677d1665144a3a975c05f1f43902ddaf084e784dbe 74730d410fcb6603ace96f1dc55ea6196122532d refs/heads/debug\n
+   C: 006874730d410fcb6603ace96f1dc55ea6196122532d 5a3f6be755bbb7deae50065988cbfa1ffa9ab68a refs/heads/master\n
+   C: 0000
+   C: [PACKDATA]
+
+   S: 000eunpack ok\n
+   S: 0018ok refs/heads/debug\n
+   S: 002ang refs/heads/master non-fast-forward\n</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git">GIT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2022-09-16 17:50:33 PDT
+</div>
+</div>
+</body>
+</html>
