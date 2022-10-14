@@ -1,13 +1,43 @@
+# Table of Contents
+
+  * [Simple Installation](#simple-installation)
+  * [Installation via Package Manager](#installation-via-package-manager)
+  * [Detailed installation explanation for
+     packagers](#detailed-installation-explanation-for-packagers)
+  * [Installation via Makefile](#installation-via-makefile)
+  * [Notes for Windows Users](#notes-for-windows-users)
+
+# Simple Installation
+
+All you need to do is download the [git-filter-repo script in this
+repository](git-filter-repo).  **That's it**.  You're done.
+
+Then you can run any command you want, such as
+
+    $ python3 git-filter-repo --analyze
+
+If you place the git-filter-repo script in your $PATH, then you can
+shorten commands by replacing `python3 git-filter-repo` with `git
+filter-repo`; the manual assumes this but you can use the longer form.
+
+If for some reason downloading a single file is too much of an
+installation hassle for you, or you really want some kind of "official
+installation", the other sections may have useful tips.
+
+Optionally, if you also want to use some of the contrib scripts, then
+you need to make sure you have a git_filter_repo.py file which is
+either a link to or copy of git-filter-repo, and you need to place
+that git_filter_repo.py file in $PYTHONPATH.
+
 # Installation via Package Manager
 
-Installation is as easy as
+If you want to install via some [package
+manager](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource),
+you can run
 
     $ PACKAGE_TOOL install git-filter-repo
 
-for those using a [package
-manager](https://alternativeto.net/software/yellowdog-updater-modified/?license=opensource)
-to install software on their system from one of the following package
-repositories:
+The following package managers have packaged git-filter-repo:
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/git-filter-repo.svg)](https://repology.org/project/git-filter-repo/versions)
 
@@ -16,47 +46,13 @@ Linux (most the rest).  Note that I do not curate this list (and have
 no interest in doing so); https://repology.org tracks who packages
 these versions.
 
-
-# Notes for Windows Users
-
-The first hurdle for Windows users is installing a functional version
-of Python (it has been reported that Windows ships with a [stub or
-stripped down python-like program that just doesn't
-work](https://github.com/newren/git-filter-repo/issues/36#issuecomment-568933825)).
-python.org probably has good instructions here, though many users
-report a preference getting it from the [Microsoft
-Store](https://docs.microsoft.com/en-us/windows/python/beginners) and
-seem to be successful with that (particularly since [msys2 issue
-#27](https://github.com/msys2/msys2-runtime/pull/27) was fixed by the
-Git for Windows maintainer).
-
-In the past, several users also needed to modify the first line of the
-git-filter-repo script to change the python path, particularly when
-installing git-filter-repo using the pip method instead of Scoop, and
-particularly with older versions of Git for Windows (anything less
-than 2.32.0.windows.1) as GitBash had an unfortunate shebang length
-limitation (see [git-for-windows issue
-#3165](https://github.com/git-for-windows/git/pull/3165)).  Hopefully,
-this isn't needed anymore.
-
-For additional details (if needed, though be aware these might not be
-accurate anymore given both git-for-windows and git-filter-repo
-fixes), see
-[#225](https://github.com/newren/git-filter-repo/pull/225),
-[#231](https://github.com/newren/git-filter-repo/pull/231),
-[#124](https://github.com/newren/git-filter-repo/issues/124),
-[#36](https://github.com/newren/git-filter-repo/issues/36), and [this
-git mailing list
-thread](https://lore.kernel.org/git/nycvar.QRO.7.76.6.2004251610300.18039@tvgsbejvaqbjf.bet/).
-
-
-# Manual Installation
+# Detailed installation explanation for packagers
 
 filter-repo only consists of a few files that need to be installed:
 
   * git-filter-repo
 
-    This is the only thing needed for basic use.
+    This is the _only_ thing needed for basic use.
 
     This can be installed in the directory pointed to by `git --exec-path`,
     or placed anywhere in $PATH.
@@ -124,22 +120,7 @@ So, installation might look something like the following:
        $(python -c "import site; print(site.getsitepackages()[-1])")/git_filter_repo.py
    ```
 
-# Installation via [pip](https://pip.pypa.io/)
-
-This method is NOT recommended, because [installing via pip does not
-place the package in your
-$PATH](https://stackoverflow.com/questions/35898734/pip-installs-packages-successfully-but-executables-not-found-from-command-line).
-If you go this route, you have to copy the file into an appropriate
-directory (either `git --exec-path` or something else in $PATH), or
-modify your $PATH to include the directory where pip places things,
-but you could have just done that after cloning filter-repo directly
-so this installation method provides virtually no benefit.
-
-However, some people still prefer installing this way.  If you are
-one of them, you can use:
-
-    $ pip3 install git-filter-repo
-
+or you can use the provided Makefile, as noted below.
 
 # Installation via Makefile
 
@@ -152,3 +133,53 @@ at least a couple of the directories with sane values, e.g.
 Also, the Makefile will not edit the shebang line (the first line) of
 git-filter-repo if your python executable is not named "python3";
 you'll still need to do that yourself.
+
+# Notes for Windows Users
+
+Windows likes to make things difficult.  Common and historical issues:
+
+  * [**Non-functional Python
+    stub**](https://github.com/newren/git-filter-repo/issues/36#issuecomment-568933825):
+    Windows apparently ships with a non-functional python.  This can
+    even manifest as [the app
+    hanging](https://github.com/newren/git-filter-repo/issues/36) or
+    [the system appearing to
+    hang](https://github.com/newren/git-filter-repo/issues/312).  Try
+    installing Python from the [Microsoft
+    Store](https://docs.microsoft.com/en-us/windows/python/beginners)
+  * **Modifying PATH, making the script executable**: For some reason lots of
+    Windows users have a hard time modifying their PATH and/or making scripts
+    executable.  You can skip that step by just using
+    `python3 git-filter-repo` instead of `git filter-repo` in your commands.
+  * **Different python executable name**:  It seems some users don't have
+    a `python3` executable but one named something else like `python`
+    or `python3.8` or whatever.  You may need to edit the first line
+    of the git-filter-repo script to specify the appropriate path.  Or
+    just don't bother and instead use the long form for executing
+    filter-repo commands.  Namely, replace the `git filter-repo` part
+    of commands with `PYTHON_EXECUTABLE git-filter-repo`. (Where
+    `PYTHON_EXECUTABLE` is something like `python` or `python3.8` or
+    whatever).
+  * **Symlink issues**:  git_filter_repo.py is supposed to be a symlink to
+    git-filter-repo, so that it appears to have identical contents.
+    If your system messed up the symlink (usually meaning it looks like a
+    regular file with just one line), then delete git_filter_repo.py and
+    replace it with a copy of git-filter-repo.
+  * **Old GitBash limitations**: older versions of GitForWindows had an
+    unfortunate shebang length limitation (see [git-for-windows issue
+    #3165](https://github.com/git-for-windows/git/pull/3165)).  If
+    you're affected, just use the long form for invoking filter-repo
+    commands, i.e. replace the `git filter-repo` part of commands with
+    `python3 git-filter-repo`.
+
+For additional historical context, see:
+  * [#371](https://github.com/newren/git-filter-repo/issues/371#issuecomment-1267116186)
+  * [#360](https://github.com/newren/git-filter-repo/issues/360#issuecomment-1276813596)
+  * [#312](https://github.com/newren/git-filter-repo/issues/312)
+  * [#307](https://github.com/newren/git-filter-repo/issues/307)
+  * [#225](https://github.com/newren/git-filter-repo/pull/225)
+  * [#231](https://github.com/newren/git-filter-repo/pull/231)
+  * [#124](https://github.com/newren/git-filter-repo/issues/124)
+  * [#36](https://github.com/newren/git-filter-repo/issues/36)
+  * [this git mailing list
+     thread](https://lore.kernel.org/git/nycvar.QRO.7.76.6.2004251610300.18039@tvgsbejvaqbjf.bet/)

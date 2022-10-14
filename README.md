@@ -49,7 +49,7 @@ installation for basic use on many systems trivial: just place the
 script into your $PATH.
 
 See [INSTALL.md](INSTALL.md) for things beyond basic usage or special
-cases.  The more involved instructions are needed if you
+cases.  The more involved instructions are only needed if you
 
   * are working with a python3 executable named something other than "python3"
   * want to install documentation (beyond the builtin docs shown with -h)
