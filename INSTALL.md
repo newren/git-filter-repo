@@ -1,5 +1,6 @@
 # Table of Contents
 
+  * [Pre-requisites](#pre-requisites)
   * [Simple Installation](#simple-installation)
   * [Installation via Package Manager](#installation-via-package-manager)
   * [Detailed installation explanation for
@@ -7,10 +8,17 @@
   * [Installation via Makefile](#installation-via-makefile)
   * [Notes for Windows Users](#notes-for-windows-users)
 
+# Pre-requisites
+
+Instructions on this page assume you have already installed both
+[Git](https://git-scm.com) and [Python](https://www.python.org/).
+
 # Simple Installation
 
 All you need to do is download the [git-filter-repo script in this
-repository](git-filter-repo).  **That's it**.  You're done.
+repository](git-filter-repo) ([direct link to raw
+file](https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo)).
+**That's it**.  You're done.
 
 Then you can run any command you want, such as
 
@@ -25,8 +33,8 @@ installation hassle for you, or you really want some kind of "official
 installation", the other sections may have useful tips.
 
 Optionally, if you also want to use some of the contrib scripts, then
-you need to make sure you have a git_filter_repo.py file which is
-either a link to or copy of git-filter-repo, and you need to place
+you need to make sure you have a `git_filter_repo.py` file which is
+either a link to or copy of `git-filter-repo`, and you need to place
 that git_filter_repo.py file in $PYTHONPATH.
 
 # Installation via Package Manager
@@ -159,7 +167,7 @@ Windows likes to make things difficult.  Common and historical issues:
     filter-repo commands.  Namely, replace the `git filter-repo` part
     of commands with `PYTHON_EXECUTABLE git-filter-repo`. (Where
     `PYTHON_EXECUTABLE` is something like `python` or `python3.8` or
-    whatever).
+    `C:\PATH\TO\INSTALLATION\OF\python3.exe` or whatever).
   * **Symlink issues**:  git_filter_repo.py is supposed to be a symlink to
     git-filter-repo, so that it appears to have identical contents.
     If your system messed up the symlink (usually meaning it looks like a
