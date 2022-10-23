@@ -6,6 +6,7 @@
   * [Detailed installation explanation for
      packagers](#detailed-installation-explanation-for-packagers)
   * [Installation via Makefile](#installation-via-makefile)
+  * [Installation on Windows](#installation-on-windows)
   * [Notes for Windows Users](#notes-for-windows-users)
 
 # Pre-requisites
@@ -141,6 +142,16 @@ at least a couple of the directories with sane values, e.g.
 Also, the Makefile will not edit the shebang line (the first line) of
 git-filter-repo if your python executable is not named "python3";
 you'll still need to do that yourself.
+
+# Installation on Windows
+ 1. Get Python3 from the [Windows Store](https://www.microsoft.com/store/productId/9PJPW5LDXLZ5)
+ 2. Download the latest version of the script from [Github repo](https://github.com/newren/git-filter-repo/blob/main/git-filter-repo) and save it as a python file.
+ 3. Place the python file somewhere in the $Path variables, like: `c:\Program Files\Git\cmd\`
+ 4. Clone the repo you want to filter
+ 5. Navigate inside the repo
+ 6. Filter after _your-subdirectory_ using using: `git filter-repo.py --subdirectory YOUR-SUBDIRECTORY/`
+ 7. Create a remote repo and then add it to the newly filtered file: `git remote add origin https://github.com/YourName/Your-Subdirectory.git`
+ 8. Push the files to origin: `git push origin main`
 
 # Notes for Windows Users
 
