@@ -11,14 +11,17 @@
 # Pre-requisites
 
 Instructions on this page assume you have already installed both
-[Git](https://git-scm.com) and [Python](https://www.python.org/).
+[Git](https://git-scm.com) and [Python](https://www.python.org/)
+(though the [Notes for Windows Users](#notes-for-windows-users) has
+some tips on Python).
 
 # Simple Installation
 
-All you need to do is download the [git-filter-repo script in this
-repository](git-filter-repo) ([direct link to raw
-file](https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo)).
-**That's it**.  You're done.
+All you need to do is download one file: the [git-filter-repo script
+in this repository](git-filter-repo) ([direct link to raw
+file](https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo)),
+making sure to preserve its name (`git-filter-repo`, with no
+extension).  **That's it**.  You're done.
 
 Then you can run any command you want, such as
 
@@ -146,15 +149,17 @@ you'll still need to do that yourself.
 
 Windows likes to make things difficult.  Common and historical issues:
 
-  * [**Non-functional Python
-    stub**](https://github.com/newren/git-filter-repo/issues/36#issuecomment-568933825):
-    Windows apparently ships with a non-functional python.  This can
-    even manifest as [the app
+  * **Non-functional Python stub**: Windows apparently ships with a
+    [non-functional
+    python](https://github.com/newren/git-filter-repo/issues/36#issuecomment-568933825).
+    This can even manifest as [the app
     hanging](https://github.com/newren/git-filter-repo/issues/36) or
     [the system appearing to
     hang](https://github.com/newren/git-filter-repo/issues/312).  Try
-    installing Python from the [Microsoft
-    Store](https://docs.microsoft.com/en-us/windows/python/beginners)
+    installing
+    [Python](https://docs.microsoft.com/en-us/windows/python/beginners)
+    from the [Microsoft
+    Store](https://apps.microsoft.com/store/search?publisher=Python%20Software%20Foundation)
   * **Modifying PATH, making the script executable**: For some reason lots of
     Windows users have a hard time modifying their PATH and/or making scripts
     executable.  You can skip that step by just using
