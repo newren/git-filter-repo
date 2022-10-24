@@ -145,9 +145,9 @@ you'll still need to do that yourself.
 
 # Installation on Windows
  1. Get Python3 from the [Windows Store](https://www.microsoft.com/store/productId/9PJPW5LDXLZ5)
- 2. Download the latest version of the script from [Github repo](https://github.com/newren/git-filter-repo/blob/main/git-filter-repo) and save it as a python file.
+ 2. Download the latest version of the script from [Github repo](https://github.com/newren/git-filter-repo/blob/main/git-filter-repo) and save it without any extension.
  3. Place the python file somewhere in the $Path variables, like: `c:\Program Files\Git\cmd\`
- 4. Call the tool using: `git filter-repo.py OPTIONS`
+ 4. Call the tool using: `git filter-repo OPTIONS`
 
 # Notes for Windows Users
 
