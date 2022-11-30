@@ -767,7 +767,10 @@ class Tag(_GitElementWithId):
     self.tagger_email = tagger_email
 
     # Store the date
-    self.tagger_date  = tagger_date
+    if tagger_date:
+        self.tagger_date  = tagger_date
+    else:
+        self.tagger_date = b"0 +0000"
 
     # Store the tag message
     self.message = tag_msg
@@ -951,7 +954,7 @@ class FastExportParser(object):
       self._refline_regexes[refline_name] = re.compile(refline_name+b' (.*)\n$')
     self._user_regexes = {}
     for user in (b'author', b'committer', b'tagger'):
-      self._user_regexes[user] = re.compile(user + b' (.*?) <(.*?)> (.*)\n$')
+      self._user_regexes[user] = re.compile(user + b' (.*?) <(.*?)>(?: (.*))?\n$')
 
   def _advance_currentline(self):
     """
