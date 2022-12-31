@@ -44,18 +44,22 @@ filter-repo requires:
 
 # How do I install it?
 
-git-filter-repo is a single-file python script, which was done to make
-installation for basic use on many systems trivial: just place the
-script into your $PATH.
+`git-filter-repo` is a single-file python script, which was done to make
+installation for basic use on many systems trivial: just place that
+file into your $PATH.
 
 See [INSTALL.md](INSTALL.md) for things beyond basic usage or special
-cases.  The more involved instructions are only needed if you
+cases.  The more involved instructions are only needed if one of the
+following apply:
 
-  * are working with a python3 executable named something other than "python3"
-  * want to install documentation (beyond the builtin docs shown with -h)
-  * want to run some of the [contrib](contrib/filter-repo-demos/) examples
-  * want to create your own python filtering scripts using filter-repo as a
-    module/library
+  * you do not find the above comment about trivial installation intuitively
+    obvious
+  * you are working with a python3 executable named something other than
+    "python3"
+  * you want to install documentation (beyond the builtin docs shown with -h)
+  * you want to run some of the [contrib](contrib/filter-repo-demos/) examples
+  * you want to create your own python filtering scripts using filter-repo as
+    a module/library
 
 # How do I use it?
 
