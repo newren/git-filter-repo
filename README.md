@@ -63,25 +63,25 @@ following apply:
 
 # How do I use it?
 
-See the [user
-manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html).
+For comprehensive documentation:
+  * see the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html)
+  * alternative formating of the user manual is available on various
+    external sites
+    ([example](https://www.mankier.com/1/git-filter-repo)), for those
+    that don't like the htmlpreview.github.io layout, though it may
+    only be up-to-date as of the latest release
 
 If you prefer learning from examples:
-  * the [simple example](#simple-example-with-comparisons) below may
-    be of interest
-  * the user manual has an extensive [examples
-section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES)
   * there is a [cheat sheet for converting filter-branch
     commands](Documentation/converting-from-filter-branch.md#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage),
     which covers every example from the filter-branch manual
   * there is a [cheat sheet for converting BFG Repo Cleaner
     commands](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg),
     which covers every example from the BFG website
-
-External sites also have [alternative formats of the user
-manual](https://www.mankier.com/1/git-filter-repo) available, at least
-for the most recent release.  This also may be beneficial if
-htmlpreview.github.io starts hitting load limits.
+  * the [simple example](#simple-example-with-comparisons) below may
+    be of interest
+  * the user manual has an extensive [examples
+section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES)
 
 # Why filter-repo instead of other alternatives?
 
