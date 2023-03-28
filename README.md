@@ -309,8 +309,8 @@ But this comes with some nasty caveats and limitations:
 
 None of the existing repository filtering tools did what I wanted;
 they all came up short for my needs.  No tool provided any of the
-first eight traits below I wanted, and all failed to provide at least
-one of the last four traits as well:
+first eight traits below I wanted, and no tool provided more than
+two of the last four traits either:
 
   1. [Starting report] Provide user an analysis of their repo to help
      them get started on what to prune or rename, instead of expecting
