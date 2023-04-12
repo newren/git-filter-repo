@@ -254,6 +254,21 @@ def get_absolute_svn_url(svnext_url, svn_root_url):
 
   return True, svnext_url
 
+def parse_revision_value(value):
+  """
+  Parse the value of key 'revision' from a .gitsvnextmodules file and return it
+  as integer.
+
+  Used to handle non-numeric values like 1k, 2k, 3k etc. added by SubGit
+  instead of 1024, 2048, 3072 etc., likewise 1m, 2m, ..., 1g, ...
+  """
+  suffix = value[-1]
+  if suffix in "kmg":
+    mult = {"k": 1024, "m": 1024**2, "g": 1024**3}
+    return int(value[0:-1]) * mult[suffix]
+  else:
+    return int(value)
+
 def add_submodule_tree_entry(commit, parsed_config, section):
   """
   Add a submodule entry to the tree of a Git commit.
@@ -271,7 +286,7 @@ def add_submodule_tree_entry(commit, parsed_config, section):
 
   # Get SVN revision
   if parsed_config.has_option(section, 'revision'):
-    svn_rev = int(parsed_config[section]['revision'])
+    svn_rev = parse_revision_value(parsed_config[section]['revision'])
   else:
     # TODO: revision has to be guessed according to commit timestamp, skip for now
     return False
