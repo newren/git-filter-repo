@@ -50,6 +50,14 @@ class CheckIgnores:
         self.check_ignore_process.stdin.flush()
         result = self.check_ignore_process.stdout.readline().rstrip(b'\n')
         (rest, pathname) = result.split(b"\t")
+        # filter-repo callback passes unicode filename as utf_8 bytes
+        # but `git check-ignore` prints unicode filename as quoted octal escaped utf_8 bytes
+        # failing the `name != pathname` check on CJK filenames
+        # `.decode('unicode_escape')` decodes latin-1 bytes with escaped unicode
+        # so it decodes the escaped bytes, but into a latin-1 str, therefore
+        # `.encode('latin_1')` recovers the original bytes, which is utf_8
+        # and is comparable to the filename passed by filter-repo callback
+        pathname = pathname.strip(b'"').decode('unicode_escape').encode('latin_1')
         if name != pathname:
           raise SystemExit("Error: Passed {} but got {}".format(name, pathname))
         if rest == b'::':
