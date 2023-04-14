@@ -1858,7 +1858,9 @@ EXAMPLES
     messages.add_argument('--replace-message', metavar='EXPRESSIONS_FILE',
         help=_("A file with expressions that, if found in commit messages, "
                "will be replaced. This file uses the same syntax as "
-               "--replace-text."))
+               "--replace-text, with an optional commit ID filter. You can "
+               "end the line with '@commitID#' and a commit ID to "
+               "restrict the replacement expression to a particular commit."))
     messages.add_argument('--preserve-commit-hashes', action='store_true',
         help=_("By default, since commits are rewritten and thus gain new "
                "hashes, references to old commit hashes in commit messages "
@@ -2110,7 +2112,13 @@ EXAMPLES
     with open(filename, 'br') as f:
       for line in f:
         line = line.rstrip(b'\r\n')
-
+        
+        # Determine the commit ID (if available)
+        commitIDfound = False
+        if b'@commitID#' in line:
+          line, commitID = line.rsplit(b'@commitID#', 1)
+          commitIDfound = True
+		  
         # Determine the replacement
         replacement = FilteringOptions.default_replace_text
         if b'==>' in line:
@@ -2123,14 +2131,20 @@ EXAMPLES
         elif line.startswith(b'glob:'):
           regex = glob_to_regex(line[5:])
         if regex:
-          replace_regexes.append((re.compile(regex), replacement))
+          if(commitIDfound):
+            replace_regexes.append((commitID, re.compile(regex), replacement))     
+          else:
+            replace_regexes.append((re.compile(regex), replacement))
         else:
           # Otherwise, find the literal we need to replace
           if line.startswith(b'literal:'):
             line = line[8:]
           if not line:
             continue
-          replace_literals.append((line, replacement))
+          if(commitIDfound):
+            replace_literals.append((commitID, line, replacement))
+          else:
+            replace_literals.append((line, replacement))
     return {'literals': replace_literals, 'regexes':  replace_regexes}
 
   @staticmethod
@@ -3404,13 +3418,22 @@ class RepoFilter(object):
     if not self._args.preserve_commit_hashes:
       commit.message = self._hash_re.sub(self._translate_commit_hash,
                                          commit.message)
-    if self._args.replace_message:
-      for literal, replacement in self._args.replace_message['literals']:
+    for expressionTuple in self._args.replace_message['literals']:
+      if(len(expressionTuple) == 3):
+        (replacementCommitID, literal, replacement) = expressionTuple
+        if(commit.original_id == replacementCommitID):
+          commit.message = commit.message.replace(literal, replacement)      
+      else:
+        (literal, replacement) = expressionTuple
         commit.message = commit.message.replace(literal, replacement)
-      for regex,   replacement in self._args.replace_message['regexes']:
+    for expressionTuple in self._args.replace_message['regexes']:
+      if(len(expressionTuple) == 3):
+        (replacementCommitID, regex, replacement) = expressionTuple
+        if(commit.original_id == replacementCommitID):
+          commit.message = regex.sub(replacement, commit.message)
+      else:
+        (regex, replacement) = expressionTuple
         commit.message = regex.sub(replacement, commit.message)
-    if self._message_callback:
-      commit.message = self._message_callback(commit.message)
 
     # Change the author & committer according to mailmap rules
     args = self._args
