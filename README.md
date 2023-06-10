@@ -64,7 +64,7 @@ following apply:
 # How do I use it?
 
 For comprehensive documentation:
-  * see the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html)
+  * see the [user manual](https://htmlpreview.github.io/?https://raw.githubusercontent.com/newren/git-filter-repo/docs/html/git-filter-repo.html)
   * alternative formating of the user manual is available on various
     external sites
     ([example](https://www.mankier.com/1/git-filter-repo)), for those
