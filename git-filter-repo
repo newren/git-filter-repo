@@ -1451,6 +1451,13 @@ _SKIPPED_COMMITS = set()
 HASH_TO_ID = {}
 ID_TO_HASH = {}
 
+def is_ascii(s):
+  try:
+    s.encode('ascii')
+    return True
+  except (AttributeError, UnicodeEncodeError):
+    return False
+
 class SubprocessWrapper(object):
   @staticmethod
   def decodify(args):
@@ -1476,6 +1483,7 @@ class SubprocessWrapper(object):
   def check_call(*args, **kwargs): # pragma: no cover  # used by filter-lamely
     if 'cwd' in kwargs:
       kwargs['cwd'] = decode(kwargs['cwd'])
+    kwargs['env'] = {k: v for k, v in os.environ.items() if is_ascii(k) and is_ascii(v)}
     return subprocess.check_call(SubprocessWrapper.decodify(*args), **kwargs)
 
   @staticmethod
