@@ -53,45 +53,45 @@ cases.  The more involved instructions are only needed if one of the
 following apply:
 
   * You do not find the above comment about trivial installation intuitively
-    obvious
+    obvious.
 
   * You are working with a python3 executable named something other than
-    "python3"
+    "python3".
 
-  * You want to install documentation (beyond the builtin docs shown with -h)
+  * You want to install documentation (beyond the builtin docs shown with -h).
 
-  * You want to run some of the [contrib](contrib/filter-repo-demos/) examples
+  * You want to run some of the [contrib](contrib/filter-repo-demos/) examples.
 
-  * You want to create your own python filtering scripts using filter-repo as
+  * You want to create your own python filtering scripts using filter-repo as.
     a module/library
 
 # How do I use it?
 
 For comprehensive documentation:
 
-  * See the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html)
+  * See the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html).
 
   * Alternative formating of the user manual is available on various
     external sites
     ([example](https://www.mankier.com/1/git-filter-repo)), for those
     that don't like the htmlpreview.github.io layout, though it may
-    only be up-to-date as of the latest release
+    only be up-to-date as of the latest release.
 
 If you prefer learning from examples:
 
   * There is a [cheat sheet for converting filter-branch
     commands](Documentation/converting-from-filter-branch.md#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage),
-    which covers every example from the filter-branch manual
+    which covers every example from the filter-branch manual.
 
   * There is a [cheat sheet for converting BFG Repo Cleaner
     commands](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg),
-    which covers every example from the BFG website
+    which covers every example from the BFG website.
 
   * The [simple example](#simple-example-with-comparisons) below may
-    be of interest
+    be of interest.
 
   * The user manual has an extensive [examples
-section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES)
+section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES).
 
 # Why filter-repo instead of other alternatives?
 
@@ -121,7 +121,7 @@ but some highlights for the main competitors:
   * The git project has stated that the above issues with filter-branch
     cannot be backward compatibly fixed; they recommend that you [stop
     using
-    filter-branch](https://git-scm.com/docs/git-filter-branch#_warning)
+    filter-branch](https://git-scm.com/docs/git-filter-branch#_warning).
 
   * Die-hard fans of filter-branch may be interested in
     [filter-lamely](contrib/filter-repo-demos/filter-lamely)
@@ -167,11 +167,11 @@ want to:
     paths outside this directory will be removed.
 
   * Rename all files to have a new leading directory, my-module/ (e.g. so that
-    src/foo.c becomes my-module/src/foo.c)
+    src/foo.c becomes my-module/src/foo.c).
 
   * Rename any tags in the extracted repository to have a 'my-module-'
     prefix (to avoid any conflicts when we later merge this repo into
-    something else)
+    something else).
 
 ## Solving this with filter-repo
 
@@ -274,7 +274,7 @@ new and old history before pushing somewhere.  Other caveats:
   * Both commands assume all filenames are composed entirely of ascii
     characters (even special ascii characters such as tabs or double
     quotes will wreak havoc and likely result in missing files or
-    misnamed files)
+    misnamed files).
 
 ## Solving this with fast-export/fast-import
 
@@ -442,7 +442,7 @@ two of the last four traits either:
      merges) but only merge commits that become degenerate and have no
      file changes of their own.
 
-  1. [Speed] Filtering should be reasonably fast
+  1. [Speed] Filtering should be reasonably fast.
 
 # How do I contribute?
 
