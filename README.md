@@ -177,7 +177,7 @@ want to:
 
 Doing this with filter-repo is as simple as the following command:
 
-```shell
+```bash
   git filter-repo --path src/ --to-subdirectory-filter my-module --tag-rename '':'my-module-'
 ```
 
@@ -194,7 +194,7 @@ three types of wanted changes are outside of its capabilities.
 filter-branch comes with a pile of caveats (more on that below) even
 once you figure out the necessary invocation(s):
 
-```shell
+```bash
   git filter-branch \
       --tree-filter 'mkdir -p my-module && \
                      git ls-files \
@@ -217,7 +217,7 @@ Some might notice that the above filter-branch invocation will be really
 slow due to using --tree-filter; you could alternatively use the
 --index-filter option of filter-branch, changing the above commands to:
 
-```shell
+```bash
   git filter-branch \
       --index-filter 'git ls-files \
                           | grep -v ^src/ \
@@ -280,7 +280,7 @@ new and old history before pushing somewhere.  Other caveats:
 
 One can kind of hack this together with something like:
 
-```shell
+```bash
   git fast-export --no-data --reencode=yes --mark-tags --fake-missing-tagger \
       --signed-tags=strip --tag-of-filtered-object=rewrite --all \
       | grep -vP '^M [0-9]+ [0-9a-f]+ (?!src/)' \
