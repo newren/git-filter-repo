@@ -54,17 +54,23 @@ following apply:
 
   * you do not find the above comment about trivial installation intuitively
     obvious
+
   * you are working with a python3 executable named something other than
     "python3"
+
   * you want to install documentation (beyond the builtin docs shown with -h)
+
   * you want to run some of the [contrib](contrib/filter-repo-demos/) examples
+
   * you want to create your own python filtering scripts using filter-repo as
     a module/library
 
 # How do I use it?
 
 For comprehensive documentation:
+
   * see the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html)
+
   * alternative formating of the user manual is available on various
     external sites
     ([example](https://www.mankier.com/1/git-filter-repo)), for those
@@ -72,14 +78,18 @@ For comprehensive documentation:
     only be up-to-date as of the latest release
 
 If you prefer learning from examples:
+
   * there is a [cheat sheet for converting filter-branch
     commands](Documentation/converting-from-filter-branch.md#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage),
     which covers every example from the filter-branch manual
+
   * there is a [cheat sheet for converting BFG Repo Cleaner
     commands](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg),
     which covers every example from the BFG website
+
   * the [simple example](#simple-example-with-comparisons) below may
     be of interest
+
   * the user manual has an extensive [examples
 section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES)
 
@@ -155,8 +165,10 @@ want to:
   * extract the history of a single directory, src/.  This means that only
     paths under src/ remain in the repo, and any commits that only touched
     paths outside this directory will be removed.
+
   * rename all files to have a new leading directory, my-module/ (e.g. so that
     src/foo.c becomes my-module/src/foo.c)
+
   * rename any tags in the extracted repository to have a 'my-module-'
     prefix (to avoid any conflicts when we later merge this repo into
     something else)
@@ -164,9 +176,11 @@ want to:
 ## Solving this with filter-repo
 
 Doing this with filter-repo is as simple as the following command:
+
 ```shell
   git filter-repo --path src/ --to-subdirectory-filter my-module --tag-rename '':'my-module-'
 ```
+
 (the single quotes are unnecessary, but make it clearer to a human that we
 are replacing the empty string as a prefix with `my-module-`)
 
@@ -231,16 +245,19 @@ filter-branch's manpage claiming that a clone is enough to get rid of
 old objects, the extra steps to delete the other tags and do another
 gc are still required to clean out the old objects and avoid mixing
 new and old history before pushing somewhere.  Other caveats:
+
   * Commit messages are not rewritten; so if some of your commit
     messages refer to prior commits by (abbreviated) sha1, after the
     rewrite those messages will now refer to commits that are no longer
     part of the history.  It would be better to rewrite those
     (abbreviated) sha1 references to refer to the new commit ids.
+
   * The --prune-empty flag sometimes misses commits that should be
     pruned, and it will also prune commits that *started* empty rather
     than just ended empty due to filtering.  For repositories that
     intentionally use empty commits for versioning and publishing
     related purposes, this can be detrimental.
+
   * The commands above are OS-specific.  GNU vs. BSD issues for sed,
     xargs, and other commands often trip up users; I think I failed to
     get most folks to use --index-filter since the only example in the
@@ -248,10 +265,12 @@ new and old history before pushing somewhere.  Other caveats:
     everything into a subdirectory is linux-specific, and it is not
     obvious to the reader that it has a portability issue since it
     silently misbehaves rather than failing loudly.
+
   * The --index-filter version of the filter-branch command may be two to
     three times faster than the --tree-filter version, but both
     filter-branch commands are going to be multiple orders of magnitude
     slower than filter-repo.
+
   * Both commands assume all filenames are composed entirely of ascii
     characters (even special ascii characters such as tabs or double
     quotes will wreak havoc and likely result in missing files or
@@ -280,11 +299,13 @@ One can kind of hack this together with something like:
 ```
 
 But this comes with some nasty caveats and limitations:
+
   * The various greps and regex replacements operate on the entire
     fast-export stream and thus might accidentally corrupt unintended
     portions of it, such as commit messages.  If you needed to edit
     file contents and thus dropped the --no-data flag, it could also
     end up corrupting file contents.
+
   * This command assumes all filenames in the repository are composed
     entirely of ascii characters, and also exclude special characters
     such as tabs or double quotes.  If such a special filename exists
@@ -293,6 +314,7 @@ But this comes with some nasty caveats and limitations:
     rewrites, this type of editing also risks corrupting filenames
     with special characters by adding extra double quotes near the end
     of the filename and in some leading directory name.)
+
   * This command will leave behind huge numbers of useless empty
     commits, and has no realistic way of pruning them.  (And if you
     tried to combine this technique with another tool to prune the
@@ -300,6 +322,7 @@ But this comes with some nasty caveats and limitations:
     commits which were made empty by the filtering that you want to
     remove, and commits which were empty before the filtering process
     and which you thus may want to keep.)
+
   * Commit messages which reference other commits by hash will now
     reference old commits that no longer exist.  Attempting to edit
     the commit messages to update them is extraordinarily difficult to
