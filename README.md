@@ -178,7 +178,7 @@ want to:
 Doing this with filter-repo is as simple as the following command:
 
 ```bash
-  git filter-repo --path src/ --to-subdirectory-filter my-module --tag-rename '':'my-module-'
+git filter-repo --path src/ --to-subdirectory-filter my-module --tag-rename '':'my-module-'
 ```
 
 (the single quotes are unnecessary, but make it clearer to a human that we
@@ -195,22 +195,22 @@ filter-branch comes with a pile of caveats (more on that below) even
 once you figure out the necessary invocation(s):
 
 ```bash
-  git filter-branch \
-      --tree-filter 'mkdir -p my-module && \
-                     git ls-files \
-                         | grep -v ^src/ \
-                         | xargs git rm -f -q && \
-                     ls -d * \
-                         | grep -v my-module \
-                         | xargs -I files mv files my-module/' \
-          --tag-name-filter 'echo "my-module-$(cat)"' \
-	  --prune-empty -- --all
-  git clone file://$(pwd) newcopy
-  cd newcopy
-  git for-each-ref --format="delete %(refname)" refs/tags/ \
-      | grep -v refs/tags/my-module- \
-      | git update-ref --stdin
-  git gc --prune=now
+git filter-branch \
+    --tree-filter 'mkdir -p my-module && \
+                   git ls-files \
+                       | grep -v ^src/ \
+                       | xargs git rm -f -q && \
+                   ls -d * \
+                       | grep -v my-module \
+                       | xargs -I files mv files my-module/' \
+        --tag-name-filter 'echo "my-module-$(cat)"' \
+    --prune-empty -- --all
+git clone file://$(pwd) newcopy
+cd newcopy
+git for-each-ref --format="delete %(refname)" refs/tags/ \
+    | grep -v refs/tags/my-module- \
+    | git update-ref --stdin
+git gc --prune=now
 ```
 
 Some might notice that the above filter-branch invocation will be really
@@ -218,24 +218,24 @@ slow due to using --tree-filter; you could alternatively use the
 --index-filter option of filter-branch, changing the above commands to:
 
 ```bash
-  git filter-branch \
-      --index-filter 'git ls-files \
-                          | grep -v ^src/ \
-                          | xargs git rm -q --cached;
-                      git ls-files -s \
-                          | sed "s%$(printf \\t)%&my-module/%" \
-                          | git update-index --index-info;
-                      git ls-files \
-                          | grep -v ^my-module/ \
-                          | xargs git rm -q --cached' \
-      --tag-name-filter 'echo "my-module-$(cat)"' \
-      --prune-empty -- --all
-  git clone file://$(pwd) newcopy
-  cd newcopy
-  git for-each-ref --format="delete %(refname)" refs/tags/ \
-      | grep -v refs/tags/my-module- \
-      | git update-ref --stdin
-  git gc --prune=now
+git filter-branch \
+    --index-filter 'git ls-files \
+                        | grep -v ^src/ \
+                        | xargs git rm -q --cached;
+                    git ls-files -s \
+                        | sed "s%$(printf \\t)%&my-module/%" \
+                        | git update-index --index-info;
+                    git ls-files \
+                        | grep -v ^my-module/ \
+                        | xargs git rm -q --cached' \
+    --tag-name-filter 'echo "my-module-$(cat)"' \
+    --prune-empty -- --all
+git clone file://$(pwd) newcopy
+cd newcopy
+git for-each-ref --format="delete %(refname)" refs/tags/ \
+    | grep -v refs/tags/my-module- \
+    | git update-ref --stdin
+git gc --prune=now
 ```
 
 However, for either filter-branch command there are a pile of caveats.
@@ -281,21 +281,21 @@ new and old history before pushing somewhere.  Other caveats:
 One can kind of hack this together with something like:
 
 ```bash
-  git fast-export --no-data --reencode=yes --mark-tags --fake-missing-tagger \
-      --signed-tags=strip --tag-of-filtered-object=rewrite --all \
-      | grep -vP '^M [0-9]+ [0-9a-f]+ (?!src/)' \
-      | grep -vP '^D (?!src/)' \
-      | perl -pe 's%^(M [0-9]+ [0-9a-f]+ )(.*)$%\1my-module/\2%' \
-      | perl -pe 's%^(D )(.*)$%\1my-module/\2%' \
-      | perl -pe s%refs/tags/%refs/tags/my-module-% \
-      | git -c core.ignorecase=false fast-import --date-format=raw-permissive \
-            --force --quiet
-  git for-each-ref --format="delete %(refname)" refs/tags/ \
-      | grep -v refs/tags/my-module- \
-      | git update-ref --stdin
-  git reset --hard
-  git reflog expire --expire=now --all
-  git gc --prune=now
+git fast-export --no-data --reencode=yes --mark-tags --fake-missing-tagger \
+    --signed-tags=strip --tag-of-filtered-object=rewrite --all \
+    | grep -vP '^M [0-9]+ [0-9a-f]+ (?!src/)' \
+    | grep -vP '^D (?!src/)' \
+    | perl -pe 's%^(M [0-9]+ [0-9a-f]+ )(.*)$%\1my-module/\2%' \
+    | perl -pe 's%^(D )(.*)$%\1my-module/\2%' \
+    | perl -pe s%refs/tags/%refs/tags/my-module-% \
+    | git -c core.ignorecase=false fast-import --date-format=raw-permissive \
+          --force --quiet
+git for-each-ref --format="delete %(refname)" refs/tags/ \
+    | grep -v refs/tags/my-module- \
+    | git update-ref --stdin
+git reset --hard
+git reflog expire --expire=now --all
+git gc --prune=now
 ```
 
 But this comes with some nasty caveats and limitations:
