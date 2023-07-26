@@ -52,26 +52,26 @@ See [INSTALL.md](INSTALL.md) for things beyond basic usage or special
 cases.  The more involved instructions are only needed if one of the
 following apply:
 
-  * you do not find the above comment about trivial installation intuitively
+  * You do not find the above comment about trivial installation intuitively
     obvious
 
-  * you are working with a python3 executable named something other than
+  * You are working with a python3 executable named something other than
     "python3"
 
-  * you want to install documentation (beyond the builtin docs shown with -h)
+  * You want to install documentation (beyond the builtin docs shown with -h)
 
-  * you want to run some of the [contrib](contrib/filter-repo-demos/) examples
+  * You want to run some of the [contrib](contrib/filter-repo-demos/) examples
 
-  * you want to create your own python filtering scripts using filter-repo as
+  * You want to create your own python filtering scripts using filter-repo as
     a module/library
 
 # How do I use it?
 
 For comprehensive documentation:
 
-  * see the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html)
+  * See the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html)
 
-  * alternative formating of the user manual is available on various
+  * Alternative formating of the user manual is available on various
     external sites
     ([example](https://www.mankier.com/1/git-filter-repo)), for those
     that don't like the htmlpreview.github.io layout, though it may
@@ -79,18 +79,18 @@ For comprehensive documentation:
 
 If you prefer learning from examples:
 
-  * there is a [cheat sheet for converting filter-branch
+  * There is a [cheat sheet for converting filter-branch
     commands](Documentation/converting-from-filter-branch.md#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage),
     which covers every example from the filter-branch manual
 
-  * there is a [cheat sheet for converting BFG Repo Cleaner
+  * There is a [cheat sheet for converting BFG Repo Cleaner
     commands](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg),
     which covers every example from the BFG website
 
-  * the [simple example](#simple-example-with-comparisons) below may
+  * The [simple example](#simple-example-with-comparisons) below may
     be of interest
 
-  * the user manual has an extensive [examples
+  * The user manual has an extensive [examples
 section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES)
 
 # Why filter-repo instead of other alternatives?
@@ -118,40 +118,40 @@ but some highlights for the main competitors:
     use](https://github.com/newren/git-filter-repo/blob/a6a6a1b0f62d365bbe2e76f823e1621857ec4dbd/contrib/filter-repo-demos/filter-lamely#L9-L61)
     for any rewrite which is even slightly non-trivial.
 
-  * the git project has stated that the above issues with filter-branch
+  * The git project has stated that the above issues with filter-branch
     cannot be backward compatibly fixed; they recommend that you [stop
     using
     filter-branch](https://git-scm.com/docs/git-filter-branch#_warning)
 
-  * die-hard fans of filter-branch may be interested in
+  * Die-hard fans of filter-branch may be interested in
     [filter-lamely](contrib/filter-repo-demos/filter-lamely)
     (a.k.a. [filter-branch-ish](contrib/filter-repo-demos/filter-branch-ish)),
     a reimplementation of filter-branch based on filter-repo which is
     more performant (though not nearly as fast or safe as
     filter-repo).
 
-  * a [cheat
+  * A [cheat
     sheet](Documentation/converting-from-filter-branch.md#cheat-sheet-conversion-of-examples-from-the-filter-branch-manpage)
     is available showing how to convert example commands from the manual of
     filter-branch into filter-repo commands.
 
 ## BFG Repo Cleaner
 
-  * great tool for its time, but while it makes some things simple, it
+  * Great tool for its time, but while it makes some things simple, it
     is limited to a few kinds of rewrites.
 
-  * its architecture is not amenable to handling more types of
+  * Its architecture is not amenable to handling more types of
     rewrites.
 
-  * its architecture presents some shortcomings and bugs even for its
+  * Its architecture presents some shortcomings and bugs even for its
     intended usecase.
 
-  * fans of bfg may be interested in
+  * Fans of bfg may be interested in
     [bfg-ish](contrib/filter-repo-demos/bfg-ish), a reimplementation of bfg
     based on filter-repo which includes several new features and bugfixes
     relative to bfg.
 
-  * a [cheat
+  * A [cheat
     sheet](Documentation/converting-from-bfg-repo-cleaner.md#cheat-sheet-conversion-of-examples-from-bfg)
     is available showing how to convert example commands from the manual of
     BFG Repo Cleaner into filter-repo commands.
@@ -162,14 +162,14 @@ Let's say that we want to extract a piece of a repository, with the intent
 on merging just that piece into some other bigger repo.  For extraction, we
 want to:
 
-  * extract the history of a single directory, src/.  This means that only
+  * Extract the history of a single directory, src/.  This means that only
     paths under src/ remain in the repo, and any commits that only touched
     paths outside this directory will be removed.
 
-  * rename all files to have a new leading directory, my-module/ (e.g. so that
+  * Rename all files to have a new leading directory, my-module/ (e.g. so that
     src/foo.c becomes my-module/src/foo.c)
 
-  * rename any tags in the extracted repository to have a 'my-module-'
+  * Rename any tags in the extracted repository to have a 'my-module-'
     prefix (to avoid any conflicts when we later merge this repo into
     something else)
 
