@@ -69,10 +69,7 @@ class CheckIgnores:
 
 def main():
   checker = CheckIgnores()
-  if sys.argsv[1:]:
-    args = fr.FilteringOptions.parse_args(sys.argv[1:])
-  else:
-    args = fr.FilteringOptions.parse_args(['--force'])
+  args = fr.FilteringOptions.parse_args(sys.argv[1:] if sys.argv[1:] else ['--force'])
   filter = fr.RepoFilter(args, commit_callback=checker.skip_ignores)
   filter.run()
   
