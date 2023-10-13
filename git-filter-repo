@@ -1964,6 +1964,10 @@ EXAMPLES
     location.add_argument('--target', type=os.fsencode,
         help=_("Git repository to overwrite with filtered history"))
 
+    order = parser.add_argument_group(title=_("Ordering of commits"))
+    order.add_argument('--date-order', action='store_true',
+        help=_("Processes commits in commit timestamp order."))
+
     misc = parser.add_argument_group(title=_("Miscellaneous options"))
     misc.add_argument('--help', '-h', action='store_true',
         help=_("Show this help message and exit."))
@@ -3662,6 +3666,8 @@ class RepoFilter(object):
       if self._args.preserve_commit_encoding is not None: # pragma: no cover
         reencode = 'no' if self._args.preserve_commit_encoding else 'yes'
         extra_flags.append('--reencode='+reencode)
+      if self._args.date_order:
+        extra_flags.append('--date-order')
       location = ['-C', self._args.source] if self._args.source else []
       fep_cmd = ['git'] + location + ['fast-export', '--show-original-ids',
                  '--signed-tags=strip', '--tag-of-filtered-object=rewrite',

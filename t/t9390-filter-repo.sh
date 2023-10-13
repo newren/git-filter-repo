@@ -1461,6 +1461,46 @@ test_expect_success '--target' '
 	test_cmp target/expect target/actual
 '
 
+test_expect_success '--date-order' '
+	test_create_repo date_order &&
+	(
+		cd date_order &&
+		git fast-import --quiet <$DATA/date-order &&
+		# First, verify that without date-order, C is before B
+		cat <<-EOF >expect-normal &&
+		Initial
+		A
+		C
+		B
+		D
+		merge
+		EOF
+		git filter-repo --force --message-callback "
+			with open(\"messages.txt\", \"ab\") as f:
+				f.write(message)
+			return message
+			" &&
+		test_cmp expect-normal messages.txt &&
+
+		# Next, verify that with date-order, C and B are reversed
+		rm messages.txt &&
+		cat <<-EOF >expect &&
+		Initial
+		A
+		B
+		C
+		D
+		merge
+		EOF
+		git filter-repo --date-order --force --message-callback "
+			with open(\"messages.txt\", \"ab\") as f:
+				f.write(message)
+			return message
+			" &&
+		test_cmp expect messages.txt
+	)
+'
+
 test_expect_success '--refs' '
 	setup_analyze_me &&
 	git init refs &&
