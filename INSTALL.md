@@ -40,6 +40,24 @@ you need to make sure you have a `git_filter_repo.py` file which is
 either a link to or copy of `git-filter-repo`, and you need to place
 that git_filter_repo.py file in $PYTHONPATH.
 
+# Installation via Docker
+
+Download the `git-filter-repo` mentioned above and the `Dockerfile`. Make sure that they are in the same directory.
+
+Build the docker image using the following command:
+
+```shell
+docker build . -t git-filter-repo
+```
+
+To use the script, simply run the following command in any `git` directory in which you want to use the script:
+
+```shell
+docker run -it --rm -v $(pwd):/workdir git-filter-repo --help
+```
+
+Instead of `--help`, you can pass in any arguments you need (as if you were using the script normally).
+
 # Installation via Package Manager
 
 If you want to install via some [package
