@@ -2067,13 +2067,13 @@ EXAMPLES
     if b'--anonymize-map' not in output: # pragma: no cover
       global date_format_permissive
       date_format_permissive = False
-    if b'--mark-tags' not in output: # pragma: no cover
+    if not any(x in output for x in [b'--mark-tags',b'--[no-]mark-tags']): # pragma: no cover
       global write_marks
       write_marks = False
       if args.state_branch:
         # We need a version of git-fast-export with --mark-tags
         raise SystemExit(_("Error: need git >= 2.24.0"))
-    if b'--reencode' not in output: # pragma: no cover
+    if not any(x in output for x in [b'--reencode',  b'--[no-]reencode']): # pragma: no cover
       if args.preserve_commit_encoding:
         # We need a version of git-fast-export with --reencode
         raise SystemExit(_("Error: need git >= 2.23.0"))
