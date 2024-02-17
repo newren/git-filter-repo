@@ -73,9 +73,14 @@ EXAMPLES
     To run eslint --fix on all .js files in history:
         lint-history --relevant 'return filename.endswith(b".js")' eslint --fix
 
+    To handle the blob transformation via python code:
+        lint-history --callback '
+          blob.data=my_transform(blob.data)
+        '
+
 INTERNALS
 
-    Linting of files in history will be done by writing the files to a
+    Linting of files in history for the case of a linting programwill be done by writing the files to a
     temporary directory before running the linting program; the
     location of this temporary directory can be controlled via the
     TMPDIR environment variable as per
@@ -99,11 +104,14 @@ parser.add_argument('--refs', nargs='+',
                     help=("Limit history rewriting to the specified refs. "
                           "Implies --partial of git-filter-repo (and all its "
                           "implications)."))
+parser.add_argument('--callback', metavar="FUNCTION_BODY",
+        help=("Lint callback to run, has defined a filter-repo 'change' object,"
+              " and a filter-repo 'blob' object that must be mutated"))
 parser.add_argument('command', nargs=argparse.REMAINDER,
         help=("Lint command to run, other than the filename at the end"))
 lint_args = parser.parse_args()
-if not lint_args.command:
-  raise SystemExit("Error: Need to specify a lint command")
+if (bool(lint_args.command)+bool(lint_args.callback))!=1:
+  raise SystemExit("Error: Need to specify a lint command xOr a lint callback")
 
 tmpdir = None
 blobs_handled = {}
@@ -122,22 +130,26 @@ def lint_with_real_filenames(commit, metadata):
       cat_file_process.stdin.flush()
       objhash, objtype, objsize = cat_file_process.stdout.readline().split()
       contents_plus_newline = cat_file_process.stdout.read(int(objsize)+1)
+      
+      if lint_args.callback:
+        blob = fr.Blob(contents_plus_newline)
+        callback(change,blob)
+      else:
+        # Write it out to a file with the same basename
+        filename = os.path.join(tmpdir, os.path.basename(change.filename))
+        with open(filename, "wb") as f:
+          f.write(contents_plus_newline[:-1])
 
-      # Write it out to a file with the same basename
-      filename = os.path.join(tmpdir, os.path.basename(change.filename))
-      with open(filename, "wb") as f:
-        f.write(contents_plus_newline[:-1])
+        # Lint the file
+        subprocess.check_call(lint_args.command + [filename.decode('utf-8')])
 
-      # Lint the file
-      subprocess.check_call(lint_args.command + [filename.decode('utf-8')])
-
-      # Get the new contents
-      with open(filename, "rb") as f:
-        blob = fr.Blob(f.read())
+        # Get the new contents
+        with open(filename, "rb") as f:
+          blob = fr.Blob(f.read())
 
       # Insert the new file into the filter's stream, and remove the tempfile
       filter.insert(blob)
-      os.remove(filename)
+      # os.remove(filename)
 
       # Record our handling of the blob and use it for this change
       blobs_handled[change.blob_id] = blob.id
@@ -160,6 +172,10 @@ if lint_args.relevant:
   exec('def is_relevant(filename):\n  '+'\n  '.join(body.splitlines()),
        globals())
   lint_args.filenames_important = True
+if lint_args.callback:
+  body= lint_args.callback
+  exec('def callback(change,blob):\n  '+'\n  '.join(body.splitlines()),
+       globals())
 input_args = []
 if lint_args.refs:
   input_args = ["--args",] + lint_args.refs
