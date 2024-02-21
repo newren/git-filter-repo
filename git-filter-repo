@@ -51,6 +51,13 @@ __all__ = ["Blob", "Reset", "FileChange", "Commit", "Tag", "Progress",
            "string_to_date", "date_to_string",
            "record_id_rename", "GitUtils", "FilteringOptions", "RepoFilter"]
 
+# The globals to make visible to callbacks. They will see all our imports for
+# free, as well as our public API.
+public_globals = ["__builtins__", "argparse", "collections", "fnmatch",
+                  "gettext", "io", "os", "platform", "re", "shutil",
+                  "subprocess", "sys", "time", "textwrap", "tzinfo",
+                  "timedelta", "datetime"] + __all__
+
 deleted_hash = b'0'*40
 write_marks = True
 date_format_permissive = True
@@ -2837,9 +2844,11 @@ class RepoFilter(object):
 
   def _handle_arg_callbacks(self):
     def make_callback(argname, str):
+      callback_globals = {g: globals()[g] for g in public_globals}
+      callback_locals = {}
       exec('def callback({}, _do_not_use_this_var = None):\n'.format(argname)+
-           '  '+'\n  '.join(str.splitlines()), globals())
-      return callback #namespace['callback']
+           '  '+'\n  '.join(str.splitlines()), callback_globals, callback_locals)
+      return callback_locals['callback']
     def handle(type):
       callback_field = '_{}_callback'.format(type)
       code_string = getattr(self._args, type+'_callback')
