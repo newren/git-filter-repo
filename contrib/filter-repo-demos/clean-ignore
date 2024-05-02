@@ -55,8 +55,12 @@ class CheckIgnores:
         if rest == b'::':
           self.okay.add(name)
         else:
-          self.ignored.add(name)
-          ignored.add(name)
+          rule = rest.split(b":")[-1]
+          if rule[0:1] == b"!":
+            self.okay.add(name)
+          else:
+            self.ignored.add(name)
+            ignored.add(name)
 
     return ignored
 
