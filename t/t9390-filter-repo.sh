@@ -187,6 +187,19 @@ test_expect_success '--paths-from-file' '
 	)
 '
 
+test_expect_success '--paths does not mean --paths-from-file' '
+	setup_path_rename &&
+	(
+		git clone file://"$(pwd)"/path_rename paths_misuse &&
+		cd paths_misuse &&
+
+		test_must_fail git filter-repo --paths values/large 2>../err &&
+
+		grep "Error: Option.*--paths.*unrecognized; did you" ../err &&
+		rm ../err
+	)
+'
+
 create_path_filtering_and_renaming() {
 	test -d path_filtering_and_renaming && return
 

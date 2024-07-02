@@ -1811,6 +1811,7 @@ EXAMPLES
                "paths; you also need a filter to select them."))
 
     helpers = parser.add_argument_group(title=_("Path shortcuts"))
+    helpers.add_argument('--paths', help=argparse.SUPPRESS, metavar='IGNORE')
     helpers.add_argument('--paths-from-file', metavar='FILENAME',
         type=os.fsencode,
         action=FilteringOptions.FileWithPathsFilter, dest='path_changes',
@@ -2197,6 +2198,8 @@ EXAMPLES
     if args.help:
       parser.print_help()
       raise SystemExit()
+    if args.paths:
+      raise SystemExit("Error: Option `--paths` unrecognized; did you mean --path or --paths-from-file?")
     if args.version:
       GitUtils.print_my_version()
       raise SystemExit()
