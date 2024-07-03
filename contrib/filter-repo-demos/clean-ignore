@@ -29,7 +29,7 @@ class CheckIgnores:
     self.ignored = set()
     self.okay = set()
 
-    cmd = 'git check-ignore --stdin --verbose --non-matching --no-index'
+    cmd = 'git check-ignore --stdin --verbose --non-matching --no-index -z'
     self.check_ignore_process = subprocess.Popen(cmd.split(),
                                                  stdin=subprocess.PIPE,
                                                  stdout=subprocess.PIPE)
@@ -46,13 +46,13 @@ class CheckIgnores:
       elif name in self.okay:
         continue
       else:
-        self.check_ignore_process.stdin.write(name+b'\n')
+        self.check_ignore_process.stdin.write(name+b'\0')
         self.check_ignore_process.stdin.flush()
-        result = self.check_ignore_process.stdout.readline().rstrip(b'\n')
-        (rest, pathname) = result.split(b"\t")
+        result = os.read(self.check_ignore_process.stdout.fileno(), 65535).rstrip(b'\0')
+        (source, linenum, pattern, pathname) = result.split(b"\0")
         if name != pathname:
           raise SystemExit("Error: Passed {} but got {}".format(name, pathname))
-        if rest == b'::':
+        if not source and not linenum and not pattern:
           self.okay.add(name)
         else:
           self.ignored.add(name)

@@ -16,6 +16,8 @@ esac
 export PYTHONDONTWRITEBYTECODE=1
 export CONTRIB_DIR=$TEST_DIRECTORY/../contrib/filter-repo-demos
 
+DATA="$TEST_DIRECTORY/t9391"
+
 setup()
 {
 	git init $1 &&
@@ -200,6 +202,19 @@ test_expect_success 'lint-history' '
 			git rev-list --count HEAD >actual &&
 			test_cmp expect actual
 		fi
+	)
+'
+
+test_expect_success 'clean-ignore with emoji in filenames' '
+	test_create_repo clean-ignore &&
+	(
+		cd clean-ignore &&
+		git fast-import --quiet <$DATA/emoji-repo &&
+		git reset --hard &&
+		$CONTRIB_DIR/clean-ignore --force &&
+		printf ".gitignore\nfilename\n" >expect &&
+		git ls-files >actual &&
+		test_cmp expect actual
 	)
 '
 
