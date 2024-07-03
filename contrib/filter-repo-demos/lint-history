@@ -175,5 +175,7 @@ if lint_args.filenames_important:
   cat_file_process.stdin.close()
   cat_file_process.wait()
 else:
+  if not os.path.exists('.git/info'):
+    os.makedirs('.git/info')
   filter = fr.RepoFilter(args, blob_callback=lint_non_binary_blobs)
   filter.run()
