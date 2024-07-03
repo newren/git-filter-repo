@@ -205,6 +205,44 @@ test_expect_success 'lint-history' '
 	)
 '
 
+test_expect_success 'lint-history --refs' '
+	test_create_repo lint-history-only-some-refs &&
+	(
+		cd lint-history-only-some-refs &&
+		test_commit a somefile bad &&
+		test_commit b notherfile baaad &&
+		test_commit c whatever baaaaaad &&
+		git checkout -b mybranch HEAD~1 &&
+		test_commit d somefile baaaaaaaad &&
+		test_commit e whatever "baaaaaaaaaad to the bone" &&
+
+		cat <<-EOF >linter.sh &&
+		#!/bin/bash
+		cat \$1 | tr -d a >tmp
+		mv tmp \$1
+		EOF
+		chmod u+x linter.sh &&
+
+		PATH=$PATH:. $CONTRIB_DIR/lint-history --refs master..mybranch  -- linter.sh &&
+
+		echo bd >expect &&
+		echo bd to the bone >long-expect &&
+
+		# Verify master is untouched
+		git checkout master &&
+		! test_cmp somefile expect &&
+		! test_cmp notherfile expect &&
+		! test_cmp whatever expect &&
+
+		# Verify that files touched on the branch are tweaked
+		git checkout mybranch &&
+		test_cmp somefile expect &&
+		! test_cmp notherfile expect &&
+		test_cmp whatever long-expect
+
+	)
+'
+
 test_expect_success 'clean-ignore with emoji in filenames' '
 	test_create_repo clean-ignore &&
 	(
