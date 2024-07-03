@@ -104,6 +104,8 @@ parser.add_argument('command', nargs=argparse.REMAINDER,
 lint_args = parser.parse_args()
 if not lint_args.command:
   raise SystemExit("Error: Need to specify a lint command")
+if len(lint_args.command) > 1 and lint_args.command[0] == '--':
+  lint_args.command.pop(0)
 
 tmpdir = None
 blobs_handled = {}
