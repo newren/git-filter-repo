@@ -205,7 +205,7 @@ test_expect_success 'lint-history' '
 	)
 '
 
-test_expect_success 'lint-history --refs' '
+test_expect_success !WINDOWS 'lint-history --refs' '
 	test_create_repo lint-history-only-some-refs &&
 	(
 		cd lint-history-only-some-refs &&
