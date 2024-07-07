@@ -1207,7 +1207,7 @@ yes () {
 	done
 }
 
-# Fix some commands on Windows
+# Fix some commands on Windows, and other OS-specific things
 uname_s=$(uname -s)
 case $uname_s in
 *MINGW*)
@@ -1229,6 +1229,7 @@ case $uname_s in
 	test_set_prereq NATIVE_CRLF
 	test_set_prereq SED_STRIPS_CR
 	test_set_prereq GREP_STRIPS_CR
+	test_set_prereq WINDOWS
 	GIT_TEST_CMP=mingw_test_cmp
 	;;
 *CYGWIN*)
@@ -1237,6 +1238,7 @@ case $uname_s in
 	test_set_prereq CYGWIN
 	test_set_prereq SED_STRIPS_CR
 	test_set_prereq GREP_STRIPS_CR
+	test_set_prereq WINDOWS
 	;;
 *)
 	test_set_prereq POSIXPERM
