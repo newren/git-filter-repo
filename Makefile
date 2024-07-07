@@ -130,14 +130,15 @@ github_release: update_docs
 
 pypi_release: # Has an implicit dependency on github_release because...
 	# Upload to PyPI, automatically picking tag created by github_release
-	python3 -m venv venv
-	venv/bin/pip install --upgrade pip
-	venv/bin/pip install build twine
-	venv/bin/pyproject-build
+	cd release && python3 -m venv venv
+	cd release && venv/bin/pip3 install --upgrade setuptools pip
+	cd release && venv/bin/pip3 install twine wheel
+	cd release && venv/bin/python3 setup.py sdist bdist_wheel
 	# Note: hope you remember password for pypi, but username is 'newren'
-	venv/bin/twine upload dist/*
+	cd release && venv/bin/twine upload dist/*
 	# Remove temporary file(s)
-	rm -rf dist/ venv/ git_filter_repo.egg-info/
+	cd release && rm -f README.md git-filter-repo git_filter_repo.py
+	cd release && rm -rf .eggs/ build/ venv/ git_filter_repo.egg-info/
 
 # NOTE TO FUTURE SELF: If you accidentally push a bad release, you can remove
 # all but the git-filter-repo-$VERSION.tar.xz asset with
