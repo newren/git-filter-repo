@@ -28,8 +28,8 @@ Then you can run any command you want, such as
     $ python3 git-filter-repo --analyze
 
 If you place the git-filter-repo script in your $PATH, then you can
-shorten commands by replacing `python3 git-filter-repo` with `git
-filter-repo`; the manual assumes this but you can use the longer form.
+shorten commands by replacing `python3 git-filter-repo` with `git-filter-repo`; 
+the manual assumes this but you can use the longer form.
 
 If for some reason downloading a single file is too much of an
 installation hassle for you, or you really want some kind of "official
