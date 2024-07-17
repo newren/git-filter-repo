@@ -545,6 +545,22 @@ test_expect_success FUNNYNAMES 'creation/deletion/updating of replace refs' '
 		echo "$(git rev-parse master~1) refs/replace/$master_2" >>out &&
 		sort -k 2 out >expect &&
 		git show-ref | grep refs/replace/ >output &&
+		test_cmp output expect &&
+
+		rsync -a --delete ../replace_handling/ ./ &&
+		git filter-repo --replace-refs old-default --path-rename numbers:counting &&
+		echo "$(git rev-parse master) refs/replace/$master" >>out &&
+		echo "$(git rev-parse master~1) refs/replace/$master_1" >>out &&
+		echo "$(git rev-parse master~1) refs/replace/$master_2" >>out &&
+		sort -k 2 out >expect &&
+		git show-ref | grep refs/replace/ >output &&
+		test_cmp output expect &&
+
+		# Test the default
+		rsync -a --delete ../replace_handling/ ./ &&
+		git filter-repo --path-rename numbers:counting &&
+		echo "$(git rev-parse master~1) refs/replace/$master_1" >expect &&
+		git show-ref | grep refs/replace/ >output &&
 		test_cmp output expect
 	)
 '
@@ -1621,7 +1637,7 @@ test_expect_success 'handle funny characters' '
 
 		file_sha=$(git rev-parse :0:señor) &&
 		former_head_sha=$(git rev-parse HEAD) &&
-		git filter-repo --to-subdirectory-filter títulos &&
+		git filter-repo --replace-refs old-default --to-subdirectory-filter títulos &&
 
 		cat <<-EOF >expect &&
 		100644 $file_sha 0	"t\303\255tulos/se\303\261or"

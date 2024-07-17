@@ -1896,17 +1896,27 @@ EXAMPLES
     parents.add_argument('--replace-refs', default=None,
                          choices=['delete-no-add', 'delete-and-add',
                                   'update-no-add', 'update-or-add',
-                                  'update-and-add'],
-        help=_("Replace refs (see git-replace(1)) are used to rewrite "
-               "parents (unless turned off by the usual git mechanism); this "
-               "flag specifies what do do with those refs afterward. "
-               "Replace refs can either be deleted or updated to point at new "
-               "commit hashes.  Also, new replace refs can be added for each "
-               "commit rewrite.  With 'update-or-add', new replace refs are "
-               "only added for commit rewrites that aren't used to update an "
-               "existing replace ref. default is 'update-and-add' if "
-               "$GIT_DIR/filter-repo/already_ran does not exist; "
-               "'update-or-add' otherwise."))
+                                  'update-and-add', 'old-default'],
+        help=_("How to handle replace refs (see git-replace(1)).  Replace "
+               "refs can be added during the history rewrite as a way to "
+               "allow users to pass old commit IDs (from before "
+               "git-filter-repo was run) to git commands and have git know "
+               "how to translate those old commit IDs to the new "
+               "(post-rewrite) commit IDs.  Also, replace refs that existed "
+               "before the rewrite can either be deleted or updated.  The "
+               "choices to pass to --replace-refs thus need to specify both "
+               "what to do with existing refs and what to do with commit "
+               "rewrites.  Thus 'update-and-add' means to update existing "
+               "replace refs, and for any commit rewrite (even if already "
+               "pointed at by a replace ref) add a new refs/replace/ reference "
+               "to map from the old commit ID to the new commit ID.  The "
+               "default is update-no-add, meaning update existing replace refs "
+               "but do not add any new ones.  There is also a special "
+               "'old-default' option for picking the default used in versions "
+               "prior to git-filter-repo-2.45, namely 'update-and-add' upon "
+               "the first run of git-filter-repo in a repository and "
+               "'update-or-add' if running git-filter-repo again on a "
+               "repository."))
     parents.add_argument('--prune-empty', default='auto',
                          choices=['always', 'auto', 'never'],
         help=_("Whether to prune empty commits.  'auto' (the default) means "
@@ -1988,8 +1998,7 @@ EXAMPLES
                "so be cautious about using this flag."))
     misc.add_argument('--partial', action='store_true',
         help=_("Do a partial history rewrite, resulting in the mixture of "
-               "old and new history.  This implies a default of "
-               "update-no-add for --replace-refs, disables rewriting "
+               "old and new history.  This disables rewriting "
                "refs/remotes/origin/* to refs/heads/*, disables removing "
                "of the 'origin' remote, disables removing unexported refs, "
                "disables expiring the reflog, and disables the automatic "
@@ -2905,6 +2914,8 @@ class RepoFilter(object):
 
     # Default for --replace-refs
     if not self._args.replace_refs:
+        self._args.replace_refs = 'update-no-add'
+    if self._args.replace_refs == 'old-default':
         self._args.replace_refs = ('update-or-add' if already_ran
                                    else 'update-and-add')
 
