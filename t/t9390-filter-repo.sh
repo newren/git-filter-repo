@@ -1255,59 +1255,62 @@ test_expect_success 'startup sanity checks' '
 		cd startup_sanity_checks &&
 
 		echo foobar | git hash-object -w --stdin &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "expected freshly packed repo" err &&
+		git count-objects -v &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "expected freshly packed repo" ../err &&
 		git prune &&
 
 		git remote add another_remote /dev/null &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "expected one remote, origin" err &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "expected one remote, origin" ../err &&
 		git remote rm another_remote &&
 
 		git remote rename origin another_remote &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "expected one remote, origin" err &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "expected one remote, origin" ../err &&
 		git remote rename another_remote origin &&
 
 		cd words &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "GIT_DIR must be .git" err &&
-		rm err &&
+		test_must_fail git filter-repo --path numbers 2>../../err &&
+		test_i18ngrep "GIT_DIR must be .git" ../../err &&
+		rm ../../err &&
 		cd .. &&
 
 		git config core.bare true &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "GIT_DIR must be ." err &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "GIT_DIR must be ." ../err &&
 		git config core.bare false &&
 
 		git update-ref -m "Just Testing" refs/heads/master HEAD &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "expected at most one entry in the reflog" err &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "expected at most one entry in the reflog" ../err &&
 		git reflog expire --expire=now &&
 
 		echo yes >>words/know &&
 		git stash save random change &&
 		rm -rf .git/logs/ &&
 		git gc &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "has stashed changes" err &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "has stashed changes" ../err &&
 		git update-ref -d refs/stash &&
 
 		echo yes >>words/know &&
 		git add words/know &&
 		git gc --prune=now &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "you have uncommitted changes" err &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "you have uncommitted changes" ../err &&
 		git checkout HEAD words/know &&
 
 		echo yes >>words/know &&
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "you have unstaged changes" err &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "you have unstaged changes" ../err &&
 		git checkout -- words/know &&
 
-		test_must_fail git filter-repo --path numbers 2>err &&
-		test_i18ngrep "you have untracked changes" err &&
-		rm err &&
+		>untracked &&
+		test_must_fail git filter-repo --path numbers 2>../err &&
+		test_i18ngrep "you have untracked changes" ../err &&
+		rm ../err &&
+		rm untracked &&
 
 		git worktree add ../other-worktree HEAD &&
 		test_must_fail git filter-repo --path numbers 2>../err &&
