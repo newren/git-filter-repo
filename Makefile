@@ -137,7 +137,7 @@ pypi_release: # Has an implicit dependency on github_release because...
 	venv/bin/pip install --upgrade pip
 	venv/bin/pip install build twine
 	venv/bin/pyproject-build
-	# Note: hope you remember password for pypi, but username is 'newren'
+	# Note: Retrieve "git-filter-repo releases" token; username is 'newren'
 	venv/bin/twine upload dist/*
 	# Remove temporary file(s)
 	rm -rf dist/ venv/ git_filter_repo.egg-info/
