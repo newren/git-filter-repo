@@ -49,38 +49,40 @@ install: snag_docs #fixup_locale
 # don't work for you, I don't care.  These tasks modify branches and upload
 # releases and whatnot, and presume a directory layout I have locally.
 #
-update_docs: export GIT_WORK_TREE=$(shell mktemp -d)
-update_docs: export GIT_INDEX_FILE=$(shell mktemp)
-update_docs: export COMMIT=$(shell git rev-parse HEAD)
 update_docs:
-	# Sanity check; we'll build docs in a clone of a git repo
-	test -d ../git
-	# Sanity check; docs == origin/docs
-	test -z "$(git rev-parse docs origin/docs | uniq -u)"
-	# Avoid spurious errors by forcing index to be well formatted, if empty
-	git read-tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904 # empty tree
-	# Symlink git-filter-repo.txt documentation into git and build it
-	ln -sf ../../git-filter-repo/Documentation/git-filter-repo.txt ../git/Documentation/
-	make -C ../git/Documentation -j4 man html
-	# Take the built documentation and lay it out nicely
-	mkdir $$GIT_WORK_TREE/html
-	mkdir $$GIT_WORK_TREE/man1
-	cp -a ../git/Documentation/*.html $$GIT_WORK_TREE/html/
-	cp -a ../git/Documentation/git-filter-repo.1 $$GIT_WORK_TREE/man1/
-	dos2unix $$GIT_WORK_TREE/html/*
-	# Add new version of the documentation as a commit, if it differs
-	git --work-tree $$GIT_WORK_TREE add .
+	# Set environment variables once
+	export GIT_WORK_TREE=$(shell mktemp -d) \
+	export GIT_INDEX_FILE=$(shell mktemp) \
+	COMMIT=$(shell git rev-parse HEAD) \
+	&& \
+	# Sanity check; we'll build docs in a clone of a git repo \
+	test -d ../git && \
+	# Sanity check; docs == origin/docs \
+	test -z "$(git rev-parse docs origin/docs | uniq -u)" && \
+	# Avoid spurious errors by forcing index to be well formatted, if empty \
+	git read-tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904 && # empty tree \
+	# Symlink git-filter-repo.txt documentation into git and build it \
+	ln -sf ../../git-filter-repo/Documentation/git-filter-repo.txt ../git/Documentation/ && \
+	make -C ../git/Documentation -j4 man html && \
+	# Take the built documentation and lay it out nicely \
+	mkdir $$GIT_WORK_TREE/html && \
+	mkdir $$GIT_WORK_TREE/man1 && \
+	cp -a ../git/Documentation/*.html $$GIT_WORK_TREE/html/ && \
+	cp -a ../git/Documentation/git-filter-repo.1 $$GIT_WORK_TREE/man1/ && \
+	dos2unix $$GIT_WORK_TREE/html/* && \
+	# Add new version of the documentation as a commit, if it differs \
+	git --work-tree $$GIT_WORK_TREE add . && \
 	git diff --quiet docs || git write-tree \
 		| xargs git commit-tree -p docs -m "Update docs to $$COMMIT" \
-		| xargs git update-ref refs/heads/docs
-	# Remove temporary files
-	rm -rf $$GIT_WORK_TREE
-	rm $$GIT_INDEX_FILE
-	# Push the new documentation upstream
-	git push origin docs
-	# Notify of completion
-	@echo
-	@echo === filter-repo docs branch updated ===
+		| xargs git update-ref refs/heads/docs && \
+	# Remove temporary files \
+	rm -rf $$GIT_WORK_TREE && \
+	rm $$GIT_INDEX_FILE && \
+	# Push the new documentation upstream \
+	git push origin docs && \
+	# Notify of completion \
+	echo && \
+	echo === filter-repo docs branch updated ===
 
 # Call like this:
 #   make GITHUB_COM_TOKEN=$KEY TAGNAME=v2.23.0 release
@@ -88,30 +90,31 @@ release: github_release pypi_release
 
 # Call like this:
 #   make GITHUB_COM_TOKEN=$KEY TAGNAME=v2.23.0 github_release
-github_release: export FILEBASE=git-filter-repo-$(shell echo $(TAGNAME) | tail -c +2)
-github_release: export TMP_INDEX_FILE=$(shell mktemp)
-github_release: export COMMIT=$(shell git rev-parse HEAD)
 github_release: update_docs
-	test -n "$(GITHUB_COM_TOKEN)"
-	test -n "$(TAGNAME)"
-	test -n "$$COMMIT"
-	# Make sure we don't have any staged or unstaged changes
-	git diff --quiet --staged HEAD && git diff --quiet HEAD
-	# Make sure 'jq' is installed
-	type -p jq
-	# Tag the release, push it to GitHub
-	git tag -a -m "filter-repo $(TAGNAME)" $(TAGNAME) $$COMMIT
-	git push origin $(TAGNAME)
-	# Create the tarball
-	GIT_INDEX_FILE=$$TMP_INDEX_FILE git read-tree $$COMMIT
+	FILEBASE=git-filter-repo-$(shell echo $(TAGNAME) | tail -c +2) \
+	TMP_INDEX_FILE=$(shell mktemp) \
+	COMMIT=$(shell git rev-parse HEAD) \
+	&& \
+	test -n "$(GITHUB_COM_TOKEN)" && \
+	test -n "$(TAGNAME)" && \
+	test -n "$$COMMIT" && \
+	# Make sure we don't have any staged or unstaged changes \
+	git diff --quiet --staged HEAD && git diff --quiet HEAD && \
+	# Make sure 'jq' is installed \
+	type -p jq && \
+	# Tag the release, push it to GitHub \
+	git tag -a -m "filter-repo $(TAGNAME)" $(TAGNAME) $$COMMIT && \
+	git push origin $(TAGNAME) && \
+	# Create the tarball \
+	GIT_INDEX_FILE=$$TMP_INDEX_FILE git read-tree $$COMMIT && \
 	git ls-tree -r docs | grep filter-repo    \
 		| sed -e 's%\t%\tDocumentation/%' \
-		| GIT_INDEX_FILE=$$TMP_INDEX_FILE git update-index --index-info
+		| GIT_INDEX_FILE=$$TMP_INDEX_FILE git update-index --index-info && \
 	GIT_INDEX_FILE=$$TMP_INDEX_FILE git write-tree                                    \
-		| xargs git archive --prefix=$(FILEBASE)/ \
-		| xz -c >$(FILEBASE).tar.xz
-	rm $$TMP_INDEX_FILE
-	# Make GitHub mark our new tag as an official release
+		| xargs git archive --prefix=$$FILEBASE/ \
+		| xz -c >$$FILEBASE.tar.xz && \
+	rm $$TMP_INDEX_FILE && \
+	# Make GitHub mark our new tag as an official release \
 	curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -X POST \
 		https://api.github.com/repos/newren/git-filter-repo/releases \
 		--data "{                                  \
@@ -119,14 +122,14 @@ github_release: update_docs
 		  \"target_commitish\": \"$$COMMIT\",      \
 		  \"name\": \"$(TAGNAME)\",                \
 		  \"body\": \"filter-repo $(TAGNAME)\"     \
-		}" | jq -r .id >asset_id
-	# Upload our tarball
-	cat asset_id | xargs -I ASSET_ID curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -H "Content-Type: application/octet-stream" --data-binary @$(FILEBASE).tar.xz https://uploads.github.com/repos/newren/git-filter-repo/releases/ASSET_ID/assets?name=$(FILEBASE).tar.xz
-	# Remove temporary file(s)
-	rm asset_id
-	# Notify of completion
-	@echo
-	@echo === filter-repo $(TAGNAME) created and uploaded to GitHub ===
+		}" | jq -r .id >asset_id && \
+	# Upload our tarball \
+	cat asset_id | xargs -I ASSET_ID curl -s -H "Authorization: token $(GITHUB_COM_TOKEN)" -H "Content-Type: application/octet-stream" --data-binary @$$FILEBASE.tar.xz https://uploads.github.com/repos/newren/git-filter-repo/releases/ASSET_ID/assets?name=$$FILEBASE.tar.xz && \
+	# Remove temporary file(s) \
+	rm asset_id && \
+	# Notify of completion \
+	echo && \
+	echo === filter-repo $(TAGNAME) created and uploaded to GitHub ===
 
 pypi_release: # Has an implicit dependency on github_release because...
 	# Upload to PyPI, automatically picking tag created by github_release
