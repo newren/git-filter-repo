@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-update-ref(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-update-ref(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git update-ref</em> [-m &lt;reason&gt;] [--no-deref] (-d &lt;ref&gt; [&lt;oldvalue&gt;] | [--create-reflog] &lt;ref&gt; &lt;newvalue&gt; [&lt;oldvalue&gt;] | --stdin [-z])</pre>
+<pre class="content"><em>git update-ref</em> [-m &lt;reason&gt;] [--no-deref] (-d &lt;ref&gt; [&lt;old-oid&gt;] | [--create-reflog] &lt;ref&gt; &lt;new-oid&gt; [&lt;old-oid&gt;] | --stdin [-z])</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -757,16 +757,16 @@ git-update-ref(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Given two arguments, stores the &lt;newvalue&gt; in the &lt;ref&gt;, possibly
+<div class="paragraph"><p>Given two arguments, stores the &lt;new-oid&gt; in the &lt;ref&gt;, possibly
 dereferencing the symbolic refs.  E.g. <code>git update-ref HEAD
-&lt;newvalue&gt;</code> updates the current branch head to the new object.</p></div>
-<div class="paragraph"><p>Given three arguments, stores the &lt;newvalue&gt; in the &lt;ref&gt;,
+&lt;new-oid&gt;</code> updates the current branch head to the new object.</p></div>
+<div class="paragraph"><p>Given three arguments, stores the &lt;new-oid&gt; in the &lt;ref&gt;,
 possibly dereferencing the symbolic refs, after verifying that
-the current value of the &lt;ref&gt; matches &lt;oldvalue&gt;.
-E.g. <code>git update-ref refs/heads/master &lt;newvalue&gt; &lt;oldvalue&gt;</code>
-updates the master branch head to &lt;newvalue&gt; only if its current
-value is &lt;oldvalue&gt;.  You can specify 40 "0" or an empty string
-as &lt;oldvalue&gt; to make sure that the ref you are creating does
+the current value of the &lt;ref&gt; matches &lt;old-oid&gt;.
+E.g. <code>git update-ref refs/heads/master &lt;new-oid&gt; &lt;old-oid&gt;</code>
+updates the master branch head to &lt;new-oid&gt; only if its current
+value is &lt;old-oid&gt;.  You can specify 40 "0" or an empty string
+as &lt;old-oid&gt; to make sure that the ref you are creating does
 not exist.</p></div>
 <div class="paragraph"><p>It also allows a "ref" file to be a symbolic pointer to another
 ref file by starting with the four-byte header sequence of
@@ -797,15 +797,15 @@ for reading but not for writing (so we&#8217;ll never write through a
 ref symlink to some other tree, if you have copied a whole
 archive by creating a symlink tree).</p></div>
 <div class="paragraph"><p>With <code>-d</code> flag, it deletes the named &lt;ref&gt; after verifying it
-still contains &lt;oldvalue&gt;.</p></div>
+still contains &lt;old-oid&gt;.</p></div>
 <div class="paragraph"><p>With <code>--stdin</code>, update-ref reads instructions from standard input and
 performs all modifications together.  Specify commands of the form:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>update SP &lt;ref&gt; SP &lt;newvalue&gt; [SP &lt;oldvalue&gt;] LF
-create SP &lt;ref&gt; SP &lt;newvalue&gt; LF
-delete SP &lt;ref&gt; [SP &lt;oldvalue&gt;] LF
-verify SP &lt;ref&gt; [SP &lt;oldvalue&gt;] LF
+<pre><code>update SP &lt;ref&gt; SP &lt;new-oid&gt; [SP &lt;old-oid&gt;] LF
+create SP &lt;ref&gt; SP &lt;new-oid&gt; LF
+delete SP &lt;ref&gt; [SP &lt;old-oid&gt;] LF
+verify SP &lt;ref&gt; [SP &lt;old-oid&gt;] LF
 option SP &lt;opt&gt; LF
 start LF
 prepare LF
@@ -822,10 +822,10 @@ specify a missing value, omit the value and its preceding SP entirely.</p></div>
 quoting:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>update SP &lt;ref&gt; NUL &lt;newvalue&gt; NUL [&lt;oldvalue&gt;] NUL
-create SP &lt;ref&gt; NUL &lt;newvalue&gt; NUL
-delete SP &lt;ref&gt; NUL [&lt;oldvalue&gt;] NUL
-verify SP &lt;ref&gt; NUL [&lt;oldvalue&gt;] NUL
+<pre><code>update SP &lt;ref&gt; NUL &lt;new-oid&gt; NUL [&lt;old-oid&gt;] NUL
+create SP &lt;ref&gt; NUL &lt;new-oid&gt; NUL
+delete SP &lt;ref&gt; NUL [&lt;old-oid&gt;] NUL
+verify SP &lt;ref&gt; NUL [&lt;old-oid&gt;] NUL
 option SP &lt;opt&gt; NUL
 start NUL
 prepare NUL
@@ -843,9 +843,9 @@ update
 </dt>
 <dd>
 <p>
-        Set &lt;ref&gt; to &lt;newvalue&gt; after verifying &lt;oldvalue&gt;, if given.
-        Specify a zero &lt;newvalue&gt; to ensure the ref does not exist
-        after the update and/or a zero &lt;oldvalue&gt; to make sure the
+        Set &lt;ref&gt; to &lt;new-oid&gt; after verifying &lt;old-oid&gt;, if given.
+        Specify a zero &lt;new-oid&gt; to ensure the ref does not exist
+        after the update and/or a zero &lt;old-oid&gt; to make sure the
         ref does not exist before the update.
 </p>
 </dd>
@@ -854,8 +854,8 @@ create
 </dt>
 <dd>
 <p>
-        Create &lt;ref&gt; with &lt;newvalue&gt; after verifying it does not
-        exist.  The given &lt;newvalue&gt; may not be zero.
+        Create &lt;ref&gt; with &lt;new-oid&gt; after verifying it does not
+        exist.  The given &lt;new-oid&gt; may not be zero.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -863,8 +863,8 @@ delete
 </dt>
 <dd>
 <p>
-        Delete &lt;ref&gt; after verifying it exists with &lt;oldvalue&gt;, if
-        given.  If given, &lt;oldvalue&gt; may not be zero.
+        Delete &lt;ref&gt; after verifying it exists with &lt;old-oid&gt;, if
+        given.  If given, &lt;old-oid&gt; may not be zero.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -872,8 +872,8 @@ verify
 </dt>
 <dd>
 <p>
-        Verify &lt;ref&gt; against &lt;oldvalue&gt; but do not change it.  If
-        &lt;oldvalue&gt; is zero or missing, the ref must not exist.
+        Verify &lt;ref&gt; against &lt;old-oid&gt; but do not change it.  If
+        &lt;old-oid&gt; is zero or missing, the ref must not exist.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -881,7 +881,7 @@ option
 </dt>
 <dd>
 <p>
-        Modify behavior of the next command naming a &lt;ref&gt;.
+        Modify the behavior of the next command naming a &lt;ref&gt;.
         The only valid option is <code>no-deref</code> to avoid dereferencing
         a symbolic ref.
 </p>
@@ -926,7 +926,7 @@ abort
 </p>
 </dd>
 </dl></div>
-<div class="paragraph"><p>If all &lt;ref&gt;s can be locked with matching &lt;oldvalue&gt;s
+<div class="paragraph"><p>If all &lt;ref&gt;s can be locked with matching &lt;old-oid&gt;s
 simultaneously, all modifications are performed.  Otherwise, no
 modifications are performed.  Note that while each individual
 &lt;ref&gt; is updated or deleted atomically, a concurrent reader may
@@ -949,7 +949,7 @@ formatted as:</p></div>
 </div></div>
 <div class="paragraph"><p>Where "oldsha1" is the 40 character hexadecimal value previously
 stored in &lt;ref&gt;, "newsha1" is the 40 character hexadecimal value of
-&lt;newvalue&gt; and "committer" is the committer&#8217;s name, email address
+&lt;new-oid&gt; and "committer" is the committer&#8217;s name, email address
 and date in the standard Git committer ident format.</p></div>
 <div class="paragraph"><p>Optionally with -m:</p></div>
 <div class="literalblock">
@@ -974,7 +974,7 @@ or does not have committer information available.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

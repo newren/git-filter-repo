@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-cherry-pick(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -962,8 +962,8 @@ effect to your index in a row.</p></div>
         even without this option.  Note also, that use of this option only
         keeps commits that were initially empty (i.e. the commit recorded the
         same tree as its parent).  Commits which are made empty due to a
-        previous commit are dropped.  To force the inclusion of those commits
-        use <code>--keep-redundant-commits</code>.
+        previous commit will cause the cherry-pick to fail.  To force the
+        inclusion of those commits, use <code>--empty=keep</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -977,15 +977,54 @@ effect to your index in a row.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--empty=(drop|keep|stop)
+</dt>
+<dd>
+<p>
+        How to handle commits being cherry-picked that are redundant with
+        changes already in the current history.
+</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>drop</code>
+</dt>
+<dd>
+<p>
+        The commit will be dropped.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>keep</code>
+</dt>
+<dd>
+<p>
+        The commit will be kept. Implies <code>--allow-empty</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>stop</code>
+</dt>
+<dd>
+<p>
+        The cherry-pick will stop when the commit is applied, allowing
+        you to examine the commit. This is the default behavior.
+</p>
+</dd>
+</dl></div>
+</div></div>
+<div class="paragraph"><p>Note that <code>--empty=drop</code> and <code>--empty=stop</code> only specify how to handle a
+commit that was not initially empty, but rather became empty due to a previous
+commit. Commits that were initially empty will still cause the cherry-pick to
+fail unless one of <code>--empty=keep</code> or <code>--allow-empty</code> are specified.</p></div>
+</dd>
+<dt class="hdlist1">
 --keep-redundant-commits
 </dt>
 <dd>
 <p>
-        If a commit being cherry picked duplicates a commit already in the
-        current history, it will become empty.  By default these
-        redundant commits cause <code>cherry-pick</code> to stop so the user can
-        examine the commit. This option overrides that behavior and
-        creates an empty commit object.  Implies <code>--allow-empty</code>.
+        Deprecated synonym for <code>--empty=keep</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1166,7 +1205,7 @@ again, this time exercising more care about matching up context lines.</p></div>
 <div class="content">
 <pre><code>$ git cherry-pick topic^             <b>&lt;1&gt;</b>
 $ git diff                           <b>&lt;2&gt;</b>
-$ git reset --merge ORIG_HEAD        <b>&lt;3&gt;</b>
+$ git cherry-pick --abort            <b>&lt;3&gt;</b>
 $ git cherry-pick -Xpatience topic^  <b>&lt;4&gt;</b></code></pre>
 </div></div>
 <div class="colist arabic"><ol>
@@ -1217,7 +1256,7 @@ try to apply the change introduced by <code>topic^</code> again,
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

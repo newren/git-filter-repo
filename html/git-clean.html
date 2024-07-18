@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-clean(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-clean(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git clean</em> [-d] [-f] [-i] [-n] [-q] [-e &lt;pattern&gt;] [-x | -X] [--] &lt;path&gt;&#8230;</pre>
+<pre class="content"><em>git clean</em> [-d] [-f] [-i] [-n] [-q] [-e &lt;pattern&gt;] [-x | -X] [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -762,8 +762,8 @@ under version control, starting from the current directory.</p></div>
 <div class="paragraph"><p>Normally, only files unknown to Git are removed, but if the <code>-x</code>
 option is specified, ignored files are also removed. This can, for
 example, be useful to remove all build products.</p></div>
-<div class="paragraph"><p>If any optional <code>&lt;path&gt;...</code> arguments are given, only those paths
-are affected.</p></div>
+<div class="paragraph"><p>If any optional <code>&lt;pathspec&gt;...</code> arguments are given, only those paths
+that match the pathspec are affected.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -775,10 +775,10 @@ are affected.</p></div>
 </dt>
 <dd>
 <p>
-        Normally, when no &lt;path&gt; is specified, git clean will not
+        Normally, when no &lt;pathspec&gt; is specified, git clean will not
         recurse into untracked directories to avoid removing too much.
         Specify -d to have it recurse into such directories as well.
-        If any paths are specified, -d is irrelevant; all untracked
+        If a &lt;pathspec&gt; is specified, -d is irrelevant; all untracked
         files matching the specified paths (with exceptions for nested
         git directories mentioned under <code>--force</code>) will be removed.
 </p>
@@ -793,7 +793,7 @@ are affected.</p></div>
 <p>
         If the Git configuration variable clean.requireForce is not set
         to false, <em>git clean</em> will refuse to delete files or directories
-        unless given -f or -i.  Git will refuse to modify untracked
+        unless given -f.  Git will refuse to modify untracked
         nested git repositories (directories with a .git subdirectory)
         unless a second -f is given.
 </p>
@@ -808,6 +808,8 @@ are affected.</p></div>
 <p>
         Show what would be done and clean files interactively. See
         &#8220;Interactive mode&#8221; for details.
+        Configuration variable <code>clean.requireForce</code> is ignored, as
+        this mode gives its own safety protection by going interactive.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -819,6 +821,8 @@ are affected.</p></div>
 <dd>
 <p>
         Don&#8217;t actually remove anything, just show what would be done.
+        Configuration variable <code>clean.requireForce</code> is ignored, as
+        nothing will be deleted anyway.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -906,7 +910,7 @@ filter by pattern
    This shows the files and directories to be deleted and issues an
    "Input ignore patterns&gt;&gt;" prompt. You can input space-separated
    patterns to exclude files and directories from deletion.
-   E.g. "*.c *.h" will excludes files end with ".c" and ".h" from
+   E.g. "*.c *.h" will exclude files ending with ".c" and ".h" from
    deletion. When you are satisfied with the filtered result, press
    ENTER (empty) back to the main menu.
 </p>
@@ -942,7 +946,7 @@ quit
 </dt>
 <dd>
 <p>
-  This lets you quit without do cleaning.
+  This lets you quit without doing any cleaning.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -968,8 +972,8 @@ clean.requireForce
 </dt>
 <dd>
 <p>
-        A boolean to make git-clean do nothing unless given -f,
-        -i or -n.   Defaults to true.
+        A boolean to make git-clean refuse to delete files unless -f
+        is given. Defaults to true.
 </p>
 </dd>
 </dl></div>
@@ -992,7 +996,7 @@ clean.requireForce
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

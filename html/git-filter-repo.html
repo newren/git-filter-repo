@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-filter-repo(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -837,14 +837,6 @@ pruning commits which become empty due to the above filters (also
 </li>
 <li>
 <p>
-creating replace-refs (see <a href="git-replace.html">git-replace(1)</a>) for old commit
-    hashes, which if manually pushed and fetched will allow users to
-    continue to refer to new commits using (unabbreviated) old commit
-    IDs
-</p>
-</li>
-<li>
-<p>
 stripping of original history to avoid mixing old and new history
 </p>
 </li>
@@ -852,6 +844,17 @@ stripping of original history to avoid mixing old and new history
 <p>
 repacking the repository post-rewrite to shrink the repo for the
     user
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>And additional facilities are available via a config option</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+creating replace-refs (see <a href="git-replace.html">git-replace(1)</a>) for old commit
+    hashes, which if manually pushed and fetched will allow users to
+    continue to refer to new commits using (unabbreviated) old commit
+    IDs
 </p>
 </li>
 </ul></div>
@@ -1134,20 +1137,29 @@ paths, e.g. <code>--path olddir/ --path newdir/</code></p></div>
 <h3 id="_parent_rewriting">Parent rewriting</h3>
 <div class="dlist"><dl>
 <dt class="hdlist1">
---replace-refs {delete-no-add, delete-and-add, update-no-add, update-or-add, update-and-add}
+--replace-refs {delete-no-add, delete-and-add, update-no-add, update-or-add, update-and-add, old-default}
 </dt>
 <dd>
 <p>
-        Replace refs (see <a href="git-replace.html">git-replace(1)</a>) are used to rewrite
-        parents (unless turned off by the usual git mechanism); this
-        flag specifies what do do with those refs afterward. Replace
-        refs can either be deleted or updated to point at new commit
-        hashes. Also, new replace refs can be added for each commit
-        rewrite.  With <em>update-or-add</em>, new replace refs are only
-        added for commit rewrites that aren&#8217;t used to update an
-        existing replace ref. default is <em>update-and-add</em> if
-        $GIT_DIR/filter-repo/already_ran does not exist;
-        <em>update-or-add</em> otherwise.
+        How to handle replace refs (see git-replace(1)).  Replace refs
+        can be added during the history rewrite as a way to allow
+        users to pass old commit IDs (from before git-filter-repo was
+        run) to git commands and have git know how to translate those
+        old commit IDs to the new (post-rewrite) commit IDs.  Also,
+        replace refs that existed before the rewrite can either be
+        deleted or updated.  The choices to pass to --replace-refs
+        thus need to specify both what to do with existing refs and
+        what to do with commit rewrites.  Thus <em>update-and-add</em> means
+        to update existing replace refs, and for any commit rewrite
+        (even if already pointed at by a replace ref) add a new
+        refs/replace/ reference to map from the old commit ID to the
+        new commit ID.  The default is update-no-add, meaning update
+        existing replace refs but do not add any new ones.  There is
+        also a special <em>old-default</em> option for picking the default
+        used in versions prior to git-filter-repo-2.45, namely
+        <em>update-and-add</em> upon the first run of git-filter-repo in a
+        repository and <em>update-or-add</em> if running git-filter-repo
+        again on a repository.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1276,10 +1288,10 @@ paths, e.g. <code>--path olddir/ --path newdir/</code></p></div>
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">Specifying alternate source or target locations implies --partial
-except that the normal default for --replace-refs is used.  However, unlike
-normal uses of --partial, this doesn&#8217;t risk mixing old and new history
-since the old and new histories are in different repositories.</td>
+<td class="content">Specifying alternate source or target locations implies
+--partial.  However, unlike normal uses of --partial, this doesn&#8217;t
+risk mixing old and new history since the old and new histories are in
+different repositories.</td>
 </tr></table>
 </div>
 <div class="dlist"><dl>
@@ -1337,8 +1349,7 @@ since the old and new histories are in different repositories.</td>
 <dd>
 <p>
         Do a partial history rewrite, resulting in the mixture of old and
-        new history.  This implies a default of update-no-add for
-        --replace-refs, disables rewriting refs/remotes/origin/* to
+        new history.  This disables rewriting refs/remotes/origin/* to
         refs/heads/*, disables removing of the <em>origin</em> remote, disables
         removing unexported refs, disables expiring the reflog, and
         disables the automatic post-filter gc.  Also, this modifies
@@ -1703,11 +1714,9 @@ Finally, you&#8217;ll need to consult any documentation from your
      hosting provider about how to remove any server-side references
      to the old commits (example:
      <a href="https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html">GitLab&#8217;s
-     excellent docs on reducing repository size</a>, or just the warning
-     box that references "GitHub support" from
-     <a href="https://docs.github.com/en/github/authenticating-to-github/removing-sensitive-data-from-a-repository">GitHub&#8217;s
-     otherwise dangerously out-of-date docs on removing sensitive
-     data</a>).
+     excellent docs on reducing repository size</a>, or
+     <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository#fully-removing-the-data-from-github">the
+     first and second steps under "Fully removing the data from GitHub"</a>).
 </p>
 </li>
 </ul></div>
@@ -1719,25 +1728,25 @@ Finally, you&#8217;ll need to consult any documentation from your
 <div class="ulist"><ul>
 <li>
 <p>
-filter-repo by default creates replace refs (see
-     <a href="git-replace.html">git-replace(1)</a>) for each rewritten commit ID, allowing
-     you to use old (unabbreviated) commit hashes in the git command
-     line to refer to the newly rewritten commits.  If you want to use
-     these replace refs, manually push them to the relevant clone URL
-     and tell users to manually fetch them (e.g. by adjusting their
-     fetch refspec, <code>git config --add remote.origin.fetch
-     +refs/replace/*:refs/replace/*</code>).  Sadly, replace refs are not
-     yet widely understood; projects like jgit and libgit2 do not
-     support them and existing repository managers (e.g. Gerrit,
-     GitHub, GitLab) do not yet understand replace refs.  Thus one
-     can&#8217;t use old commit hashes within the UI of these other systems.
-     This may change in the future, but replace refs at least help
-     users locally within the git command line interface.  Also, be
-     aware that commit-graphs are excessively cautious around replace
-     refs and just turn off entirely if any are present, so after
-     enough time has passed that old commit IDs become less relevant,
-     users may want to locally delete the replace refs to regain the
-     speedups from commit-graphs.
+filter-repo has a --replace-refs option to allow creating replace
+     refs (see <a href="git-replace.html">git-replace(1)</a>) for each rewritten commit ID,
+     allowing you to use old (unabbreviated) commit hashes in the git
+     command line to refer to the newly rewritten commits.  If you
+     want to use these replace refs, manually push them to the
+     relevant clone URL and tell users to manually fetch them (e.g. by
+     adjusting their fetch refspec, <code>git config --add
+     remote.origin.fetch +refs/replace/*:refs/replace/*</code>).  Sadly,
+     replace refs are not yet widely understood; projects like jgit
+     and libgit2 do not support them and existing repository managers
+     (e.g. Gerrit, GitHub, GitLab) do not yet understand replace refs.
+     Thus one can&#8217;t use old commit hashes within the UI of these other
+     systems.  This may change in the future, but replace refs at
+     least help users locally within the git command line interface.
+     Also, be aware that commit-graphs are excessively cautious around
+     replace refs and just turn off entirely if any are present, so
+     after enough time has passed that old commit IDs become less
+     relevant, users may want to locally delete the replace refs to
+     regain the speedups from commit-graphs.
 </p>
 </li>
 <li>
@@ -2709,7 +2718,7 @@ I assume that people use filter-repo for one-shot conversions, not
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-04 21:51:55 PDT
+ 2024-07-17 11:28:49 PDT
 </div>
 </div>
 </body>

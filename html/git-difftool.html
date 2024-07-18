@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-difftool(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -807,7 +807,7 @@ to <em>git diff</em> and accepts the same options and arguments. See
 <dd>
 <p>
         Start showing the diff for the given path,
-        the paths before it will move to end and output.
+        the paths before it will move to the end and output.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -867,7 +867,7 @@ with custom merge tool commands and has the same value as <code>$MERGED</code>.<
 </dt>
 <dd>
 <p>
-        <em>git difftool</em>'s default behavior is create symlinks to the
+        <em>git difftool</em>'s default behavior is to create symlinks to the
         working tree when run in <code>--dir-diff</code> mode and the right-hand
         side of the comparison yields the same content as the file in
         the working tree.
@@ -885,7 +885,7 @@ instead.  <code>--no-symlinks</code> is the default on Windows.</p></div>
 <p>
         Specify a custom command for viewing diffs.
         <em>git-difftool</em> ignores the configured defaults and runs
-        <code>$command $LOCAL $REMOTE</code> when this option is specified.
+        <code>&lt;command&gt; $LOCAL $REMOTE</code> when this option is specified.
         Additionally, <code>$BASE</code> is set in the environment.
 </p>
 </dd>
@@ -899,10 +899,12 @@ instead.  <code>--no-symlinks</code> is the default on Windows.</p></div>
 <p>
         When <em>git-difftool</em> is invoked with the <code>-g</code> or <code>--gui</code> option
         the default diff tool will be read from the configured
-        <code>diff.guitool</code> variable instead of <code>diff.tool</code>. The <code>--no-gui</code>
-        option can be used to override this setting. If <code>diff.guitool</code>
-        is not set, we will fallback in the order of <code>merge.guitool</code>,
-        <code>diff.tool</code>, <code>merge.tool</code> until a tool is found.
+        <code>diff.guitool</code> variable instead of <code>diff.tool</code>. This may be
+        selected automatically using the configuration variable
+        <code>difftool.guiDefault</code>. The <code>--no-gui</code> option can be used to
+        override these settings. If <code>diff.guitool</code> is not set, we will
+        fallback in the order of <code>merge.guitool</code>, <code>diff.tool</code>,
+        <code>merge.tool</code> until a tool is found.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -910,7 +912,6 @@ instead.  <code>--no-symlinks</code> is the default on Windows.</p></div>
 </dt>
 <dd>
 <p>
-        <em>git-difftool</em> invokes a diff tool individually on each file.
         Errors reported by the diff tool are ignored by default.
         Use <code>--trust-exit-code</code> to make <em>git-difftool</em> exit when an
         invoked diff tool returns a non-zero exit code.
@@ -996,6 +997,18 @@ difftool.prompt
         Prompt before each invocation of the diff tool.
 </p>
 </dd>
+<dt class="hdlist1">
+difftool.guiDefault
+</dt>
+<dd>
+<p>
+        Set <code>true</code> to use the <code>diff.guitool</code> by default (equivalent to specifying
+        the <code>--gui</code> argument), or <code>auto</code> to select <code>diff.guitool</code> or <code>diff.tool</code>
+        depending on the presence of a <code>DISPLAY</code> environment variable value. The
+        default is <code>false</code>, where the <code>--gui</code> argument must be provided
+        explicitly for the <code>diff.guitool</code> to be used.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1041,7 +1054,7 @@ difftool.prompt
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

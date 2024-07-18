@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-tag(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-tag(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git tag</em> [-a | -s | -u &lt;keyid&gt;] [-f] [-m &lt;msg&gt; | -F &lt;file&gt;] [-e]
+<pre class="content"><em>git tag</em> [-a | -s | -u &lt;key-id&gt;] [-f] [-m &lt;msg&gt; | -F &lt;file&gt;] [-e]
         &lt;tagname&gt; [&lt;commit&gt; | &lt;object&gt;]
 <em>git tag</em> -d &lt;tagname&gt;&#8230;
 <em>git tag</em> [-n[&lt;num&gt;]] -l [--contains &lt;commit&gt;] [--no-contains &lt;commit&gt;]
@@ -767,16 +767,16 @@ git-tag(1) Manual Page
 <div class="paragraph"><p>Add a tag reference in <code>refs/tags/</code>, unless <code>-d/-l/-v</code> is given
 to delete, list or verify tags.</p></div>
 <div class="paragraph"><p>Unless <code>-f</code> is given, the named tag must not yet exist.</p></div>
-<div class="paragraph"><p>If one of <code>-a</code>, <code>-s</code>, or <code>-u &lt;keyid&gt;</code> is passed, the command
+<div class="paragraph"><p>If one of <code>-a</code>, <code>-s</code>, or <code>-u &lt;key-id&gt;</code> is passed, the command
 creates a <em>tag</em> object, and requires a tag message.  Unless
 <code>-m &lt;msg&gt;</code> or <code>-F &lt;file&gt;</code> is given, an editor is started for the user to type
 in the tag message.</p></div>
-<div class="paragraph"><p>If <code>-m &lt;msg&gt;</code> or <code>-F &lt;file&gt;</code> is given and <code>-a</code>, <code>-s</code>, and <code>-u &lt;keyid&gt;</code>
+<div class="paragraph"><p>If <code>-m &lt;msg&gt;</code> or <code>-F &lt;file&gt;</code> is given and <code>-a</code>, <code>-s</code>, and <code>-u &lt;key-id&gt;</code>
 are absent, <code>-a</code> is implied.</p></div>
 <div class="paragraph"><p>Otherwise, a tag reference that points directly at the given object
 (i.e., a lightweight tag) is created.</p></div>
 <div class="paragraph"><p>A GnuPG signed tag object will be created when <code>-s</code> or <code>-u
-&lt;keyid&gt;</code> is used.  When <code>-u &lt;keyid&gt;</code> is not used, the
+&lt;key-id&gt;</code> is used.  When <code>-u &lt;key-id&gt;</code> is not used, the
 committer identity for the current user is used to find the
 GnuPG key for signing.  The configuration variable <code>gpg.program</code>
 is used to specify custom GnuPG binary.</p></div>
@@ -830,10 +830,10 @@ lightweight tags by default.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
--u &lt;keyid&gt;
+-u &lt;key-id&gt;
 </dt>
 <dt class="hdlist1">
---local-user=&lt;keyid&gt;
+--local-user=&lt;key-id&gt;
 </dt>
 <dd>
 <p>
@@ -943,6 +943,15 @@ options for details.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--omit-empty
+</dt>
+<dd>
+<p>
+        Do not print a newline after formatted refs where the format expands
+        to the empty string.
+</p>
+</dd>
+<dt class="hdlist1">
 --column[=&lt;options&gt;]
 </dt>
 <dt class="hdlist1">
@@ -1012,7 +1021,7 @@ options for details.</p></div>
         Use the given tag message (instead of prompting).
         If multiple <code>-m</code> options are given, their values are
         concatenated as separate paragraphs.
-        Implies <code>-a</code> if none of <code>-a</code>, <code>-s</code>, or <code>-u &lt;keyid&gt;</code>
+        Implies <code>-a</code> if none of <code>-a</code>, <code>-s</code>, or <code>-u &lt;key-id&gt;</code>
         is given.
 </p>
 </dd>
@@ -1026,7 +1035,7 @@ options for details.</p></div>
 <p>
         Take the tag message from the given file.  Use <em>-</em> to
         read the message from the standard input.
-        Implies <code>-a</code> if none of <code>-a</code>, <code>-s</code>, or <code>-u &lt;keyid&gt;</code>
+        Implies <code>-a</code> if none of <code>-a</code>, <code>-s</code>, or <code>-u &lt;key-id&gt;</code>
         is given.
 </p>
 </dd>
@@ -1114,7 +1123,7 @@ it in the repository configuration as follows:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>[user]
-    signingKey = &lt;gpg-keyid&gt;</code></pre>
+    signingKey = &lt;gpg-key-id&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p><code>pager.tag</code> is only respected when listing tags, i.e., when <code>-l</code> is
 used or implied. The default is to use a pager.
@@ -1282,7 +1291,7 @@ RFC 2822
 </dt>
 <dd>
 <p>
-        The standard email format as described by RFC 2822, for example
+        The standard date format as described by RFC 2822, for example
         <code>Thu, 07 Apr 2005 22:13:13 +0200</code>.
 </p>
 </dd>
@@ -1306,6 +1315,25 @@ ISO 8601
 <code>YYYY.MM.DD</code>, <code>MM/DD/YYYY</code> and <code>DD.MM.YYYY</code>.</td>
 </tr></table>
 </div>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_files">FILES</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>$GIT_DIR/TAG_EDITMSG</code>
+</dt>
+<dd>
+<p>
+        This file contains the message of an in-progress annotated
+        tag. If <code>git tag</code> exits due to an error before creating an
+        annotated tag then the tag message that has been provided by the
+        user in an editor session will be available in this file, but
+        may be overwritten by the next invocation of <code>git tag</code>.
+</p>
 </dd>
 </dl></div>
 </div>
@@ -1339,7 +1367,7 @@ commits and from none of the <code>--no-merged</code> commits are shown.</p></di
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-07-05 13:02:13 PDT
 </div>
 </div>
 </body>

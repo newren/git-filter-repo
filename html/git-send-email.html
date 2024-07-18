@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-send-email(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,8 +749,8 @@ git-send-email(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git send-email</em> [&lt;options&gt;] &lt;file|directory&gt;&#8230;
-<em>git send-email</em> [&lt;options&gt;] &lt;format-patch options&gt;
+<pre class="content"><em>git send-email</em> [&lt;options&gt;] (&lt;file&gt;|&lt;directory&gt;)&#8230;
+<em>git send-email</em> [&lt;options&gt;] &lt;format-patch-options&gt;
 <em>git send-email</em> --dump-aliases</pre>
 <div class="attribution">
 </div></div>
@@ -832,11 +832,12 @@ and the "Subject:" of the message as the second line.</p></div>
         Invoke a text editor (see GIT_EDITOR in <a href="git-var.html">git-var(1)</a>)
         to edit an introductory message for the patch series.
 </p>
-<div class="paragraph"><p>When <code>--compose</code> is used, git send-email will use the From, Subject, and
-In-Reply-To headers specified in the message. If the body of the message
-(what you type after the headers and a blank line) only contains blank
-(or Git: prefixed) lines, the summary won&#8217;t be sent, but From, Subject,
-and In-Reply-To headers will be used unless they are removed.</p></div>
+<div class="paragraph"><p>When <code>--compose</code> is used, git send-email will use the From, To, Cc, Bcc,
+Subject, Reply-To, and In-Reply-To headers specified in the message. If
+the body of the message (what you type after the headers and a blank
+line) only contains blank (or Git: prefixed) lines, the summary won&#8217;t be
+sent, but the headers mentioned above will be used unless they are
+removed.</p></div>
 <div class="paragraph"><p>Missing From or In-Reply-To headers will be prompted for.</p></div>
 <div class="paragraph"><p>See the CONFIGURATION section for <code>sendemail.multiEdit</code>.</p></div>
 </dd>
@@ -869,7 +870,7 @@ and In-Reply-To headers will be used unless they are removed.</p></div>
 <dd>
 <p>
         Make the first mail (or all the mails with <code>--no-thread</code>) appear as a
-        reply to the given Message-Id, which avoids breaking threads to
+        reply to the given Message-ID, which avoids breaking threads to
         provide a new patch series.
         The second and subsequent emails will be sent as replies according to
         the <code>--[no-]chain-reply-to</code> setting.
@@ -931,7 +932,7 @@ is not set, this will be prompted for.</p></div>
 <dd>
 <p>
         Specify encoding of compose message. Default is the value of the
-        <em>sendemail.composeencoding</em>; if that is unspecified, UTF-8 is assumed.
+        <em>sendemail.composeEncoding</em>; if that is unspecified, UTF-8 is assumed.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -990,7 +991,7 @@ value; if that is unspecified, default to <code>auto</code>.</p></div>
         Specify a command to run to send the email. The command should
         be sendmail-like; specifically, it must support the <code>-i</code> option.
         The command will be executed in the shell if necessary.  Default
-        is the value of <code>sendemail.sendmailcmd</code>.  If unspecified, and if
+        is the value of <code>sendemail.sendmailCmd</code>.  If unspecified, and if
         --smtp-server is also unspecified, git-send-email will search
         for <code>sendmail</code> in <code>/usr/sbin</code>, <code>/usr/lib</code> and $PATH.
 </p>
@@ -1000,9 +1001,18 @@ value; if that is unspecified, default to <code>auto</code>.</p></div>
 </dt>
 <dd>
 <p>
-        Specify the encryption to use, either <em>ssl</em> or <em>tls</em>.  Any other
-        value reverts to plain SMTP.  Default is the value of
-        <code>sendemail.smtpEncryption</code>.
+        Specify in what way encrypting begins for the SMTP connection.
+        Valid values are <em>ssl</em> and <em>tls</em>. Any other value reverts to plain
+        (unencrypted) SMTP, which defaults to port 25.
+        Despite the names, both values will use the same newer version of TLS,
+        but for historic reasons have these names. <em>ssl</em> refers to "implicit"
+        encryption (sometimes called SMTPS), that uses port 465 by default.
+        <em>tls</em> refers to "explicit" encryption (often known as STARTTLS),
+        that uses port 25 by default. Other ports might be used by the SMTP
+        server, which are not the default. Commonly found alternative port for
+        <em>tls</em> and unencrypted is 587. You need to check your provider&#8217;s
+        documentation or your server configuration to make sure
+        for your own case. Default is the value of <code>sendemail.smtpEncryption</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1122,7 +1132,7 @@ must be used for each option.</p></div>
         certificates concatenated together: see verify(1) -CAfile and
         -CApath for more information on these). Set it to an empty string
         to disable certificate verification. Defaults to the value of the
-        <code>sendemail.smtpsslcertpath</code> configuration variable, if set, or the
+        <code>sendemail.smtpSSLCertPath</code> configuration variable, if set, or the
         backing SSL library&#8217;s compiled-in default otherwise (which should
         be the best choice on most platforms).
 </p>
@@ -1138,7 +1148,7 @@ must be used for each option.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---smtp-debug=0|1
+--smtp-debug=(0|1)
 </dt>
 <dd>
 <p>
@@ -1178,7 +1188,13 @@ must be used for each option.</p></div>
 <h3 id="_automating">Automating</h3>
 <div class="dlist"><dl>
 <dt class="hdlist1">
---no-[to|cc|bcc]
+--no-to
+</dt>
+<dt class="hdlist1">
+--no-cc
+</dt>
+<dt class="hdlist1">
+--no-bcc
 </dt>
 <dd>
 <p>
@@ -1203,7 +1219,7 @@ must be used for each option.</p></div>
         Specify a command to execute once per patch file which
         should generate patch file specific "To:" entries.
         Output of this command must be single email address per line.
-        Default is the value of <em>sendemail.tocmd</em> configuration value.
+        Default is the value of <em>sendemail.toCmd</em> configuration value.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1215,6 +1231,27 @@ must be used for each option.</p></div>
         should generate patch file specific "Cc:" entries.
         Output of this command must be single email address per line.
         Default is the value of <code>sendemail.ccCmd</code> configuration value.
+</p>
+</dd>
+<dt class="hdlist1">
+--header-cmd=&lt;command&gt;
+</dt>
+<dd>
+<p>
+        Specify a command that is executed once per outgoing message
+        and output RFC 2822 style header lines to be inserted into
+        them. When the <code>sendemail.headerCmd</code> configuration variable is
+        set, its value is always used. When --header-cmd is provided
+        at the command line, its value takes precedence over the
+        <code>sendemail.headerCmd</code> configuration variable.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-header-cmd
+</dt>
+<dd>
+<p>
+        Disable any header command in use.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1247,7 +1284,7 @@ must be used for each option.</p></div>
 <dd>
 <p>
         If this is set, add emails found in the <code>Signed-off-by</code> trailer or Cc: lines to the
-        cc list. Default is the value of <code>sendemail.signedoffbycc</code> configuration
+        cc list. Default is the value of <code>sendemail.signedOffByCc</code> configuration
         value; if that is unspecified, default to --signed-off-by-cc.
 </p>
 </dd>
@@ -1258,7 +1295,7 @@ must be used for each option.</p></div>
 <p>
         If this is set, emails found in Cc: headers in the first patch of
         the series (typically the cover letter) are added to the cc list
-        for each email set. Default is the value of <em>sendemail.cccover</em>
+        for each email set. Default is the value of <em>sendemail.ccCover</em>
         configuration value; if that is unspecified, default to --no-cc-cover.
 </p>
 </dd>
@@ -1269,7 +1306,7 @@ must be used for each option.</p></div>
 <p>
         If this is set, emails found in To: headers in the first patch of
         the series (typically the cover letter) are added to the to list
-        for each email set. Default is the value of <em>sendemail.tocover</em>
+        for each email set. Default is the value of <em>sendemail.toCover</em>
         configuration value; if that is unspecified, default to --no-to-cover.
 </p>
 </dd>
@@ -1336,7 +1373,7 @@ must be used for each option.</p></div>
 </li>
 </ul></div>
 </div></div>
-<div class="paragraph"><p>Default is the value of <code>sendemail.suppresscc</code> configuration value; if
+<div class="paragraph"><p>Default is the value of <code>sendemail.suppressCc</code> configuration value; if
 that is unspecified, default to <em>self</em> if --suppress-from is
 specified, as well as <em>body</em> if --no-signed-off-cc is specified.</p></div>
 </dd>
@@ -1468,7 +1505,7 @@ Warn of patches that contain lines longer than
                         998 characters unless a suitable transfer encoding
                         (<em>auto</em>, <em>base64</em>, or <em>quoted-printable</em>) is used;
                         this is due to SMTP limits as described by
-                        <a href="http://www.ietf.org/rfc/rfc5322.txt">http://www.ietf.org/rfc/rfc5322.txt</a>.
+                        <a href="https://www.ietf.org/rfc/rfc5322.txt">https://www.ietf.org/rfc/rfc5322.txt</a>.
 </p>
 </li>
 </ul></div>
@@ -1495,9 +1532,9 @@ default to <code>--validate</code>.</p></div>
 <dd>
 <p>
         Instead of the normal operation, dump the shorthand alias names from
-        the configured alias file(s), one per line in alphabetical order. Note,
-        this only includes the alias name and not its expanded email addresses.
-        See <em>sendemail.aliasesfile</em> for more information about aliases.
+        the configured alias file(s), one per line in alphabetical order. Note
+        that this only includes the alias name and not its expanded email addresses.
+        See <em>sendemail.aliasesFile</em> for more information about aliases.
 </p>
 </dd>
 </dl></div>
@@ -1532,7 +1569,7 @@ sendemail.smtpEncryption
 </p>
 </dd>
 <dt class="hdlist1">
-sendemail.smtpsslcertpath
+sendemail.smtpSSLCertPath
 </dt>
 <dd>
 <p>
@@ -1588,7 +1625,7 @@ sendemail.aliasFileType
 <dd>
 <p>
         Format of the file(s) specified in sendemail.aliasesFile. Must be
-        one of <em>mutt</em>, <em>mailrc</em>, <em>pine</em>, <em>elm</em>, or <em>gnus</em>, or <em>sendmail</em>.
+        one of <em>mutt</em>, <em>mailrc</em>, <em>pine</em>, <em>elm</em>, <em>gnus</em>, or <em>sendmail</em>.
 </p>
 <div class="paragraph"><p>What an alias file in each format looks like can be found in
 the documentation of the email program of the same name. The
@@ -1653,13 +1690,16 @@ sendemail.envelopeSender
 sendemail.from
 </dt>
 <dt class="hdlist1">
-sendemail.signedoffbycc
+sendemail.headerCmd
+</dt>
+<dt class="hdlist1">
+sendemail.signedOffByCc
 </dt>
 <dt class="hdlist1">
 sendemail.smtpPass
 </dt>
 <dt class="hdlist1">
-sendemail.suppresscc
+sendemail.suppressCc
 </dt>
 <dt class="hdlist1">
 sendemail.suppressFrom
@@ -1668,7 +1708,7 @@ sendemail.suppressFrom
 sendemail.to
 </dt>
 <dt class="hdlist1">
-sendemail.tocmd
+sendemail.toCmd
 </dt>
 <dt class="hdlist1">
 sendemail.smtpDomain
@@ -1705,11 +1745,11 @@ sendemail.xmailer
 </p>
 </dd>
 <dt class="hdlist1">
-sendemail.signedoffcc (deprecated)
+sendemail.signedOffCc (deprecated)
 </dt>
 <dd>
 <p>
-        Deprecated alias for <code>sendemail.signedoffbycc</code>.
+        Deprecated alias for <code>sendemail.signedOffByCc</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1728,7 +1768,7 @@ sendemail.smtpReloginDelay
 </dt>
 <dd>
 <p>
-        Seconds wait before reconnecting to smtp server.
+        Seconds to wait before reconnecting to the smtp server.
         See also the <code>--relogin-delay</code> option of <a href="git-send-email.html">git-send-email(1)</a>.
 </p>
 </dd>
@@ -1760,12 +1800,9 @@ edit ~/.gitconfig to specify your account settings:</p></div>
         smtpUser = yourname@gmail.com
         smtpServerPort = 587</code></pre>
 </div></div>
-<div class="paragraph"><p>If you have multi-factor authentication set up on your Gmail account, you will
-need to generate an app-specific password for use with <em>git send-email</em>. Visit
+<div class="paragraph"><p>If you have multi-factor authentication set up on your Gmail account, you can
+generate an app-specific password for use with <em>git send-email</em>. Visit
 <a href="https://security.google.com/settings/security/apppasswords">https://security.google.com/settings/security/apppasswords</a> to create it.</p></div>
-<div class="paragraph"><p>If you do not have multi-factor authentication set up on your Gmail account,
-you will need to allow less secure app access. Visit
-<a href="https://myaccount.google.com/lesssecureapps">https://myaccount.google.com/lesssecureapps</a> to enable it.</p></div>
 <div class="paragraph"><p>Once your commits are ready to be sent to the mailing list, run the
 following commands:</p></div>
 <div class="literalblock">
@@ -1803,7 +1840,7 @@ Authen::SASL and Mail::Address.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

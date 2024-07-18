@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-switch(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -823,14 +823,18 @@ out at most one of <code>A</code> and <code>B</code>, in which case it defaults 
 <dd>
 <p>
         Create a new branch named <code>&lt;new-branch&gt;</code> starting at
-        <code>&lt;start-point&gt;</code> before switching to the branch. This is a
-        convenient shortcut for:
+        <code>&lt;start-point&gt;</code> before switching to the branch. This is the
+        transactional equivalent of
 </p>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git branch &lt;new-branch&gt;
 $ git switch &lt;new-branch&gt;</code></pre>
 </div></div>
+<div class="paragraph"><p>that is to say, the branch is not reset/created unless "git switch" is
+successful (e.g., when the branch is in use in another worktree, not
+just the current branch stays the same, but the branch is not reset to
+the start-point, either).</p></div>
 </dd>
 <dt class="hdlist1">
 -C &lt;new-branch&gt;
@@ -1006,7 +1010,7 @@ name, the guessing is aborted.  You can explicitly give a name with
 </dt>
 <dd>
 <p>
-        Create a new <em>orphan</em> branch, named <code>&lt;new-branch&gt;</code>. All
+        Create a new unborn branch, named <code>&lt;new-branch&gt;</code>. All
         tracked files are removed.
 </p>
 </dd>
@@ -1160,7 +1164,7 @@ checkout.workers
         all commands that perform checkout. E.g. checkout, clone, reset,
         sparse-checkout, etc.
 </p>
-<div class="paragraph"><p>Note: parallel checkout usually delivers better performance for repositories
+<div class="paragraph"><p>Note: Parallel checkout usually delivers better performance for repositories
 located on SSDs or over NFS. For repositories on spinning disks and/or machines
 with a small number of cores, the default sequential checkout often performs
 better. The size and compression level of a repository might also influence how
@@ -1173,7 +1177,7 @@ checkout.thresholdForParallelism
 <p>
         When running parallel checkout with a small number of files, the cost
         of subprocess spawning and inter-process communication might outweigh
-        the parallelization gains. This setting allows to define the minimum
+        the parallelization gains. This setting allows you to define the minimum
         number of files for which parallel checkout should be attempted. The
         default is 100.
 </p>
@@ -1199,7 +1203,7 @@ checkout.thresholdForParallelism
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

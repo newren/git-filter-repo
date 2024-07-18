@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-gc(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -806,12 +806,25 @@ other housekeeping tasks (e.g. rerere, working trees, reflog&#8230;) will
 be performed as well.</p></div>
 </dd>
 <dt class="hdlist1">
---cruft
+--[no-]cruft
 </dt>
 <dd>
 <p>
         When expiring unreachable objects, pack them separately into a
-        cruft pack instead of storing them as loose objects.
+        cruft pack instead of storing them as loose objects. <code>--cruft</code>
+        is on by default.
+</p>
+</dd>
+<dt class="hdlist1">
+--max-cruft-size=&lt;n&gt;
+</dt>
+<dd>
+<p>
+        When packing unreachable objects into a cruft pack, limit the
+        size of new cruft packs to be at most <code>&lt;n&gt;</code> bytes. Overrides any
+        value specified via the <code>gc.maxCruftSize</code> configuration. See
+        the <code>--max-cruft-size</code> option of <a href="git-repack.html">git-repack(1)</a> for
+        more.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -857,9 +870,10 @@ be performed as well.</p></div>
 </dt>
 <dd>
 <p>
-        All packs except the largest pack and those marked with a
-        <code>.keep</code> files are consolidated into a single pack. When this
-        option is used, <code>gc.bigPackThreshold</code> is ignored.
+        All packs except the largest non-cruft pack, any packs marked
+        with a <code>.keep</code> file, and any cruft pack(s) are consolidated into
+        a single pack. When this option is used, <code>gc.bigPackThreshold</code>
+        is ignored.
 </p>
 </dd>
 </dl></div>
@@ -934,7 +948,7 @@ gc.auto
         default value is 6700.
 </p>
 <div class="paragraph"><p>Setting this to 0 disables not only automatic packing based on the
-number of loose objects, but any other heuristic <code>git gc --auto</code> will
+number of loose objects, but also any other heuristic <code>git gc --auto</code> will
 otherwise use to determine if there&#8217;s work to do, such as
 <code>gc.autoPackLimit</code>.</p></div>
 </dd>
@@ -957,7 +971,7 @@ gc.autoDetach
 </dt>
 <dd>
 <p>
-        Make <code>git gc --auto</code> return immediately and run in background
+        Make <code>git gc --auto</code> return immediately and run in the background
         if the system supports it. Default is true.
 </p>
 </dd>
@@ -966,11 +980,11 @@ gc.bigPackThreshold
 </dt>
 <dd>
 <p>
-        If non-zero, all packs larger than this limit are kept when
-        <code>git gc</code> is run. This is very similar to <code>--keep-largest-pack</code>
-        except that all packs that meet the threshold are kept, not
-        just the largest pack. Defaults to zero. Common unit suffixes of
-        <em>k</em>, <em>m</em>, or <em>g</em> are supported.
+        If non-zero, all non-cruft packs larger than this limit are kept
+        when <code>git gc</code> is run. This is very similar to
+        <code>--keep-largest-pack</code> except that all non-cruft packs that meet
+        the threshold are kept, not just the largest pack. Defaults to
+        zero. Common unit suffixes of <em>k</em>, <em>m</em>, or <em>g</em> are supported.
 </p>
 <div class="paragraph"><p>Note that if the number of kept packs is more than gc.autoPackLimit,
 this configuration variable is ignored, all packs except the base pack
@@ -1025,7 +1039,18 @@ gc.cruftPacks
 <p>
         Store unreachable objects in a cruft pack (see
         <a href="git-repack.html">git-repack(1)</a>) instead of as loose objects. The default
-        is <code>false</code>.
+        is <code>true</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.maxCruftSize
+</dt>
+<dd>
+<p>
+        Limit the size of new cruft packs when repacking. When
+        specified in addition to <code>--max-cruft-size</code>, the command line
+        option takes priority. See the <code>--max-cruft-size</code> option of
+        <a href="git-repack.html">git-repack(1)</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1094,6 +1119,51 @@ commit --amend</code> or <code>git rebase</code> and are the commits prior to th
 or rebase occurring.  Since these changes are not part of the current
 project most users will want to expire them sooner, which is why the
 default is more aggressive than <code>gc.reflogExpire</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+gc.recentObjectsHook
+</dt>
+<dd>
+<p>
+        When considering whether or not to remove an object (either when
+        generating a cruft pack or storing unreachable objects as
+        loose), use the shell to execute the specified command(s).
+        Interpret their output as object IDs which Git will consider as
+        "recent", regardless of their age. By treating their mtimes as
+        "now", any objects (and their descendants) mentioned in the
+        output will be kept regardless of their true age.
+</p>
+<div class="paragraph"><p>Output must contain exactly one hex object ID per line, and nothing
+else. Objects which cannot be found in the repository are ignored.
+Multiple hooks are supported, but all must exit successfully, else the
+operation (either generating a cruft pack or unpacking unreachable
+objects) will be halted.</p></div>
+</dd>
+<dt class="hdlist1">
+gc.repackFilter
+</dt>
+<dd>
+<p>
+        When repacking, use the specified filter to move certain
+        objects into a separate packfile.  See the
+        <code>--filter=&lt;filter-spec&gt;</code> option of <a href="git-repack.html">git-repack(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+gc.repackFilterTo
+</dt>
+<dd>
+<p>
+        When repacking and using a filter, see <code>gc.repackFilter</code>, the
+        specified location will be used to create the packfile
+        containing the filtered out objects. <strong>WARNING:</strong> The
+        specified location should be accessible, using for example the
+        Git alternates mechanism, otherwise the repo could be
+        considered corrupt by Git as it migh not be able to access the
+        objects in that packfile. See the <code>--filter-to=&lt;dir&gt;</code> option
+        of <a href="git-repack.html">git-repack(1)</a> and the <code>objects/info/alternates</code>
+        section of <a href="gitrepository-layout.html">gitrepository-layout(5)</a>.
+</p>
 </dd>
 <dt class="hdlist1">
 gc.rerereResolved
@@ -1187,7 +1257,7 @@ seems to be low in practice).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

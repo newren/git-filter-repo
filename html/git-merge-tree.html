@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-merge-tree(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -761,10 +761,10 @@ git-merge-tree(1) Manual Page
 <div class="paragraph"><p>This command has a modern <code>--write-tree</code> mode and a deprecated
 <code>--trivial-merge</code> mode.  With the exception of the
 <a href="#DEPMERGE">DEPRECATED DESCRIPTION</a> section at the end, the rest of
-this documentation describes modern <code>--write-tree</code> mode.</p></div>
+this documentation describes the modern <code>--write-tree</code> mode.</p></div>
 <div class="paragraph"><p>Performs a merge, but does not make any new commits and does not read
 from or write to either the working tree or index.</p></div>
-<div class="paragraph"><p>The performed merge will use the same feature as the "real"
+<div class="paragraph"><p>The performed merge will use the same features as the "real"
 <a href="git-merge.html">git-merge(1)</a>, including:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -846,6 +846,18 @@ etc.
         check and make the merge proceed anyway.
 </p>
 </dd>
+<dt class="hdlist1">
+--merge-base=&lt;tree-ish&gt;
+</dt>
+<dd>
+<p>
+        Instead of finding the merge-bases for &lt;branch1&gt; and &lt;branch2&gt;,
+        specify a merge-base for the merge, and specifying multiple bases is
+        currently not supported. This option is incompatible with <code>--stdin</code>.
+</p>
+<div class="paragraph"><p>As the merge-base is provided directly, &lt;branch1&gt; and &lt;branch2&gt; do not need
+to specify commits; trees are enough.</p></div>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -866,6 +878,32 @@ line:</p></div>
 &lt;Informational messages&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>These are discussed individually below.</p></div>
+<div class="paragraph"><p>However, there is an exception.  If <code>--stdin</code> is passed, then there is
+an extra section at the beginning, a NUL character at the end, and then
+all the sections repeat for each line of input.  Thus, if the first merge
+is conflicted and the second is clean, the output would be of the form:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;Merge status&gt;
+&lt;OID of toplevel tree&gt;
+&lt;Conflicted file info&gt;
+&lt;Informational messages&gt;
+NUL
+&lt;Merge status&gt;
+&lt;OID of toplevel tree&gt;
+NUL</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="MS">Merge status</h3>
+<div class="paragraph"><p>This is an integer status followed by a NUL character.  The integer status is:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>0: merge had conflicts
+1: merge was clean
+&lt;0: something prevented the merge from running (e.g. access to repository
+    objects denied by filesystem)</code></pre>
+</div></div>
+</div>
 <div class="sect2">
 <h3 id="OIDTLT">OID of toplevel tree</h3>
 <div class="paragraph"><p>This is a tree object that represents what would be checked out in the
@@ -888,9 +926,49 @@ character instead of a newline character.</p></div>
 </div>
 <div class="sect2">
 <h3 id="IM">Informational messages</h3>
-<div class="paragraph"><p>This always starts with a blank line (or NUL if <code>-z</code> is passed) to
-separate it from the previous sections, and then has free-form
-messages about the merge, such as:</p></div>
+<div class="paragraph"><p>This section provides informational messages, typically about
+conflicts.  The format of the section varies significantly depending
+on whether <code>-z</code> is passed.</p></div>
+<div class="paragraph"><p>If <code>-z</code> is passed:</p></div>
+<div class="paragraph"><p>The output format is zero or more conflict informational records, each
+of the form:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;list-of-paths&gt;&lt;conflict-type&gt;NUL&lt;conflict-message&gt;NUL</code></pre>
+</div></div>
+<div class="paragraph"><p>where &lt;list-of-paths&gt; is of the form</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>&lt;number-of-paths&gt;NUL&lt;path1&gt;NUL&lt;path2&gt;NUL...&lt;pathN&gt;NUL</code></pre>
+</div></div>
+<div class="paragraph"><p>and includes paths (or branch names) affected by the conflict or
+informational message in &lt;conflict-message&gt;.  Also, &lt;conflict-type&gt; is a
+stable string explaining the type of conflict, such as</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+"Auto-merging"
+</p>
+</li>
+<li>
+<p>
+"CONFLICT (rename/delete)"
+</p>
+</li>
+<li>
+<p>
+"CONFLICT (submodule lacks merge base)"
+</p>
+</li>
+<li>
+<p>
+"CONFLICT (binary)"
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>and &lt;conflict-message&gt; is a more detailed message about the conflict which often
+(but not always) embeds the &lt;stable-short-type-description&gt; within it.  These
+strings may change in future Git versions.  Some examples:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -904,7 +982,7 @@ messages about the merge, such as:</p></div>
 </li>
 <li>
 <p>
-"Failed to merge submodule &lt;submodule&gt; (&lt;reason&gt;)"
+"Failed to merge submodule &lt;submodule&gt; (no merge base)"
 </p>
 </li>
 <li>
@@ -913,9 +991,16 @@ messages about the merge, such as:</p></div>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>Note that these free-form messages will never have a NUL character
-in or between them, even if -z is passed.  It is simply a large block
-of text taking up the remainder of the output.</p></div>
+<div class="paragraph"><p>If <code>-z</code> is NOT passed:</p></div>
+<div class="paragraph"><p>This section starts with a blank line to separate it from the previous
+sections, and then only contains the &lt;conflict-message&gt; information
+from the previous section (separated by newlines).  These are
+non-stable strings that should not be parsed by scripts, and are just
+meant for human consumption.  Also, note that while &lt;conflict-message&gt;
+strings usually do not contain embedded newlines, they sometimes do.
+(However, the free-form messages will never have an embedded NUL
+character).  So, the entire block of information is meant for human
+readers as an agglomeration of all conflict messages.</p></div>
 </div>
 </div>
 </div>
@@ -925,7 +1010,10 @@ of text taking up the remainder of the output.</p></div>
 <div class="paragraph"><p>For a successful, non-conflicted merge, the exit status is 0.  When the
 merge has conflicts, the exit status is 1.  If the merge is not able to
 complete (or start) due to some kind of error, the exit status is
-something other than 0 or 1 (and the output is unspecified).</p></div>
+something other than 0 or 1 (and the output is unspecified).  When
+--stdin is passed, the return status is 0 for both successful and
+conflicted merges, and something other than 0 or 1 if it cannot complete
+all the requested merges.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -970,6 +1058,20 @@ any messages that would have been printed to stdout (the
 </div>
 </div>
 <div class="sect1">
+<h2 id="_input_format">INPUT FORMAT</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><em>git merge-tree --stdin</em> input format is fully text based. Each line
+has this format:</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>[&lt;base-commit&gt; -- ]&lt;branch1&gt; &lt;branch2&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>If one line is separated by <code>--</code>, the string before the separator is
+used for specifying a merge-base for the merge and the string after
+the separator describes the branches to be merged.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_mistakes_to_avoid">MISTAKES TO AVOID</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Do NOT look through the resulting toplevel tree to try to find which
@@ -988,7 +1090,7 @@ in the future).</p></div>
 the <a href="#CFI">Conflicted file info</a> list.  The information there is
 insufficient to do so.  For example: Rename/rename(1to2) conflicts (both
 sides renamed the same file differently) will result in three different
-file having higher order stages (but each only has one higher order
+files having higher order stages (but each only has one higher order
 stage), with no way (short of the <a href="#IM">Informational messages</a> section)
 to determine which three files are related.  File/directory conflicts
 also result in a file with exactly one higher order stage.
@@ -997,7 +1099,7 @@ Possibly-involved-in-directory-rename conflicts (when
 a file with exactly one higher order stage.  In all cases, the
 <a href="#IM">Informational messages</a> section has the necessary info, though it
 is not designed to be machine parseable.</p></div>
-<div class="paragraph"><p>Do NOT assume that each paths from <a href="#CFI">Conflicted file info</a>, and
+<div class="paragraph"><p>Do NOT assume that each path from <a href="#CFI">Conflicted file info</a>, and
 the logical conflicts in the <a href="#IM">Informational messages</a> have a
 one-to-one mapping, nor that there is a one-to-many mapping, nor a
 many-to-one mapping.  Many-to-many mappings exist, meaning that each
@@ -1052,7 +1154,7 @@ large repositories).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-21 11:12:12 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

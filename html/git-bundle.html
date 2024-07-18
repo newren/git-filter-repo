@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-bundle(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-bundle(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git bundle</em> create [-q | --quiet | --progress | --all-progress] [--all-progress-implied]
+<pre class="content"><em>git bundle</em> create [-q | --quiet | --progress]
                     [--version=&lt;version&gt;] &lt;file&gt; &lt;git-rev-list-args&gt;
 <em>git bundle</em> verify [-q | --quiet] &lt;file&gt;
 <em>git bundle</em> list-heads &lt;file&gt; [&lt;refname&gt;&#8230;]
@@ -809,7 +809,7 @@ create [options] &lt;file&gt; &lt;git-rev-list-args&gt;
         Used to create a bundle named <em>file</em>.  This requires the
         <em>&lt;git-rev-list-args&gt;</em> arguments to define the bundle contents.
         <em>options</em> contains the options specific to the <em>git bundle create</em>
-        subcommand.
+        subcommand. If <em>file</em> is <code>-</code>, the bundle is written to stdout.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -825,7 +825,8 @@ verify &lt;file&gt;
         Finally, information about additional capabilities, such as "object
         filter", is printed. See "Capabilities" in <a href="gitformat-bundle.html">gitformat-bundle(5)</a>
         for more information. The exit code is zero for success, but will
-        be nonzero if the bundle file is invalid.
+        be nonzero if the bundle file is invalid. If <em>file</em> is <code>-</code>, the
+        bundle is read from stdin.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -835,7 +836,7 @@ list-heads &lt;file&gt;
 <p>
         Lists the references defined in the bundle.  If followed by a
         list of references, only references matching those given are
-        printed out.
+        printed out. If <em>file</em> is <code>-</code>, the bundle is read from stdin.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -848,6 +849,7 @@ unbundle &lt;file&gt;
         defined references. If a list of references is given, only
         references matching those in the list are printed. This command is
         really plumbing, intended to be called only by <em>git fetch</em>.
+        If <em>file</em> is <code>-</code>, the bundle is read from stdin.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -886,32 +888,6 @@ unbundle &lt;file&gt;
         by default when it is attached to a terminal, unless -q
         is specified. This flag forces progress status even if
         the standard error stream is not directed to a terminal.
-</p>
-</dd>
-<dt class="hdlist1">
---all-progress
-</dt>
-<dd>
-<p>
-        When --stdout is specified then progress report is
-        displayed during the object count and compression phases
-        but inhibited during the write-out phase. The reason is
-        that in some cases the output stream is directly linked
-        to another command which may wish to display progress
-        status of its own as it processes incoming pack data.
-        This flag is like --progress except that it forces progress
-        report for the write-out phase as well even if --stdout is
-        used.
-</p>
-</dd>
-<dt class="hdlist1">
---all-progress-implied
-</dt>
-<dd>
-<p>
-        This is used to imply --all-progress whenever progress display
-        is activated.  Unlike --all-progress this flag doesn&#8217;t actually
-        force any progress display by itself.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1128,7 +1104,7 @@ references when fetching:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

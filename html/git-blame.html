@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-blame(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -753,7 +753,7 @@ git-blame(1) Manual Page
             [-L &lt;range&gt;] [-S &lt;revs-file&gt;] [-M] [-C] [-C] [-C] [--since=&lt;date&gt;]
             [--ignore-rev &lt;rev&gt;] [--ignore-revs-file &lt;file&gt;]
             [--color-lines] [--color-by-age] [--progress] [--abbrev=&lt;n&gt;]
-            [&lt;rev&gt; | --contents &lt;file&gt; | --reverse &lt;rev&gt;..&lt;rev&gt;] [--] &lt;file&gt;</pre>
+            [ --contents &lt;file&gt; ] [&lt;rev&gt; | --reverse &lt;rev&gt;..&lt;rev&gt;] [--] &lt;file&gt;</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -963,11 +963,9 @@ in <a href="gitattributes.html">gitattributes(5)</a>).</p></div>
 </dt>
 <dd>
 <p>
-        When &lt;rev&gt; is not specified, the command annotates the
-        changes starting backwards from the working tree copy.
-        This flag makes the command pretend as if the working
-        tree copy has the contents of the named file (specify
-        <code>-</code> to make the command read from the standard input).
+        Annotate using the contents from the named file, starting from &lt;rev&gt;
+        if it is specified, and HEAD otherwise. You may specify <em>-</em> to make
+        the command read from the standard input for the file contents.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1155,7 +1153,7 @@ take effect.</p></div>
 </dt>
 <dd>
 <p>
-        Show the author email instead of author name (Default: off).
+        Show the author email instead of the author name (Default: off).
         This can also be controlled via the <code>blame.showEmail</code> config
         option.
 </p>
@@ -1197,7 +1195,7 @@ abbreviated object name for the commit the line came from;
 </li>
 <li>
 <p>
-author ident (by default author name and date, unless <code>-s</code> or <code>-e</code>
+author ident (by default the author name and date, unless <code>-s</code> or <code>-e</code>
   is specified); and
 </p>
 </li>
@@ -1260,7 +1258,7 @@ the first line of the commit log message ("summary").
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>The contents of the actual line is output after the above
+<div class="paragraph"><p>The contents of the actual line are output after the above
 header, prefixed by a TAB. This is to allow adding more
 header elements later.</p></div>
 <div class="paragraph"><p>The porcelain format generally suppresses commit information that has
@@ -1303,7 +1301,7 @@ git blame -L 40,+21 foo</code></pre>
 <div class="paragraph"><p>which limits the annotation to the body of the <code>hello</code> subroutine.</p></div>
 <div class="paragraph"><p>When you are not interested in changes older than version
 v2.6.18, or changes older than 3 weeks, you can use revision
-range specifiers  similar to <em>git rev-list</em>:</p></div>
+range specifiers similar to <em>git rev-list</em>:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>git blame v2.6.18.. -- foo
@@ -1349,7 +1347,7 @@ Each blame entry always starts with a line of:
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;40-byte hex sha1&gt; &lt;sourceline&gt; &lt;resultline&gt; &lt;num_lines&gt;</code></pre>
+<pre><code>&lt;40-byte-hex-sha1&gt; &lt;sourceline&gt; &lt;resultline&gt; &lt;num-lines&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>Line numbers count from 1.</p></div>
 </li>
@@ -1500,7 +1498,7 @@ blame.markIgnoredLines
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

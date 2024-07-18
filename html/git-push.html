@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-push(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,8 +749,8 @@ git-push(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git push</em> [--all | --mirror | --tags] [--follow-tags] [--atomic] [-n | --dry-run] [--receive-pack=&lt;git-receive-pack&gt;]
-           [--repo=&lt;repository&gt;] [-f | --force] [-d | --delete] [--prune] [-v | --verbose]
+<pre class="content"><em>git push</em> [--all | --branches | --mirror | --tags] [--follow-tags] [--atomic] [-n | --dry-run] [--receive-pack=&lt;git-receive-pack&gt;]
+           [--repo=&lt;repository&gt;] [-f | --force] [-d | --delete] [--prune] [-q | --quiet] [-v | --verbose]
            [-u | --set-upstream] [-o &lt;string&gt; | --push-option=&lt;string&gt;]
            [--[no-]signed|--signed=(true|false|if-asked)]
            [--force-with-lease[=&lt;refname&gt;[:&lt;expect&gt;]] [--force-if-includes]]
@@ -776,7 +776,7 @@ arguments or <code>--all</code>, <code>--mirror</code>, <code>--tags</code> opti
 the default <code>&lt;refspec&gt;</code> by consulting <code>remote.*.push</code> configuration,
 and if it is not found, honors <code>push.default</code> configuration to decide
 what to push (See <a href="git-config.html">git-config(1)</a> for the meaning of <code>push.default</code>).</p></div>
-<div class="paragraph"><p>When neither the command-line nor the configuration specify what to
+<div class="paragraph"><p>When neither the command-line nor the configuration specifies what to
 push, the default behavior is used, which corresponds to the <code>simple</code>
 value for <code>push.default</code>: the current branch is pushed to the
 corresponding upstream branch, but as a safety measure, the push is
@@ -793,7 +793,7 @@ local one.</p></div>
 </dt>
 <dd>
 <p>
-        The "remote" repository that is destination of a push
+        The "remote" repository that is the destination of a push
         operation.  This parameter can be either a URL
         (see the section <a href="#URLS">GIT URLS</a> below) or the name
         of a remote (see the section <a href="#REMOTES">REMOTES</a> below).
@@ -897,6 +897,9 @@ already exists on the remote side.</p></div>
 </dd>
 <dt class="hdlist1">
 --all
+</dt>
+<dt class="hdlist1">
+--branches
 </dt>
 <dd>
 <p>
@@ -1277,11 +1280,14 @@ a "no-op".</p></div>
         all submodules that changed in the revisions to be pushed will be
         pushed. If on-demand was not able to push all necessary revisions it will
         also be aborted and exit with non-zero status. If <em>only</em> is used all
-        submodules will be recursively pushed while the superproject is left
+        submodules will be pushed while the superproject is left
         unpushed. A value of <em>no</em> or using <code>--no-recurse-submodules</code> can be used
         to override the push.recurseSubmodules configuration variable when no
         submodule recursion is required.
 </p>
+<div class="paragraph"><p>When using <em>on-demand</em> or <em>only</em>, if a submodule has a
+"push.recurseSubmodules={on-demand,only}" or "submodule.recurse" configuration,
+further recursion will occur. In this case, "only" is treated as "on-demand".</p></div>
 </dd>
 <dt class="hdlist1">
 --[no-]verify
@@ -1325,31 +1331,31 @@ a "no-op".</p></div>
 address of the remote server, and the path to the repository.
 Depending on the transport protocol, some of this information may be
 absent.</p></div>
-<div class="paragraph"><p>Git supports ssh, git, http, and https protocols (in addition, ftp,
+<div class="paragraph"><p>Git supports ssh, git, http, and https protocols (in addition, ftp
 and ftps can be used for fetching, but this is inefficient and
-deprecated; do not use it).</p></div>
+deprecated; do not use them).</p></div>
 <div class="paragraph"><p>The native transport (i.e. git:// URL) does no authentication and
 should be used with caution on unsecured networks.</p></div>
 <div class="paragraph"><p>The following syntaxes may be used with them:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-ssh://&#91;user@&#93;host.xz&#91;:port&#93;/path/to/repo.git/
+<code>ssh://</code>&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-git://host.xz&#91;:port&#93;/path/to/repo.git/
+<code>git://</code><em>&lt;host&gt;</em>&#91;:<em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-http&#91;s&#93;://host.xz&#91;:port&#93;/path/to/repo.git/
+<code>http</code>&#91;<code>s</code>&#93;<code>://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-ftp&#91;s&#93;://host.xz&#91;:port&#93;/path/to/repo.git/
+<code>ftp</code>&#91;<code>s</code>&#93;<code>://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1357,7 +1363,7 @@ ftp&#91;s&#93;://host.xz&#91;:port&#93;/path/to/repo.git/
 <div class="ulist"><ul>
 <li>
 <p>
-&#91;user@&#93;host.xz:path/to/repo.git/
+&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em><code>:/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1366,21 +1372,21 @@ first colon. This helps differentiate a local path that contains a
 colon. For example the local path <code>foo:bar</code> could be specified as an
 absolute path or <code>./foo:bar</code> to avoid being misinterpreted as an ssh
 url.</p></div>
-<div class="paragraph"><p>The ssh and git protocols additionally support ~username expansion:</p></div>
+<div class="paragraph"><p>The ssh and git protocols additionally support <code>~</code><em>&lt;username&gt;</em> expansion:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-ssh://&#91;user@&#93;host.xz&#91;:port&#93;/~&#91;user&#93;/path/to/repo.git/
+<code>ssh://</code>&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-git://host.xz&#91;:port&#93;/~&#91;user&#93;/path/to/repo.git/
+<code>git://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-&#91;user@&#93;host.xz:/~&#91;user&#93;/path/to/repo.git/
+&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em><code>:~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1389,42 +1395,42 @@ syntaxes may be used:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-/path/to/repo.git/
+<code>/path/to/repo.git/</code>
 </p>
 </li>
 <li>
 <p>
-file:///path/to/repo.git/
+<code>file:///path/to/repo.git/</code>
 </p>
 </li>
 </ul></div>
 <div class="paragraph"><p>These two syntaxes are mostly equivalent, except when cloning, when
-the former implies --local option. See <a href="git-clone.html">git-clone(1)</a> for
+the former implies <code>--local</code> option. See <a href="git-clone.html">git-clone(1)</a> for
 details.</p></div>
-<div class="paragraph"><p><em>git clone</em>, <em>git fetch</em> and <em>git pull</em>, but not <em>git push</em>, will also
+<div class="paragraph"><p><code>git clone</code>, <code>git fetch</code> and <code>git pull</code>, but not <code>git push</code>, will also
 accept a suitable bundle file. See <a href="git-bundle.html">git-bundle(1)</a>.</p></div>
 <div class="paragraph"><p>When Git doesn&#8217;t know how to handle a certain transport protocol, it
-attempts to use the <em>remote-&lt;transport&gt;</em> remote helper, if one
+attempts to use the <code>remote-</code><em>&lt;transport&gt;</em> remote helper, if one
 exists. To explicitly request a remote helper, the following syntax
 may be used:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-&lt;transport&gt;::&lt;address&gt;
+<em>&lt;transport&gt;</em>::<em>&lt;address&gt;</em>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>where &lt;address&gt; may be a path, a server and path, or an arbitrary
+<div class="paragraph"><p>where <em>&lt;address&gt;</em> may be a path, a server and path, or an arbitrary
 URL-like string recognized by the specific remote helper being
 invoked. See <a href="gitremote-helpers.html">gitremote-helpers(7)</a> for details.</p></div>
 <div class="paragraph"><p>If there are a large number of similarly-named remote repositories and
 you want to use a different format for them (such that the URLs you
 use will be rewritten into URLs that work), you can create a
 configuration section of the form:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>        [url "&lt;actual url base&gt;"]
-                insteadOf = &lt;other url base&gt;</code></pre>
+<div class="verseblock">
+<pre class="content">        [url "<em>&lt;actual-url-base&gt;</em>"]
+                insteadOf = <em>&lt;other-url-base&gt;</em></pre>
+<div class="attribution">
 </div></div>
 <div class="paragraph"><p>For example, with this:</p></div>
 <div class="listingblock">
@@ -1437,10 +1443,10 @@ configuration section of the form:</p></div>
 rewritten in any context that takes a URL to be "git://git.host.xz/repo.git".</p></div>
 <div class="paragraph"><p>If you want to rewrite URLs for push only, you can create a
 configuration section of the form:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>        [url "&lt;actual url base&gt;"]
-                pushInsteadOf = &lt;other url base&gt;</code></pre>
+<div class="verseblock">
+<pre class="content">        [url "<em>&lt;actual-url-base&gt;</em>"]
+                pushInsteadOf = <em>&lt;other-url-base&gt;</em></pre>
+<div class="attribution">
 </div></div>
 <div class="paragraph"><p>For example, with this:</p></div>
 <div class="listingblock">
@@ -1495,7 +1501,9 @@ config file would appear like this:</p></div>
                 fetch = &lt;refspec&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>The <code>&lt;pushurl&gt;</code> is used for pushes only. It is optional and defaults
-to <code>&lt;URL&gt;</code>.</p></div>
+to <code>&lt;URL&gt;</code>. Pushing to a remote affects all defined pushurls or all
+defined urls if no pushurls are defined. Fetch, however, will only
+fetch from the first defined url if multiple urls are defined.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_named_file_in_code_git_dir_remotes_code">Named file in <code>$GIT_DIR/remotes</code></h3>
@@ -1507,7 +1515,7 @@ provide a refspec on the command line.  This file should have the
 following format:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>        URL: one of the above URL format
+<pre><code>        URL: one of the above URL formats
         Push: &lt;refspec&gt;
         Pull: &lt;refspec&gt;</code></pre>
 </div></div>
@@ -2028,7 +2036,7 @@ push.default
 </li>
 <li>
 <p>
-<code>simple</code> - pushes the current branch with the same name on the remote.
+<code>simple</code> - push the current branch with the same name on the remote.
 </p>
 <div class="paragraph"><p>If you are working on a centralized workflow (pushing to the same repository you
 pull from, which is typically <code>origin</code>), then you need to configure an upstream
@@ -2065,7 +2073,7 @@ push.followTags
 </dt>
 <dd>
 <p>
-        If set to true enable <code>--follow-tags</code> option by default.  You
+        If set to true, enable <code>--follow-tags</code> option by default.  You
         may override this configuration at time of push by specifying
         <code>--no-follow-tags</code>.
 </p>
@@ -2120,18 +2128,8 @@ push.recurseSubmodules
 </dt>
 <dd>
 <p>
-        Make sure all submodule commits used by the revisions to be pushed
-        are available on a remote-tracking branch. If the value is <em>check</em>
-        then Git will verify that all submodule commits that changed in the
-        revisions to be pushed are available on at least one remote of the
-        submodule. If any commits are missing, the push will be aborted and
-        exit with non-zero status. If the value is <em>on-demand</em> then all
-        submodules that changed in the revisions to be pushed will be
-        pushed. If on-demand was not able to push all necessary revisions
-        it will also be aborted and exit with non-zero status. If the value
-        is <em>no</em> then default behavior of ignoring submodules when pushing
-        is retained. You may override this configuration at time of push by
-        specifying <em>--recurse-submodules=check|on-demand|no</em>.
+        May be "check", "on-demand", "only", or "no", with the same behavior
+        as that of "push --recurse-submodules".
         If not set, <em>no</em> is used by default, unless <em>submodule.recurse</em> is
         set (in which case a <em>true</em> value means <em>on-demand</em>).
 </p>
@@ -2183,7 +2181,7 @@ push.useBitmaps
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

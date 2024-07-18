@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-sparse-checkout(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-sparse-checkout(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git sparse-checkout &lt;subcommand&gt; [&lt;options&gt;]</em></pre>
+<pre class="content"><em>git sparse-checkout</em> (init | list | set | add | reapply | disable | check-rules) [&lt;options&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -896,6 +896,29 @@ paths to pass to a subsequent <em>set</em> or <em>add</em> command.  However,
 <code>--cone</code> and <code>--sparse-index</code> options would not be remembered across
 the disable command, so the easy restore of calling a plain <code>init</code>
 decreased in utility.</p></div>
+</dd>
+<dt class="hdlist1">
+<em>check-rules</em>
+</dt>
+<dd>
+<p>
+        Check whether sparsity rules match one or more paths.
+</p>
+<div class="paragraph"><p>By default <code>check-rules</code> reads a list of paths from stdin and outputs only
+the ones that match the current sparsity rules. The input is expected to consist
+of one path per line, matching the output of <code>git ls-tree --name-only</code> including
+that pathnames that begin with a double quote (") are interpreted as C-style
+quoted strings.</p></div>
+<div class="paragraph"><p>When called with the <code>--rules-file &lt;file&gt;</code> flag the input files are matched
+against the sparse checkout rules found in <code>&lt;file&gt;</code> instead of the current ones.
+The rules in the files are expected to be in the same form as accepted by <code>git
+sparse-checkout set --stdin</code> (in particular, they must be newline-delimited).</p></div>
+<div class="paragraph"><p>By default, the rules passed to the <code>--rules-file</code> option are interpreted as
+cone mode directories. To pass non-cone mode patterns with <code>--rules-file</code>,
+combine the option with the <code>--no-cone</code> option.</p></div>
+<div class="paragraph"><p>When called with the <code>-z</code> flag, the format of the paths input on stdin as well
+as the output paths are \0 terminated and not quoted. Note that this does not
+apply to the format of the rules passed with the <code>--rules-file</code> option.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1073,7 +1096,7 @@ for non-cone users?  If it suggests paths, is it exacerbating the
 problem above?  Also, if it suggests paths, what if the user has a
 file or directory that begins with either a '!' or '#' or has a '*',
 '\', '?', '[', or ']' in its name?  And if it suggests paths, will
-it complete "/pro" to "/proc" (in the root filesytem) rather than to
+it complete "/pro" to "/proc" (in the root filesystem) rather than to
 "/progress.txt" in the current directory?  (Note that users are
 likely to want to start paths with a leading '/' in non-cone mode,
 for the same reason that .gitignore files often have one.)
@@ -1289,7 +1312,7 @@ of these restrictions.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

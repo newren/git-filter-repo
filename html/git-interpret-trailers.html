@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-interpret-trailers(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,8 +749,9 @@ git-interpret-trailers(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git interpret-trailers</em> [&lt;options&gt;] [(--trailer &lt;token&gt;[(=|:)&lt;value&gt;])&#8230;] [&lt;file&gt;&#8230;]
-<em>git interpret-trailers</em> [&lt;options&gt;] [--parse] [&lt;file&gt;&#8230;]</pre>
+<pre class="content"><em>git interpret-trailers</em> [--in-place] [--trim-empty]
+                        [(--trailer (&lt;key&gt;|&lt;key-alias&gt;)[(=|:)&lt;value&gt;])&#8230;]
+                        [--parse] [&lt;file&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -758,54 +759,87 @@ git-interpret-trailers(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Help parsing or adding <em>trailers</em> lines, that look similar to RFC 822 e-mail
+<div class="paragraph"><p>Add or parse <em>trailer</em> lines that look similar to RFC 822 e-mail
 headers, at the end of the otherwise free-form part of a commit
-message.</p></div>
-<div class="paragraph"><p>This command reads some patches or commit messages from either the
-&lt;file&gt; arguments or the standard input if no &lt;file&gt; is specified. If
-<code>--parse</code> is specified, the output consists of the parsed trailers.</p></div>
-<div class="paragraph"><p>Otherwise, this command applies the arguments passed using the
-<code>--trailer</code> option, if any, to the commit message part of each input
-file. The result is emitted on the standard output.</p></div>
-<div class="paragraph"><p>Some configuration variables control the way the <code>--trailer</code> arguments
-are applied to each commit message and the way any existing trailer in
-the commit message is changed. They also make it possible to
-automatically add some trailers.</p></div>
-<div class="paragraph"><p>By default, a <em>&lt;token&gt;=&lt;value&gt;</em> or <em>&lt;token&gt;:&lt;value&gt;</em> argument given
-using <code>--trailer</code> will be appended after the existing trailers only if
-the last trailer has a different (&lt;token&gt;, &lt;value&gt;) pair (or if there
-is no existing trailer). The &lt;token&gt; and &lt;value&gt; parts will be trimmed
-to remove starting and trailing whitespace, and the resulting trimmed
-&lt;token&gt; and &lt;value&gt; will appear in the message like this:</p></div>
+message. For example, in the following commit message</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>token: value</code></pre>
+<pre><code>subject
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+Signed-off-by: Alice &lt;alice@example.com&gt;
+Signed-off-by: Bob &lt;bob@example.com&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p>This means that the trimmed &lt;token&gt; and &lt;value&gt; will be separated by
+<div class="paragraph"><p>the last two lines starting with "Signed-off-by" are trailers.</p></div>
+<div class="paragraph"><p>This command reads commit messages from either the
+&lt;file&gt; arguments or the standard input if no &lt;file&gt; is specified.
+If <code>--parse</code> is specified, the output consists of the parsed trailers
+coming from the input, without influencing them with any command line
+options or configuration variables.</p></div>
+<div class="paragraph"><p>Otherwise, this command applies <code>trailer.*</code> configuration variables
+(which could potentially add new trailers, as well as reposition them),
+as well as any command line arguments that can override configuration
+variables (such as <code>--trailer=...</code> which could also add new trailers),
+to each input file. The result is emitted on the standard output.</p></div>
+<div class="paragraph"><p>This command can also operate on the output of <a href="git-format-patch.html">git-format-patch(1)</a>,
+which is more elaborate than a plain commit message. Namely, such output
+includes a commit message (as above), a "---" divider line, and a patch part.
+For these inputs, the divider and patch parts are not modified by
+this command and are emitted as is on the output, unless
+<code>--no-divider</code> is specified.</p></div>
+<div class="paragraph"><p>Some configuration variables control the way the <code>--trailer</code> arguments
+are applied to each input and the way any existing trailer in
+the input is changed. They also make it possible to
+automatically add some trailers.</p></div>
+<div class="paragraph"><p>By default, a <em>&lt;key&gt;=&lt;value&gt;</em> or <em>&lt;key&gt;:&lt;value&gt;</em> argument given
+using <code>--trailer</code> will be appended after the existing trailers only if
+the last trailer has a different (&lt;key&gt;, &lt;value&gt;) pair (or if there
+is no existing trailer). The &lt;key&gt; and &lt;value&gt; parts will be trimmed
+to remove starting and trailing whitespace, and the resulting trimmed
+&lt;key&gt; and &lt;value&gt; will appear in the output like this:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>key: value</code></pre>
+</div></div>
+<div class="paragraph"><p>This means that the trimmed &lt;key&gt; and &lt;value&gt; will be separated by
 <code>': '</code> (one colon followed by one space).</p></div>
+<div class="paragraph"><p>For convenience, a &lt;key-alias&gt; can be configured to make using <code>--trailer</code>
+shorter to type on the command line. This can be configured using the
+<em>trailer.&lt;key-alias&gt;.key</em> configuration variable. The &lt;keyAlias&gt; must be a prefix
+of the full &lt;key&gt; string, although case sensitivity does not matter. For
+example, if you have</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>trailer.sign.key "Signed-off-by: "</code></pre>
+</div></div>
+<div class="paragraph"><p>in your configuration, you only need to specify <code>--trailer="sign: foo"</code>
+on the command line instead of <code>--trailer="Signed-off-by: foo"</code>.</p></div>
 <div class="paragraph"><p>By default the new trailer will appear at the end of all the existing
 trailers. If there is no existing trailer, the new trailer will appear
-after the commit message part of the output, and, if there is no line
-with only spaces at the end of the commit message part, one blank line
-will be added before the new trailer.</p></div>
-<div class="paragraph"><p>Existing trailers are extracted from the input message by looking for
+at the end of the input. A blank line will be added before the new
+trailer if there isn&#8217;t one already.</p></div>
+<div class="paragraph"><p>Existing trailers are extracted from the input by looking for
 a group of one or more lines that (i) is all trailers, or (ii) contains at
 least one Git-generated or user-configured trailer and consists of at
 least 25% trailers.
 The group must be preceded by one or more empty (or whitespace-only) lines.
-The group must either be at the end of the message or be the last
+The group must either be at the end of the input or be the last
 non-whitespace lines before a line that starts with <em>---</em> (followed by a
-space or the end of the line). Such three minus signs start the patch
-part of the message. See also <code>--no-divider</code> below.</p></div>
+space or the end of the line).</p></div>
 <div class="paragraph"><p>When reading trailers, there can be no whitespace before or inside the
-token, but any number of regular space and tab characters are allowed
-between the token and the separator. There can be whitespaces before,
-inside or after the value. The value may be split over multiple lines
+&lt;key&gt;, but any number of regular space and tab characters are allowed
+between the &lt;key&gt; and the separator. There can be whitespaces before,
+inside or after the &lt;value&gt;. The &lt;value&gt; may be split over multiple lines
 with each subsequent line starting with at least one whitespace, like
-the "folding" in RFC 822.</p></div>
-<div class="paragraph"><p>Note that <em>trailers</em> do not follow and are not intended to follow many
-rules for RFC 822 headers. For example they do not follow
-the encoding rules and probably many other rules.</p></div>
+the "folding" in RFC 822. Example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>key: This is a very long value, with spaces and
+  newlines in it.</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that trailers do not follow (nor are they intended to follow) many of the
+rules for RFC 822 headers. For example they do not follow the encoding rule.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -826,17 +860,17 @@ the encoding rules and probably many other rules.</p></div>
 <dd>
 <p>
         If the &lt;value&gt; part of any trailer contains only whitespace,
-        the whole trailer will be removed from the resulting message.
+        the whole trailer will be removed from the output.
         This applies to existing trailers as well as new trailers.
 </p>
 </dd>
 <dt class="hdlist1">
---trailer &lt;token&gt;[(=|:)&lt;value&gt;]
+--trailer &lt;key&gt;[(=|:)&lt;value&gt;]
 </dt>
 <dd>
 <p>
-        Specify a (&lt;token&gt;, &lt;value&gt;) pair that should be applied as a
-        trailer to the input messages. See the description of this
+        Specify a (&lt;key&gt;, &lt;value&gt;) pair that should be applied as a
+        trailer to the inputs. See the description of this
         command.
 </p>
 </dd>
@@ -849,10 +883,13 @@ the encoding rules and probably many other rules.</p></div>
 <dd>
 <p>
         Specify where all new trailers will be added.  A setting
-        provided with <em>--where</em> overrides all configuration variables
+        provided with <em>--where</em> overrides the <code>trailer.where</code> and any
+        applicable <code>trailer.&lt;keyAlias&gt;.where</code> configuration variables
         and applies to all <em>--trailer</em> options until the next occurrence of
-        <em>--where</em> or <em>--no-where</em>. Possible values are <code>after</code>, <code>before</code>,
-        <code>end</code> or <code>start</code>.
+        <em>--where</em> or <em>--no-where</em>. Upon encountering <em>--no-where</em>, clear the
+        effect of any previous use of <em>--where</em>, such that the relevant configuration
+        variables are no longer overridden. Possible placements are <code>after</code>,
+        <code>before</code>, <code>end</code> or <code>start</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -864,10 +901,13 @@ the encoding rules and probably many other rules.</p></div>
 <dd>
 <p>
         Specify what action will be performed when there is already at
-        least one trailer with the same &lt;token&gt; in the message.  A setting
-        provided with <em>--if-exists</em> overrides all configuration variables
+        least one trailer with the same &lt;key&gt; in the input.  A setting
+        provided with <em>--if-exists</em> overrides the <code>trailer.ifExists</code> and any
+        applicable <code>trailer.&lt;keyAlias&gt;.ifExists</code> configuration variables
         and applies to all <em>--trailer</em> options until the next occurrence of
-        <em>--if-exists</em> or <em>--no-if-exists</em>. Possible actions are <code>addIfDifferent</code>,
+        <em>--if-exists</em> or <em>--no-if-exists</em>. Upon encountering '--no-if-exists, clear the
+        effect of any previous use of '--if-exists, such that the relevant configuration
+        variables are no longer overridden. Possible actions are <code>addIfDifferent</code>,
         <code>addIfDifferentNeighbor</code>, <code>add</code>, <code>replace</code> and <code>doNothing</code>.
 </p>
 </dd>
@@ -880,10 +920,13 @@ the encoding rules and probably many other rules.</p></div>
 <dd>
 <p>
         Specify what action will be performed when there is no other
-        trailer with the same &lt;token&gt; in the message.  A setting
-        provided with <em>--if-missing</em> overrides all configuration variables
+        trailer with the same &lt;key&gt; in the input.  A setting
+        provided with <em>--if-missing</em> overrides the <code>trailer.ifMissing</code> and any
+        applicable <code>trailer.&lt;keyAlias&gt;.ifMissing</code> configuration variables
         and applies to all <em>--trailer</em> options until the next occurrence of
-        <em>--if-missing</em> or <em>--no-if-missing</em>. Possible actions are <code>doNothing</code>
+        <em>--if-missing</em> or <em>--no-if-missing</em>. Upon encountering '--no-if-missing,
+        clear the effect of any previous use of '--if-missing, such that the relevant
+        configuration variables are no longer overridden. Possible actions are <code>doNothing</code>
         or <code>add</code>.
 </p>
 </dd>
@@ -901,8 +944,8 @@ the encoding rules and probably many other rules.</p></div>
 <dd>
 <p>
         Output only trailers that exist in the input; do not add any
-        from the command-line or by following configured <code>trailer.*</code>
-        rules.
+        from the command-line or by applying <code>trailer.*</code> configuration
+        variables.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -910,8 +953,8 @@ the encoding rules and probably many other rules.</p></div>
 </dt>
 <dd>
 <p>
-        Remove any whitespace-continuation in trailers, so that each
-        trailer appears on a line by itself with its full content.
+        If a trailer has a value that runs over multiple lines (aka "folded"),
+        reformat the value into a single line.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -920,7 +963,10 @@ the encoding rules and probably many other rules.</p></div>
 <dd>
 <p>
         A convenience alias for <code>--only-trailers --only-input
-        --unfold</code>.
+        --unfold</code>. This makes it easier to only see the trailers coming from the
+        input without influencing them with any command line options or
+        configuration variables, while also making the output machine-friendly with
+        --unfold.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -954,11 +1000,11 @@ trailer.separators
 used when another separator is not specified in the config for this
 trailer.</p></div>
 <div class="paragraph"><p>For example, if the value for this option is "%=$", then only lines
-using the format <em>&lt;token&gt;&lt;sep&gt;&lt;value&gt;</em> with &lt;sep&gt; containing <em>%</em>, <em>=</em>
+using the format <em>&lt;key&gt;&lt;sep&gt;&lt;value&gt;</em> with &lt;sep&gt; containing <em>%</em>, <em>=</em>
 or <em>$</em> and then spaces will be considered trailers. And <em>%</em> will be
 the default separator used, so by default trailers will appear like:
-<em>&lt;token&gt;% &lt;value&gt;</em> (one percent sign and one space will appear between
-the token and the value).</p></div>
+<em>&lt;key&gt;% &lt;value&gt;</em> (one percent sign and one space will appear between
+the key and the value).</p></div>
 </dd>
 <dt class="hdlist1">
 trailer.where
@@ -973,9 +1019,9 @@ existing trailers.</p></div>
 <div class="paragraph"><p>If it is <code>start</code>, then each new trailer will appear at the start,
 instead of the end, of the existing trailers.</p></div>
 <div class="paragraph"><p>If it is <code>after</code>, then each new trailer will appear just after the
-last trailer with the same &lt;token&gt;.</p></div>
+last trailer with the same &lt;key&gt;.</p></div>
 <div class="paragraph"><p>If it is <code>before</code>, then each new trailer will appear just before the
-first trailer with the same &lt;token&gt;.</p></div>
+first trailer with the same &lt;key&gt;.</p></div>
 </dd>
 <dt class="hdlist1">
 trailer.ifexists
@@ -984,23 +1030,23 @@ trailer.ifexists
 <p>
         This option makes it possible to choose what action will be
         performed when there is already at least one trailer with the
-        same &lt;token&gt; in the message.
+        same &lt;key&gt; in the input.
 </p>
 <div class="paragraph"><p>The valid values for this option are: <code>addIfDifferentNeighbor</code> (this
 is the default), <code>addIfDifferent</code>, <code>add</code>, <code>replace</code> or <code>doNothing</code>.</p></div>
 <div class="paragraph"><p>With <code>addIfDifferentNeighbor</code>, a new trailer will be added only if no
-trailer with the same (&lt;token&gt;, &lt;value&gt;) pair is above or below the line
+trailer with the same (&lt;key&gt;, &lt;value&gt;) pair is above or below the line
 where the new trailer will be added.</p></div>
 <div class="paragraph"><p>With <code>addIfDifferent</code>, a new trailer will be added only if no trailer
-with the same (&lt;token&gt;, &lt;value&gt;) pair is already in the message.</p></div>
+with the same (&lt;key&gt;, &lt;value&gt;) pair is already in the input.</p></div>
 <div class="paragraph"><p>With <code>add</code>, a new trailer will be added, even if some trailers with
-the same (&lt;token&gt;, &lt;value&gt;) pair are already in the message.</p></div>
-<div class="paragraph"><p>With <code>replace</code>, an existing trailer with the same &lt;token&gt; will be
+the same (&lt;key&gt;, &lt;value&gt;) pair are already in the input.</p></div>
+<div class="paragraph"><p>With <code>replace</code>, an existing trailer with the same &lt;key&gt; will be
 deleted and the new trailer will be added. The deleted trailer will be
-the closest one (with the same &lt;token&gt;) to the place where the new one
+the closest one (with the same &lt;key&gt;) to the place where the new one
 will be added.</p></div>
 <div class="paragraph"><p>With <code>doNothing</code>, nothing will be done; that is no new trailer will be
-added if there is already one with the same &lt;token&gt; in the message.</p></div>
+added if there is already one with the same &lt;key&gt; in the input.</p></div>
 </dd>
 <dt class="hdlist1">
 trailer.ifmissing
@@ -1009,7 +1055,7 @@ trailer.ifmissing
 <p>
         This option makes it possible to choose what action will be
         performed when there is not yet any trailer with the same
-        &lt;token&gt; in the message.
+        &lt;key&gt; in the input.
 </p>
 <div class="paragraph"><p>The valid values for this option are: <code>add</code> (this is the default) and
 <code>doNothing</code>.</p></div>
@@ -1017,88 +1063,93 @@ trailer.ifmissing
 <div class="paragraph"><p>With <code>doNothing</code>, nothing will be done.</p></div>
 </dd>
 <dt class="hdlist1">
-trailer.&lt;token&gt;.key
+trailer.&lt;keyAlias&gt;.key
 </dt>
 <dd>
 <p>
-        This <code>key</code> will be used instead of &lt;token&gt; in the trailer. At
-        the end of this key, a separator can appear and then some
-        space characters. By default the only valid separator is <em>:</em>,
-        but this can be changed using the <code>trailer.separators</code> config
-        variable.
+        Defines a &lt;keyAlias&gt; for the &lt;key&gt;. The &lt;keyAlias&gt; must be a
+        prefix (case does not matter) of the &lt;key&gt;. For example, in <code>git
+        config trailer.ack.key "Acked-by"</code> the "Acked-by" is the &lt;key&gt; and
+        the "ack" is the &lt;keyAlias&gt;. This configuration allows the shorter
+        <code>--trailer "ack:..."</code> invocation on the command line using the "ack"
+        &lt;keyAlias&gt; instead of the longer <code>--trailer "Acked-by:..."</code>.
 </p>
-<div class="paragraph"><p>If there is a separator, then the key will be used instead of both the
-&lt;token&gt; and the default separator when adding the trailer.</p></div>
+<div class="paragraph"><p>At the end of the &lt;key&gt;, a separator can appear and then some
+space characters. By default the only valid separator is <em>:</em>,
+but this can be changed using the <code>trailer.separators</code> config
+variable.</p></div>
+<div class="paragraph"><p>If there is a separator in the key, then it overrides the default
+separator when adding the trailer.</p></div>
 </dd>
 <dt class="hdlist1">
-trailer.&lt;token&gt;.where
+trailer.&lt;keyAlias&gt;.where
 </dt>
 <dd>
 <p>
         This option takes the same values as the <em>trailer.where</em>
         configuration variable and it overrides what is specified by
-        that option for trailers with the specified &lt;token&gt;.
+        that option for trailers with the specified &lt;keyAlias&gt;.
 </p>
 </dd>
 <dt class="hdlist1">
-trailer.&lt;token&gt;.ifexists
+trailer.&lt;keyAlias&gt;.ifexists
 </dt>
 <dd>
 <p>
         This option takes the same values as the <em>trailer.ifexists</em>
         configuration variable and it overrides what is specified by
-        that option for trailers with the specified &lt;token&gt;.
+        that option for trailers with the specified &lt;keyAlias&gt;.
 </p>
 </dd>
 <dt class="hdlist1">
-trailer.&lt;token&gt;.ifmissing
+trailer.&lt;keyAlias&gt;.ifmissing
 </dt>
 <dd>
 <p>
         This option takes the same values as the <em>trailer.ifmissing</em>
         configuration variable and it overrides what is specified by
-        that option for trailers with the specified &lt;token&gt;.
+        that option for trailers with the specified &lt;keyAlias&gt;.
 </p>
 </dd>
 <dt class="hdlist1">
-trailer.&lt;token&gt;.command
+trailer.&lt;keyAlias&gt;.command
 </dt>
 <dd>
 <p>
-        This option behaves in the same way as <em>trailer.&lt;token&gt;.cmd</em>, except
+        Deprecated in favor of <em>trailer.&lt;keyAlias&gt;.cmd</em>.
+        This option behaves in the same way as <em>trailer.&lt;keyAlias&gt;.cmd</em>, except
         that it doesn&#8217;t pass anything as argument to the specified command.
         Instead the first occurrence of substring $ARG is replaced by the
-        value that would be passed as argument.
+        &lt;value&gt; that would be passed as argument.
 </p>
-<div class="paragraph"><p>The <em>trailer.&lt;token&gt;.command</em> option has been deprecated in favor of
-<em>trailer.&lt;token&gt;.cmd</em> due to the fact that $ARG in the user&#8217;s command is
+<div class="paragraph"><p>Note that $ARG in the user&#8217;s command is
 only replaced once and that the original way of replacing $ARG is not safe.</p></div>
-<div class="paragraph"><p>When both <em>trailer.&lt;token&gt;.cmd</em> and <em>trailer.&lt;token&gt;.command</em> are given
-for the same &lt;token&gt;, <em>trailer.&lt;token&gt;.cmd</em> is used and
-<em>trailer.&lt;token&gt;.command</em> is ignored.</p></div>
+<div class="paragraph"><p>When both <em>trailer.&lt;keyAlias&gt;.cmd</em> and <em>trailer.&lt;keyAlias&gt;.command</em> are given
+for the same &lt;keyAlias&gt;, <em>trailer.&lt;keyAlias&gt;.cmd</em> is used and
+<em>trailer.&lt;keyAlias&gt;.command</em> is ignored.</p></div>
 </dd>
 <dt class="hdlist1">
-trailer.&lt;token&gt;.cmd
+trailer.&lt;keyAlias&gt;.cmd
 </dt>
 <dd>
 <p>
-        This option can be used to specify a shell command that will be called:
-        once to automatically add a trailer with the specified &lt;token&gt;, and then
-        each time a <em>--trailer &lt;token&gt;=&lt;value&gt;</em> argument to modify the &lt;value&gt; of
-        the trailer that this option would produce.
+        This option can be used to specify a shell command that will be called
+        once to automatically add a trailer with the specified &lt;keyAlias&gt;, and then
+        called each time a <em>--trailer &lt;keyAlias&gt;=&lt;value&gt;</em> argument is specified to
+        modify the &lt;value&gt; of the trailer that this option would produce.
 </p>
 <div class="paragraph"><p>When the specified command is first called to add a trailer
-with the specified &lt;token&gt;, the behavior is as if a special
-<em>--trailer &lt;token&gt;=&lt;value&gt;</em> argument was added at the beginning
+with the specified &lt;keyAlias&gt;, the behavior is as if a special
+<em>--trailer &lt;keyAlias&gt;=&lt;value&gt;</em> argument was added at the beginning
 of the "git interpret-trailers" command, where &lt;value&gt;
 is taken to be the standard output of the command with any
 leading and trailing whitespace trimmed off.</p></div>
-<div class="paragraph"><p>If some <em>--trailer &lt;token&gt;=&lt;value&gt;</em> arguments are also passed
+<div class="paragraph"><p>If some <em>--trailer &lt;keyAlias&gt;=&lt;value&gt;</em> arguments are also passed
 on the command line, the command is called again once for each
-of these arguments with the same &lt;token&gt;. And the &lt;value&gt; part
+of these arguments with the same &lt;keyAlias&gt;. And the &lt;value&gt; part
 of these arguments, if any, will be passed to the command as its
 first argument. This way the command can produce a &lt;value&gt; computed
-from the &lt;value&gt; passed in the <em>--trailer &lt;token&gt;=&lt;value&gt;</em> argument.</p></div>
+from the &lt;value&gt; passed in the <em>--trailer &lt;keyAlias&gt;=&lt;value&gt;</em> argument.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1110,7 +1161,7 @@ from the &lt;value&gt; passed in the <em>--trailer &lt;token&gt;=&lt;value&gt;</
 <li>
 <p>
 Configure a <em>sign</em> trailer with a <em>Signed-off-by</em> key, and then
-  add two of these trailers to a message:
+  add two of these trailers to a commit message file:
 </p>
 <div class="listingblock">
 <div class="content">
@@ -1118,11 +1169,11 @@ Configure a <em>sign</em> trailer with a <em>Signed-off-by</em> key, and then
 $ cat msg.txt
 subject
 
-message
-$ cat msg.txt | git interpret-trailers --trailer 'sign: Alice &lt;alice@example.com&gt;' --trailer 'sign: Bob &lt;bob@example.com&gt;'
+body text
+$ git interpret-trailers --trailer 'sign: Alice &lt;alice@example.com&gt;' --trailer 'sign: Bob &lt;bob@example.com&gt;' &lt;msg.txt
 subject
 
-message
+body text
 
 Signed-off-by: Alice &lt;alice@example.com&gt;
 Signed-off-by: Bob &lt;bob@example.com&gt;</code></pre>
@@ -1130,21 +1181,21 @@ Signed-off-by: Bob &lt;bob@example.com&gt;</code></pre>
 </li>
 <li>
 <p>
-Use the <code>--in-place</code> option to edit a message file in place:
+Use the <code>--in-place</code> option to edit a commit message file in place:
 </p>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ cat msg.txt
 subject
 
-message
+body text
 
 Signed-off-by: Bob &lt;bob@example.com&gt;
 $ git interpret-trailers --trailer 'Acked-by: Alice &lt;alice@example.com&gt;' --in-place msg.txt
 $ cat msg.txt
 subject
 
-message
+body text
 
 Signed-off-by: Bob &lt;bob@example.com&gt;
 Acked-by: Alice &lt;alice@example.com&gt;</code></pre>
@@ -1170,17 +1221,30 @@ Configure a <em>sign</em> trailer with a command to automatically add a
 </p>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git config trailer.sign.key "Signed-off-by: "
+<pre><code>$ cat msg1.txt
+subject
+
+body text
+$ git config trailer.sign.key "Signed-off-by: "
 $ git config trailer.sign.ifmissing add
 $ git config trailer.sign.ifexists doNothing
-$ git config trailer.sign.command 'echo "$(git config user.name) &lt;$(git config user.email)&gt;"'
-$ git interpret-trailers &lt;&lt;EOF
-&gt; EOF
+$ git config trailer.sign.cmd 'echo "$(git config user.name) &lt;$(git config user.email)&gt;"'
+$ git interpret-trailers --trailer sign &lt;msg1.txt
+subject
+
+body text
 
 Signed-off-by: Bob &lt;bob@example.com&gt;
-$ git interpret-trailers &lt;&lt;EOF
-&gt; Signed-off-by: Alice &lt;alice@example.com&gt;
-&gt; EOF
+$ cat msg2.txt
+subject
+
+body text
+
+Signed-off-by: Alice &lt;alice@example.com&gt;
+$ git interpret-trailers --trailer sign &lt;msg2.txt
+subject
+
+body text
 
 Signed-off-by: Alice &lt;alice@example.com&gt;</code></pre>
 </div></div>
@@ -1211,18 +1275,17 @@ Configure a <em>help</em> trailer with a cmd use a script <code>glog-find-author
 <pre><code>$ cat ~/bin/glog-find-author
 #!/bin/sh
 test -n "$1" &amp;&amp; git log --author="$1" --pretty="%an &lt;%ae&gt;" -1 || true
+$ cat msg.txt
+subject
+
+body text
 $ git config trailer.help.key "Helped-by: "
 $ git config trailer.help.ifExists "addIfDifferentNeighbor"
 $ git config trailer.help.cmd "~/bin/glog-find-author"
-$ git interpret-trailers --trailer="help:Junio" --trailer="help:Couder" &lt;&lt;EOF
-&gt; subject
-&gt;
-&gt; message
-&gt;
-&gt; EOF
+$ git interpret-trailers --trailer="help:Junio" --trailer="help:Couder" &lt;msg.txt
 subject
 
-message
+body text
 
 Helped-by: Junio C Hamano &lt;gitster@pobox.com&gt;
 Helped-by: Christian Couder &lt;christian.couder@gmail.com&gt;</code></pre>
@@ -1239,18 +1302,17 @@ Configure a <em>ref</em> trailer with a cmd use a script <code>glog-grep</code>
 <pre><code>$ cat ~/bin/glog-grep
 #!/bin/sh
 test -n "$1" &amp;&amp; git log --grep "$1" --pretty=reference -1 || true
+$ cat msg.txt
+subject
+
+body text
 $ git config trailer.ref.key "Reference-to: "
 $ git config trailer.ref.ifExists "replace"
 $ git config trailer.ref.cmd "~/bin/glog-grep"
-$ git interpret-trailers --trailer="ref:Add copyright notices." &lt;&lt;EOF
-&gt; subject
-&gt;
-&gt; message
-&gt;
-&gt; EOF
+$ git interpret-trailers --trailer="ref:Add copyright notices." &lt;msg.txt
 subject
 
-message
+body text
 
 Reference-to: 8bc9a0c769 (Add copyright notices., 2005-04-07)</code></pre>
 </div></div>
@@ -1262,20 +1324,23 @@ Configure a <em>see</em> trailer with a command to show the subject of a
 </p>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git config trailer.see.key "See-also: "
-$ git config trailer.see.ifExists "replace"
-$ git config trailer.see.ifMissing "doNothing"
-$ git config trailer.see.command "git log -1 --oneline --format=\"%h (%s)\" --abbrev-commit --abbrev=14 \$ARG"
-$ git interpret-trailers &lt;&lt;EOF
-&gt; subject
-&gt;
-&gt; message
-&gt;
-&gt; see: HEAD~2
-&gt; EOF
+<pre><code>$ cat msg.txt
 subject
 
-message
+body text
+
+see: HEAD~2
+$ cat ~/bin/glog-ref
+#!/bin/sh
+git log -1 --oneline --format="%h (%s)" --abbrev-commit --abbrev=14
+$ git config trailer.see.key "See-also: "
+$ git config trailer.see.ifExists "replace"
+$ git config trailer.see.ifMissing "doNothing"
+$ git config trailer.see.cmd "glog-ref"
+$ git interpret-trailers --trailer=see &lt;msg.txt
+subject
+
+body text
 
 See-also: fe3187489d69c4 (subject of related commit)</code></pre>
 </div></div>
@@ -1290,22 +1355,21 @@ Configure a commit template with some trailers with empty values
 </p>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ sed -e 's/ Z$/ /' &gt;commit_template.txt &lt;&lt;EOF
-&gt; ***subject***
-&gt;
-&gt; ***message***
-&gt;
-&gt; Fixes: Z
-&gt; Cc: Z
-&gt; Reviewed-by: Z
-&gt; Signed-off-by: Z
-&gt; EOF
+<pre><code>$ cat temp.txt
+***subject***
+
+***message***
+
+Fixes: Z
+Cc: Z
+Reviewed-by: Z
+Signed-off-by: Z
+$ sed -e 's/ Z$/ /' temp.txt &gt; commit_template.txt
 $ git config commit.template commit_template.txt
-$ cat &gt;.git/hooks/commit-msg &lt;&lt;EOF
-&gt; #!/bin/sh
-&gt; git interpret-trailers --trim-empty --trailer "git-version: \$(git describe)" "\$1" &gt; "\$1.new"
-&gt; mv "\$1.new" "\$1"
-&gt; EOF
+$ cat .git/hooks/commit-msg
+#!/bin/sh
+git interpret-trailers --trim-empty --trailer "git-version: \$(git describe)" "\$1" &gt; "\$1.new"
+mv "\$1.new" "\$1"
 $ chmod +x .git/hooks/commit-msg</code></pre>
 </div></div>
 </li>
@@ -1329,7 +1393,7 @@ $ chmod +x .git/hooks/commit-msg</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

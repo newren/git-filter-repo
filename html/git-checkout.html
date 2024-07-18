@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-checkout(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -753,8 +753,10 @@ git-checkout(1) Manual Page
 <em>git checkout</em> [-q] [-f] [-m] --detach [&lt;branch&gt;]
 <em>git checkout</em> [-q] [-f] [-m] [--detach] &lt;commit&gt;
 <em>git checkout</em> [-q] [-f] [-m] [[-b|-B|--orphan] &lt;new-branch&gt;] [&lt;start-point&gt;]
-<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] [--] &lt;pathspec&gt;&#8230;
-<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [&lt;tree-ish&gt;] --pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]
+<em>git checkout</em> [-f] &lt;tree-ish&gt; [--] &lt;pathspec&gt;&#8230;
+<em>git checkout</em> [-f] &lt;tree-ish&gt; --pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]
+<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] [--] &lt;pathspec&gt;&#8230;
+<em>git checkout</em> [-f|--ours|--theirs|-m|--conflict=&lt;style&gt;] --pathspec-from-file=&lt;file&gt; [--pathspec-file-nul]
 <em>git checkout</em> (-p|--patch) [&lt;tree-ish&gt;] [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
@@ -789,7 +791,7 @@ exactly one remote (call it <code>&lt;remote&gt;</code>) with a matching name an
 <div class="paragraph"><p>You could omit <code>&lt;branch&gt;</code>, in which case the command degenerates to
 "check out the current branch", which is a glorified no-op with
 rather expensive side-effects to show only the tracking information,
-if exists, for the current branch.</p></div>
+if it exists, for the current branch.</p></div>
 </dd>
 <dt class="hdlist1">
 <em>git checkout</em> -b|-B &lt;new-branch&gt; [&lt;start-point&gt;]
@@ -811,7 +813,9 @@ is reset. This is the transactional equivalent of</p></div>
 $ git checkout &lt;branch&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>that is to say, the branch is not reset/created unless "git checkout" is
-successful.</p></div>
+successful (e.g., when the branch is in use in another worktree, not
+just the current branch stays the same, but the branch is not reset to
+the start-point, either).</p></div>
 </dd>
 <dt class="hdlist1">
 <em>git checkout</em> --detach [&lt;branch&gt;]
@@ -944,8 +948,9 @@ of it").</p></div>
 </dt>
 <dd>
 <p>
-        Create a new branch named <code>&lt;new-branch&gt;</code> and start it at
-        <code>&lt;start-point&gt;</code>; see <a href="git-branch.html">git-branch(1)</a> for details.
+        Create a new branch named <code>&lt;new-branch&gt;</code>, start it at
+        <code>&lt;start-point&gt;</code>, and check the resulting branch out;
+        see <a href="git-branch.html">git-branch(1)</a> for details.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -953,10 +958,11 @@ of it").</p></div>
 </dt>
 <dd>
 <p>
-        Creates the branch <code>&lt;new-branch&gt;</code> and start it at <code>&lt;start-point&gt;</code>;
-        if it already exists, then reset it to <code>&lt;start-point&gt;</code>. This is
-        equivalent to running "git branch" with "-f"; see
-        <a href="git-branch.html">git-branch(1)</a> for details.
+        Creates the branch <code>&lt;new-branch&gt;</code>, start it at <code>&lt;start-point&gt;</code>;
+        if it already exists, then reset it to <code>&lt;start-point&gt;</code>. And then
+        check the resulting branch out.  This is equivalent to running
+        "git branch" with "-f" followed by "git checkout" of that branch;
+        see <a href="git-branch.html">git-branch(1)</a> for details.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1046,7 +1052,7 @@ variable.</p></div>
 </dt>
 <dd>
 <p>
-        Create a new <em>orphan</em> branch, named <code>&lt;new-branch&gt;</code>, started from
+        Create a new unborn branch, named <code>&lt;new-branch&gt;</code>, started from
         <code>&lt;start-point&gt;</code> and switch to it.  The first commit made on this
         new branch will have no parents and it will be the root of a new
         history totally disconnected from all the other branches and
@@ -1101,7 +1107,8 @@ paths are left unmerged, and you need to resolve the conflicts
 and mark the resolved paths with <code>git add</code> (or <code>git rm</code> if the merge
 should result in deletion of the path).</p></div>
 <div class="paragraph"><p>When checking out paths from the index, this option lets you recreate
-the conflicted merge in the specified paths.</p></div>
+the conflicted merge in the specified paths.  This option cannot be
+used when checking out paths from a tree-ish.</p></div>
 <div class="paragraph"><p>When switching branches with <code>--merge</code>, staged changes may be lost.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1388,9 +1395,9 @@ before that happens. If we have not yet moved away from commit <code>f</code>,
 any of these will create a reference to it:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git checkout -b foo   <b>&lt;1&gt;</b>
-$ git branch foo        <b>&lt;2&gt;</b>
-$ git tag foo           <b>&lt;3&gt;</b></code></pre>
+<pre><code>$ git checkout -b foo  # or "git switch -c foo"  <b>&lt;1&gt;</b>
+$ git branch foo                                 <b>&lt;2&gt;</b>
+$ git tag foo                                    <b>&lt;3&gt;</b></code></pre>
 </div></div>
 <div class="colist arabic"><ol>
 <li>
@@ -1440,13 +1447,11 @@ to checkout these paths out of the index.</p></div>
 <div class="sect1">
 <h2 id="_examples">EXAMPLES</h2>
 <div class="sectionbody">
-<div class="olist arabic"><ol class="arabic">
-<li>
-<p>
-The following sequence checks out the <code>master</code> branch, reverts
-  the <code>Makefile</code> to two revisions back, deletes <code>hello.c</code> by
-  mistake, and gets it back from the index.
-</p>
+<div class="sect2">
+<h3 id="_1_paths">1. Paths</h3>
+<div class="paragraph"><p>The following sequence checks out the <code>master</code> branch, reverts
+the <code>Makefile</code> to two revisions back, deletes <code>hello.c</code> by
+mistake, and gets it back from the index.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git checkout master             <b>&lt;1&gt;</b>
@@ -1469,6 +1474,8 @@ take a file out of another commit
 <p>
 restore <code>hello.c</code> from the index
 </p>
+</li>
+</ol></div>
 <div class="paragraph"><p>If you want to check out <em>all</em> C source files out of the index,
 you can say</p></div>
 <div class="listingblock">
@@ -1486,14 +1493,11 @@ You should instead write:</p></div>
 <div class="content">
 <pre><code>$ git checkout -- hello.c</code></pre>
 </div></div>
-</li>
-</ol></div>
-</li>
-<li>
-<p>
-After working in the wrong branch, switching to the correct
-  branch would be done using:
-</p>
+</div>
+<div class="sect2">
+<h3 id="_2_merge">2. Merge</h3>
+<div class="paragraph"><p>After working in the wrong branch, switching to the correct
+branch would be done using:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git checkout mytopic</code></pre>
@@ -1516,12 +1520,11 @@ Auto-merging frotz</code></pre>
 <div class="paragraph"><p>After this three-way merge, the local modifications are <em>not</em>
 registered in your index file, so <code>git diff</code> would show you what
 changes you made since the tip of the new branch.</p></div>
-</li>
-<li>
-<p>
-When a merge conflict happens during switching branches with
-  the <code>-m</code> option, you would see something like this:
-</p>
+</div>
+<div class="sect2">
+<h3 id="_3_merge_conflict">3. Merge conflict</h3>
+<div class="paragraph"><p>When a merge conflict happens during switching branches with
+the <code>-m</code> option, you would see something like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git checkout -m mytopic
@@ -1538,8 +1541,7 @@ files.  Edit and resolve the conflict and mark it resolved with
 <pre><code>$ edit frotz
 $ git add frotz</code></pre>
 </div></div>
-</li>
-</ol></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1594,7 +1596,7 @@ checkout.workers
         all commands that perform checkout. E.g. checkout, clone, reset,
         sparse-checkout, etc.
 </p>
-<div class="paragraph"><p>Note: parallel checkout usually delivers better performance for repositories
+<div class="paragraph"><p>Note: Parallel checkout usually delivers better performance for repositories
 located on SSDs or over NFS. For repositories on spinning disks and/or machines
 with a small number of cores, the default sequential checkout often performs
 better. The size and compression level of a repository might also influence how
@@ -1607,7 +1609,7 @@ checkout.thresholdForParallelism
 <p>
         When running parallel checkout with a small number of files, the cost
         of subprocess spawning and inter-process communication might outweigh
-        the parallelization gains. This setting allows to define the minimum
+        the parallelization gains. This setting allows you to define the minimum
         number of files for which parallel checkout should be attempted. The
         default is 100.
 </p>
@@ -1633,7 +1635,7 @@ checkout.thresholdForParallelism
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitattributes(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -861,6 +861,21 @@ the name of the attribute prefixed with an exclamation point <code>!</code>.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_reserved_builtin__attributes">RESERVED BUILTIN_* ATTRIBUTES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>builtin_* is a reserved namespace for builtin attribute values. Any
+user defined attributes under this namespace will be ignored and
+trigger a warning.</p></div>
+<div class="sect2">
+<h3 id="_code_builtin_objectmode_code"><code>builtin_objectmode</code></h3>
+<div class="paragraph"><p>This attribute is for filtering files by their file bit modes (40000,
+120000, 160000, 100755, 100644). e.g. <em>:(attr:builtin_objectmode=160000)</em>.
+You may also check these values with <code>git check-attr builtin_objectmode -- &lt;file&gt;</code>.
+If the object is not in the index <code>git check-attr --cached</code> will return unspecified.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_effects">EFFECTS</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Certain operations by Git can be influenced by assigning
@@ -876,14 +891,12 @@ Git stores the contents you prepare in the working tree in the
 repository upon <em>git add</em> and <em>git commit</em>.</p></div>
 <div class="sect3">
 <h4 id="_code_text_code"><code>text</code></h4>
-<div class="paragraph"><p>This attribute enables and controls end-of-line normalization.  When a
-text file is normalized, its line endings are converted to LF in the
-repository.  To control what line ending style is used in the working
-directory, use the <code>eol</code> attribute for a single file and the
-<code>core.eol</code> configuration variable for all text files.
-Note that setting <code>core.autocrlf</code> to <code>true</code> or <code>input</code> overrides
-<code>core.eol</code> (see the definitions of those options in
-<a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>This attribute marks the path as a text file, which enables end-of-line
+conversion: When a matching file is added to the index, the file&#8217;s line
+endings are normalized to LF in the index.  Conversely, when the file is
+copied from the index to the working directory, its line endings may be
+converted from LF to CRLF depending on the <code>eol</code> attribute, the Git
+config, and the platform (see explanation of <code>eol</code> below).</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 Set
@@ -891,8 +904,9 @@ Set
 <dd>
 <p>
         Setting the <code>text</code> attribute on a path enables end-of-line
-        normalization and marks the path as a text file.  End-of-line
-        conversion takes place without guessing the content type.
+        conversion on checkin and checkout as described above.  Line endings
+        are normalized to LF in the index every time the file is checked in,
+        even if the file was previously added to Git with CRLF line endings.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -909,10 +923,11 @@ Set to string value "auto"
 </dt>
 <dd>
 <p>
-        When <code>text</code> is set to "auto", the path is marked for automatic
-        end-of-line conversion.  If Git decides that the content is
-        text, its line endings are converted to LF on checkin.
-        When the file has been committed with CRLF, no conversion is done.
+        When <code>text</code> is set to "auto", Git decides by itself whether the file
+        is text or binary.  If it is text and the file was not already in
+        Git with CRLF endings, line endings are converted on checkin and
+        checkout as described above.  Otherwise, no conversion is done on
+        checkin or checkout.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -931,23 +946,18 @@ unspecified.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_code_eol_code"><code>eol</code></h4>
-<div class="paragraph"><p>This attribute sets a specific line-ending style to be used in the
-working directory.  This attribute has effect only if the <code>text</code>
-attribute is set or unspecified, or if it is set to <code>auto</code>, the file is
-detected as text, and it is stored with LF endings in the index.  Note
-that setting this attribute on paths which are in the index with CRLF
-line endings may make the paths to be considered dirty unless
-<code>text=auto</code> is set. Adding the path to the index again will normalize
-the line endings in the index.</p></div>
+<div class="paragraph"><p>This attribute marks a path to use a specific line-ending style in the
+working tree when it is checked out.  It has effect only if <code>text</code> or
+<code>text=auto</code> is set (see above), but specifying <code>eol</code> automatically sets
+<code>text</code> if <code>text</code> was left unspecified.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 Set to string value "crlf"
 </dt>
 <dd>
 <p>
-        This setting forces Git to normalize line endings for this
-        file on checkin and convert them to CRLF when the file is
-        checked out.
+        This setting converts the file&#8217;s line endings in the working
+        directory to CRLF when the file is checked out.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -955,9 +965,21 @@ Set to string value "lf"
 </dt>
 <dd>
 <p>
-        This setting forces Git to normalize line endings to LF on
-        checkin and prevents conversion to CRLF when the file is
-        checked out.
+        This setting uses the same line endings in the working directory as
+        in the index when the file is checked out.
+</p>
+</dd>
+<dt class="hdlist1">
+Unspecified
+</dt>
+<dd>
+<p>
+        If the <code>eol</code> attribute is unspecified for a file, its line endings
+        in the working directory are determined by the <code>core.autocrlf</code> or
+        <code>core.eol</code> configuration variable (see the definitions of those
+        options in <a href="git-config.html">git-config(1)</a>).  If <code>text</code> is set but neither of
+        those variables is, the default is <code>eol=crlf</code> on Windows and
+        <code>eol=lf</code> on all other platforms.
 </p>
 </dd>
 </dl></div>
@@ -1528,6 +1550,40 @@ parameters, just like <code>GIT_EXTERNAL_DIFF</code> program is called.
 See <a href="git.html">git(1)</a> for details.</p></div>
 </div>
 <div class="sect3">
+<h4 id="_setting_the_internal_diff_algorithm">Setting the internal diff algorithm</h4>
+<div class="paragraph"><p>The diff algorithm can be set through the <code>diff.algorithm</code> config key, but
+sometimes it may be helpful to set the diff algorithm per path. For example,
+one may want to use the <code>minimal</code> diff algorithm for .json files, and the
+<code>histogram</code> for .c files, and so on without having to pass in the algorithm
+through the command line each time.</p></div>
+<div class="paragraph"><p>First, in <code>.gitattributes</code>, assign the <code>diff</code> attribute for paths.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>*.json diff=&lt;name&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>Then, define a "diff.&lt;name&gt;.algorithm" configuration to specify the diff
+algorithm, choosing from <code>myers</code>, <code>patience</code>, <code>minimal</code>, or <code>histogram</code>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[diff "&lt;name&gt;"]
+  algorithm = histogram</code></pre>
+</div></div>
+<div class="paragraph"><p>This diff algorithm applies to user facing diff output like git-diff(1),
+git-show(1) and is used for the <code>--stat</code> output as well. The merge machinery
+will not use the diff algorithm set through this method.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">If <code>diff.&lt;name&gt;.command</code> is defined for path with the
+<code>diff=&lt;name&gt;</code> attribute, it is executed as an external diff driver
+(see above), and adding <code>diff.&lt;name&gt;.algorithm</code> has no effect, as the
+algorithm is not passed to the external diff driver.</td>
+</tr></table>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_defining_a_custom_hunk_header">Defining a custom hunk-header</h4>
 <div class="paragraph"><p>Each group of changes (called a "hunk") in the textual diff output
 is prefixed with a line of the form:</p></div>
@@ -1953,29 +2009,34 @@ manual page is a wrong place to talk about it.  However&#8230;</p></div>
 <div class="paragraph"><p>The <code>merge.*.name</code> variable gives the driver a human-readable
 name.</p></div>
 <div class="paragraph"><p>The &#8216;merge.*.driver` variable&#8217;s value is used to construct a
-command to run to merge ancestor&#8217;s version (<code>%O</code>), current
+command to run to common ancestor&#8217;s version (<code>%O</code>), current
 version (<code>%A</code>) and the other branches&#8217; version (<code>%B</code>).  These
 three tokens are replaced with the names of temporary files that
 hold the contents of these versions when the command line is
-built. Additionally, %L will be replaced with the conflict marker
+built. Additionally, <code>%L</code> will be replaced with the conflict marker
 size (see below).</p></div>
 <div class="paragraph"><p>The merge driver is expected to leave the result of the merge in
 the file named with <code>%A</code> by overwriting it, and exit with zero
 status if it managed to merge them cleanly, or non-zero if there
-were conflicts.</p></div>
+were conflicts.  When the driver crashes (e.g. killed by SEGV),
+it is expected to exit with non-zero status that are higher than
+128, and in such a case, the merge results in a failure (which is
+different from producing a conflict).</p></div>
 <div class="paragraph"><p>The <code>merge.*.recursive</code> variable specifies what other merge
 driver to use when the merge driver is called for an internal
 merge between common ancestors, when there are more than one.
 When left unspecified, the driver itself is used for both
 internal merge and the final merge.</p></div>
 <div class="paragraph"><p>The merge driver can learn the pathname in which the merged result
-will be stored via placeholder <code>%P</code>.</p></div>
+will be stored via placeholder <code>%P</code>. The conflict labels to be used
+for the common ancestor, local head and other head can be passed by
+using <em>%S</em>, <em>%X</em> and '%Y` respectively.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_code_conflict_marker_size_code"><code>conflict-marker-size</code></h4>
 <div class="paragraph"><p>This attribute controls the length of conflict markers left in
-the work tree file during a conflicted merge.  Only setting to
-the value to a positive integer has any meaningful effect.</p></div>
+the work tree file during a conflicted merge.  Only a positive
+integer has a meaningful effect.</p></div>
 <div class="paragraph"><p>For example, this line in <code>.gitattributes</code> can be used to tell the merge
 machinery to leave much longer (instead of the usual 7-character-long)
 conflict markers when merging the file <code>Documentation/git-merge.txt</code>
@@ -2027,7 +2088,7 @@ String
 </dt>
 <dd>
 <p>
-        Specify a comma separate list of common whitespace problems to
+        Specify a comma separated list of common whitespace problems to
         notice in the same format as the <code>core.whitespace</code> configuration
         variable.
 </p>
@@ -2202,7 +2263,7 @@ frotz   unspecified</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-08-31 14:31:31 PDT
+ 2024-07-05 13:02:13 PDT
 </div>
 </div>
 </body>

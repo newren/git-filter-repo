@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitrevisions(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -822,8 +822,9 @@ characters and to avoid word splitting.</td>
 <li>
 <p>
 If <em>$GIT_DIR/&lt;refname&gt;</em> exists, that is what you mean (this is usually
-    useful only for <code>HEAD</code>, <code>FETCH_HEAD</code>, <code>ORIG_HEAD</code>, <code>MERGE_HEAD</code>
-    and <code>CHERRY_PICK_HEAD</code>);
+    useful only for <code>HEAD</code>, <code>FETCH_HEAD</code>, <code>ORIG_HEAD</code>, <code>MERGE_HEAD</code>,
+    <code>REBASE_HEAD</code>, <code>REVERT_HEAD</code>, <code>CHERRY_PICK_HEAD</code>, <code>BISECT_HEAD</code>
+    and <code>AUTO_MERGE</code>);
 </p>
 </li>
 <li>
@@ -850,23 +851,97 @@ otherwise, <em>refs/remotes/&lt;refname&gt;</em> if it exists;
 <p>
 otherwise, <em>refs/remotes/&lt;refname&gt;/HEAD</em> if it exists.
 </p>
-<div class="paragraph"><p><code>HEAD</code> names the commit on which you based the changes in the working tree.
-<code>FETCH_HEAD</code> records the branch which you fetched from a remote repository
-with your last <code>git fetch</code> invocation.
-<code>ORIG_HEAD</code> is created by commands that move your <code>HEAD</code> in a drastic
-way, to record the position of the <code>HEAD</code> before their operation, so that
-you can easily change the tip of the branch back to the state before you ran
-them.
-<code>MERGE_HEAD</code> records the commit(s) which you are merging into your branch
-when you run <code>git merge</code>.
-<code>CHERRY_PICK_HEAD</code> records the commit which you are cherry-picking
-when you run <code>git cherry-pick</code>.</p></div>
+</li>
+</ol></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>HEAD</code>
+</dt>
+<dd>
+<p>
+    names the commit on which you based the changes in the working tree.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>FETCH_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the branch which you fetched from a remote repository with
+    your last <code>git fetch</code> invocation.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>ORIG_HEAD</code>
+</dt>
+<dd>
+<p>
+    is created by commands that move your <code>HEAD</code> in a drastic way (<code>git
+    am</code>, <code>git merge</code>, <code>git rebase</code>, <code>git reset</code>), to record the position
+    of the <code>HEAD</code> before their operation, so that you can easily change
+    the tip of the branch back to the state before you ran them.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>MERGE_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the commit(s) which you are merging into your branch when you
+    run <code>git merge</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>REBASE_HEAD</code>
+</dt>
+<dd>
+<p>
+    during a rebase, records the commit at which the operation is
+    currently stopped, either because of conflicts or an <code>edit</code> command in
+    an interactive rebase.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>REVERT_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the commit which you are reverting when you run <code>git revert</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>CHERRY_PICK_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the commit which you are cherry-picking when you run <code>git
+    cherry-pick</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>BISECT_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the current commit to be tested when you run <code>git bisect
+    --no-checkout</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>AUTO_MERGE</code>
+</dt>
+<dd>
+<p>
+    records a tree object corresponding to the state the
+    <em>ort</em> merge strategy wrote to the working tree when a merge operation
+    resulted in conflicts.
+</p>
+</dd>
+</dl></div>
 <div class="paragraph"><p>Note that any of the <em>refs/*</em> cases above may come either from
 the <code>$GIT_DIR/refs</code> directory or from the <code>$GIT_DIR/packed-refs</code> file.
 While the ref name encoding is unspecified, UTF-8 is preferred as
 some output processing may assume ref names in UTF-8.</p></div>
-</li>
-</ol></div>
 </dd>
 <dt class="hdlist1">
 <em>@</em>
@@ -1281,7 +1356,7 @@ three notations also consider its parents. For example you can say
 <dd>
 <p>
   A suffix <em>&#94;</em> followed by an exclamation mark is the same
-  as giving commit <em>&lt;rev&gt;</em> and then all its parents prefixed with
+  as giving commit <em>&lt;rev&gt;</em> and all its parents prefixed with
   <em>&#94;</em> to exclude them (and their ancestors).
 </p>
 </dd>
@@ -1342,7 +1417,7 @@ spelt out:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2023-12-23 14:47:14 PST
 </div>
 </div>
 </body>

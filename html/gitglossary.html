@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitglossary(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -796,7 +796,7 @@ gitglossary(7) Manual Page
 <p>
         A "branch" is a line of development.  The most recent
         <a href="#def_commit">commit</a> on a branch is referred to as the tip of
-        that branch.  The tip of the branch is referenced by a branch
+        that branch.  The tip of the branch is <a href="#def_ref">referenced</a> by a branch
         <a href="#def_head">head</a>, which moves forward as additional development
         is done on the branch.  A single Git
         <a href="#def_repository">repository</a> can track an arbitrary number of
@@ -887,6 +887,31 @@ state of the <a href="#def_index">index</a> and advancing <a href="#def_HEAD">HE
 to point at the new commit.</p></div>
 </dd>
 <dt class="hdlist1">
+<a id="def_commit_graph_general"></a>commit graph concept, representations and usage
+</dt>
+<dd>
+<p>
+        A synonym for the <a href="#def_DAG">DAG</a> structure formed by the commits
+        in the object database, <a href="#def_ref">referenced</a> by branch tips,
+        using their <a href="#def_chain">chain</a> of linked commits.
+        This structure is the definitive commit graph. The
+        graph can be represented in other ways, e.g. the
+        <a href="#def_commit_graph_file">"commit-graph" file</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+<a id="def_commit_graph_file"></a>commit-graph file
+</dt>
+<dd>
+<p>
+        The "commit-graph" (normally hyphenated) file is a supplemental
+        representation of the <a href="#def_commit_graph_general">commit graph</a>
+        which accelerates commit graph walks. The "commit-graph" file is
+        stored either in the .git/objects/info directory or in the info
+        directory of an alternate object database.
+</p>
+</dd>
+<dt class="hdlist1">
 <a id="def_commit_object"></a>commit object
 </dt>
 <dd>
@@ -903,9 +928,8 @@ to point at the new commit.</p></div>
 </dt>
 <dd>
 <p>
-        A <a href="#def_commit_object">commit object</a> or an
-        <a href="#def_object">object</a> that can be recursively dereferenced to
-        a commit object.
+        A <a href="#def_commit_object">commit object</a> or an <a href="#def_object">object</a> that
+        can be recursively <a href="#def_dereference">dereferenced</a> to a commit object.
         The following are all commit-ishes:
         a commit object,
         a <a href="#def_tag_object">tag object</a> that points to a commit
@@ -945,6 +969,27 @@ to point at the new commit.</p></div>
         dangling object has no references to it from any
         reference or <a href="#def_object">object</a> in the <a href="#def_repository">repository</a>.
 </p>
+</dd>
+<dt class="hdlist1">
+<a id="def_dereference"></a>dereference
+</dt>
+<dd>
+<p>
+        Referring to a <a href="#def_symref">symbolic ref</a>: the action of accessing the
+        <a href="#def_ref">reference</a> pointed at by a symbolic ref. Recursive
+        dereferencing involves repeating the aforementioned process on the
+        resulting ref until a non-symbolic reference is found.
+</p>
+<div class="paragraph"><p>Referring to a <a href="#def_tag_object">tag object</a>: the action of accessing the
+<a href="#def_object">object</a> a tag points at. Tags are recursively dereferenced by
+repeating the operation on the result object until the result has either a
+specified <a href="#def_object_type">object type</a> (where applicable) or any non-"tag"
+object type. A synonym for "recursive dereference" in the context of tags is
+"<a href="#def_peel">peel</a>".</p></div>
+<div class="paragraph"><p>Referring to a <a href="#def_commit_object">commit object</a>: the action of accessing
+the commit&#8217;s tree object. Commits cannot be dereferenced recursively.</p></div>
+<div class="paragraph"><p>Unless otherwise specified, "dereferencing" as it used in the context of Git
+commands or protocols is implicitly recursive.</p></div>
 </dd>
 <dt class="hdlist1">
 <a id="def_detached_HEAD"></a>detached HEAD
@@ -1048,6 +1093,8 @@ current branch integrates with) obviously do not work, as there is no
 <p>
         A plain file <code>.git</code> at the root of a working tree that
         points at the directory that is the real repository.
+        For proper use see <a href="git-worktree.html">git-worktree(1)</a> or <a href="git-submodule.html">git-submodule(1)</a>.
+        For syntax see <a href="gitrepository-layout.html">gitrepository-layout(5)</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1055,7 +1102,7 @@ current branch integrates with) obviously do not work, as there is no
 </dt>
 <dd>
 <p>
-        Grafts enables two otherwise different lines of development to be joined
+        Grafts enable two otherwise different lines of development to be joined
         together by recording fake ancestry information for commits. This way
         you can make Git pretend the set of <a href="#def_parent">parents</a> a <a href="#def_commit">commit</a> has
         is different from what was recorded when the commit was
@@ -1200,7 +1247,7 @@ This commit is referred to as a "merge commit", or sometimes just a
 </p>
 </dd>
 <dt class="hdlist1">
-<a id="def_object_identifier"></a>object identifier
+<a id="def_object_identifier"></a>object identifier (oid)
 </dt>
 <dd>
 <p>
@@ -1234,6 +1281,17 @@ This commit is referred to as a "merge commit", or sometimes just a
 <dd>
 <p>
         To <a href="#def_merge">merge</a> more than two <a href="#def_branch">branches</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+<a id="def_orphan"></a>orphan
+</dt>
+<dd>
+<p>
+        The act of getting on a <a href="#def_branch">branch</a> that does not
+        exist yet (i.e., an <a href="#def_unborn">unborn</a> branch).  After
+        such an operation, the commit first created becomes a commit
+        without a parent, starting a new history.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1481,6 +1539,15 @@ exclude
 </p>
 </dd>
 <dt class="hdlist1">
+<a id="def_peel"></a>peel
+</dt>
+<dd>
+<p>
+        The action of recursively <a href="#def_dereference">dereferencing</a> a
+        <a href="#def_tag_object">tag object</a>.
+</p>
+</dd>
+<dt class="hdlist1">
 <a id="def_pickaxe"></a>pickaxe
 </dt>
 <dd>
@@ -1582,6 +1649,19 @@ exclude
         <a href="#def_commit_object">commits</a> to their parents or trees, and
         <a href="#def_tree_object">trees</a> to the trees or <a href="#def_blob_object">blobs</a>
         that they contain.
+</p>
+</dd>
+<dt class="hdlist1">
+<a id="def_reachability_bitmap"></a>reachability bitmaps
+</dt>
+<dd>
+<p>
+        Reachability bitmaps store information about the
+        <a href="#def_reachable">reachability</a> of a selected set of commits in
+        a packfile, or a multi-pack index (MIDX), to speed up object search.
+        The bitmaps are stored in a ".bitmap" file. A repository may have at
+        most one bitmap file in use. The bitmap file may belong to either one
+        pack, or the repository&#8217;s multi-pack index (if it exists).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1749,6 +1829,32 @@ The most notable example is <code>HEAD</code>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+<a id="def_special_ref"></a>special ref
+</dt>
+<dd>
+<p>
+        A ref that has different semantics than normal refs. These refs can be
+        accessed via normal Git commands but may not behave the same as a
+        normal ref in some cases.
+</p>
+<div class="paragraph"><p>The following special refs are known to Git:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+"<code>FETCH_HEAD</code>" is written by <a href="git-fetch.html">git-fetch(1)</a> or <a href="git-pull.html">git-pull(1)</a>. It
+   may refer to multiple object IDs. Each object ID is annotated with metadata
+   indicating where it was fetched from and its fetch status.
+</p>
+</li>
+<li>
+<p>
+"<code>MERGE_HEAD</code>" is written by <a href="git-merge.html">git-merge(1)</a> when resolving merge
+   conflicts. It contains all commit IDs which are being merged.
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
 <a id="def_submodule"></a>submodule
 </dt>
 <dd>
@@ -1774,12 +1880,11 @@ The most notable example is <code>HEAD</code>.</p></div>
 </dt>
 <dd>
 <p>
-        Symbolic reference: instead of containing the <a href="#def_SHA1">SHA-1</a>
-        id itself, it is of the format <em>ref: refs/some/thing</em> and when
-        referenced, it recursively dereferences to this reference.
-        <em><a href="#def_HEAD">HEAD</a></em> is a prime example of a symref. Symbolic
-        references are manipulated with the <a href="git-symbolic-ref.html">git-symbolic-ref(1)</a>
-        command.
+        Symbolic reference: instead of containing the <a href="#def_SHA1">SHA-1</a> id
+        itself, it is of the format <em>ref: refs/some/thing</em> and when referenced,
+        it recursively <a href="#def_dereference">dereferences</a> to this reference.
+        <em><a href="#def_HEAD">HEAD</a></em> is a prime example of a symref. Symbolic references
+        are manipulated with the <a href="git-symbolic-ref.html">git-symbolic-ref(1)</a> command.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1844,11 +1949,11 @@ The most notable example is <code>HEAD</code>.</p></div>
 </dt>
 <dd>
 <p>
-        A <a href="#def_tree_object">tree object</a> or an <a href="#def_object">object</a>
-        that can be recursively dereferenced to a tree object.
-        Dereferencing a <a href="#def_commit_object">commit object</a> yields the
-        tree object corresponding to the <a href="#def_revision">revision</a>'s
-        top <a href="#def_directory">directory</a>.
+        A <a href="#def_tree_object">tree object</a> or an <a href="#def_object">object</a> that can
+        be recursively <a href="#def_dereference">dereferenced</a> to a tree object.
+        Dereferencing a <a href="#def_commit_object">commit object</a> yields the tree
+        object corresponding to the <a href="#def_revision">revision</a>'s top
+        <a href="#def_directory">directory</a>.
         The following are all tree-ishes:
         a <a href="#def_commit-ish">commit-ish</a>,
         a tree object,
@@ -1856,6 +1961,22 @@ The most notable example is <code>HEAD</code>.</p></div>
         a tag object that points to a tag object that points to a tree
         object,
         etc.
+</p>
+</dd>
+<dt class="hdlist1">
+<a id="def_unborn"></a>unborn
+</dt>
+<dd>
+<p>
+        The <a href="#def_HEAD">HEAD</a> can point at a <a href="#def_branch">branch</a>
+        that does not yet exist and that does not have any commit on
+        it yet, and such a branch is called an unborn branch.  The
+        most typical way users encounter an unborn branch is by
+        creating a repository anew without cloning from elsewhere.
+        The HEAD would point at the <em>main</em> (or <em>master</em>, depending
+        on your configuration) branch that is yet to be born.  Also
+        some operations can get you on an unborn branch with their
+        <a href="#def_orphan">orphan</a> option.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1935,7 +2056,7 @@ The most notable example is <code>HEAD</code>.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-01-27 18:10:56 PST
+ 2023-12-23 14:47:14 PST
 </div>
 </div>
 </body>

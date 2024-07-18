@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-var(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-var(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git var</em> ( -l | &lt;variable&gt; )</pre>
+<pre class="content"><em>git var</em> (-l | &lt;variable&gt;)</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -757,7 +757,8 @@ git-var(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Prints a Git logical variable.</p></div>
+<div class="paragraph"><p>Prints a Git logical variable. Exits with code 1 if the variable has
+no value.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -769,7 +770,7 @@ git-var(1) Manual Page
 </dt>
 <dd>
 <p>
-        Cause the logical variables to be listed. In addition, all the
+        Display the logical variables. In addition, all the
         variables of the Git configuration file .git/config are listed
         as well. (However, the configuration variables listing functionality
         is deprecated in favor of <code>git config -l</code>.)
@@ -823,6 +824,19 @@ GIT_EDITOR
 </p>
 </dd>
 <dt class="hdlist1">
+GIT_SEQUENCE_EDITOR
+</dt>
+<dd>
+<p>
+    Text editor used to edit the <em>todo</em> file while running <code>git rebase
+    -i</code>. Like <code>GIT_EDITOR</code>, the value is meant to be interpreted by
+    the shell when it is used. The order of preference is the
+    <code>$GIT_SEQUENCE_EDITOR</code> environment variable, then
+    <code>sequence.editor</code> configuration, and then the value of <code>git var
+    GIT_EDITOR</code>.
+</p>
+</dd>
+<dt class="hdlist1">
 GIT_PAGER
 </dt>
 <dd>
@@ -842,7 +856,53 @@ GIT_DEFAULT_BRANCH
     The name of the first branch created in newly initialized repositories.
 </p>
 </dd>
+<dt class="hdlist1">
+GIT_SHELL_PATH
+</dt>
+<dd>
+<p>
+    The path of the binary providing the POSIX shell for commands which use the shell.
+</p>
+</dd>
+<dt class="hdlist1">
+GIT_ATTR_SYSTEM
+</dt>
+<dd>
+<p>
+    The path to the system <a href="gitattributes.html">gitattributes(5)</a> file, if one is enabled.
+</p>
+</dd>
+<dt class="hdlist1">
+GIT_ATTR_GLOBAL
+</dt>
+<dd>
+<p>
+    The path to the global (per-user) <a href="gitattributes.html">gitattributes(5)</a> file.
+</p>
+</dd>
+<dt class="hdlist1">
+GIT_CONFIG_SYSTEM
+</dt>
+<dd>
+<p>
+    The path to the system configuration file, if one is enabled.
+</p>
+</dd>
+<dt class="hdlist1">
+GIT_CONFIG_GLOBAL
+</dt>
+<dd>
+<p>
+    The path to the global (per-user) configuration files, if any.
+</p>
+</dd>
 </dl></div>
+<div class="paragraph"><p>Most path values contain only one value. However, some can contain multiple
+values, which are separated by newlines, and are listed in order from highest to
+lowest priority.  Callers should be prepared for any such path value to contain
+multiple items.</p></div>
+<div class="paragraph"><p>Note that paths are printed even if they do not exist, but not if they are
+disabled by other environment variables.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -864,7 +924,7 @@ GIT_DEFAULT_BRANCH
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

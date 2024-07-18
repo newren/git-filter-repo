@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-reflog(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,18 +749,8 @@ git-reflog(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git reflog</em> &lt;subcommand&gt; &lt;options&gt;</pre>
-<div class="attribution">
-</div></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_description">DESCRIPTION</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>The command takes various subcommands, and different options
-depending on the subcommand:</p></div>
-<div class="verseblock">
-<pre class="content"><em>git reflog</em> [<em>show</em>] [&lt;log-options&gt;] [&lt;ref&gt;]
+<pre class="content"><em>git reflog</em> [show] [&lt;log-options&gt;] [&lt;ref&gt;]
+<em>git reflog list</em>
 <em>git reflog expire</em> [--expire=&lt;time&gt;] [--expire-unreachable=&lt;time&gt;]
         [--rewrite] [--updateref] [--stale-fix]
         [--dry-run | -n] [--verbose] [--all [--single-worktree] | &lt;refs&gt;&#8230;]
@@ -769,6 +759,12 @@ depending on the subcommand:</p></div>
 <em>git reflog exists</em> &lt;ref&gt;</pre>
 <div class="attribution">
 </div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">DESCRIPTION</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This command manages the information recorded in the reflogs.</p></div>
 <div class="paragraph"><p>Reference logs, or "reflogs", record when the tips of branches and
 other references were updated in the local repository. Reflogs are
 useful in various Git commands, to specify the old value of a
@@ -776,13 +772,15 @@ reference. For example, <code>HEAD@{2}</code> means "where HEAD used to be two
 moves ago", <code>master@{one.week.ago}</code> means "where master used to point
 to one week ago in this local repository", and so on. See
 <a href="gitrevisions.html">gitrevisions(7)</a> for more details.</p></div>
-<div class="paragraph"><p>This command manages the information recorded in the reflogs.</p></div>
+<div class="paragraph"><p>The command takes various subcommands, and different options
+depending on the subcommand:</p></div>
 <div class="paragraph"><p>The "show" subcommand (which is also the default, in the absence of
 any subcommands) shows the log of the reference provided in the
 command-line (or <code>HEAD</code>, by default). The reflog covers all recent
 actions, and in addition the <code>HEAD</code> reflog records branch switching.
 <code>git reflog show</code> is an alias for <code>git log -g --abbrev-commit
 --pretty=oneline</code>; see <a href="git-log.html">git-log(1)</a> for more information.</p></div>
+<div class="paragraph"><p>The "list" subcommand lists all refs which have a corresponding reflog.</p></div>
 <div class="paragraph"><p>The "expire" subcommand prunes older reflog entries. Entries older
 than <code>expire</code> time, or entries older than <code>expire-unreachable</code> time
 and not reachable from the current tip, are removed from the reflog.
@@ -929,7 +927,7 @@ used with <code>expire</code>.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-show-ref(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,10 +749,14 @@ git-show-ref(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git show-ref</em> [-q|--quiet] [--verify] [--head] [-d|--dereference]
-             [-s|--hash[=&lt;n&gt;]] [--abbrev[=&lt;n&gt;]] [--tags]
+<pre class="content"><em>git show-ref</em> [--head] [-d | --dereference]
+             [-s | --hash[=&lt;n&gt;]] [--abbrev[=&lt;n&gt;]] [--tags]
              [--heads] [--] [&lt;pattern&gt;&#8230;]
-<em>git show-ref</em> --exclude-existing[=&lt;pattern&gt;]</pre>
+<em>git show-ref</em> --verify [-q | --quiet] [-d | --dereference]
+             [-s | --hash[=&lt;n&gt;]] [--abbrev[=&lt;n&gt;]]
+             [--] [&lt;ref&gt;&#8230;]
+<em>git show-ref</em> --exclude-existing[=&lt;pattern&gt;]
+<em>git show-ref</em> --exists &lt;ref&gt;</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -765,9 +769,12 @@ commit IDs. Results can be filtered using a pattern and tags can be
 dereferenced into object IDs. Additionally, it can be used to test whether a
 particular ref exists.</p></div>
 <div class="paragraph"><p>By default, shows the tags, heads, and remote refs.</p></div>
-<div class="paragraph"><p>The --exclude-existing form is a filter that does the inverse. It reads
+<div class="paragraph"><p>The <code>--exclude-existing</code> form is a filter that does the inverse. It reads
 refs from stdin, one ref per line, and shows those that don&#8217;t exist in
 the local repository.</p></div>
+<div class="paragraph"><p>The <code>--exists</code> form can be used to check for the existence of a single
+references. This form does not verify whether the reference resolves to an
+actual object.</p></div>
 <div class="paragraph"><p>Use of this utility is encouraged in favor of directly accessing files under
 the <code>.git</code> directory.</p></div>
 </div>
@@ -805,7 +812,7 @@ the <code>.git</code> directory.</p></div>
 </dt>
 <dd>
 <p>
-        Dereference tags into object IDs as well. They will be shown with "&#94;{}"
+        Dereference tags into object IDs as well. They will be shown with <code>^{}</code>
         appended.
 </p>
 </dd>
@@ -817,8 +824,8 @@ the <code>.git</code> directory.</p></div>
 </dt>
 <dd>
 <p>
-        Only show the SHA-1 hash, not the reference name. When combined with
-        --dereference the dereferenced tag will still be shown after the SHA-1.
+        Only show the OID, not the reference name. When combined with
+        <code>--dereference</code>, the dereferenced tag will still be shown after the OID.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -829,6 +836,16 @@ the <code>.git</code> directory.</p></div>
         Enable stricter reference checking by requiring an exact ref path.
         Aside from returning an error code of 1, it will also print an error
         message if <code>--quiet</code> was not specified.
+</p>
+</dd>
+<dt class="hdlist1">
+--exists
+</dt>
+<dd>
+<p>
+        Check whether the given reference exists. Returns an exit code of 0 if
+        it does, 2 if it is missing, and 1 in case looking up the reference
+        failed with an error other than the reference being missing.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -848,8 +865,8 @@ the <code>.git</code> directory.</p></div>
 </dt>
 <dd>
 <p>
-        Do not print any results to stdout. When combined with <code>--verify</code> this
-        can be used to silently check if a reference exists.
+        Do not print any results to stdout. Can be used with <code>--verify</code> to
+        silently check if a reference exists.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -857,10 +874,10 @@ the <code>.git</code> directory.</p></div>
 </dt>
 <dd>
 <p>
-        Make <em>git show-ref</em> act as a filter that reads refs from stdin of the
-        form "<code>^(?:&lt;anything&gt;\s)?&lt;refname&gt;(?:\^{})?$</code>"
+        Make <code>git show-ref</code> act as a filter that reads refs from stdin of the
+        form <code>^(?:&lt;anything&gt;\s)?&lt;refname&gt;(?:\^{})?$</code>
         and performs the following actions on each:
-        (1) strip "&#94;{}" at the end of line if any;
+        (1) strip <code>^{}</code> at the end of line if any;
         (2) ignore if pattern is provided and does not head-match refname;
         (3) warn if refname is not a well-formed refname and skip;
         (4) ignore if refname is a ref that exists in the local repository;
@@ -885,7 +902,12 @@ the <code>.git</code> directory.</p></div>
 <div class="sect1">
 <h2 id="_output">OUTPUT</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The output is in the format: <em>&lt;SHA-1 ID&gt;</em> <em>&lt;space&gt;</em> <em>&lt;reference name&gt;</em>.</p></div>
+<div class="paragraph"><p>The output is in the format:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;oid&gt; SP &lt;ref&gt; LF</code></pre>
+</div></div>
+<div class="paragraph"><p>For example,</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git show-ref --head --dereference
@@ -898,7 +920,12 @@ the <code>.git</code> directory.</p></div>
 423325a2d24638ddcc82ce47be5e40be550f4507 refs/tags/v1.0rc4^{}
 ...</code></pre>
 </div></div>
-<div class="paragraph"><p>When using --hash (and not --dereference) the output format is: <em>&lt;SHA-1 ID&gt;</em></p></div>
+<div class="paragraph"><p>When using <code>--hash</code> (and not <code>--dereference</code>), the output is in the format:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt;oid&gt; LF</code></pre>
+</div></div>
+<div class="paragraph"><p>For example,</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git show-ref --heads --hash
@@ -920,16 +947,16 @@ use:</p></div>
 <pre><code>        git show-ref master</code></pre>
 </div></div>
 <div class="paragraph"><p>This will show "refs/heads/master" but also "refs/remote/other-repo/master",
-if such references exists.</p></div>
+if such references exist.</p></div>
 <div class="paragraph"><p>When using the <code>--verify</code> flag, the command requires an exact path:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>        git show-ref --verify refs/heads/master</code></pre>
 </div></div>
 <div class="paragraph"><p>will only match the exact branch called "master".</p></div>
-<div class="paragraph"><p>If nothing matches, <em>git show-ref</em> will return an error code of 1,
+<div class="paragraph"><p>If nothing matches, <code>git show-ref</code> will return an error code of 1,
 and in the case of verification, it will show an error message.</p></div>
-<div class="paragraph"><p>For scripting, you can ask it to be quiet with the "--quiet" flag, which
+<div class="paragraph"><p>For scripting, you can ask it to be quiet with the <code>--quiet</code> flag, which
 allows you to do things like</p></div>
 <div class="listingblock">
 <div class="content">
@@ -939,10 +966,10 @@ allows you to do things like</p></div>
 <div class="paragraph"><p>to check whether a particular branch exists or not (notice how we don&#8217;t
 actually want to show any results, and we want to use the full refname for it
 in order to not trigger the problem with ambiguous partial matches).</p></div>
-<div class="paragraph"><p>To show only tags, or only proper branch heads, use "--tags" and/or "--heads"
+<div class="paragraph"><p>To show only tags, or only proper branch heads, use <code>--tags</code> and/or <code>--heads</code>
 respectively (using both means that it shows tags and heads, but not other
 random references under the refs/ subdirectory).</p></div>
-<div class="paragraph"><p>To do automatic tag object dereferencing, use the "-d" or "--dereference"
+<div class="paragraph"><p>To do automatic tag object dereferencing, use the <code>-d</code> or <code>--dereference</code>
 flag, so you can do</p></div>
 <div class="listingblock">
 <div class="content">
@@ -977,7 +1004,7 @@ flag, so you can do</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-08-25 09:55:18 PDT
+ 2024-07-05 13:02:13 PDT
 </div>
 </div>
 </body>

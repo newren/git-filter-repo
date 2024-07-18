@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-diff(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -843,10 +843,10 @@ of &lt;commit&gt; and HEAD.  <code>git diff --merge-base A</code> is equivalent 
 <p>
         This form is to view the results of a merge commit.  The first
         listed &lt;commit&gt; must be the merge itself; the remaining two or
-        more commits should be its parents.  A convenient way to produce
-        the desired set of revisions is to use the <code>^@</code> suffix.
-        For instance, if <code>master</code> names a merge commit, <code>git diff master
-        master^@</code> gives the same combined diff as <code>git show master</code>.
+        more commits should be its parents.  Convenient ways to produce
+        the desired set of revisions are to use the suffixes <code>^@</code> and
+        <code>^!</code>.  If A is a merge commit, then <code>git diff A A^@</code>,
+        <code>git diff A^!</code> and <code>git show A</code> all give the same combined diff.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -876,7 +876,11 @@ of &lt;commit&gt; and HEAD.  <code>git diff --merge-base A</code> is equivalent 
 <div class="paragraph"><p>Just in case you are doing something exotic, it should be
 noted that all of the &lt;commit&gt; in the above description, except
 in the <code>--merge-base</code> case and in the last two forms that use <code>..</code>
-notations, can be any &lt;tree&gt;.</p></div>
+notations, can be any &lt;tree&gt;. A tree of interest is the one pointed to
+by the ref named <code>AUTO_MERGE</code>, which is written by the <em>ort</em> merge
+strategy upon hitting merge conflicts (see <a href="git-merge.html">git-merge(1)</a>).
+Comparing the working tree with <code>AUTO_MERGE</code> shows changes you&#8217;ve made
+so far to resolve textual conflicts (see the examples below).</p></div>
 <div class="paragraph"><p>For a more complete list of ways to spell &lt;commit&gt;, see
 "SPECIFYING REVISIONS" section in <a href="gitrevisions.html">gitrevisions(7)</a>.
 However, "diff" is about comparing two <em>endpoints</em>, not ranges,
@@ -911,7 +915,7 @@ and the range notations (<code>&lt;commit&gt;..&lt;commit&gt;</code> and
 </dt>
 <dd>
 <p>
-        Generate patch (see section on generating patches).
+        Generate patch (see <a href="#generate_patch_text_with_p">[generate_patch_text_with_p]</a>).
         This is the default.
 </p>
 </dd>
@@ -923,8 +927,10 @@ and the range notations (<code>&lt;commit&gt;..&lt;commit&gt;</code> and
 </dt>
 <dd>
 <p>
-        Suppress diff output. Useful for commands like <code>git show</code> that
-        show the patch by default, or to cancel the effect of <code>--patch</code>.
+        Suppress all output from the diff machinery.  Useful for
+        commands like <code>git show</code> that show the patch by default to
+        squelch their output, or to cancel the effect of options like
+        <code>--patch</code>, <code>--stat</code> earlier on the command line in an alias.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1095,14 +1101,15 @@ have to use <code>--diff-algorithm=default</code> option.</p></div>
         part. Maximum width defaults to terminal width, or 80 columns
         if not connected to a terminal, and can be overridden by
         <code>&lt;width&gt;</code>. The width of the filename part can be limited by
-        giving another width <code>&lt;name-width&gt;</code> after a comma. The width
-        of the graph part can be limited by using
-        <code>--stat-graph-width=&lt;width&gt;</code> (affects all commands generating
-        a stat graph) or by setting <code>diff.statGraphWidth=&lt;width&gt;</code>
-        (does not affect <code>git format-patch</code>).
-        By giving a third parameter <code>&lt;count&gt;</code>, you can limit the
-        output to the first <code>&lt;count&gt;</code> lines, followed by <code>...</code> if
-        there are more.
+        giving another width <code>&lt;name-width&gt;</code> after a comma or by setting
+        <code>diff.statNameWidth=&lt;width&gt;</code>. The width of the graph part can be
+        limited by using <code>--stat-graph-width=&lt;width&gt;</code> or by setting
+        <code>diff.statGraphWidth=&lt;width&gt;</code>. Using <code>--stat</code> or
+        <code>--stat-graph-width</code> affects all commands generating a stat graph,
+        while setting <code>diff.statNameWidth</code> or <code>diff.statGraphWidth</code>
+        does not affect <code>git format-patch</code>.
+        By giving a third parameter <code>&lt;count&gt;</code>, you can limit the output to
+        the first <code>&lt;count&gt;</code> lines, followed by <code>...</code> if there are more.
 </p>
 <div class="paragraph"><p>These parameters can also be set individually with <code>--stat-width=&lt;width&gt;</code>,
 <code>--stat-name-width=&lt;name-width&gt;</code> and <code>--stat-count=&lt;count&gt;</code>.</p></div>
@@ -1238,7 +1245,7 @@ and accumulating child directory counts in the parent directories:
 </dt>
 <dd>
 <p>
-        Synonym for --dirstat=files,param1,param2&#8230;
+        Synonym for --dirstat=files,&lt;param1&gt;,&lt;param2&gt;&#8230;
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1927,7 +1934,7 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 <p>
         Discard the files before the named &lt;file&gt; from the output
         (i.e. <em>skip to</em>), or move them to the end of the output
-        (i.e. <em>rotate to</em>).  These were invented primarily for use
+        (i.e. <em>rotate to</em>).  These options were invented primarily for the use
         of the <code>git difftool</code> command, and may not be very useful
         otherwise.
 </p>
@@ -2151,6 +2158,17 @@ matches "<code>fooasdfbar</code>" and "<code>foo/bar/baz/asdf</code>" but not "<
 <dd>
 <p>
         Do not show any source or destination prefix.
+</p>
+</dd>
+<dt class="hdlist1">
+--default-prefix
+</dt>
+<dd>
+<p>
+        Use the default source and destination prefixes ("a/" and "b/").
+        This overrides configuration variables such as <code>diff.noprefix</code>,
+        <code>diff.srcPrefix</code>, <code>diff.dstPrefix</code>, and <code>diff.mnemonicPrefix</code>
+        (see <code>git-config</code>(1)).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2469,7 +2487,7 @@ all parents.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_generating_patch_text_with_p">Generating patch text with -p</h2>
+<h2 id="generate_patch_text_with_p">Generating patch text with -p</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Running
 <a href="git-diff.html">git-diff(1)</a>,
@@ -2487,7 +2505,7 @@ diff format:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-It is preceded with a "git diff" header that looks like this:
+It is preceded by a "git diff" header that looks like this:
 </p>
 <div class="literalblock">
 <div class="content">
@@ -2496,9 +2514,9 @@ It is preceded with a "git diff" header that looks like this:
 <div class="paragraph"><p>The <code>a/</code> and <code>b/</code> filenames are the same unless rename/copy is
 involved.  Especially, even for a creation or a deletion,
 <code>/dev/null</code> is <em>not</em> used in place of the <code>a/</code> or <code>b/</code> filenames.</p></div>
-<div class="paragraph"><p>When rename/copy is involved, <code>file1</code> and <code>file2</code> show the
+<div class="paragraph"><p>When a rename/copy is involved, <code>file1</code> and <code>file2</code> show the
 name of the source file of the rename/copy and the name of
-the file that rename/copy produces, respectively.</p></div>
+the file that the rename/copy produces, respectively.</p></div>
 </li>
 <li>
 <p>
@@ -2559,7 +2577,7 @@ rename to a</code></pre>
 <p>
 Hunk headers mention the name of the function to which the hunk
     applies.  See "Defining a custom hunk-header" in
-    <a href="gitattributes.html">gitattributes(5)</a> for details of how to tailor to this to
+    <a href="gitattributes.html">gitattributes(5)</a> for details of how to tailor this to
     specific languages.
 </p>
 </li>
@@ -2574,7 +2592,7 @@ produce a <em>combined diff</em> when showing a merge. This is the default
 format when showing merges with <a href="git-diff.html">git-diff(1)</a> or
 <a href="git-show.html">git-show(1)</a>. Note also that you can give suitable
 <code>--diff-merges</code> option to any of these commands to force generation of
-diffs in specific format.</p></div>
+diffs in a specific format.</p></div>
 <div class="paragraph"><p>A "combined diff" format looks like this:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -2609,7 +2627,7 @@ index fabadb8,cc95eb0..4866510
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-It is preceded with a "git diff" header, that looks like
+It is preceded by a "git diff" header, that looks like
      this (when the <code>-c</code> option is used):
 </p>
 <div class="literalblock">
@@ -2636,25 +2654,25 @@ deleted file mode &lt;mode&gt;,&lt;mode&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>The <code>mode &lt;mode&gt;,&lt;mode&gt;..&lt;mode&gt;</code> line appears only if at least one of
 the &lt;mode&gt; is different from the rest. Extended headers with
-information about detected contents movement (renames and
-copying detection) are designed to work with diff of two
+information about detected content movement (renames and
+copying detection) are designed to work with the diff of two
 &lt;tree-ish&gt; and are not used by combined diff format.</p></div>
 </li>
 <li>
 <p>
-It is followed by two-line from-file/to-file header
+It is followed by a two-line from-file/to-file header:
 </p>
 <div class="literalblock">
 <div class="content">
 <pre><code>--- a/file
 +++ b/file</code></pre>
 </div></div>
-<div class="paragraph"><p>Similar to two-line header for traditional <em>unified</em> diff
+<div class="paragraph"><p>Similar to the two-line header for the traditional <em>unified</em> diff
 format, <code>/dev/null</code> is used to signal created or deleted
 files.</p></div>
 <div class="paragraph"><p>However, if the --combined-all-paths option is provided, instead of a
-two-line from-file/to-file you get a N+1 line from-file/to-file header,
-where N is the number of parents in the merge commit</p></div>
+two-line from-file/to-file, you get an N+1 line from-file/to-file header,
+where N is the number of parents in the merge commit:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>--- a/file
@@ -2697,7 +2715,7 @@ added, from the point of view of that parent).</p></div>
 <div class="paragraph"><p>In the above example output, the function signature was changed
 from both files (hence two <code>-</code> removals from both file1 and
 file2, plus <code>++</code> to mean one line that was added does not appear
-in either file1 or file2).  Also eight other lines are the same
+in either file1 or file2).  Also, eight other lines are the same
 from file1 but do not appear in file2 (hence prefixed with <code>+</code>).</p></div>
 <div class="paragraph"><p>When shown by <code>git diff-tree -c</code>, it compares the parents of a
 merge commit with the merge result (i.e. file1..fileN are the
@@ -2836,7 +2854,8 @@ Various ways to check your working tree
 <div class="content">
 <pre><code>$ git diff            <b>&lt;1&gt;</b>
 $ git diff --cached   <b>&lt;2&gt;</b>
-$ git diff HEAD       <b>&lt;3&gt;</b></code></pre>
+$ git diff HEAD       <b>&lt;3&gt;</b>
+$ git diff AUTO_MERGE <b>&lt;4&gt;</b></code></pre>
 </div></div>
 <div class="colist arabic"><ol>
 <li>
@@ -2854,6 +2873,12 @@ Changes between the index and your last commit; what you
 <p>
 Changes in the working tree since your last commit; what you
     would be committing if you run <code>git commit -a</code>
+</p>
+</li>
+<li>
+<p>
+Changes in the working tree you&#8217;ve made to resolve textual
+    conflicts so far.
 </p>
 </li>
 </ol></div>
@@ -2987,7 +3012,7 @@ diff.autoRefreshIndex
 <dd>
 <p>
         When using <em>git diff</em> to compare with work tree
-        files, do not consider stat-only change as changed.
+        files, do not consider stat-only changes as changed.
         Instead, silently run <code>git update-index --refresh</code> to
         update the cached stat information for paths whose
         contents in the work tree match the contents in the
@@ -3075,6 +3100,15 @@ diff.dirstat
 directories with less than 10% of the total amount of changed files,
 and accumulating child directory counts in the parent directories:
 <code>files,10,cumulative</code>.</p></div>
+</dd>
+<dt class="hdlist1">
+diff.statNameWidth
+</dt>
+<dd>
+<p>
+        Limit the width of the filename part in --stat output. If set, applies
+        to all commands generating --stat output except format-patch.
+</p>
 </dd>
 <dt class="hdlist1">
 diff.statGraphWidth
@@ -3191,11 +3225,27 @@ diff.mnemonicPrefix
 </dl></div>
 </dd>
 <dt class="hdlist1">
-diff.noprefix
+diff.noPrefix
 </dt>
 <dd>
 <p>
         If set, <em>git diff</em> does not show any source or destination prefix.
+</p>
+</dd>
+<dt class="hdlist1">
+diff.srcPrefix
+</dt>
+<dd>
+<p>
+        If set, <em>git diff</em> uses this source prefix. Defaults to "a/".
+</p>
+</dd>
+<dt class="hdlist1">
+diff.dstPrefix
+</dt>
+<dd>
+<p>
+        If set, <em>git diff</em> uses this destination prefix. Defaults to "b/".
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3616,8 +3666,8 @@ diff.colorMovedWS
 <dd>
 <p>
         When moved lines are colored using e.g. the <code>diff.colorMoved</code> setting,
-        this option controls the <code>&lt;mode&gt;</code> how spaces are treated
-        for details of valid modes see <em>--color-moved-ws</em> in <a href="git-diff.html">git-diff(1)</a>.
+        this option controls the <code>&lt;mode&gt;</code> how spaces are treated.
+        For details of valid modes see <em>--color-moved-ws</em> in <a href="git-diff.html">git-diff(1)</a>.
 </p>
 </dd>
 </dl></div>
@@ -3646,7 +3696,7 @@ diff.colorMovedWS
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-rev-parse(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-rev-parse(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git rev-parse</em> [&lt;options&gt;] &lt;args&gt;&#8230;</pre>
+<pre class="content"><em>git rev-parse</em> [&lt;options&gt;] &lt;arg&gt;&#8230;</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -757,7 +757,7 @@ git-rev-parse(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Many Git porcelainish commands take mixture of flags
+<div class="paragraph"><p>Many Git porcelainish commands take a mixture of flags
 (i.e. parameters that begin with a dash <em>-</em>) and parameters
 meant for the underlying <em>git rev-list</em> command they use internally
 and flags and parameters for the other commands they use
@@ -787,7 +787,7 @@ distinguish between them.</p></div>
 <p>
         Use <em>git rev-parse</em> in shell quoting mode (see SQ-QUOTE
         section below). In contrast to the <code>--sq</code> option below, this
-        mode does only quoting. Nothing else is done to command input.
+        mode only does quoting. Nothing else is done to command input.
 </p>
 </dd>
 </dl></div>
@@ -948,7 +948,7 @@ for another option.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---short[=length]
+--short[=&lt;length&gt;]
 </dt>
 <dd>
 <p>
@@ -997,9 +997,31 @@ for another option.</p></div>
         are not refs (i.e. branch or tag names; or more
         explicitly disambiguating "heads/master" form, when you
         want to name the "master" branch when there is an
-        unfortunately named tag "master"), and show them as full
+        unfortunately named tag "master"), and shows them as full
         refnames (e.g. "refs/heads/master").
 </p>
+</dd>
+<dt class="hdlist1">
+--output-object-format=(sha1|sha256|storage)
+</dt>
+<dd>
+<p>
+        Allow oids to be input from any object format that the current
+        repository supports.
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Specifying "sha1" translates if necessary and returns a sha1 oid.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Specifying "sha256" translates if necessary and returns a sha256 oid.</code></pre>
+</div></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>Specifying "storage" translates if necessary and returns an oid in
+encoded in the storage hash algorithm.</code></pre>
+</div></div>
 </dd>
 </dl></div>
 </div>
@@ -1015,13 +1037,13 @@ for another option.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---branches[=pattern]
+--branches[=&lt;pattern&gt;]
 </dt>
 <dt class="hdlist1">
---tags[=pattern]
+--tags[=&lt;pattern&gt;]
 </dt>
 <dt class="hdlist1">
---remotes[=pattern]
+--remotes[=&lt;pattern&gt;]
 </dt>
 <dd>
 <p>
@@ -1034,7 +1056,7 @@ shown.  If the pattern does not contain a globbing character (<code>?</code>,
 <code>*</code>, or <code>[</code>), it is turned into a prefix match by appending <code>/*</code>.</p></div>
 </dd>
 <dt class="hdlist1">
---glob=pattern
+--glob=&lt;pattern&gt;
 </dt>
 <dd>
 <p>
@@ -1062,6 +1084,19 @@ shown.  If the pattern does not contain a globbing character (<code>?</code>,
 respectively, and they must begin with <code>refs/</code> when applied to <code>--glob</code>
 or <code>--all</code>. If a trailing <em>/&#42;</em> is intended, it must be given
 explicitly.</p></div>
+</dd>
+<dt class="hdlist1">
+--exclude-hidden=(fetch|receive|uploadpack)
+</dt>
+<dd>
+<p>
+        Do not include refs that would be hidden by <code>git-fetch</code>,
+        <code>git-receive-pack</code> or <code>git-upload-pack</code> by consulting the appropriate
+        <code>fetch.hideRefs</code>, <code>receive.hideRefs</code> or <code>uploadpack.hideRefs</code>
+        configuration along with <code>transfer.hideRefs</code> (see
+        <a href="git-config.html">git-config(1)</a>). This option affects the next pseudo-ref option
+        <code>--all</code> or <code>--glob</code> and is cleared after processing them.
+</p>
 </dd>
 <dt class="hdlist1">
 --disambiguate=&lt;prefix&gt;
@@ -1257,16 +1292,24 @@ print a message to stderr and exit with nonzero status.</p></div>
         If not specified, the default is "storage".
 </p>
 </dd>
+<dt class="hdlist1">
+--show-ref-format
+</dt>
+<dd>
+<p>
+        Show the reference storage format used for the repository.
+</p>
+</dd>
 </dl></div>
 </div>
 <div class="sect2">
 <h3 id="_other_options">Other Options</h3>
 <div class="dlist"><dl>
 <dt class="hdlist1">
---since=datestring
+--since=&lt;datestring&gt;
 </dt>
 <dt class="hdlist1">
---after=datestring
+--after=&lt;datestring&gt;
 </dt>
 <dd>
 <p>
@@ -1275,10 +1318,10 @@ print a message to stderr and exit with nonzero status.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---until=datestring
+--until=&lt;datestring&gt;
 </dt>
 <dt class="hdlist1">
---before=datestring
+--before=&lt;datestring&gt;
 </dt>
 <dd>
 <p>
@@ -1287,7 +1330,7 @@ print a message to stderr and exit with nonzero status.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-&lt;args&gt;&#8230;
+&lt;arg&gt;&#8230;
 </dt>
 <dd>
 <p>
@@ -1355,8 +1398,9 @@ characters and to avoid word splitting.</td>
 <li>
 <p>
 If <em>$GIT_DIR/&lt;refname&gt;</em> exists, that is what you mean (this is usually
-    useful only for <code>HEAD</code>, <code>FETCH_HEAD</code>, <code>ORIG_HEAD</code>, <code>MERGE_HEAD</code>
-    and <code>CHERRY_PICK_HEAD</code>);
+    useful only for <code>HEAD</code>, <code>FETCH_HEAD</code>, <code>ORIG_HEAD</code>, <code>MERGE_HEAD</code>,
+    <code>REBASE_HEAD</code>, <code>REVERT_HEAD</code>, <code>CHERRY_PICK_HEAD</code>, <code>BISECT_HEAD</code>
+    and <code>AUTO_MERGE</code>);
 </p>
 </li>
 <li>
@@ -1383,23 +1427,97 @@ otherwise, <em>refs/remotes/&lt;refname&gt;</em> if it exists;
 <p>
 otherwise, <em>refs/remotes/&lt;refname&gt;/HEAD</em> if it exists.
 </p>
-<div class="paragraph"><p><code>HEAD</code> names the commit on which you based the changes in the working tree.
-<code>FETCH_HEAD</code> records the branch which you fetched from a remote repository
-with your last <code>git fetch</code> invocation.
-<code>ORIG_HEAD</code> is created by commands that move your <code>HEAD</code> in a drastic
-way, to record the position of the <code>HEAD</code> before their operation, so that
-you can easily change the tip of the branch back to the state before you ran
-them.
-<code>MERGE_HEAD</code> records the commit(s) which you are merging into your branch
-when you run <code>git merge</code>.
-<code>CHERRY_PICK_HEAD</code> records the commit which you are cherry-picking
-when you run <code>git cherry-pick</code>.</p></div>
+</li>
+</ol></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>HEAD</code>
+</dt>
+<dd>
+<p>
+    names the commit on which you based the changes in the working tree.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>FETCH_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the branch which you fetched from a remote repository with
+    your last <code>git fetch</code> invocation.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>ORIG_HEAD</code>
+</dt>
+<dd>
+<p>
+    is created by commands that move your <code>HEAD</code> in a drastic way (<code>git
+    am</code>, <code>git merge</code>, <code>git rebase</code>, <code>git reset</code>), to record the position
+    of the <code>HEAD</code> before their operation, so that you can easily change
+    the tip of the branch back to the state before you ran them.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>MERGE_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the commit(s) which you are merging into your branch when you
+    run <code>git merge</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>REBASE_HEAD</code>
+</dt>
+<dd>
+<p>
+    during a rebase, records the commit at which the operation is
+    currently stopped, either because of conflicts or an <code>edit</code> command in
+    an interactive rebase.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>REVERT_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the commit which you are reverting when you run <code>git revert</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>CHERRY_PICK_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the commit which you are cherry-picking when you run <code>git
+    cherry-pick</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>BISECT_HEAD</code>
+</dt>
+<dd>
+<p>
+    records the current commit to be tested when you run <code>git bisect
+    --no-checkout</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>AUTO_MERGE</code>
+</dt>
+<dd>
+<p>
+    records a tree object corresponding to the state the
+    <em>ort</em> merge strategy wrote to the working tree when a merge operation
+    resulted in conflicts.
+</p>
+</dd>
+</dl></div>
 <div class="paragraph"><p>Note that any of the <em>refs/*</em> cases above may come either from
 the <code>$GIT_DIR/refs</code> directory or from the <code>$GIT_DIR/packed-refs</code> file.
 While the ref name encoding is unspecified, UTF-8 is preferred as
 some output processing may assume ref names in UTF-8.</p></div>
-</li>
-</ol></div>
 </dd>
 <dt class="hdlist1">
 <em>@</em>
@@ -1814,7 +1932,7 @@ three notations also consider its parents. For example you can say
 <dd>
 <p>
   A suffix <em>&#94;</em> followed by an exclamation mark is the same
-  as giving commit <em>&lt;rev&gt;</em> and then all its parents prefixed with
+  as giving commit <em>&lt;rev&gt;</em> and all its parents prefixed with
   <em>&#94;</em> to exclude them (and their ancestors).
 </p>
 </dd>
@@ -1940,7 +2058,7 @@ Use <code>!</code> to not make the corresponding negated long option available.
 </dd>
 </dl></div>
 <div class="paragraph"><p>The remainder of the line, after stripping the spaces, is used
-as the help associated to the option.</p></div>
+as the help associated with the option.</p></div>
 <div class="paragraph"><p>Blank lines are ignored, and lines that don&#8217;t match this specification are used
 as option group headers (start the line with a space to create such
 lines on purpose).</p></div>
@@ -1954,7 +2072,7 @@ some-command [&lt;options&gt;] &lt;args&gt;...
 
 some-command does foo and bar!
 --
-h,help    show the help
+h,help!   show the help
 
 foo       some nifty option --foo
 bar=      some cool option --bar with an argument
@@ -1978,10 +2096,10 @@ usage text would be shown:</p></div>
     some-command does foo and bar!
 
     -h, --help            show the help
-    --foo                 some nifty option --foo
-    --bar ...             some cool option --bar with an argument
-    --baz &lt;arg&gt;           another cool option --baz with a named argument
-    --qux[=&lt;path&gt;]        qux may take a path argument but has meaning by itself
+    --[no-]foo            some nifty option --foo
+    --[no-]bar ...        some cool option --bar with an argument
+    --[no-]baz &lt;arg&gt;      another cool option --baz with a named argument
+    --[no-]qux[=&lt;path&gt;]   qux may take a path argument but has meaning by itself
 
 An option group Header
     -C[...]               option C with an optional argument</code></pre>
@@ -2063,7 +2181,7 @@ Similar to above:
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

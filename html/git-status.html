@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-status(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-status(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git status</em> [&lt;options&gt;&#8230;] [--] [&lt;pathspec&gt;&#8230;]</pre>
+<pre class="content"><em>git status</em> [&lt;options&gt;] [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -877,7 +877,9 @@ time in a large working tree.
 Consider enabling untracked cache and split index if supported (see
 <code>git update-index --untracked-cache</code> and <code>git update-index
 --split-index</code>), Otherwise you can use <code>no</code> to have <code>git status</code>
-return more quickly without showing untracked files.</p></div>
+return more quickly without showing untracked files.
+All usual spellings for Boolean value <code>true</code> are taken as <code>normal</code>
+and <code>false</code> as <code>no</code>.</p></div>
 <div class="paragraph"><p>The default can be changed using the status.showUntrackedFiles
 configuration variable documented in <a href="git-config.html">git-config(1)</a>.</p></div>
 </div></div>
@@ -1142,12 +1144,25 @@ U           U    unmerged, both modified
 !           !    ignored
 -------------------------------------------------</code></pre>
 </div></div>
-<div class="paragraph"><p>Submodules have more state and instead report
-                M    the submodule has a different HEAD than
-                     recorded in the index
-                m    the submodule has modified content
-                ?    the submodule has untracked files
-since modified content or untracked files in a submodule cannot be added
+<div class="paragraph"><p>Submodules have more state and instead report</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<em>M</em> = the submodule has a different HEAD than recorded in the index
+</p>
+</li>
+<li>
+<p>
+<em>m</em> = the submodule has modified content
+</p>
+</li>
+<li>
+<p>
+<em>?</em> = the submodule has untracked files
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>This is since modified content or untracked files in a submodule cannot be added
 via <code>git add</code> in the superproject to prepare a commit.</p></div>
 <div class="paragraph"><p><em>m</em> and <em>?</em> are applied recursively. For example if a nested submodule
 in a submodule contains an untracked file, this is reported as <em>?</em> as well.</p></div>
@@ -1207,7 +1222,7 @@ information about the current branch.</p></div>
 ------------------------------------------------------------
 # branch.oid &lt;commit&gt; | (initial)        Current commit.
 # branch.head &lt;branch&gt; | (detached)      Current branch.
-# branch.upstream &lt;upstream_branch&gt;      If upstream is set.
+# branch.upstream &lt;upstream-branch&gt;      If upstream is set.
 # branch.ab +&lt;ahead&gt; -&lt;behind&gt;           If upstream is set and
                                          the commit is present.
 ------------------------------------------------------------</code></pre>
@@ -1361,6 +1376,80 @@ using <code>git --no-optional-locks status</code> (see <a href="git.html">git(1)
 </div>
 </div>
 <div class="sect1">
+<h2 id="_untracked_files_and_performance">UNTRACKED FILES AND PERFORMANCE</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><code>git status</code> can be very slow in large worktrees if/when it
+needs to search for untracked files and directories. There are
+many configuration options available to speed this up by either
+avoiding the work or making use of cached results from previous
+Git commands. There is no single optimum set of settings right
+for everyone. We&#8217;ll list a summary of the relevant options to help
+you, but before going into the list, you may want to run <code>git status</code>
+again, because your configuration may already be caching <code>git status</code>
+results, so it could be faster on subsequent runs.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The <code>--untracked-files=no</code> flag or the
+        <code>status.showUntrackedFiles=no</code> config (see above for both):
+        indicate that <code>git status</code> should not report untracked
+        files. This is the fastest option. <code>git status</code> will not list
+        the untracked files, so you need to be careful to remember if
+        you create any new files and manually <code>git add</code> them.
+</p>
+</li>
+<li>
+<p>
+<code>advice.statusUoption=false</code> (see <a href="git-config.html">git-config(1)</a>):
+        setting this variable to <code>false</code> disables the warning message
+        given when enumerating untracked files takes more than 2
+        seconds.  In a large project, it may take longer and the user
+        may have already accepted the trade off (e.g. using "-uno" may
+        not be an acceptable option for the user), in which case, there
+        is no point issuing the warning message, and in such a case,
+        disabling the warning may be the best.
+</p>
+</li>
+<li>
+<p>
+<code>core.untrackedCache=true</code> (see <a href="git-update-index.html">git-update-index(1)</a>):
+        enable the untracked cache feature and only search directories
+        that have been modified since the previous <code>git status</code> command.
+        Git remembers the set of untracked files within each directory
+        and assumes that if a directory has not been modified, then
+        the set of untracked files within has not changed.  This is much
+        faster than enumerating the contents of every directory, but still
+        not without cost, because Git still has to search for the set of
+        modified directories. The untracked cache is stored in the
+        <code>.git/index</code> file. The reduced cost of searching for untracked
+        files is offset slightly by the increased size of the index and
+        the cost of keeping it up-to-date. That reduced search time is
+        usually worth the additional size.
+</p>
+</li>
+<li>
+<p>
+<code>core.untrackedCache=true</code> and <code>core.fsmonitor=true</code> or
+        <code>core.fsmonitor=&lt;hook-command-pathname&gt;</code> (see
+        <a href="git-update-index.html">git-update-index(1)</a>): enable both the untracked cache
+        and FSMonitor features and only search directories that have
+        been modified since the previous <code>git status</code> command.  This
+        is faster than using just the untracked cache alone because
+        Git can also avoid searching for modified directories.  Git
+        only has to enumerate the exact set of directories that have
+        changed recently. While the FSMonitor feature can be enabled
+        without the untracked cache, the benefits are greatly reduced
+        in that case.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Note that after you turn on the untracked cache and/or FSMonitor
+features it may take a few <code>git status</code> commands for the various
+caches to warm up before you see improved command times.  This is
+normal.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="gitignore.html">gitignore(5)</a></p></div>
@@ -1377,7 +1466,7 @@ using <code>git --no-optional-locks status</code> (see <a href="git.html">git(1)
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

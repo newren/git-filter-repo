@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-bisect(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -761,17 +761,17 @@ git-bisect(1) Manual Page
 on the subcommand:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>git bisect start [--term-{new,bad}=&lt;term&gt; --term-{old,good}=&lt;term&gt;]
-                 [--no-checkout] [--first-parent] [&lt;bad&gt; [&lt;good&gt;...]] [--] [&lt;paths&gt;...]
+<pre><code>git bisect start [--term-(bad|new)=&lt;term-new&gt; --term-(good|old)=&lt;term-old&gt;]
+                 [--no-checkout] [--first-parent] [&lt;bad&gt; [&lt;good&gt;...]] [--] [&lt;pathspec&gt;...]
 git bisect (bad|new|&lt;term-new&gt;) [&lt;rev&gt;]
 git bisect (good|old|&lt;term-old&gt;) [&lt;rev&gt;...]
-git bisect terms [--term-good | --term-bad]
+git bisect terms [--term-(good|old) | --term-(bad|new)]
 git bisect skip [(&lt;rev&gt;|&lt;range&gt;)...]
 git bisect reset [&lt;commit&gt;]
 git bisect (visualize|view)
 git bisect replay &lt;logfile&gt;
 git bisect log
-git bisect run &lt;cmd&gt;...
+git bisect run &lt;cmd&gt; [&lt;arg&gt;...]
 git bisect help</code></pre>
 </div></div>
 <div class="paragraph"><p>This command uses a binary search algorithm to find which commit in
@@ -887,8 +887,10 @@ commands to add the commits:</p></div>
 <div class="content">
 <pre><code>git bisect terms</code></pre>
 </div></div>
-<div class="paragraph"><p>You can get just the old (respectively new) term with <code>git bisect terms
---term-old</code> or <code>git bisect terms --term-good</code>.</p></div>
+<div class="paragraph"><p>You can get just the old term with <code>git bisect terms --term-old</code>
+or <code>git bisect terms --term-good</code>; <code>git bisect terms --term-new</code>
+and <code>git bisect terms --term-bad</code> can be used to learn how to call
+the commits more recent than the sought change.</p></div>
 <div class="paragraph"><p>If you would like to use your own terms instead of "bad"/"good" or
 "new"/"old", you can choose any names you like (except existing bisect
 subcommands like <code>reset</code>, <code>start</code>, &#8230;) by starting the
@@ -920,9 +922,13 @@ as an alternative to <code>visualize</code>):</p></div>
 <div class="content">
 <pre><code>$ git bisect visualize</code></pre>
 </div></div>
-<div class="paragraph"><p>If the <code>DISPLAY</code> environment variable is not set, <em>git log</em> is used
-instead.  You can also give command-line options such as <code>-p</code> and
-<code>--stat</code>.</p></div>
+<div class="paragraph"><p>Git detects a graphical environment through various environment variables:
+<code>DISPLAY</code>, which is set in X Window System environments on Unix systems.
+<code>SESSIONNAME</code>, which is set under Cygwin in interactive desktop sessions.
+<code>MSYSTEM</code>, which is set under Msys2 and Git for Windows.
+<code>SECURITYSESSIONID</code>, which may be set on macOS in interactive desktop sessions.</p></div>
+<div class="paragraph"><p>If none of these environment variables is set, <em>git log</em> is used instead.
+You can also give command-line options such as <code>-p</code> and <code>--stat</code>.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git bisect visualize --stat</code></pre>
@@ -997,7 +1003,7 @@ would issue the command:</p></div>
 <h3 id="_cutting_down_bisection_by_giving_more_parameters_to_bisect_start">Cutting down bisection by giving more parameters to bisect start</h3>
 <div class="paragraph"><p>You can further cut down the number of trials, if you know what part of
 the tree is involved in the problem you are tracking down, by specifying
-path parameters when issuing the <code>bisect start</code> command:</p></div>
+pathspec parameters when issuing the <code>bisect start</code> command:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git bisect start -- arch/i386 include/asm-i386</code></pre>
@@ -1059,7 +1065,7 @@ determine the eventual outcome of the bisect session.</p></div>
 </dt>
 <dd>
 <div class="paragraph"><p>Do not checkout the new working tree at each iteration of the bisection
-process. Instead just update a special reference named <code>BISECT_HEAD</code> to make
+process. Instead just update the reference named <code>BISECT_HEAD</code> to make
 it point to the commit that should be tested.</p></div>
 <div class="paragraph"><p>This option may be useful when the test you would perform in each step
 does not require a checked out tree.</p></div>
@@ -1240,7 +1246,7 @@ help</code> or <code>git bisect -h</code> to get a long usage description.</p></
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-pack-redundant(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,9 +749,24 @@ git-pack-redundant(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git pack-redundant</em> [ --verbose ] [ --alt-odb ] ( --all | &lt;pack-filename&gt;&#8230; )</pre>
+<pre class="content"><em>git pack-redundant</em> [--verbose] [--alt-odb] (--all | &lt;pack-filename&gt;&#8230;)</pre>
 <div class="attribution">
 </div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_warning">WARNING</h2>
+<div class="sectionbody">
+<div class="paragraph"><p><code>git pack-redundant</code> has been deprecated and is scheduled for removal in
+a future version of Git. Because it can only remove entire duplicate
+packs and not individual duplicate objects, it is generally not a useful
+tool for reducing repository size. You are better off using <code>git gc</code> to
+do so, which will put objects into a new pack, removing duplicates.</p></div>
+<div class="paragraph"><p>Running <code>pack-redundant</code> without the <code>--i-still-use-this</code> flag will fail
+in this release. If you believe you have a use case for which
+<code>pack-redundant</code> is better suited and oppose this removal, please
+contact the Git mailing list at <a href="mailto:git@vger.kernel.org">git@vger.kernel.org</a>. More information
+about the list is available at <a href="https://git-scm.com/community">https://git-scm.com/community</a>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -786,7 +801,7 @@ git pack-redundant --all | xargs rm</p></div>
 <dd>
 <p>
         Don&#8217;t require objects present in packs from alternate object
-        directories to be present in local packs.
+        database (odb) directories to be present in local packs.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -819,7 +834,7 @@ git pack-redundant --all | xargs rm</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

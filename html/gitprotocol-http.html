@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitprotocol-http(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -782,7 +782,7 @@ the http:// repository URL entered by the end-user.</p></div>
 both the "smart" and "dumb" HTTP protocols used by Git operate
 by appending additional path components onto the end of the user
 supplied <code>$GIT_URL</code> string.</p></div>
-<div class="paragraph"><p>An example of a dumb client requesting for a loose object:</p></div>
+<div class="paragraph"><p>An example of a dumb client requesting a loose object:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>$GIT_URL:     http://example.com:8080/git/repo.git
@@ -1109,7 +1109,7 @@ cap_list          =  capability *(SP capability)</code></pre>
 <div class="paragraph"><p>C: Place any object seen into set <code>advertised</code>.</p></div>
 <div class="paragraph"><p>C: Build an empty set, <code>common</code>, to hold the objects that are later
    determined to be on both ends.</p></div>
-<div class="paragraph"><p>C: Build a set, <code>want</code>, of the objects from <code>advertised</code> the client
+<div class="paragraph"><p>C: Build a set, <code>want</code>, of the objects from <code>advertised</code> that the client
    wants to fetch, based on what it saw during ref discovery.</p></div>
 <div class="paragraph"><p>C: Start a queue, <code>c_pending</code>, ordered by commit time (popping newest
    first).  Add all client refs.  When a commit is popped from
@@ -1119,14 +1119,14 @@ cap_list          =  capability *(SP capability)</code></pre>
 <div class="paragraph"><p>C: Send one <code>$GIT_URL/git-upload-pack</code> request:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>C: 0032want &lt;want #1&gt;...............................
-C: 0032want &lt;want #2&gt;...............................
+<pre><code>C: 0032want &lt;want-#1&gt;...............................
+C: 0032want &lt;want-#2&gt;...............................
 ....
-C: 0032have &lt;common #1&gt;.............................
-C: 0032have &lt;common #2&gt;.............................
+C: 0032have &lt;common-#1&gt;.............................
+C: 0032have &lt;common-#2&gt;.............................
 ....
-C: 0032have &lt;have #1&gt;...............................
-C: 0032have &lt;have #2&gt;...............................
+C: 0032have &lt;have-#1&gt;...............................
+C: 0032have &lt;have-#2&gt;...............................
 ....
 C: 0000</code></pre>
 </div></div>
@@ -1156,7 +1156,7 @@ object name as its value.  Multiple object names MUST be sent by sending
 multiple commands. Object names MUST be given using the object format
 negotiated through the <code>object-format</code> capability (default SHA-1).</p></div>
 <div class="paragraph"><p>The <code>have</code> list is created by popping the first 32 commits
-from <code>c_pending</code>.  Less can be supplied if <code>c_pending</code> empties.</p></div>
+from <code>c_pending</code>.  Fewer can be supplied if <code>c_pending</code> empties.</p></div>
 <div class="paragraph"><p>If the client has sent 256 "have" commits and has not yet
 received one of those back from <code>s_common</code>, or the client has
 emptied <code>c_pending</code> it SHOULD include a "done" command to let
@@ -1235,7 +1235,7 @@ the id obtained through ref discovery as old_id.</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>update_request  =  command_list
-                   "PACK" &lt;binary data&gt;</code></pre>
+                   "PACK" &lt;binary-data&gt;</code></pre>
 </div></div>
 <div class="literalblock">
 <div class="content">
@@ -1257,8 +1257,8 @@ update          =  old_id SP new_id SP name</code></pre>
 <div class="sect1">
 <h2 id="_references">REFERENCES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><a href="http://www.ietf.org/rfc/rfc1738.txt">RFC 1738: Uniform Resource Locators (URL)</a>
-<a href="http://www.ietf.org/rfc/rfc2616.txt">RFC 2616: Hypertext Transfer Protocol&#8201;&#8212;&#8201;HTTP/1.1</a></p></div>
+<div class="paragraph"><p><a href="https://www.ietf.org/rfc/rfc1738.txt">RFC 1738: Uniform Resource Locators (URL)</a>
+<a href="https://www.ietf.org/rfc/rfc2616.txt">RFC 2616: Hypertext Transfer Protocol&#8201;&#8212;&#8201;HTTP/1.1</a></p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1279,7 +1279,7 @@ update          =  old_id SP new_id SP name</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

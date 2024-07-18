@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-rebase(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -753,7 +753,7 @@ git-rebase(1) Manual Page
         [--onto &lt;newbase&gt; | --keep-base] [&lt;upstream&gt; [&lt;branch&gt;]]
 <em>git rebase</em> [-i | --interactive] [&lt;options&gt;] [--exec &lt;cmd&gt;] [--onto &lt;newbase&gt;]
         --root [&lt;branch&gt;]
-<em>git rebase</em> (--continue | --skip | --abort | --quit | --edit-todo | --show-current-patch)</pre>
+<em>git rebase</em> (--continue|--skip|--abort|--quit|--edit-todo|--show-current-patch)</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -779,6 +779,18 @@ description on <code>--fork-point</code> below); or by <code>git log HEAD</code>
 <code>--onto</code> option was supplied.  This has the exact same effect as
 <code>git reset --hard &lt;upstream&gt;</code> (or <code>&lt;newbase&gt;</code>). <code>ORIG_HEAD</code> is set
 to point at the tip of the branch before the reset.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content"><code>ORIG_HEAD</code> is not guaranteed to still point to the previous branch tip
+at the end of the rebase if other commands that write that pseudo-ref
+(e.g. <code>git reset</code>) are used during the rebase. The previous branch tip,
+however, is accessible using the reflog of the current branch
+(i.e. <code>@{1}</code>, see <a href="gitrevisions.html">gitrevisions(7)</a>).</td>
+</tr></table>
+</div>
 <div class="paragraph"><p>The commits that were previously saved into the temporary area are
 then reapplied to the current branch, one by one, in order. Note that
 any commits in <code>HEAD</code> which introduce the same textual changes as a commit
@@ -929,68 +941,25 @@ desired resolution, you can continue the rebasing process with</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_options">OPTIONS</h2>
+<h2 id="_mode_options">MODE OPTIONS</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>The options in this section cannot be used with any other option,
+including not with each other:</p></div>
 <div class="dlist"><dl>
-<dt class="hdlist1">
---onto &lt;newbase&gt;
-</dt>
-<dd>
-<p>
-        Starting point at which to create the new commits. If the
-        <code>--onto</code> option is not specified, the starting point is
-        <code>&lt;upstream&gt;</code>.  May be any valid commit, and not just an
-        existing branch name.
-</p>
-<div class="paragraph"><p>As a special case, you may use "A...B" as a shortcut for the
-merge base of A and B if there is exactly one merge base. You can
-leave out at most one of A and B, in which case it defaults to HEAD.</p></div>
-</dd>
-<dt class="hdlist1">
---keep-base
-</dt>
-<dd>
-<p>
-        Set the starting point at which to create the new commits to the
-        merge base of <code>&lt;upstream&gt;</code> and <code>&lt;branch&gt;</code>. Running
-        <code>git rebase --keep-base &lt;upstream&gt; &lt;branch&gt;</code> is equivalent to
-        running
-        <code>git rebase --onto &lt;upstream&gt;...&lt;branch&gt; &lt;upstream&gt; &lt;branch&gt;</code>.
-</p>
-<div class="paragraph"><p>This option is useful in the case where one is developing a feature on
-top of an upstream branch. While the feature is being worked on, the
-upstream branch may advance and it may not be the best idea to keep
-rebasing on top of the upstream but to keep the base commit as-is.</p></div>
-<div class="paragraph"><p>Although both this option and <code>--fork-point</code> find the merge base between
-<code>&lt;upstream&gt;</code> and <code>&lt;branch&gt;</code>, this option uses the merge base as the <em>starting
-point</em> on which new commits will be created, whereas <code>--fork-point</code> uses
-the merge base to determine the <em>set of commits</em> which will be rebased.</p></div>
-<div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
-</dd>
-<dt class="hdlist1">
-&lt;upstream&gt;
-</dt>
-<dd>
-<p>
-        Upstream branch to compare against.  May be any valid commit,
-        not just an existing branch name. Defaults to the configured
-        upstream for the current branch.
-</p>
-</dd>
-<dt class="hdlist1">
-&lt;branch&gt;
-</dt>
-<dd>
-<p>
-        Working branch; defaults to <code>HEAD</code>.
-</p>
-</dd>
 <dt class="hdlist1">
 --continue
 </dt>
 <dd>
 <p>
         Restart the rebasing process after having resolved a merge conflict.
+</p>
+</dd>
+<dt class="hdlist1">
+--skip
+</dt>
+<dd>
+<p>
+        Restart the rebasing process by skipping the current patch.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1017,6 +986,86 @@ the merge base to determine the <em>set of commits</em> which will be rebased.</
 </p>
 </dd>
 <dt class="hdlist1">
+--edit-todo
+</dt>
+<dd>
+<p>
+        Edit the todo list during an interactive rebase.
+</p>
+</dd>
+<dt class="hdlist1">
+--show-current-patch
+</dt>
+<dd>
+<p>
+        Show the current patch in an interactive rebase or when rebase
+        is stopped because of conflicts. This is the equivalent of
+        <code>git show REBASE_HEAD</code>.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_options">OPTIONS</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--onto &lt;newbase&gt;
+</dt>
+<dd>
+<p>
+        Starting point at which to create the new commits. If the
+        <code>--onto</code> option is not specified, the starting point is
+        <code>&lt;upstream&gt;</code>.  May be any valid commit, and not just an
+        existing branch name.
+</p>
+<div class="paragraph"><p>As a special case, you may use "A...B" as a shortcut for the
+merge base of A and B if there is exactly one merge base. You can
+leave out at most one of A and B, in which case it defaults to HEAD.</p></div>
+</dd>
+<dt class="hdlist1">
+--keep-base
+</dt>
+<dd>
+<p>
+        Set the starting point at which to create the new commits to the
+        merge base of <code>&lt;upstream&gt;</code> and <code>&lt;branch&gt;</code>. Running
+        <code>git rebase --keep-base &lt;upstream&gt; &lt;branch&gt;</code> is equivalent to
+        running
+        <code>git rebase --reapply-cherry-picks --no-fork-point --onto &lt;upstream&gt;...&lt;branch&gt; &lt;upstream&gt; &lt;branch&gt;</code>.
+</p>
+<div class="paragraph"><p>This option is useful in the case where one is developing a feature on
+top of an upstream branch. While the feature is being worked on, the
+upstream branch may advance and it may not be the best idea to keep
+rebasing on top of the upstream but to keep the base commit as-is. As
+the base commit is unchanged this option implies <code>--reapply-cherry-picks</code>
+to avoid losing commits.</p></div>
+<div class="paragraph"><p>Although both this option and <code>--fork-point</code> find the merge base between
+<code>&lt;upstream&gt;</code> and <code>&lt;branch&gt;</code>, this option uses the merge base as the <em>starting
+point</em> on which new commits will be created, whereas <code>--fork-point</code> uses
+the merge base to determine the <em>set of commits</em> which will be rebased.</p></div>
+<div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
+</dd>
+<dt class="hdlist1">
+&lt;upstream&gt;
+</dt>
+<dd>
+<p>
+        Upstream branch to compare against.  May be any valid commit,
+        not just an existing branch name. Defaults to the configured
+        upstream for the current branch.
+</p>
+</dd>
+<dt class="hdlist1">
+&lt;branch&gt;
+</dt>
+<dd>
+<p>
+        Working branch; defaults to <code>HEAD</code>.
+</p>
+</dd>
+<dt class="hdlist1">
 --apply
 </dt>
 <dd>
@@ -1028,25 +1077,56 @@ the merge base to determine the <em>set of commits</em> which will be rebased.</
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
 <dt class="hdlist1">
---empty={drop,keep,ask}
+--empty=(drop|keep|stop)
 </dt>
 <dd>
 <p>
         How to handle commits that are not empty to start and are not
         clean cherry-picks of any upstream commit, but which become
         empty after rebasing (because they contain a subset of already
-        upstream changes).  With drop (the default), commits that
-        become empty are dropped.  With keep, such commits are kept.
-        With ask (implied by <code>--interactive</code>), the rebase will halt when
-        an empty commit is applied allowing you to choose whether to
-        drop it, edit files more, or just commit the empty changes.
-        Other options, like <code>--exec</code>, will use the default of drop unless
-        <code>-i</code>/<code>--interactive</code> is explicitly specified.
+        upstream changes):
 </p>
+<div class="openblock">
+<div class="content">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>drop</code>
+</dt>
+<dd>
+<p>
+        The commit will be dropped. This is the default behavior.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>keep</code>
+</dt>
+<dd>
+<p>
+        The commit will be kept. This option is implied when <code>--exec</code> is
+        specified unless <code>-i</code>/<code>--interactive</code> is also specified.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>stop</code>
+</dt>
+<dt class="hdlist1">
+<code>ask</code>
+</dt>
+<dd>
+<p>
+        The rebase will halt when the commit is applied, allowing you to
+        choose whether to drop it, edit files more, or just commit the empty
+        changes. This option is implied when <code>-i</code>/<code>--interactive</code> is
+        specified. <code>ask</code> is a deprecated synonym of <code>stop</code>.
+</p>
+</dd>
+</dl></div>
+</div></div>
 <div class="paragraph"><p>Note that commits which start empty are kept (unless <code>--no-keep-empty</code>
 is specified), and commits which are clean cherry-picks (as determined
 by <code>git log --cherry-mark ...</code>) are detected and dropped as a
-preliminary step (unless <code>--reapply-cherry-picks</code> is passed).</p></div>
+preliminary step (unless <code>--reapply-cherry-picks</code> or <code>--keep-base</code> is
+passed).</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1088,13 +1168,14 @@ see the <code>--empty</code> flag.</p></div>
         upstream changes, the behavior towards them is controlled by
         the <code>--empty</code> flag.)
 </p>
-<div class="paragraph"><p>By default (or if <code>--no-reapply-cherry-picks</code> is given), these commits
-will be automatically dropped.  Because this necessitates reading all
-upstream commits, this can be expensive in repos with a large number
-of upstream commits that need to be read.  When using the <em>merge</em>
-backend, warnings will be issued for each dropped commit (unless
-<code>--quiet</code> is given). Advice will also be issued unless
-<code>advice.skippedCherryPicks</code> is set to false (see <a href="git-config.html">git-config(1)</a>).</p></div>
+<div class="paragraph"><p>In the absence of <code>--keep-base</code> (or if <code>--no-reapply-cherry-picks</code> is
+given), these commits will be automatically dropped.  Because this
+necessitates reading all upstream commits, this can be expensive in
+repositories with a large number of upstream commits that need to be
+read. When using the <em>merge</em> backend, warnings will be issued for each
+dropped commit (unless <code>--quiet</code> is given). Advice will also be issued
+unless <code>advice.skippedCherryPicks</code> is set to false (see
+<a href="git-config.html">git-config(1)</a>).</p></div>
 <div class="paragraph"><p><code>--reapply-cherry-picks</code> allows rebase to forgo reading all upstream
 commits, potentially improving performance.</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
@@ -1110,32 +1191,6 @@ commits, potentially improving performance.</p></div>
         message do not cause rebasing to halt.
 </p>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
-</dd>
-<dt class="hdlist1">
---skip
-</dt>
-<dd>
-<p>
-        Restart the rebasing process by skipping the current patch.
-</p>
-</dd>
-<dt class="hdlist1">
---edit-todo
-</dt>
-<dd>
-<p>
-        Edit the todo list during an interactive rebase.
-</p>
-</dd>
-<dt class="hdlist1">
---show-current-patch
-</dt>
-<dd>
-<p>
-        Show the current patch in an interactive rebase or when rebase
-        is stopped because of conflicts. This is the equivalent of
-        <code>git show REBASE_HEAD</code>.
-</p>
 </dd>
 <dt class="hdlist1">
 -m
@@ -1330,9 +1385,9 @@ details).</p></div>
 <em>fork_point</em> is the result of <code>git merge-base --fork-point &lt;upstream&gt;
 &lt;branch&gt;</code> command (see <a href="git-merge-base.html">git-merge-base(1)</a>).  If <em>fork_point</em>
 ends up being empty, the <code>&lt;upstream&gt;</code> will be used as a fallback.</p></div>
-<div class="paragraph"><p>If <code>&lt;upstream&gt;</code> is given on the command line, then the default is
-<code>--no-fork-point</code>, otherwise the default is <code>--fork-point</code>. See also
-<code>rebase.forkpoint</code> in <a href="git-config.html">git-config(1)</a>.</p></div>
+<div class="paragraph"><p>If <code>&lt;upstream&gt;</code> or <code>--keep-base</code> is given on the command line, then
+the default is <code>--no-fork-point</code>, otherwise the default is
+<code>--fork-point</code>. See also <code>rebase.forkpoint</code> in <a href="git-config.html">git-config(1)</a>.</p></div>
 <div class="paragraph"><p>If your branch was based on <code>&lt;upstream&gt;</code> but <code>&lt;upstream&gt;</code> was rewound and
 your branch contains commits which were dropped, this option can be used
 with <code>--keep-base</code> in order to drop those commits from your branch.</p></div>
@@ -1433,7 +1488,7 @@ merge backend
 </p>
 <div class="paragraph"><p>The commit list format can be changed by setting the configuration option
 rebase.instructionFormat.  A customized instruction format will automatically
-have the long commit hash prepended to the format.</p></div>
+have the commit hash prepended to the format.</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1441,6 +1496,9 @@ have the long commit hash prepended to the format.</p></div>
 </dt>
 <dt class="hdlist1">
 --rebase-merges[=(rebase-cousins|no-rebase-cousins)]
+</dt>
+<dt class="hdlist1">
+--no-rebase-merges
 </dt>
 <dd>
 <p>
@@ -1450,14 +1508,18 @@ have the long commit hash prepended to the format.</p></div>
         the branching structure within the commits that are to be rebased,
         by recreating the merge commits. Any resolved merge conflicts or
         manual amendments in these merge commits will have to be
-        resolved/re-applied manually.
+        resolved/re-applied manually. <code>--no-rebase-merges</code> can be used to
+        countermand both the <code>rebase.rebaseMerges</code> config option and a previous
+        <code>--rebase-merges</code>.
 </p>
-<div class="paragraph"><p>By default, or when <code>no-rebase-cousins</code> was specified, commits which do not
-have <code>&lt;upstream&gt;</code> as direct ancestor will keep their original branch point,
-i.e. commits that would be excluded by <a href="git-log.html">git-log(1)</a>'s
-<code>--ancestry-path</code> option will keep their original ancestry by default. If
-the <code>rebase-cousins</code> mode is turned on, such commits are instead rebased
-onto <code>&lt;upstream&gt;</code> (or <code>&lt;onto&gt;</code>, if specified).</p></div>
+<div class="paragraph"><p>When rebasing merges, there are two modes: <code>rebase-cousins</code> and
+<code>no-rebase-cousins</code>. If the mode is not specified, it defaults to
+<code>no-rebase-cousins</code>. In <code>no-rebase-cousins</code> mode, commits which do not have
+<code>&lt;upstream&gt;</code> as direct ancestor will keep their original branch point, i.e.
+commits that would be excluded by <a href="git-log.html">git-log(1)</a>'s <code>--ancestry-path</code>
+option will keep their original ancestry by default. In <code>rebase-cousins</code> mode,
+such commits are instead rebased onto <code>&lt;upstream&gt;</code> (or <code>&lt;onto&gt;</code>, if
+specified).</p></div>
 <div class="paragraph"><p>It is currently only possible to recreate the merge commits using the
 <code>ort</code> merge strategy; different merge strategies can be used only via
 explicit <code>exec git merge -s &lt;strategy&gt; [...]</code> commands.</p></div>
@@ -1501,10 +1563,7 @@ without an explicit <code>--interactive</code>.</p></div>
 <p>
         Rebase all commits reachable from <code>&lt;branch&gt;</code>, instead of
         limiting them with an <code>&lt;upstream&gt;</code>.  This allows you to rebase
-        the root commit(s) on a branch.  When used with <code>--onto</code>, it
-        will skip changes already contained in <code>&lt;newbase&gt;</code> (instead of
-        <code>&lt;upstream&gt;</code>) whereas without <code>--onto</code> it will operate on every
-        change.
+        the root commit(s) on a branch.
 </p>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
@@ -1516,21 +1575,25 @@ without an explicit <code>--interactive</code>.</p></div>
 </dt>
 <dd>
 <p>
-        When the commit log message begins with "squash! &#8230;" or "fixup! &#8230;"
-        or "amend! &#8230;", and there is already a commit in the todo list that
-        matches the same <code>...</code>, automatically modify the todo list of
-        <code>rebase -i</code>, so that the commit marked for squashing comes right after
-        the commit to be modified, and change the action of the moved commit
-        from <code>pick</code> to <code>squash</code> or <code>fixup</code> or <code>fixup -C</code> respectively. A commit
-        matches the <code>...</code> if the commit subject matches, or if the <code>...</code> refers
-        to the commit&#8217;s hash. As a fall-back, partial matches of the commit
-        subject work, too. The recommended way to create fixup/amend/squash
-        commits is by using the <code>--fixup</code>, <code>--fixup=amend:</code> or <code>--fixup=reword:</code>
-        and <code>--squash</code> options respectively of <a href="git-commit.html">git-commit(1)</a>.
+        Automatically squash commits with specially formatted messages into
+        previous commits being rebased.  If a commit message starts with
+        "squash! ", "fixup! " or "amend! ", the remainder of the subject line
+        is taken as a commit specifier, which matches a previous commit if it
+        matches the subject line or the hash of that commit.  If no commit
+        matches fully, matches of the specifier with the start of commit
+        subjects are considered.
 </p>
-<div class="paragraph"><p>If the <code>--autosquash</code> option is enabled by default using the
-configuration variable <code>rebase.autoSquash</code>, this option can be
-used to override and disable this setting.</p></div>
+<div class="paragraph"><p>In the rebase todo list, the actions of squash, fixup and amend commits are
+changed from <code>pick</code> to <code>squash</code>, <code>fixup</code> or <code>fixup -C</code>, respectively, and they
+are moved right after the commit they modify.  The <code>--interactive</code> option can
+be used to review and edit the todo list before proceeding.</p></div>
+<div class="paragraph"><p>The recommended way to create commits with squash markers is by using the
+<code>--squash</code>, <code>--fixup</code>, <code>--fixup=amend:</code> or <code>--fixup=reword:</code> options of
+<a href="git-commit.html">git-commit(1)</a>, which take the target commit as an argument and
+automatically fill in the subject line of the new commit from that.</p></div>
+<div class="paragraph"><p>Setting configuration variable <code>rebase.autoSquash</code> to true enables
+auto-squashing by default for interactive rebase.  The <code>--no-autosquash</code>
+option can be used to override that setting.</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1559,13 +1622,15 @@ used to override and disable this setting.</p></div>
         Automatically reschedule <code>exec</code> commands that failed. This only makes
         sense in interactive mode (or when an <code>--exec</code> option was provided).
 </p>
-<div class="paragraph"><p>Even though this option applies once a rebase is started, it&#8217;s set for
-the whole rebase at the start based on either the
-<code>rebase.rescheduleFailedExec</code> configuration (see <a href="git-config.html">git-config(1)</a>
-or "CONFIGURATION" below) or whether this option is
-provided. Otherwise an explicit <code>--no-reschedule-failed-exec</code> at the
-start would be overridden by the presence of
-<code>rebase.rescheduleFailedExec=true</code> configuration.</p></div>
+<div class="paragraph"><p>This option applies once a rebase is started. It is preserved for the whole
+rebase based on, in order, the command line option provided to the initial <code>git
+rebase</code>, the <code>rebase.rescheduleFailedExec</code> configuration (see
+<a href="git-config.html">git-config(1)</a> or "CONFIGURATION" below), or it defaults to false.</p></div>
+<div class="paragraph"><p>Recording this option for the whole rebase is a convenience feature. Otherwise
+an explicit <code>--no-reschedule-failed-exec</code> at the start would be overridden by
+the presence of a <code>rebase.rescheduleFailedExec=true</code> configuration when <code>git
+rebase --continue</code> is invoked. Currently, you cannot pass
+<code>--[no-]reschedule-failed-exec</code> to <code>git rebase --continue</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 --update-refs
@@ -1581,6 +1646,7 @@ start would be overridden by the presence of
 </p>
 <div class="paragraph"><p>If the configuration variable <code>rebase.updateRefs</code> is set, then this option
 can be used to override and disable this setting.</p></div>
+<div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1625,12 +1691,7 @@ can be used to override and disable this setting.</p></div>
 </li>
 <li>
 <p>
---allow-empty-message
-</p>
-</li>
-<li>
-<p>
---[no-]autosquash
+--autosquash
 </p>
 </li>
 <li>
@@ -1660,12 +1721,7 @@ can be used to override and disable this setting.</p></div>
 </li>
 <li>
 <p>
---reapply-cherry-picks
-</p>
-</li>
-<li>
-<p>
---edit-todo
+--[no-]reapply-cherry-picks when used without --keep-base
 </p>
 </li>
 <li>
@@ -1675,7 +1731,7 @@ can be used to override and disable this setting.</p></div>
 </li>
 <li>
 <p>
---root when used in combination with --onto
+--root when used without --onto
 </p>
 </li>
 </ul></div>
@@ -1721,7 +1777,7 @@ be dropped automatically with <code>--no-keep-empty</code>).</p></div>
 <div class="paragraph"><p>Similar to the apply backend, by default the merge backend drops
 commits that become empty unless <code>-i</code>/<code>--interactive</code> is specified (in
 which case it stops and asks the user what to do).  The merge backend
-also has an <code>--empty={drop,keep,ask}</code> option for changing the behavior
+also has an <code>--empty=(drop|keep|stop)</code> option for changing the behavior
 of handling commits that become empty.</p></div>
 </div>
 <div class="sect2">
@@ -2264,10 +2320,9 @@ exec cd subdir; make test
 <div class="paragraph"><p>The interactive rebase will stop when a command fails (i.e. exits with
 non-0 status) to give you an opportunity to fix the problem. You can
 continue with <code>git rebase --continue</code>.</p></div>
-<div class="paragraph"><p>The "exec" command launches the command in a shell (the one specified
-in <code>$SHELL</code>, or the default shell if <code>$SHELL</code> is not set), so you can
-use shell features (like "cd", "&gt;", ";" &#8230;). The command is run from
-the root of the working tree.</p></div>
+<div class="paragraph"><p>The "exec" command launches the command in a shell (the default one, usually
+/bin/sh), so you can use shell features (like "cd", "&gt;", ";" &#8230;). The command
+is run from the root of the working tree.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git rebase -i --exec "make test"</code></pre>
@@ -2639,7 +2694,9 @@ rebase.autoSquash
 </dt>
 <dd>
 <p>
-        If set to true enable <code>--autosquash</code> option by default.
+        If set to true, enable the <code>--autosquash</code> option of
+        <a href="git-rebase.html">git-rebase(1)</a> by default for interactive mode.
+        This can be overridden with the <code>--no-autosquash</code> option.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2688,7 +2745,7 @@ rebase.instructionFormat
 <p>
         A format string, as specified in <a href="git-log.html">git-log(1)</a>, to be used for the
         todo list during an interactive rebase.  The format will
-        automatically have the long commit hash prepended to the format.
+        automatically have the commit hash prepended to the format.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2733,6 +2790,32 @@ rebase.forkPoint
 </p>
 </dd>
 <dt class="hdlist1">
+rebase.rebaseMerges
+</dt>
+<dd>
+<p>
+        Whether and how to set the <code>--rebase-merges</code> option by default. Can
+        be <code>rebase-cousins</code>, <code>no-rebase-cousins</code>, or a boolean. Setting to
+        true or to <code>no-rebase-cousins</code> is equivalent to
+        <code>--rebase-merges=no-rebase-cousins</code>, setting to <code>rebase-cousins</code> is
+        equivalent to <code>--rebase-merges=rebase-cousins</code>, and setting to false is
+        equivalent to <code>--no-rebase-merges</code>. Passing <code>--rebase-merges</code> on the
+        command line, with or without an argument, overrides any
+        <code>rebase.rebaseMerges</code> configuration.
+</p>
+</dd>
+<dt class="hdlist1">
+rebase.maxLabelLength
+</dt>
+<dd>
+<p>
+        When generating label names from commit subjects, truncate the names to
+        this length. By default, the names are truncated to a little less than
+        <code>NAME_MAX</code> (to allow e.g. <code>.lock</code> files to be written for the
+        corresponding loose refs).
+</p>
+</dd>
+<dt class="hdlist1">
 sequence.editor
 </dt>
 <dd>
@@ -2740,7 +2823,7 @@ sequence.editor
         Text editor used by <code>git rebase -i</code> for editing the rebase instruction file.
         The value is meant to be interpreted by the shell when it is used.
         It can be overridden by the <code>GIT_SEQUENCE_EDITOR</code> environment variable.
-        When not configured the default commit message editor is used instead.
+        When not configured, the default commit message editor is used instead.
 </p>
 </dd>
 </dl></div>
@@ -2757,7 +2840,7 @@ sequence.editor
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

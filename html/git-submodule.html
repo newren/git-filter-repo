@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-submodule(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -846,7 +846,7 @@ init [--] [&lt;path&gt;&#8230;]
 <p>
         Initialize the submodules recorded in the index (which were
         added and committed elsewhere) by setting <code>submodule.$name.url</code>
-        in .git/config. It uses the same setting from <code>.gitmodules</code> as
+        in <code>.git/config</code>, using the same setting from <code>.gitmodules</code> as
         a template. If the URL is relative, it will be resolved using
         the default remote. If there is no default remote, the current
         repository will be assumed to be upstream.
@@ -855,9 +855,11 @@ init [--] [&lt;path&gt;&#8230;]
 If no path is specified and submodule.active has been configured, submodules
 configured to be active will be initialized, otherwise all submodules are
 initialized.</p></div>
-<div class="paragraph"><p>When present, it will also copy the value of <code>submodule.$name.update</code>.
-This command does not alter existing information in .git/config.
-You can then customize the submodule clone URLs in .git/config
+<div class="paragraph"><p>It will also copy the value of <code>submodule.$name.update</code>, if present in
+the <code>.gitmodules</code> file, to <code>.git/config</code>, but (1) this command does not
+alter existing information in <code>.git/config</code>, and (2) <code>submodule.$name.update</code>
+that is set to a custom command is <strong>not</strong> copied for security reasons.</p></div>
+<div class="paragraph"><p>You can then customize the submodule clone URLs in <code>.git/config</code>
 for your local setup and proceed to <code>git submodule update</code>;
 you can also just use <code>git submodule update --init</code> without
 the explicit <em>init</em> step if you do not intend to customize
@@ -885,7 +887,7 @@ that use <a href="git-rm.html">git-rm(1)</a> instead. See <a href="gitsubmodules
 options.</p></div>
 </dd>
 <dt class="hdlist1">
-update [--init] [--remote] [-N|--no-fetch] [--[no-]recommend-shallow] [-f|--force] [--checkout|--rebase|--merge] [--reference &lt;repository&gt;] [--depth &lt;depth&gt;] [--recursive] [--jobs &lt;n&gt;] [--[no-]single-branch] [--filter &lt;filter spec&gt;] [--] [&lt;path&gt;&#8230;]
+update [--init] [--remote] [-N|--no-fetch] [--[no-]recommend-shallow] [-f|--force] [--checkout|--rebase|--merge] [--reference &lt;repository&gt;] [--depth &lt;depth&gt;] [--recursive] [--jobs &lt;n&gt;] [--[no-]single-branch] [--filter &lt;filter-spec&gt;] [--] [&lt;path&gt;&#8230;]
 </dt>
 <dd>
 <div class="openblock">
@@ -897,6 +899,8 @@ the submodules. The "updating" can be done in several ways depending
 on command line options and the value of <code>submodule.&lt;name&gt;.update</code>
 configuration variable. The command line option takes precedence over
 the configuration variable. If neither is given, a <em>checkout</em> is performed.
+(note: what is in <code>.gitmodules</code> file is irrelevant at this point;
+see <code>git submodule init</code> above for how <code>.gitmodules</code> is used).
 The <em>update</em> procedures supported both from the command line as well as
 through the <code>submodule.&lt;name&gt;.update</code> configuration are:</p></div>
 <div class="dlist"><dl>
@@ -932,19 +936,20 @@ the commit recorded in the superproject will be merged
 </p>
 </dd>
 </dl></div>
-<div class="paragraph"><p>The following <em>update</em> procedures are only available via the
-<code>submodule.&lt;name&gt;.update</code> configuration variable:</p></div>
+<div class="paragraph"><p>The following update procedures have additional limitations:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 custom command
 </dt>
 <dd>
 <p>
-arbitrary shell command that takes a single
-            argument (the sha1 of the commit recorded in the
-            superproject) is executed. When <code>submodule.&lt;name&gt;.update</code>
-            is set to <em>!command</em>, the remainder after the exclamation mark
-            is the custom command.
+mechanism for running arbitrary commands with the
+            commit ID as an argument. Specifically, if the
+            <code>submodule.&lt;name&gt;.update</code> configuration variable is set to
+            <code>!custom command</code>, the object name of the commit recorded in the
+            superproject for the submodule is appended to the <code>custom command</code>
+            string and executed. Note that this mechanism is not supported in
+            the <code>.gitmodules</code> file or on the command line.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -952,7 +957,8 @@ none
 </dt>
 <dd>
 <p>
-the submodule is not updated.
+the submodule is not updated. This update procedure is not
+            allowed on the command line.
 </p>
 </dd>
 </dl></div>
@@ -961,7 +967,7 @@ setting as stored in <code>.gitmodules</code>, you can automatically initialize 
 submodule with the <code>--init</code> option.</p></div>
 <div class="paragraph"><p>If <code>--recursive</code> is specified, this command will recurse into the
 registered submodules, and update any nested submodules within.</p></div>
-<div class="paragraph"><p>If <code>--filter &lt;filter spec&gt;</code> is specified, the given partial clone filter will be
+<div class="paragraph"><p>If <code>--filter &lt;filter-spec&gt;</code> is specified, the given partial clone filter will be
 applied to the submodule. See <a href="git-rev-list.html">git-rev-list(1)</a> for details on filter
 specifications.</p></div>
 </div></div>
@@ -1410,7 +1416,7 @@ for details.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-08-31 14:31:31 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

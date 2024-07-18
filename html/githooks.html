@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>githooks(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -765,6 +765,17 @@ $GIT_DIR in a bare repository or the root of the working tree in a non-bare
 repository. An exception are hooks triggered during a push (<em>pre-receive</em>,
 <em>update</em>, <em>post-receive</em>, <em>post-update</em>, <em>push-to-checkout</em>) which are always
 executed in $GIT_DIR.</p></div>
+<div class="paragraph"><p>Environment variables, such as <code>GIT_DIR</code>, <code>GIT_WORK_TREE</code>, etc., are exported
+so that Git commands run by the hook can correctly locate the repository.  If
+your hook needs to invoke Git commands in a foreign repository or in a
+different working tree of the same repository, then it should clear these
+environment variables so they do not interfere with Git operations at the
+foreign location.  For example:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>local_desc=$(git describe)
+foreign_desc=$(unset $(git rev-parse --local-env-vars); git -C ../foreign-repo describe)</code></pre>
+</div></div>
 <div class="paragraph"><p>Hooks can get their arguments via the environment, command-line
 arguments, and stdin. See the documentation for each hook below for
 details.</p></div>
@@ -799,7 +810,7 @@ invoked after the patch is applied, but before a commit is made.</p></div>
 <div class="paragraph"><p>If it exits with non-zero status, then the working tree will not be
 committed after applying the patch.</p></div>
 <div class="paragraph"><p>It can be used to inspect the current working tree and refuse to
-make a commit if it does not pass certain test.</p></div>
+make a commit if it does not pass certain tests.</p></div>
 <div class="paragraph"><p>The default <em>pre-applypatch</em> hook, when enabled, runs the
 <em>pre-commit</em> hook, if the latter is enabled.</p></div>
 </div>
@@ -861,7 +872,7 @@ a commit object name (if a <code>-c</code>, <code>-C</code> or <code>--amend</co
 <div class="paragraph"><p>The purpose of the hook is to edit the message file in place, and
 it is not suppressed by the <code>--no-verify</code> option.  A non-zero exit
 means a failure of the hook and aborts the commit.  It should not
-be used as replacement for pre-commit hook.</p></div>
+be used as a replacement for the pre-commit hook.</p></div>
 <div class="paragraph"><p>The sample <code>prepare-commit-msg</code> hook that comes with Git removes the
 help message found in the commented portion of the commit template.</p></div>
 </div>
@@ -934,7 +945,7 @@ named remote is not being used both values will be the same.</p></div>
 input with lines of the form:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;local ref&gt; SP &lt;local object name&gt; SP &lt;remote ref&gt; SP &lt;remote object name&gt; LF</code></pre>
+<pre><code>&lt;local-ref&gt; SP &lt;local-object-name&gt; SP &lt;remote-ref&gt; SP &lt;remote-object-name&gt; LF</code></pre>
 </div></div>
 <div class="paragraph"><p>For instance, if the command <code>git push origin master:foreign</code> were run the
 hook would receive a line like the following:</p></div>
@@ -943,9 +954,9 @@ hook would receive a line like the following:</p></div>
 <pre><code>refs/heads/master 67890 refs/heads/foreign 12345</code></pre>
 </div></div>
 <div class="paragraph"><p>although the full object name would be supplied.  If the foreign ref does not
-yet exist the <code>&lt;remote object name&gt;</code> will be the all-zeroes object name.  If a
-ref is to be deleted, the <code>&lt;local ref&gt;</code> will be supplied as <code>(delete)</code> and the
-<code>&lt;local object name&gt;</code> will be the all-zeroes object name.  If the local commit
+yet exist the <code>&lt;remote-object-name&gt;</code> will be the all-zeroes object name.  If a
+ref is to be deleted, the <code>&lt;local-ref&gt;</code> will be supplied as <code>(delete)</code> and the
+<code>&lt;local-object-name&gt;</code> will be the all-zeroes object name.  If the local commit
 was specified by something other than a name which could be expanded (such as
 <code>HEAD~</code>, or an object name) it will be supplied as it was originally given.</p></div>
 <div class="paragraph"><p>If this hook exits with a non-zero status, <code>git push</code> will abort without
@@ -964,12 +975,12 @@ arguments, but for each ref to be updated it receives on standard
 input a line of the format:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;old-value&gt; SP &lt;new-value&gt; SP &lt;ref-name&gt; LF</code></pre>
+<pre><code>&lt;old-oid&gt; SP &lt;new-oid&gt; SP &lt;ref-name&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>where <code>&lt;old-value&gt;</code> is the old object name stored in the ref,
-<code>&lt;new-value&gt;</code> is the new object name to be stored in the ref and
+<div class="paragraph"><p>where <code>&lt;old-oid&gt;</code> is the old object name stored in the ref,
+<code>&lt;new-oid&gt;</code> is the new object name to be stored in the ref and
 <code>&lt;ref-name&gt;</code> is the full name of the ref.
-When creating a new ref, <code>&lt;old-value&gt;</code> is the all-zeroes object name.</p></div>
+When creating a new ref, <code>&lt;old-oid&gt;</code> is the all-zeroes object name.</p></div>
 <div class="paragraph"><p>If the hook exits with non-zero status, none of the refs will be
 updated. If the hook exits with zero, updating of individual refs can
 still be prevented by the <a href="#update"><em>update</em></a> hook.</p></div>
@@ -1034,7 +1045,7 @@ shell to restrict the user&#8217;s access to only git commands.</p></div>
 for the user.</p></div>
 <div class="paragraph"><p>The default <em>update</em> hook, when enabled&#8212;and with
 <code>hooks.allowunannotated</code> config option unset or set to false&#8212;prevents
-unannotated tags to be pushed.</p></div>
+unannotated tags from being pushed.</p></div>
 </div>
 <div class="sect2">
 <h3 id="proc-receive">proc-receive</h3>
@@ -1070,12 +1081,12 @@ S: flush-pkt</code></pre>
 </div></div>
 <div class="literalblock">
 <div class="content">
-<pre><code># Receive result from the hook.
+<pre><code># Receive results from the hook.
 # OK, run this command successfully.
 H: PKT-LINE(ok &lt;ref&gt;)
 # NO, I reject it.
 H: PKT-LINE(ng &lt;ref&gt; &lt;reason&gt;)
-# Fall through, let 'receive-pack' to execute it.
+# Fall through, let 'receive-pack' execute it.
 H: PKT-LINE(ok &lt;ref&gt;)
 H: PKT-LINE(option fall-through)
 # OK, but has an alternate reference.  The alternate reference name
@@ -1187,13 +1198,13 @@ given reference transaction is in:</p></div>
 receives on standard input a line of the format:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;old-value&gt; SP &lt;new-value&gt; SP &lt;ref-name&gt; LF</code></pre>
+<pre><code>&lt;old-oid&gt; SP &lt;new-oid&gt; SP &lt;ref-name&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>where <code>&lt;old-value&gt;</code> is the old object name passed into the reference
-transaction, <code>&lt;new-value&gt;</code> is the new object name to be stored in the
+<div class="paragraph"><p>where <code>&lt;old-oid&gt;</code> is the old object name passed into the reference
+transaction, <code>&lt;new-oid&gt;</code> is the new object name to be stored in the
 ref and <code>&lt;ref-name&gt;</code> is the full name of the ref. When force updating
 the reference regardless of its current value or when the reference is
-to be created anew, <code>&lt;old-value&gt;</code> is the all-zeroes object name. To
+to be created anew, <code>&lt;old-oid&gt;</code> is the all-zeroes object name. To
 distinguish these cases, you can inspect the current value of
 <code>&lt;ref-name&gt;</code> via <code>git rev-parse</code>.</p></div>
 <div class="paragraph"><p>The exit status of the hook is ignored for any state except for the
@@ -1275,10 +1286,58 @@ processed by rebase.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_sendemail_validate">sendemail-validate</h3>
-<div class="paragraph"><p>This hook is invoked by <a href="git-send-email.html">git-send-email(1)</a>.  It takes a single parameter,
-the name of the file that holds the e-mail to be sent.  Exiting with a
-non-zero status causes <code>git send-email</code> to abort before sending any
-e-mails.</p></div>
+<div class="paragraph"><p>This hook is invoked by <a href="git-send-email.html">git-send-email(1)</a>.</p></div>
+<div class="paragraph"><p>It takes these command line arguments. They are,
+1. the name of the file which holds the contents of the email to be sent.
+2. The name of the file which holds the SMTP headers of the email.</p></div>
+<div class="paragraph"><p>The SMTP headers are passed in the exact same way as they are passed to the
+user&#8217;s Mail Transport Agent (MTA). In effect, the email given to the user&#8217;s
+MTA, is the contents of $2 followed by the contents of $1.</p></div>
+<div class="paragraph"><p>An example of a few common headers is shown below. Take notice of the
+capitalization and multi-line tab structure.</p></div>
+<div class="literalblock">
+<div class="content">
+<pre><code>From: Example &lt;from@example.com&gt;
+To: to@example.com
+Cc: cc@example.com,
+        A &lt;author@example.com&gt;,
+        One &lt;one@example.com&gt;,
+        two@example.com
+Subject: PATCH-STRING</code></pre>
+</div></div>
+<div class="paragraph"><p>Exiting with a non-zero status causes <code>git send-email</code> to abort
+before sending any e-mails.</p></div>
+<div class="paragraph"><p>The following environment variables are set when executing the hook.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>GIT_SENDEMAIL_FILE_COUNTER</code>
+</dt>
+<dd>
+<p>
+        A 1-based counter incremented by one for every file holding an e-mail
+        to be sent (excluding any FIFOs). This counter does not follow the
+        patch series counter scheme. It will always start at 1 and will end at
+        GIT_SENDEMAIL_FILE_TOTAL.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_SENDEMAIL_FILE_TOTAL</code>
+</dt>
+<dd>
+<p>
+        The total number of files that will be sent (excluding any FIFOs). This
+        counter does not follow the patch series counter scheme. It will always
+        be equal to the number of files being sent, whether there is a cover
+        letter or not.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>These variables may for instance be used to validate patch series.</p></div>
+<div class="paragraph"><p>The sample <code>sendemail-validate</code> hook that comes with Git checks that all sent
+patches (excluding the cover letter) can be applied on top of the upstream
+repository default branch without conflicts. Some placeholders are left for
+additional validation steps to be performed after all patches of a given series
+have been applied.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_fsmonitor_watchman">fsmonitor-watchman</h3>
@@ -1383,7 +1442,7 @@ running passing "1", "1" should not be possible.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-08-31 14:31:31 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

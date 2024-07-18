@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-mergetool(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -760,7 +760,7 @@ git-mergetool(1) Manual Page
 <div class="paragraph"><p>Use <code>git mergetool</code> to run one of several merge utilities to resolve
 merge conflicts.  It is typically run after <em>git merge</em>.</p></div>
 <div class="paragraph"><p>If one or more &lt;file&gt; parameters are given, the merge tool program will
-be run to resolve differences on each file (skipping those without
+be run to resolve differences in each file (skipping those without
 conflicts).  Specifying a directory will include all unresolved files in
 that path.  If no &lt;file&gt; names are specified, <em>git mergetool</em> will run
 the merge tool program on every file with merge conflicts.</p></div>
@@ -798,7 +798,7 @@ by specifying the command line to invoke in a configuration
 variable <code>mergetool.&lt;tool&gt;.cmd</code>.</p></div>
 <div class="paragraph"><p>When <em>git mergetool</em> is invoked with this tool (either through the
 <code>-t</code> or <code>--tool</code> option or the <code>merge.tool</code> configuration
-variable) the configured command line will be invoked with <code>$BASE</code>
+variable), the configured command line will be invoked with <code>$BASE</code>
 set to the name of a temporary file containing the common base for
 the merge, if available; <code>$LOCAL</code> set to the name of a temporary
 file containing the contents of the file on the current branch;
@@ -852,11 +852,12 @@ success of the resolution after the custom tool has exited.</p></div>
 </dt>
 <dd>
 <p>
-        When <em>git-mergetool</em> is invoked with the <code>-g</code> or <code>--gui</code> option
+        When <em>git-mergetool</em> is invoked with the <code>-g</code> or <code>--gui</code> option,
         the default merge tool will be read from the configured
         <code>merge.guitool</code> variable instead of <code>merge.tool</code>. If
         <code>merge.guitool</code> is not set, we will fallback to the tool
-        configured under <code>merge.tool</code>.
+        configured under <code>merge.tool</code>. This may be autoselected using
+        the configuration variable <code>mergetool.guiDefault</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -864,9 +865,9 @@ success of the resolution after the custom tool has exited.</p></div>
 </dt>
 <dd>
 <p>
-        This overrides a previous <code>-g</code> or <code>--gui</code> setting and reads the
-        default merge tool will be read from the configured <code>merge.tool</code>
-        variable.
+        This overrides a previous <code>-g</code> or <code>--gui</code> setting or
+        <code>mergetool.guiDefault</code> configuration and reads the default merge
+        tool from the configured <code>merge.tool</code> variable.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -934,8 +935,8 @@ mergetool.&lt;tool&gt;.trustExitCode
         For a custom merge command, specify whether the exit code of
         the merge command can be used to determine whether the merge was
         successful.  If this is not set to true then the merge target file
-        timestamp is checked and the merge assumed to have been successful
-        if the file has been updated, otherwise the user is prompted to
+        timestamp is checked, and the merge is assumed to have been successful
+        if the file has been updated; otherwise, the user is prompted to
         indicate the success of the merge.
 </p>
 </dd>
@@ -959,7 +960,7 @@ mergetool.meld.useAutoMerge
 <dd>
 <p>
         When the <code>--auto-merge</code> is given, meld will merge all non-conflicting
-        parts automatically, highlight the conflicting parts and wait for
+        parts automatically, highlight the conflicting parts, and wait for
         user decision.  Setting <code>mergetool.meld.useAutoMerge</code> to <code>true</code> tells
         Git to unconditionally use the <code>--auto-merge</code> option with <code>meld</code>.
         Setting this value to <code>auto</code> makes git detect whether <code>--auto-merge</code>
@@ -969,14 +970,19 @@ mergetool.meld.useAutoMerge
 </p>
 </dd>
 <dt class="hdlist1">
-mergetool.vimdiff.layout
+mergetool.&lt;vimdiff variant&gt;.layout
 </dt>
 <dd>
 <p>
-        The vimdiff backend uses this variable to control how its split
-        windows look like. Applies even if you are using Neovim (<code>nvim</code>) or
-        gVim (<code>gvim</code>) as the merge tool. See BACKEND SPECIFIC HINTS section
-        for details.
+        Configure the split window layout for vimdiff&#8217;s <code>&lt;variant&gt;</code>, which is any of <code>vimdiff</code>,
+        <code>nvimdiff</code>, <code>gvimdiff</code>.
+        Upon launching <code>git mergetool</code> with <code>--tool=&lt;variant&gt;</code> (or without <code>--tool</code>
+        if <code>merge.tool</code> is configured as <code>&lt;variant&gt;</code>), Git will consult
+        <code>mergetool.&lt;variant&gt;.layout</code> to determine the tool&#8217;s layout. If the
+        variant-specific configuration is not available, <code>vimdiff</code>'s is used as
+        fallback.  If that too is not available, a default layout with 4 windows
+        will be used.  To configure the layout, see the <code>BACKEND SPECIFIC HINTS</code>
+        section.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -984,11 +990,11 @@ mergetool.hideResolved
 </dt>
 <dd>
 <p>
-        During a merge Git will automatically resolve as many conflicts as
+        During a merge, Git will automatically resolve as many conflicts as
         possible and write the <em>MERGED</em> file containing conflict markers around
         any conflicts that it cannot resolve; <em>LOCAL</em> and <em>REMOTE</em> normally
         represent the versions of the file from before Git&#8217;s conflict
-        resolution. This flag causes <em>LOCAL</em> and <em>REMOTE</em> to be overwriten so
+        resolution. This flag causes <em>LOCAL</em> and <em>REMOTE</em> to be overwritten so
         that only the unresolved conflicts are presented to the merge tool. Can
         be configured per-tool via the <code>mergetool.&lt;tool&gt;.hideResolved</code>
         configuration variable. Defaults to <code>false</code>.
@@ -1013,7 +1019,7 @@ mergetool.keepTemporaries
         When invoking a custom merge tool, Git uses a set of temporary
         files to pass to the tool. If the tool returns an error and this
         variable is set to <code>true</code>, then these temporary files will be
-        preserved, otherwise they will be removed after the tool has
+        preserved; otherwise, they will be removed after the tool has
         exited. Defaults to <code>false</code>.
 </p>
 </dd>
@@ -1036,6 +1042,18 @@ mergetool.prompt
         Prompt before each invocation of the merge resolution program.
 </p>
 </dd>
+<dt class="hdlist1">
+mergetool.guiDefault
+</dt>
+<dd>
+<p>
+        Set <code>true</code> to use the <code>merge.guitool</code> by default (equivalent to
+        specifying the <code>--gui</code> argument), or <code>auto</code> to select <code>merge.guitool</code>
+        or <code>merge.tool</code> depending on the presence of a <code>DISPLAY</code> environment
+        variable value. The default is <code>false</code>, where the <code>--gui</code> argument
+        must be provided explicitly for the <code>merge.guitool</code> to be used.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -1046,7 +1064,7 @@ mergetool.prompt
 These are safe to remove once a file has been merged and its
 <code>git mergetool</code> session has completed.</p></div>
 <div class="paragraph"><p>Setting the <code>mergetool.keepBackup</code> configuration variable to <code>false</code>
-causes <code>git mergetool</code> to automatically remove the backup as files
+causes <code>git mergetool</code> to automatically remove the backup files as files
 are successfully merged.</p></div>
 </div>
 </div>
@@ -1101,12 +1119,12 @@ have special meaning:</p></div>
 </li>
 <li>
 <p>
-<code>@</code> is used to indicate which is the file containing the final version after
+<code>@</code> is used to indicate the file containing the final version after
     solving the conflicts. If not present, <code>MERGED</code> will be used by default.
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>The precedence of the operators is this one (you can use parentheses to change
+<div class="paragraph"><p>The precedence of the operators is as follows (you can use parentheses to change
 it):</p></div>
 <div class="literalblock">
 <div class="content">
@@ -1265,7 +1283,7 @@ information as the first tab, with a different layout.</p></div>
 |       REMOTE        |                     |
 ---------------------------------------------</code></pre>
 </div></div>
-<div class="paragraph"><p>Note how in the third tab definition we need to use parenthesis to make <code>,</code>
+<div class="paragraph"><p>Note how in the third tab definition we need to use parentheses to make <code>,</code>
 have precedence over <code>/</code>.</p></div>
 </div></div>
 </li>
@@ -1288,7 +1306,8 @@ have precedence over <code>/</code>.</p></div>
 </ul></div>
 <div class="paragraph"><p>When using these variants, in order to specify a custom layout you will have to
 set configuration variables <code>mergetool.gvimdiff.layout</code> and
-<code>mergetool.nvimdiff.layout</code> instead of <code>mergetool.vimdiff.layout</code></p></div>
+<code>mergetool.nvimdiff.layout</code> instead of <code>mergetool.vimdiff.layout</code> (though the
+latter will be used as fallback if the variant-specific one is not set).</p></div>
 <div class="paragraph"><p>In addition, for backwards compatibility with previous Git versions, you can
 also append <code>1</code>, <code>2</code> or <code>3</code> to either <code>vimdiff</code> or any of the variants (ex:
 <code>vimdiff3</code>, <code>nvimdiff1</code>, etc&#8230;) to use a predefined layout.
@@ -1329,7 +1348,7 @@ MERGED and REMOTE).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

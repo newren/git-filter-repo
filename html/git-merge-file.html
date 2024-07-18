@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-merge-file(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -751,7 +751,7 @@ git-merge-file(1) Manual Page
 <div class="verseblock">
 <pre class="content"><em>git merge-file</em> [-L &lt;current-name&gt; [-L &lt;base-name&gt; [-L &lt;other-name&gt;]]]
         [--ours|--theirs|--union] [-p|--stdout] [-q|--quiet] [--marker-size=&lt;n&gt;]
-        [--[no-]diff3] &lt;current-file&gt; &lt;base-file&gt; &lt;other-file&gt;</pre>
+        [--[no-]diff3] [--object-id] &lt;current&gt; &lt;base&gt; &lt;other&gt;</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -759,13 +759,14 @@ git-merge-file(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><em>git merge-file</em> incorporates all changes that lead from the <code>&lt;base-file&gt;</code>
-to <code>&lt;other-file&gt;</code> into <code>&lt;current-file&gt;</code>. The result ordinarily goes into
-<code>&lt;current-file&gt;</code>. <em>git merge-file</em> is useful for combining separate changes
-to an original. Suppose <code>&lt;base-file&gt;</code> is the original, and both
-<code>&lt;current-file&gt;</code> and <code>&lt;other-file&gt;</code> are modifications of <code>&lt;base-file&gt;</code>,
+<div class="paragraph"><p>Given three files <code>&lt;current&gt;</code>, <code>&lt;base&gt;</code> and <code>&lt;other&gt;</code>,
+<em>git merge-file</em> incorporates all changes that lead from <code>&lt;base&gt;</code>
+to <code>&lt;other&gt;</code> into <code>&lt;current&gt;</code>. The result ordinarily goes into
+<code>&lt;current&gt;</code>. <em>git merge-file</em> is useful for combining separate changes
+to an original. Suppose <code>&lt;base&gt;</code> is the original, and both
+<code>&lt;current&gt;</code> and <code>&lt;other&gt;</code> are modifications of <code>&lt;base&gt;</code>,
 then <em>git merge-file</em> combines both changes.</p></div>
-<div class="paragraph"><p>A conflict occurs if both <code>&lt;current-file&gt;</code> and <code>&lt;other-file&gt;</code> have changes
+<div class="paragraph"><p>A conflict occurs if both <code>&lt;current&gt;</code> and <code>&lt;other&gt;</code> have changes
 in a common segment of lines. If a conflict is found, <em>git merge-file</em>
 normally outputs a warning and brackets the conflict with lines containing
 &lt;&lt;&lt;&lt;&lt;&lt;&lt; and &gt;&gt;&gt;&gt;&gt;&gt;&gt; markers. A typical conflict will look like this:</p></div>
@@ -779,9 +780,12 @@ lines in file B
 </div></div>
 <div class="paragraph"><p>If there are conflicts, the user should edit the result and delete one of
 the alternatives.  When <code>--ours</code>, <code>--theirs</code>, or <code>--union</code> option is in effect,
-however, these conflicts are resolved favouring lines from <code>&lt;current-file&gt;</code>,
-lines from <code>&lt;other-file&gt;</code>, or lines from both respectively.  The length of the
+however, these conflicts are resolved favouring lines from <code>&lt;current&gt;</code>,
+lines from <code>&lt;other&gt;</code>, or lines from both respectively.  The length of the
 conflict markers can be given with the <code>--marker-size</code> option.</p></div>
+<div class="paragraph"><p>If <code>--object-id</code> is specified, exactly the same behavior occurs, except that
+instead of specifying what to merge as files, it is specified as a list of
+object IDs referring to blobs.</p></div>
 <div class="paragraph"><p>The exit value of this program is negative on error, and the number of
 conflicts otherwise (truncated to 127 if there are more than that many
 conflicts). If the merge was clean, the exit value is 0.</p></div>
@@ -794,6 +798,18 @@ implements all of RCS <em>merge</em>'s functionality which is needed by
 <h2 id="_options">OPTIONS</h2>
 <div class="sectionbody">
 <div class="dlist"><dl>
+<dt class="hdlist1">
+--object-id
+</dt>
+<dd>
+<p>
+        Specify the contents to merge as blobs in the current repository instead of
+        files.  In this case, the operation must take place within a valid repository.
+</p>
+<div class="paragraph"><p>If the <code>-p</code> option is specified, the merged file (including conflicts, if any)
+goes to standard output as normal; otherwise, the merged file is written to the
+object store and the object ID of its blob is written to standard output.</p></div>
+</dd>
 <dt class="hdlist1">
 -L &lt;label&gt;
 </dt>
@@ -813,7 +829,7 @@ implements all of RCS <em>merge</em>'s functionality which is needed by
 <dd>
 <p>
         Send results to standard output instead of overwriting
-        <code>&lt;current-file&gt;</code>.
+        <code>&lt;current&gt;</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -855,6 +871,18 @@ implements all of RCS <em>merge</em>'s functionality which is needed by
         favouring our (or their or both) side of the lines.
 </p>
 </dd>
+<dt class="hdlist1">
+--diff-algorithm={patience|minimal|histogram|myers}
+</dt>
+<dd>
+<p>
+        Use a different diff algorithm while merging. The current default is "myers",
+        but selecting more recent algorithm such as "histogram" can help
+        avoid mismerges that occur due to unimportant matching lines
+        (such as braces from distinct functions). See also
+        <a href="git-diff.html">git-diff(1)</a> <code>--diff-algorithm</code>.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -880,6 +908,15 @@ implements all of RCS <em>merge</em>'s functionality which is needed by
         <code>a</code> and <code>c</code> instead of <code>tmp/a123</code> and <code>tmp/c345</code>.
 </p>
 </dd>
+<dt class="hdlist1">
+<code>git merge-file -p --object-id abc1234 def567 890abcd</code>
+</dt>
+<dd>
+<p>
+        combines the changes of the blob abc1234 and 890abcd since def567,
+        tries to merge them and writes the result to standard output
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -894,7 +931,7 @@ implements all of RCS <em>merge</em>'s functionality which is needed by
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

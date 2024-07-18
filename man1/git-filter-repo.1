@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/10/2022
+.\"      Date: 2024-04-29
 .\"    Manual: Git Manual
-.\"    Source: Git 2.38.0.dirty
+.\"    Source: Git 2.45.0.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "10/10/2022" "Git 2\&.38\&.0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "2024\-04\-29" "Git 2\&.45\&.0\&.dirty" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -174,18 +174,6 @@ pruning commits which become empty due to the above filters (also handles edge c
 .sp -1
 .IP \(bu 2.3
 .\}
-creating replace\-refs (see
-\fBgit-replace\fR(1)) for old commit hashes, which if manually pushed and fetched will allow users to continue to refer to new commits using (unabbreviated) old commit IDs
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
 stripping of original history to avoid mixing old and new history
 .RE
 .sp
@@ -198,6 +186,20 @@ stripping of original history to avoid mixing old and new history
 .IP \(bu 2.3
 .\}
 repacking the repository post\-rewrite to shrink the repo for the user
+.RE
+.sp
+And additional facilities are available via a config option
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+creating replace\-refs (see
+\fBgit-replace\fR(1)) for old commit hashes, which if manually pushed and fetched will allow users to continue to refer to new commits using (unabbreviated) old commit IDs
 .RE
 .sp
 Also, it\(cqs worth noting that there is an important safety mechanism:
@@ -366,15 +368,17 @@ Same as:
 .RE
 .SS "Parent rewriting"
 .PP
-\-\-replace\-refs {delete\-no\-add, delete\-and\-add, update\-no\-add, update\-or\-add, update\-and\-add}
+\-\-replace\-refs {delete\-no\-add, delete\-and\-add, update\-no\-add, update\-or\-add, update\-and\-add, old\-default}
 .RS 4
-Replace refs (see
-\fBgit-replace\fR(1)) are used to rewrite parents (unless turned off by the usual git mechanism); this flag specifies what do do with those refs afterward\&. Replace refs can either be deleted or updated to point at new commit hashes\&. Also, new replace refs can be added for each commit rewrite\&. With
-\fIupdate\-or\-add\fR, new replace refs are only added for commit rewrites that aren\(cqt used to update an existing replace ref\&. default is
+How to handle replace refs (see git\-replace(1))\&. Replace refs can be added during the history rewrite as a way to allow users to pass old commit IDs (from before git\-filter\-repo was run) to git commands and have git know how to translate those old commit IDs to the new (post\-rewrite) commit IDs\&. Also, replace refs that existed before the rewrite can either be deleted or updated\&. The choices to pass to \-\-replace\-refs thus need to specify both what to do with existing refs and what to do with commit rewrites\&. Thus
 \fIupdate\-and\-add\fR
-if $GIT_DIR/filter\-repo/already_ran does not exist;
+means to update existing replace refs, and for any commit rewrite (even if already pointed at by a replace ref) add a new refs/replace/ reference to map from the old commit ID to the new commit ID\&. The default is update\-no\-add, meaning update existing replace refs but do not add any new ones\&. There is also a special
+\fIold\-default\fR
+option for picking the default used in versions prior to git\-filter\-repo\-2\&.45, namely
+\fIupdate\-and\-add\fR
+upon the first run of git\-filter\-repo in a repository and
 \fIupdate\-or\-add\fR
-otherwise\&.
+if running git\-filter\-repo again on a repository\&.
 .RE
 .PP
 \-\-prune\-empty {always, auto, never}
@@ -462,7 +466,7 @@ the section called \(lqCALLBACKS\(rq\&.
 .ps -1
 .br
 .sp
-Specifying alternate source or target locations implies \-\-partial except that the normal default for \-\-replace\-refs is used\&. However, unlike normal uses of \-\-partial, this doesn\(cqt risk mixing old and new history since the old and new histories are in different repositories\&.
+Specifying alternate source or target locations implies \-\-partial\&. However, unlike normal uses of \-\-partial, this doesn\(cqt risk mixing old and new history since the old and new histories are in different repositories\&.
 .sp .5v
 .RE
 .PP
@@ -494,7 +498,7 @@ to git\-filter\-repo\&.
 .PP
 \-\-partial
 .RS 4
-Do a partial history rewrite, resulting in the mixture of old and new history\&. This implies a default of update\-no\-add for \-\-replace\-refs, disables rewriting refs/remotes/origin/* to refs/heads/*, disables removing of the
+Do a partial history rewrite, resulting in the mixture of old and new history\&. This disables rewriting refs/remotes/origin/* to refs/heads/*, disables removing of the
 \fIorigin\fR
 remote, disables removing unexported refs, disables expiring the reflog, and disables the automatic post\-filter gc\&. Also, this modifies \-\-tag\-rename and \-\-refname\-callback options such that instead of replacing old refs with new refnames, it will instead create new refs and keep the old ones around\&. Use with caution\&.
 .RE
@@ -839,8 +843,8 @@ who has cloned the repository, and will also need to carefully synchronize with
 .IP \(bu 2.3
 .\}
 Finally, you\(cqll need to consult any documentation from your hosting provider about how to remove any server\-side references to the old commits (example:
-\m[blue]\fBGitLab\(cqs excellent docs on reducing repository size\fR\m[]\&\s-2\u[1]\d\s+2, or just the warning box that references "GitHub support" from
-\m[blue]\fBGitHub\(cqs otherwise dangerously out\-of\-date docs on removing sensitive data\fR\m[]\&\s-2\u[2]\d\s+2)\&.
+\m[blue]\fBGitLab\(cqs excellent docs on reducing repository size\fR\m[]\&\s-2\u[1]\d\s+2, or
+\m[blue]\fBthe first and second steps under "Fully removing the data from GitHub"\fR\m[]\&\s-2\u[2]\d\s+2)\&.
 .RE
 .RE
 .sp
@@ -862,7 +866,7 @@ Finally, you\(cqll need to consult any documentation from your hosting provider 
 .sp -1
 .IP \(bu 2.3
 .\}
-filter\-repo by default creates replace refs (see
+filter\-repo has a \-\-replace\-refs option to allow creating replace refs (see
 \fBgit-replace\fR(1)) for each rewritten commit ID, allowing you to use old (unabbreviated) commit hashes in the git command line to refer to the newly rewritten commits\&. If you want to use these replace refs, manually push them to the relevant clone URL and tell users to manually fetch them (e\&.g\&. by adjusting their fetch refspec,
 \fBgit config \-\-add remote\&.origin\&.fetch +refs/replace/*:refs/replace/*\fR)\&. Sadly, replace refs are not yet widely understood; projects like jgit and libgit2 do not support them and existing repository managers (e\&.g\&. Gerrit, GitHub, GitLab) do not yet understand replace refs\&. Thus one can\(cqt use old commit hashes within the UI of these other systems\&. This may change in the future, but replace refs at least help users locally within the git command line interface\&. Also, be aware that commit\-graphs are excessively cautious around replace refs and just turn off entirely if any are present, so after enough time has passed that old commit IDs become less relevant, users may want to locally delete the replace refs to regain the speedups from commit\-graphs\&.
 .RE
@@ -2367,7 +2371,7 @@ GitLab\(cqs excellent docs on reducing repository size
 \%https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html
 .RE
 .IP " 2." 4
-GitHub\(cqs otherwise dangerously out-of-date docs on removing sensitive data
+the first and second steps under "Fully removing the data from GitHub"
 .RS 4
-\%https://docs.github.com/en/github/authenticating-to-github/removing-sensitive-data-from-a-repository
+\%https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository#fully-removing-the-data-from-github
 .RE

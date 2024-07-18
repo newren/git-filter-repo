@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-pack-refs(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-pack-refs(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git pack-refs</em> [--all] [--no-prune]</pre>
+<pre class="content"><em>git pack-refs</em> [--all] [--no-prune] [--auto] [--include &lt;pattern&gt;] [--exclude &lt;pattern&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -796,8 +796,9 @@ The command by default packs all tags and refs that are already
 packed, and leaves other refs
 alone.  This is because branches are expected to be actively
 developed and packing their tips does not help performance.
-This option causes branch tips to be packed as well.  Useful for
-a repository with many branches of historical interests.
+This option causes all refs to be packed as well, with the exception
+of hidden refs, broken refs, and symbolic refs. Useful for a repository
+with many branches of historical interests.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -809,7 +810,60 @@ The command usually removes loose refs under <code>$GIT_DIR/refs</code>
 hierarchy after packing them.  This option tells it not to.
 </p>
 </dd>
+<dt class="hdlist1">
+--auto
+</dt>
+<dd>
+<p>
+Pack refs as needed depending on the current state of the ref database. The
+behavior depends on the ref format used by the repository and may change in the
+future.
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+"files": No special handling for <code>--auto</code> has been implemented.
+</p>
+</li>
+<li>
+<p>
+"reftable": Tables are compacted such that they form a geometric
+          sequence. For two tables N and N+1, where N+1 is newer, this
+          maintains the property that N is at least twice as big as N+1. Only
+          tables that violate this property are compacted.
+</p>
+</li>
+</ul></div>
+</dd>
+<dt class="hdlist1">
+--include &lt;pattern&gt;
+</dt>
+<dd>
+<p>
+Pack refs based on a <code>glob(7)</code> pattern. Repetitions of this option
+accumulate inclusion patterns. If a ref is both included in <code>--include</code> and
+<code>--exclude</code>, <code>--exclude</code> takes precedence. Using <code>--include</code> will preclude all
+tags from being included by default. Symbolic refs and broken refs will never
+be packed. When used with <code>--all</code>, it will be a noop. Use <code>--no-include</code> to clear
+and reset the list of patterns.
+</p>
+</dd>
+<dt class="hdlist1">
+--exclude &lt;pattern&gt;
+</dt>
+<dd>
+<p>
+Do not pack refs matching the given <code>glob(7)</code> pattern. Repetitions of this option
+accumulate exclusion patterns. Use <code>--no-exclude</code> to clear and reset the list of
+patterns. If a ref is already packed, including it with <code>--exclude</code> will not
+unpack it.
+</p>
+</dd>
 </dl></div>
+<div class="paragraph"><p>When used with <code>--all</code>, pack only loose refs which do not match any of
+the provided <code>--exclude</code> patterns.</p></div>
+<div class="paragraph"><p>When used with <code>--include</code>, refs provided to <code>--include</code>, minus refs that are
+provided to <code>--exclude</code> will be packed.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -831,7 +885,7 @@ exists" when it means "branch &lt;branch&gt; exists".</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-01-27 18:10:56 PST
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

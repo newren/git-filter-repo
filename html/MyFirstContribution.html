@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>My First Contribution to the Git Project</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -735,6 +735,7 @@ asciidoc.install();
 <body class="article">
 <div id="header">
 <h1>My First Contribution to the Git Project</h1>
+<span id="revdate">2024-04-29</span>
 </div>
 <div id="content">
 <div class="sect1">
@@ -774,8 +775,9 @@ announcements, design discussions, and more take place. Those interested in
 contributing are welcome to post questions here. The Git list requires
 plain-text-only emails and prefers inline and bottom-posting when replying to
 mail; you will be CC&#8217;d in all replies to you. Optionally, you can subscribe to
-the list by sending an email to <a href="mailto:majordomo@vger.kernel.org">majordomo@vger.kernel.org</a> with "subscribe git"
-in the body. The <a href="https://lore.kernel.org/git">archive</a> of this mailing list is
+the list by sending an email to &lt;git+<a href="mailto:subscribe@vger.kernel.org">subscribe@vger.kernel.org</a>&gt;
+(see <a href="https://subspace.kernel.org/subscribing.html">https://subspace.kernel.org/subscribing.html</a> for details).
+The <a href="https://lore.kernel.org/git">archive</a> of this mailing list is
 available to view in a browser.</p></div>
 </div>
 <div class="sect3">
@@ -900,9 +902,10 @@ in order to keep the declarations alphabetically sorted:</p></div>
 <div class="content">
 <pre><code>int cmd_psuh(int argc, const char **argv, const char *prefix);</code></pre>
 </div></div>
-<div class="paragraph"><p>Be sure to <code>#include "builtin.h"</code> in your <code>psuh.c</code>.</p></div>
-<div class="paragraph"><p>Go ahead and add some throwaway printf to that function. This is a decent
-starting point as we can now add build rules and register the command.</p></div>
+<div class="paragraph"><p>Be sure to <code>#include "builtin.h"</code> in your <code>psuh.c</code>. You&#8217;ll also need to
+<code>#include "gettext.h"</code> to use functions related to printing output text.</p></div>
+<div class="paragraph"><p>Go ahead and add some throwaway printf to the <code>cmd_psuh</code> function. This is a
+decent starting point as we can now add build rules and register the command.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -1449,7 +1452,7 @@ the <a href="https://lore.kernel.org/git/">Git mailing list archive</a>:</p></di
 2022-02-21  1:43     ` John Cai
 2022-02-21  1:50       ` Taylor Blau
 2022-02-23 19:50         ` John Cai
-2022-02-18 20:00   ` // other replies ellided
+2022-02-18 20:00   ` // other replies elided
 2022-02-18 18:40 ` [PATCH 2/3] reflog: call reflog_delete from reflog.c John Cai via GitGitGadget
 2022-02-18 19:15   ` Ævar Arnfjörð Bjarmason
 2022-02-18 20:26     ` Junio C Hamano
@@ -1555,7 +1558,7 @@ Johannes Schindelin to make life as a Git contributor easier for those used to
 the GitHub PR workflow. It allows contributors to open pull requests against its
 mirror of the Git project, and does some magic to turn the PR into a set of
 emails and send them out for you. It also runs the Git continuous integration
-suite for you. It&#8217;s documented at <a href="http://gitgitgadget.github.io">http://gitgitgadget.github.io</a>.</p></div>
+suite for you. It&#8217;s documented at <a href="https://gitgitgadget.github.io/">https://gitgitgadget.github.io/</a>.</p></div>
 <div class="sect2">
 <h3 id="create-fork">Forking <code>git/git</code> on GitHub</h3>
 <div class="paragraph"><p>Before you can send your patch off to be reviewed using GitGitGadget, you will
@@ -1884,25 +1887,25 @@ and your range-diff will be prefaced with "Range-diff against v1".</p></div>
 directory, alongside the v1 patches. Using a single directory makes it easy to
 refer to the old v1 patches while proofreading the v2 patches, but you will need
 to be careful to send out only the v2 patches. We will use a pattern like
-"psuh/v2-<strong>.patch" (not "psuh/</strong>.patch", which would match v1 and v2 patches).</p></div>
+<code>psuh/v2-*.patch</code> (not <code>psuh/*.patch</code>, which would match v1 and v2 patches).</p></div>
 <div class="paragraph"><p>Edit your cover letter again. Now is a good time to mention what&#8217;s different
 between your last version and now, if it&#8217;s something significant. You do not
 need the exact same body in your second cover letter; focus on explaining to
 reviewers the changes you&#8217;ve made that may not be as visible.</p></div>
-<div class="paragraph"><p>You will also need to go and find the Message-Id of your previous cover letter.
+<div class="paragraph"><p>You will also need to go and find the Message-ID of your previous cover letter.
 You can either note it when you send the first series, from the output of <code>git
 send-email</code>, or you can look it up on the
 <a href="https://lore.kernel.org/git">mailing list</a>. Find your cover letter in the
-archives, click on it, then click "permalink" or "raw" to reveal the Message-Id
+archives, click on it, then click "permalink" or "raw" to reveal the Message-ID
 header. It should match:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>Message-Id: &lt;foo.12345.author@example.com&gt;</code></pre>
+<pre><code>Message-ID: &lt;foo.12345.author@example.com&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p>Your Message-Id is <code>&lt;foo.12345.author@example.com&gt;</code>. This example will be used
-below as well; make sure to replace it with the correct Message-Id for your
-<strong>previous cover letter</strong> - that is, if you&#8217;re sending v2, use the Message-Id
-from v1; if you&#8217;re sending v3, use the Message-Id from v2.</p></div>
+<div class="paragraph"><p>Your Message-ID is <code>&lt;foo.12345.author@example.com&gt;</code>. This example will be used
+below as well; make sure to replace it with the correct Message-ID for your
+<strong>previous cover letter</strong> - that is, if you&#8217;re sending v2, use the Message-ID
+from v1; if you&#8217;re sending v3, use the Message-ID from v2.</p></div>
 <div class="paragraph"><p>While you&#8217;re looking at the email, you should also note who is CC&#8217;d, as it&#8217;s
 common practice in the mailing list to keep all CCs on a thread. You can add
 these CC lines directly to your cover letter with a line like so in the header
@@ -1972,6 +1975,41 @@ index 88f126184c..38da593a60 100644
 <div class="sect1">
 <h2 id="now-what">My Patch Got Emailed - Now What?</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>Please give reviewers enough time to process your initial patch before
+sending an updated version. That is, resist the temptation to send a new
+version immediately, because others may have already started reviewing
+your initial version.</p></div>
+<div class="paragraph"><p>While waiting for review comments, you may find mistakes in your initial
+patch, or perhaps realize a different and better way to achieve the goal
+of the patch. In this case you may communicate your findings to other
+reviewers as follows:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+If the mistakes you found are minor, send a reply to your patch as if
+   you were a reviewer and mention that you will fix them in an
+   updated version.
+</p>
+</li>
+<li>
+<p>
+On the other hand, if you think you want to change the course so
+   drastically that reviews on the initial patch would be a waste of
+   time (for everyone involved), retract the patch immediately with
+   a reply like "I am working on a much better approach, so please
+   ignore this patch and wait for the updated version."
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Now, the above is a good practice if you sent your initial patch
+prematurely without polish.  But a better approach of course is to avoid
+sending your patch prematurely in the first place.</p></div>
+<div class="paragraph"><p>Please be considerate of the time needed by reviewers to examine each
+new version of your patch. Rather than seeing the initial version right
+now (followed by several "oops, I like this version better than the
+previous one" patches over 2 days), reviewers would strongly prefer if a
+single polished version came 2 days later instead, and that version with
+fewer mistakes were the only one they would need to review.</p></div>
 <div class="sect2">
 <h3 id="reviewing">Responding to Reviews</h3>
 <div class="paragraph"><p>After a few days, you will hopefully receive a reply to your patchset with some
@@ -2060,7 +2098,7 @@ should generate your diffs from <code>&lt;topic&gt;..&lt;mybranch&gt;</code> and
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-05 13:02:13 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-notes(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -750,10 +750,10 @@ git-notes(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git notes</em> [list [&lt;object&gt;]]
-<em>git notes</em> add [-f] [--allow-empty] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
+<em>git notes</em> add [-f] [--allow-empty] [--[no-]separator | --separator=&lt;paragraph-break&gt;] [--[no-]stripspace] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
 <em>git notes</em> copy [-f] ( --stdin | &lt;from-object&gt; [&lt;to-object&gt;] )
-<em>git notes</em> append [--allow-empty] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
-<em>git notes</em> edit [--allow-empty] [&lt;object&gt;]
+<em>git notes</em> append [--allow-empty] [--[no-]separator | --separator=&lt;paragraph-break&gt;] [--[no-]stripspace] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
+<em>git notes</em> edit [--allow-empty] [&lt;object&gt;] [--[no-]stripspace]
 <em>git notes</em> show [&lt;object&gt;]
 <em>git notes</em> merge [-v | -q] [-s &lt;strategy&gt; ] &lt;notes-ref&gt;
 <em>git notes</em> merge --commit [-v | -q]
@@ -800,7 +800,7 @@ list
 <p>
         List the notes object for a given object. If no object is
         given, show a list of all note objects and the objects they
-        annotate (in the format "&lt;note object&gt; &lt;annotated object&gt;").
+        annotate (in the format "&lt;note-object&gt; &lt;annotated-object&gt;").
         This is the default subcommand if no subcommand is given.
 </p>
 </dd>
@@ -814,7 +814,9 @@ add
         However, if you&#8217;re using <code>add</code> interactively (using an editor
         to supply the notes contents), then - instead of aborting -
         the existing notes will be opened in the editor (like the <code>edit</code>
-        subcommand).
+        subcommand). If you specify multiple <code>-m</code> and <code>-F</code>, a blank
+        line will be inserted between the messages. Use the <code>--separator</code>
+        option to insert other delimiters.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -842,8 +844,12 @@ append
 </dt>
 <dd>
 <p>
-        Append to the notes of an existing object (defaults to HEAD).
-        Creates a new notes object if needed.
+        Append new message(s) given by <code>-m</code> or <code>-F</code> options to an
+        existing note, or add them as a new note if one does not
+        exist, for the object (defaults to HEAD).  When appending to
+        an existing note, a blank line is added before each new
+        message as an inter-paragraph separator.  The separator can
+        be customized with the <code>--separator</code> option.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -941,6 +947,7 @@ get-ref
         are concatenated as separate paragraphs.
         Lines starting with <code>#</code> and empty lines other than a
         single line between paragraphs will be stripped out.
+        If you wish to keep them verbatim, use <code>--no-stripspace</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -955,6 +962,7 @@ get-ref
         read the note message from the standard input.
         Lines starting with <code>#</code> and empty lines other than a
         single line between paragraphs will be stripped out.
+        If you wish to keep them verbatim, use <code>--no-stripspace</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -967,7 +975,10 @@ get-ref
 <p>
         Take the given blob object (for example, another note) as the
         note message. (Use <code>git notes copy &lt;object&gt;</code> instead to
-        copy notes between objects.)
+        copy notes between objects.).  By default, message will be
+        copied verbatim, but if you wish to strip out the lines
+        starting with <code>#</code> and empty lines other than a single line
+        between paragraphs, use with`--stripspace` option.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -989,6 +1000,29 @@ get-ref
 <p>
         Allow an empty note object to be stored. The default behavior is
         to automatically remove empty notes.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]separator, --separator=&lt;paragraph-break&gt;
+</dt>
+<dd>
+<p>
+        Specify a string used as a custom inter-paragraph separator
+        (a newline is added at the end as needed). If <code>--no-separator</code>, no
+        separators will be added between paragraphs.  Defaults to a blank
+        line.
+</p>
+</dd>
+<dt class="hdlist1">
+--[no-]stripspace
+</dt>
+<dd>
+<p>
+        Strip leading and trailing whitespace from the note message.
+        Also strip out empty lines other than a single line between
+        paragraphs. Lines starting with <code>#</code> will be stripped out
+        in non-editor cases like <code>-m</code>, <code>-F</code> and <code>-C</code>, but not in
+        editor case like <code>git notes edit</code>, <code>-c</code>, etc.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1212,7 +1246,7 @@ notes.mergeStrategy
 <p>
         Which merge strategy to choose by default when resolving notes
         conflicts.  Must be one of <code>manual</code>, <code>ours</code>, <code>theirs</code>, <code>union</code>, or
-        <code>cat_sort_uniq</code>.  Defaults to <code>manual</code>.  See "NOTES MERGE STRATEGIES"
+        <code>cat_sort_uniq</code>.  Defaults to <code>manual</code>.  See the "NOTES MERGE STRATEGIES"
         section of <a href="git-notes.html">git-notes(1)</a> for more information on each strategy.
 </p>
 <div class="paragraph"><p>This setting can be overridden by passing the <code>--strategy</code> option to
@@ -1362,7 +1396,7 @@ on the <code>notes.rewrite.&lt;command&gt;</code> and <code>notes.rewriteRef</co
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

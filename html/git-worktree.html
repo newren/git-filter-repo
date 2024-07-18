@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-worktree(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,8 @@ git-worktree(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git worktree add</em> [-f] [--detach] [--checkout] [--lock [--reason &lt;string&gt;]] [-b &lt;new-branch&gt;] &lt;path&gt; [&lt;commit-ish&gt;]
+<pre class="content"><em>git worktree add</em> [-f] [--detach] [--checkout] [--lock [--reason &lt;string&gt;]]
+                   [--orphan] [(-b | -B) &lt;new-branch&gt;] &lt;path&gt; [&lt;commit-ish&gt;]
 <em>git worktree list</em> [-v | --porcelain [-z]]
 <em>git worktree lock</em> [--reason &lt;string&gt;] &lt;worktree&gt;
 <em>git worktree move</em> &lt;worktree&gt; &lt;new-path&gt;
@@ -836,6 +837,15 @@ exist, a new branch based on <code>HEAD</code> is automatically created as if
 <code>-b &lt;branch&gt;</code> was given.  If <code>&lt;branch&gt;</code> does exist, it will be checked out
 in the new worktree, if it&#8217;s not checked out anywhere else, otherwise the
 command will refuse to create the worktree (unless <code>--force</code> is used).</p></div>
+<div class="paragraph"><p>If <code>&lt;commit-ish&gt;</code> is omitted, neither <code>--detach</code>, or <code>--orphan</code> is
+used, and there are no valid local branches (or remote branches if
+<code>--guess-remote</code> is specified) then, as a convenience, the new worktree is
+associated with a new unborn branch named <code>&lt;branch&gt;</code> (after
+<code>$(basename &lt;path&gt;)</code> if neither <code>-b</code> or <code>-B</code> is used) as if <code>--orphan</code> was
+passed to the command. In the event the repository has a remote and
+<code>--guess-remote</code> is used, but no remote or local branches exist, then the
+command fails with a warning reminding the user to fetch from their remote
+first (or override by using <code>-f/--force</code>).</p></div>
 </dd>
 <dt class="hdlist1">
 list
@@ -1038,6 +1048,15 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--orphan
+</dt>
+<dd>
+<p>
+        With <code>add</code>, make the new worktree and index empty, associating
+        the worktree with a new unborn branch named <code>&lt;new-branch&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
 --porcelain
 </dt>
 <dd>
@@ -1126,7 +1145,8 @@ rules and how to access refs of one worktree from another.</p></div>
 <div class="paragraph"><p>In general, all pseudo refs are per-worktree and all refs starting with
 <code>refs/</code> are shared. Pseudo refs are ones like <code>HEAD</code> which are directly
 under <code>$GIT_DIR</code> instead of inside <code>$GIT_DIR/refs</code>. There are exceptions,
-however: refs inside <code>refs/bisect</code> and <code>refs/worktree</code> are not shared.</p></div>
+however: refs inside <code>refs/bisect</code>, <code>refs/worktree</code> and <code>refs/rewritten</code> are
+not shared.</p></div>
 <div class="paragraph"><p>Refs that are per-worktree can still be accessed from another worktree via
 two special paths, <code>main-worktree</code> and <code>worktrees</code>. The former gives
 access to per-worktree refs of the main worktree, while the latter to all
@@ -1209,8 +1229,8 @@ linked worktree <code>git rev-parse --git-path HEAD</code> returns
 <code>/path/other/test-next/.git/HEAD</code> or <code>/path/main/.git/HEAD</code>) while <code>git
 rev-parse --git-path refs/heads/master</code> uses
 <code>$GIT_COMMON_DIR</code> and returns <code>/path/main/.git/refs/heads/master</code>,
-since refs are shared across all worktrees, except <code>refs/bisect</code> and
-<code>refs/worktree</code>.</p></div>
+since refs are shared across all worktrees, except <code>refs/bisect</code>,
+<code>refs/worktree</code> and <code>refs/rewritten</code>.</p></div>
 <div class="paragraph"><p>See <a href="gitrepository-layout.html">gitrepository-layout(5)</a> for more information. The rule of
 thumb is do not make any assumption about whether a path belongs to
 <code>$GIT_DIR</code> or <code>$GIT_COMMON_DIR</code> when you need to directly access something
@@ -1379,7 +1399,7 @@ checkouts of a superproject.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-08-31 14:31:31 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

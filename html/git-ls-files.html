@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-ls-files(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -750,8 +750,9 @@ git-ls-files(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git ls-files</em> [-z] [-t] [-v] [-f]
-                [-c|--cached] [-d|--deleted] [-o|--others] [-i|--|ignored]
-                [-s|--stage] [-u|--unmerged] [-k|--|killed] [-m|--modified]
+                [-c|--cached] [-d|--deleted] [-o|--others] [-i|--ignored]
+                [-s|--stage] [-u|--unmerged] [-k|--killed] [-m|--modified]
+                [--resolve-undo]
                 [--directory [--no-empty-directory]] [--eol]
                 [--deduplicate]
                 [-x &lt;pattern&gt;|--exclude=&lt;pattern&gt;]
@@ -768,10 +769,12 @@ git-ls-files(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This merges the file listing in the index with the actual working
+<div class="paragraph"><p>This command merges the file listing in the index with the actual working
 directory list, and shows different combinations of the two.</p></div>
-<div class="paragraph"><p>One or more of the options below may be used to determine the files
-shown:</p></div>
+<div class="paragraph"><p>Several flags can be used to determine which files are
+shown, and each file may be printed multiple times if there are
+multiple entries in the index or if multiple statuses are applicable for
+the relevant file selection options.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -786,7 +789,9 @@ shown:</p></div>
 </dt>
 <dd>
 <p>
-        Show cached files in the output (default)
+        Show all files cached in Git&#8217;s index, i.e. all tracked files.
+        (This is the default if no -c/-s/-d/-o/-u/-k/-m/--resolve-undo
+        options are specified.)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -797,7 +802,7 @@ shown:</p></div>
 </dt>
 <dd>
 <p>
-        Show deleted files in the output
+        Show files with an unstaged deletion
 </p>
 </dd>
 <dt class="hdlist1">
@@ -808,7 +813,8 @@ shown:</p></div>
 </dt>
 <dd>
 <p>
-        Show modified files in the output
+        Show files with an unstaged modification (note that an unstaged
+        deletion also counts as an unstaged modification)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -830,11 +836,14 @@ shown:</p></div>
 </dt>
 <dd>
 <p>
-        Show only ignored files in the output. When showing files in the
-        index, print only those matched by an exclude pattern. When
-        showing "other" files, show only those matched by an exclude
-        pattern. Standard ignore rules are not automatically activated,
-        therefore at least one of the <code>--exclude*</code> options is required.
+        Show only ignored files in the output.  Must be used with
+        either an explicit <em>-c</em> or <em>-o</em>.  When showing files in the
+        index (i.e. when used with <em>-c</em>), print only those files
+        matching an exclude pattern.  When showing "other" files
+        (i.e. when used with <em>-o</em>), show only those matched by an
+        exclude pattern.  Standard ignore rules are not automatically
+        activated; therefore, at least one of the <code>--exclude*</code> options
+        is required.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -855,6 +864,7 @@ shown:</p></div>
 <p>
         If a whole directory is classified as "other", show just its
         name (with a trailing slash) and not its whole contents.
+        Has no effect without -o/--others.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -873,7 +883,9 @@ shown:</p></div>
 </dt>
 <dd>
 <p>
-        Show unmerged files in the output (forces --stage)
+        Show information about unmerged files in the output, but do
+        not show any other tracked files (forces --stage, overrides
+        --cached).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -884,9 +896,21 @@ shown:</p></div>
 </dt>
 <dd>
 <p>
-        Show files on the filesystem that need to be removed due
-        to file/directory conflicts for checkout-index to
-        succeed.
+        Show untracked files on the filesystem that need to be removed
+        due to file/directory conflicts for tracked files to be able to
+        be written to the filesystem.
+</p>
+</dd>
+<dt class="hdlist1">
+--resolve-undo
+</dt>
+<dd>
+<p>
+        Show files having resolve-undo information in the index
+        together with their resolve-undo information.  (resolve-undo
+        information is what is used to implement "git checkout -m
+        $PATH", i.e. to recreate merge conflicts that were
+        accidentally resolved)
 </p>
 </dd>
 <dt class="hdlist1">
@@ -940,7 +964,10 @@ shown:</p></div>
 <dd>
 <p>
         Read additional exclude patterns that apply only to the
-        directory and its subdirectories in &lt;file&gt;.
+        directory and its subdirectories in &lt;file&gt;.  If you are
+        trying to emulate the way Porcelain commands work, using
+        the <code>--exclude-standard</code> option instead is easier and more
+        thorough.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -978,24 +1005,25 @@ shown:</p></div>
 </dt>
 <dd>
 <p>
-        This feature is semi-deprecated. For scripting purpose,
-        <a href="git-status.html">git-status(1)</a> <code>--porcelain</code> and
+        Show status tags together with filenames.  Note that for
+        scripting purposes, <a href="git-status.html">git-status(1)</a> <code>--porcelain</code> and
         <a href="git-diff-files.html">git-diff-files(1)</a> <code>--name-status</code> are almost always
-        superior alternatives, and users should look at
+        superior alternatives; users should look at
         <a href="git-status.html">git-status(1)</a> <code>--short</code> or <a href="git-diff.html">git-diff(1)</a>
         <code>--name-status</code> for more user-friendly alternatives.
 </p>
 <div class="openblock">
 <div class="content">
-<div class="paragraph"><p>This option identifies the file status with the following tags (followed by
-a space) at the start of each line:</p></div>
+<div class="paragraph"><p>This option provides a reason for showing each filename, in the form
+of a status tag (which is followed by a space and then the filename).
+The status tags are all single characters from the following list:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 H
 </dt>
 <dd>
 <p>
-cached
+tracked file that is not either unmerged or skip-worktree
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1003,7 +1031,7 @@ S
 </dt>
 <dd>
 <p>
-skip-worktree
+tracked file that is skip-worktree
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1011,7 +1039,7 @@ M
 </dt>
 <dd>
 <p>
-unmerged
+tracked file that is unmerged
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1019,7 +1047,7 @@ R
 </dt>
 <dd>
 <p>
-removed/deleted
+tracked file with unstaged removal/deletion
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1027,7 +1055,7 @@ C
 </dt>
 <dd>
 <p>
-modified/changed
+tracked file with unstaged modification/change
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1035,7 +1063,8 @@ K
 </dt>
 <dd>
 <p>
-to be killed
+untracked paths which are part of file/directory conflicts
+                which prevent checking out tracked files
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1043,7 +1072,15 @@ to be killed
 </dt>
 <dd>
 <p>
-other
+untracked file
+</p>
+</dd>
+<dt class="hdlist1">
+U
+</dt>
+<dd>
+<p>
+file with resolve-undo information
 </p>
 </dd>
 </dl></div>
@@ -1223,11 +1260,29 @@ objectmode
 </p>
 </dd>
 <dt class="hdlist1">
+objecttype
+</dt>
+<dd>
+<p>
+        The object type of the file which is recorded in the index.
+</p>
+</dd>
+<dt class="hdlist1">
 objectname
 </dt>
 <dd>
 <p>
         The name of the file which is recorded in the index.
+</p>
+</dd>
+<dt class="hdlist1">
+objectsize[:padded]
+</dt>
+<dd>
+<p>
+        The object size of the file which is recorded in the index
+        ("-" if the object is a <code>commit</code> or <code>tree</code>).
+        It also supports a padded format of size with "%(objectsize:padded)".
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1277,7 +1332,8 @@ path
 traversing the directory tree and finding files to show when the
 flags --others or --ignored are specified.  <a href="gitignore.html">gitignore(5)</a>
 specifies the format of exclude patterns.</p></div>
-<div class="paragraph"><p>These exclude patterns come from these places, in order:</p></div>
+<div class="paragraph"><p>These exclude patterns can be specified from the following places,
+in order:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -1308,6 +1364,24 @@ from the file specified with --exclude-from is relative to the
 top of the directory tree.  A pattern read from a file specified
 by --exclude-per-directory is relative to the directory that the
 pattern file appears in.</p></div>
+<div class="paragraph"><p>Generally, you should be able to use <code>--exclude-standard</code> when you
+want the exclude rules applied the same way as what Porcelain
+commands do.  To emulate what <code>--exclude-standard</code> specifies, you
+can give <code>--exclude-per-directory=.gitignore</code>, and then specify:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The file specified by the <code>core.excludesfile</code> configuration
+     variable, if exists, or the <code>$XDG_CONFIG_HOME/git/ignore</code> file.
+</p>
+</li>
+<li>
+<p>
+The <code>$GIT_DIR/info/exclude</code> file.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>via the <code>--exclude-from=</code> option.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1327,7 +1401,7 @@ pattern file appears in.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitformat-signature(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -761,11 +761,40 @@ gitformat-signature(5) Manual Page
 <div class="paragraph"><p>Git uses cryptographic signatures in various places, currently objects (tags,
 commits, mergetags) and transactions (pushes). In every case, the command which
 is about to create an object or transaction determines a payload from that,
-calls gpg to obtain a detached signature for the payload (<code>gpg -bsa</code>) and
-embeds the signature into the object or transaction.</p></div>
-<div class="paragraph"><p>Signatures always begin with <code>-----BEGIN PGP SIGNATURE-----</code>
-and end with <code>-----END PGP SIGNATURE-----</code>, unless gpg is told to
-produce RFC1991 signatures which use <code>MESSAGE</code> instead of <code>SIGNATURE</code>.</p></div>
+calls an external program to obtain a detached signature for the payload
+(<code>gpg -bsa</code> in the case of PGP signatures), and embeds the signature into the
+object or transaction.</p></div>
+<div class="paragraph"><p>Signatures begin with an "ASCII Armor" header line and end with a tail line,
+which differ depending on signature type (as selected by <code>gpg.format</code>, see
+<a href="git-config.html">git-config(1)</a>). These are, for <code>gpg.format</code> values:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>gpg</code> (PGP)
+</dt>
+<dd>
+<p>
+        <code>-----BEGIN PGP SIGNATURE-----</code> and <code>-----END PGP SIGNATURE-----</code>.
+        Or, if gpg is told to produce RFC1991 signatures,
+        <code>-----BEGIN PGP MESSAGE-----</code> and <code>-----END PGP MESSAGE-----</code>
+</p>
+</dd>
+<dt class="hdlist1">
+<code>ssh</code> (SSH)
+</dt>
+<dd>
+<p>
+        <code>-----BEGIN SSH SIGNATURE-----</code> and <code>-----END SSH SIGNATURE-----</code>
+</p>
+</dd>
+<dt class="hdlist1">
+<code>x509</code> (X.509)
+</dt>
+<dd>
+<p>
+        <code>-----BEGIN SIGNED MESSAGE-----</code> and <code>-----END SIGNED MESSAGE-----</code>
+</p>
+</dd>
+</dl></div>
 <div class="paragraph"><p>Signatures sometimes appear as a part of the normal payload
 (e.g. a signed tag has the signature block appended after the payload
 that the signature applies to), and sometimes appear in the value of
@@ -778,7 +807,7 @@ line.</p></div>
 <div class="paragraph"><p>This is even true for an originally empty line.  In the following
 examples, the end of line that ends with a whitespace letter is
 highlighted with a <code>$</code> sign; if you are trying to recreate these
-example by hand, do not cut and paste them---they are there
+example by hand, do not cut and paste them&#8212;they are there
 primarily to highlight extra whitespace at the end of some lines.</p></div>
 <div class="paragraph"><p>The signed payload and the way the signature is embedded depends
 on the type of the object resp. transaction.</p></div>
@@ -1035,7 +1064,7 @@ Date:   Wed Jun 15 09:13:29 2016 +0000
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

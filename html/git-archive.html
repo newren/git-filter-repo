@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-archive(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -764,14 +764,14 @@ git-archive(1) Manual Page
 structure for the named tree, and writes it out to the standard
 output.  If &lt;prefix&gt; is specified it is
 prepended to the filenames in the archive.</p></div>
-<div class="paragraph"><p><em>git archive</em> behaves differently when given a tree ID versus when
-given a commit ID or tag ID.  In the first case the current time is
-used as the modification time of each file in the archive.  In the latter
-case the commit time as recorded in the referenced commit object is
-used instead.  Additionally the commit ID is stored in a global
-extended pax header if the tar format is used; it can be extracted
-using <em>git get-tar-commit-id</em>. In ZIP files it is stored as a file
-comment.</p></div>
+<div class="paragraph"><p><em>git archive</em> behaves differently when given a tree ID as opposed to a
+commit ID or tag ID. When a tree ID is provided, the current time is
+used as the modification time of each file in the archive. On the
+other hand, when a commit ID or tag ID is provided, the commit time as
+recorded in the referenced commit object is used instead.
+Additionally the commit ID is stored in a global extended pax header
+if the tar format is used; it can be extracted using <em>git
+get-tar-commit-id</em>. In ZIP files it is stored as a file comment.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -873,6 +873,16 @@ cases, write an untracked file and use <code>--add-file</code> instead.</p></div
 <p>
         Look for attributes in .gitattributes files in the working tree
         as well (see <a href="#ATTRIBUTES">[ATTRIBUTES]</a>).
+</p>
+</dd>
+<dt class="hdlist1">
+--mtime=&lt;time&gt;
+</dt>
+<dd>
+<p>
+        Set modification time of archive entries.  Without this option
+        the committer time is used if <code>&lt;tree-ish&gt;</code> is a commit or tag,
+        and the current time if it is a tree.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1149,7 +1159,7 @@ while archiving any tree in your <code>$GIT_DIR/info/attributes</code> file.</p>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

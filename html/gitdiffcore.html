@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitdiffcore(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -940,7 +940,7 @@ number after the "-M" or "-C" option (e.g. "-M8" to tell it to use
 detection are off, rename detection adds a preliminary step that first
 checks if files are moved across directories while keeping their
 filename the same.  If there is a file added to a directory whose
-contents is sufficiently similar to a file with the same name that got
+contents are sufficiently similar to a file with the same name that got
 deleted from a different directory, it will mark them as renames and
 exclude them from the later quadratic step (the one that pairwise
 compares all unmatched files to find the "best" matches, determined by
@@ -978,7 +978,7 @@ from the original, and does not count insertion.  If you removed
 only 10 lines from a 100-line document, even if you added 910
 new lines to make a new 1000-line document, you did not do a
 complete rewrite.  diffcore-break breaks such a case in order to
-help diffcore-rename to consider such filepairs as candidate of
+help diffcore-rename to consider such filepairs as a candidate of
 rename/copy detection, but if filepairs broken that way were not
 matched with other filepairs to create rename/copy, then this
 transformation merges them back into the original
@@ -1001,13 +1001,13 @@ like these:</p></div>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>Note that earlier implementation left a broken pair as a separate
-creation and deletion patches.  This was an unnecessary hack and
+<div class="paragraph"><p>Note that earlier implementation left a broken pair as separate
+creation and deletion patches.  This was an unnecessary hack, and
 the latest implementation always merges all the broken pairs
 back into modifications, but the resulting patch output is
 formatted differently for easier review in case of such
-a complete rewrite by showing the entire contents of old version
-prefixed with <em>-</em>, followed by the entire contents of new
+a complete rewrite by showing the entire contents of the old version
+prefixed with <em>-</em>, followed by the entire contents of the new
 version prefixed with <em>+</em>.</p></div>
 </div>
 </div>
@@ -1016,23 +1016,23 @@ version prefixed with <em>+</em>.</p></div>
 <div class="sectionbody">
 <div class="paragraph"><p>This transformation limits the set of filepairs to those that change
 specified strings between the preimage and the postimage in a certain
-way.  -S&lt;block of text&gt; and -G&lt;regular expression&gt; options are used to
+way.  -S&lt;block-of-text&gt; and -G&lt;regular-expression&gt; options are used to
 specify different ways these strings are sought.</p></div>
-<div class="paragraph"><p>"-S&lt;block of text&gt;" detects filepairs whose preimage and postimage
+<div class="paragraph"><p>"-S&lt;block-of-text&gt;" detects filepairs whose preimage and postimage
 have different number of occurrences of the specified block of text.
 By definition, it will not detect in-file moves.  Also, when a
 changeset moves a file wholesale without affecting the interesting
 string, diffcore-rename kicks in as usual, and <code>-S</code> omits the filepair
 (since the number of occurrences of that string didn&#8217;t change in that
 rename-detected filepair).  When used with <code>--pickaxe-regex</code>, treat
-the &lt;block of text&gt; as an extended POSIX regular expression to match,
+the &lt;block-of-text&gt; as an extended POSIX regular expression to match,
 instead of a literal string.</p></div>
-<div class="paragraph"><p>"-G&lt;regular expression&gt;" (mnemonic: grep) detects filepairs whose
+<div class="paragraph"><p>"-G&lt;regular-expression&gt;" (mnemonic: grep) detects filepairs whose
 textual diff has an added or a deleted line that matches the given
 regular expression.  This means that it will detect in-file (or what
 rename-detection considers the same file) moves, which is noise.  The
 implementation runs diff twice and greps, and this can be quite
-expensive.  To speed things up binary files without textconv filters
+expensive.  To speed things up, binary files without textconv filters
 will be ignored.</p></div>
 <div class="paragraph"><p>When <code>-S</code> or <code>-G</code> are used without <code>--pickaxe-all</code>, only filepairs
 that match their respective criterion are kept in the output.  When
@@ -1108,7 +1108,7 @@ not sorted when diffcore-order is in effect.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

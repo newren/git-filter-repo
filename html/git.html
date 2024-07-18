@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -753,8 +753,7 @@ git(1) Manual Page
     [--exec-path[=&lt;path&gt;]] [--html-path] [--man-path] [--info-path]
     [-p|--paginate|-P|--no-pager] [--no-replace-objects] [--bare]
     [--git-dir=&lt;path&gt;] [--work-tree=&lt;path&gt;] [--namespace=&lt;name&gt;]
-    [--super-prefix=&lt;path&gt;] [--config-env=&lt;name&gt;=&lt;envvar&gt;]
-    &lt;command&gt; [&lt;args&gt;]</pre>
+    [--config-env=&lt;name&gt;=&lt;envvar&gt;] &lt;command&gt; [&lt;args&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -866,9 +865,9 @@ foo.bar= ...</code>) sets <code>foo.bar</code> to the empty string which <code>g
         to avoid ambiguity with <code>&lt;name&gt;</code> containing one.
 </p>
 <div class="paragraph"><p>This is useful for cases where you want to pass transitory
-configuration options to git, but are doing so on OS&#8217;s where
-other processes might be able to read your cmdline
-(e.g. <code>/proc/self/cmdline</code>), but not your environ
+configuration options to git, but are doing so on operating systems
+where other processes might be able to read your command line
+(e.g. <code>/proc/self/cmdline</code>), but not your environment
 (e.g. <code>/proc/self/environ</code>). That behavior is the default on
 Linux, but may not be on your system.</p></div>
 <div class="paragraph"><p>Note that this might add security for variables such as
@@ -985,16 +984,6 @@ environment variable)</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---super-prefix=&lt;path&gt;
-</dt>
-<dd>
-<p>
-        Currently for internal use only.  Set a prefix which gives a path from
-        above a repository down to its root.  One use is to give submodules
-        context about the superproject that invoked it.
-</p>
-</dd>
-<dt class="hdlist1">
 --bare
 </dt>
 <dd>
@@ -1009,8 +998,22 @@ environment variable)</p></div>
 </dt>
 <dd>
 <p>
-        Do not use replacement refs to replace Git objects. See
-        <a href="git-replace.html">git-replace(1)</a> for more information.
+        Do not use replacement refs to replace Git objects.
+        This is equivalent to exporting the <code>GIT_NO_REPLACE_OBJECTS</code>
+        environment variable with any value.
+        See <a href="git-replace.html">git-replace(1)</a> for more information.
+</p>
+</dd>
+<dt class="hdlist1">
+--no-lazy-fetch
+</dt>
+<dd>
+<p>
+        Do not fetch missing objects from the promisor remote on
+        demand.  Useful together with <code>git cat-file -e &lt;object&gt;</code> to
+        see if the object is locally available.
+        This is equivalent to setting the <code>GIT_NO_LAZY_FETCH</code>
+        environment variable to <code>1</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1064,7 +1067,7 @@ environment variable)</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---list-cmds=group[,group&#8230;]
+--list-cmds=&lt;group&gt;[,&lt;group&gt;&#8230;]
 </dt>
 <dd>
 <p>
@@ -1076,6 +1079,16 @@ environment variable)</p></div>
         list-&lt;category&gt; (see categories in command-list.txt),
         nohelpers (exclude helper commands), alias and config
         (retrieve command list from config variable completion.commands)
+</p>
+</dd>
+<dt class="hdlist1">
+--attr-source=&lt;tree-ish&gt;
+</dt>
+<dd>
+<p>
+        Read gitattributes from &lt;tree-ish&gt; instead of the worktree. See
+        <a href="gitattributes.html">gitattributes(5)</a>. This is equivalent to setting the
+        <code>GIT_ATTR_SOURCE</code> environment variable.
 </p>
 </dd>
 </dl></div>
@@ -1670,7 +1683,7 @@ ancillary user utilities.</p></div>
 </dt>
 <dd>
 <p>
-        Show logs with difference each commit introduces.
+        Show logs with differences each commit introduces.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1861,7 +1874,7 @@ repositories.</p></div>
 </dt>
 <dd>
 <p>
-        Compute object ID and optionally creates a blob from a file.
+        Compute object ID and optionally create an object from a file.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1937,6 +1950,14 @@ repositories.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+<a href="git-replay.html">git-replay(1)</a>
+</dt>
+<dd>
+<p>
+        EXPERIMENTAL: Replay commits on a new base, works with bare repos too.
+</p>
+</dd>
+<dt class="hdlist1">
 <a href="git-symbolic-ref.html">git-symbolic-ref(1)</a>
 </dt>
 <dd>
@@ -1986,7 +2007,7 @@ repositories.</p></div>
 </dt>
 <dd>
 <p>
-        Provide content or type and size information for repository objects.
+        Provide contents or details of repository objects.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2617,7 +2638,7 @@ other git developer interfaces. See <code>--developer-interfaces</code> in
 </dt>
 <dd>
 <p>
-        Git commit graph format.
+        Git commit-graph format.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2848,7 +2869,11 @@ HEAD
 <div class="sect1">
 <h2 id="_environment_variables">Environment Variables</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Various Git commands use the following environment variables:</p></div>
+<div class="paragraph"><p>Various Git commands pay attention to environment variables and change
+their behavior.  The environment variables marked as "Boolean" take
+their values the same way as Boolean valued configuration variables, e.g.
+"true", "yes", "on" and positive numbers are taken as "yes".</p></div>
+<div class="paragraph"><p>Here are the variables:</p></div>
 <div class="sect2">
 <h3 id="_the_git_repository">The Git Repository</h3>
 <div class="paragraph"><p>These environment variables apply to <em>all</em> core Git commands. Nb: it
@@ -2860,7 +2885,7 @@ Git so take care if using a foreign front-end.</p></div>
 </dt>
 <dd>
 <p>
-        This environment allows the specification of an alternate
+        This environment variable specifies an alternate
         index file. If not specified, the default of <code>$GIT_DIR/index</code>
         is used.
 </p>
@@ -2870,8 +2895,8 @@ Git so take care if using a foreign front-end.</p></div>
 </dt>
 <dd>
 <p>
-        This environment variable allows the specification of an index
-        version for new repositories.  It won&#8217;t affect existing index
+        This environment variable specifies what index version is used
+        when writing the index file out.  It won&#8217;t affect existing index
         files.  By default index file version 2 or 3 is used. See
         <a href="git-update-index.html">git-update-index(1)</a> for more information.
 </p>
@@ -2962,7 +2987,7 @@ double-quotes and respecting backslash escapes. E.g., the value
         When run in a directory that does not have ".git" repository
         directory, Git tries to find such a directory in the parent
         directories to find the top of the working tree, but by default it
-        does not cross filesystem boundaries.  This environment variable
+        does not cross filesystem boundaries.  This Boolean environment variable
         can be set to true to tell Git not to stop at filesystem
         boundaries.  Like <code>GIT_CEILING_DIRECTORIES</code>, this will not affect
         an explicit repository directory set via <code>GIT_DIR</code> or on the
@@ -2989,10 +3014,20 @@ double-quotes and respecting backslash escapes. E.g., the value
 <dd>
 <p>
         If this variable is set, the default hash algorithm for new
-        repositories will be set to this value. This value is currently
-        ignored when cloning; the setting of the remote repository
-        is used instead. The default is "sha1". THIS VARIABLE IS
-        EXPERIMENTAL! See <code>--object-format</code> in <a href="git-init.html">git-init(1)</a>.
+        repositories will be set to this value. This value is
+        ignored when cloning and the setting of the remote repository
+        is always used. The default is "sha1".
+        See <code>--object-format</code> in <a href="git-init.html">git-init(1)</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_DEFAULT_REF_FORMAT</code>
+</dt>
+<dd>
+<p>
+        If this variable is set, the default reference backend format for new
+        repositories will be set to this value. The default is "files".
+        See <code>--ref-format</code> in <a href="git-init.html">git-init(1)</a>.
 </p>
 </dd>
 </dl></div>
@@ -3128,7 +3163,7 @@ are the octal representation of the file modes.
 (e.g. <code>new-file</code> in "git-diff-files"), <code>/dev/null</code> (e.g. <code>old-file</code>
 when a new file is added), or a temporary file (e.g. <code>old-file</code> in the
 index).  <code>GIT_EXTERNAL_DIFF</code> should not worry about unlinking the
-temporary file --- it is removed when <code>GIT_EXTERNAL_DIFF</code> exits.</p></div>
+temporary file&#8201;&#8212;&#8201;it is removed when <code>GIT_EXTERNAL_DIFF</code> exits.</p></div>
 <div class="paragraph"><p>For a path that is unmerged, <code>GIT_EXTERNAL_DIFF</code> is called with 1
 parameter, &lt;path&gt;.</p></div>
 <div class="paragraph"><p>For each path <code>GIT_EXTERNAL_DIFF</code> is called, two environment variables,
@@ -3243,6 +3278,24 @@ for further details.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+<code>GIT_SSL_NO_VERIFY</code>
+</dt>
+<dd>
+<p>
+        Setting and exporting this environment variable to any value
+        tells Git not to verify the SSL certificate when fetching or
+        pushing over HTTPS.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_ATTR_SOURCE</code>
+</dt>
+<dd>
+<p>
+        Sets the treeish that gitattributes will be read from.
+</p>
+</dd>
+<dt class="hdlist1">
 <code>GIT_ASKPASS</code>
 </dt>
 <dd>
@@ -3259,7 +3312,7 @@ for further details.</p></div>
 </dt>
 <dd>
 <p>
-        If this environment variable is set to <code>0</code>, git will not prompt
+        If this Boolean environment variable is set to false, git will not prompt
         on the terminal (e.g., when asking for HTTP authentication).
 </p>
 </dd>
@@ -3286,10 +3339,10 @@ for further details.</p></div>
 <dd>
 <p>
         Whether to skip reading settings from the system-wide
-        <code>$(prefix)/etc/gitconfig</code> file.  This environment variable can
+        <code>$(prefix)/etc/gitconfig</code> file.  This Boolean environment variable can
         be used along with <code>$HOME</code> and <code>$XDG_CONFIG_HOME</code> to create a
         predictable environment for a picky script, or you can set it
-        temporarily to avoid using a buggy <code>/etc/gitconfig</code> file while
+        to true to temporarily avoid using a buggy <code>/etc/gitconfig</code> file while
         waiting for someone with sufficient permissions to fix it.
 </p>
 </dd>
@@ -3298,12 +3351,12 @@ for further details.</p></div>
 </dt>
 <dd>
 <p>
-        If this environment variable is set to "1", then commands such
+        If this Boolean environment variable is set to true, then commands such
         as <em>git blame</em> (in incremental mode), <em>git rev-list</em>, <em>git log</em>,
         <em>git check-attr</em> and <em>git check-ignore</em> will
         force a flush of the output stream after each record have been
         flushed. If this
-        variable is set to "0", the output of these commands will be done
+        variable is set to false, the output of these commands will be done
         using completely buffered I/O.   If this environment variable is
         not set, Git will choose buffered or record-oriented flushing
         based on whether stdout appears to be redirected to a file or not.
@@ -3463,7 +3516,7 @@ in that directory, named according to the last component
 of the SID and an optional counter (to avoid filename
 collisions).</p></div>
 <div class="paragraph"><p>In addition, if the variable is set to
-<code>af_unix:[&lt;socket_type&gt;:]&lt;absolute-pathname&gt;</code>, Git will try
+<code>af_unix:[&lt;socket-type&gt;:]&lt;absolute-pathname&gt;</code>, Git will try
 to open the path as a Unix Domain Socket.  The socket type
 can be either <code>stream</code> or <code>dgram</code>.</p></div>
 <div class="paragraph"><p>Unsetting the variable, or setting it to empty, "0" or
@@ -3501,8 +3554,17 @@ for full details.</p></div>
 <p>
         By default, when tracing is activated, Git redacts the values of
         cookies, the "Authorization:" header, the "Proxy-Authorization:"
-        header and packfile URIs. Set this variable to <code>0</code> to prevent this
+        header and packfile URIs. Set this Boolean environment variable to false to prevent this
         redaction.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_NO_REPLACE_OBJECTS</code>
+</dt>
+<dd>
+<p>
+        Setting and exporting this environment variable tells Git to
+        ignore replacement refs and do not replace Git objects.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3510,7 +3572,7 @@ for full details.</p></div>
 </dt>
 <dd>
 <p>
-        Setting this variable to <code>1</code> will cause Git to treat all
+        Setting this Boolean environment variable to true will cause Git to treat all
         pathspecs literally, rather than as glob patterns. For example,
         running <code>GIT_LITERAL_PATHSPECS=1 git log -- '*.c'</code> will search
         for commits that touch the path <code>*.c</code>, not any paths that the
@@ -3524,7 +3586,7 @@ for full details.</p></div>
 </dt>
 <dd>
 <p>
-        Setting this variable to <code>1</code> will cause Git to treat all
+        Setting this Boolean environment variable to true will cause Git to treat all
         pathspecs as glob patterns (aka "glob" magic).
 </p>
 </dd>
@@ -3533,7 +3595,7 @@ for full details.</p></div>
 </dt>
 <dd>
 <p>
-        Setting this variable to <code>1</code> will cause Git to treat all
+        Setting this Boolean environment variable to true will cause Git to treat all
         pathspecs as literal (aka "literal" magic).
 </p>
 </dd>
@@ -3542,8 +3604,18 @@ for full details.</p></div>
 </dt>
 <dd>
 <p>
-        Setting this variable to <code>1</code> will cause Git to treat all
+        Setting this Boolean environment variable to true will cause Git to treat all
         pathspecs as case-insensitive.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_NO_LAZY_FETCH</code>
+</dt>
+<dd>
+<p>
+        Setting this Boolean environment variable to true tells Git
+        not to lazily fetch missing objects from the promisor remote
+        on demand.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -3566,7 +3638,7 @@ for full details.</p></div>
 </dt>
 <dd>
 <p>
-        If set to <code>0</code>, ignore broken or badly named refs when iterating
+        If this Boolean environment variable is set to false, ignore broken or badly named refs when iterating
         over lists of refs. Normally Git will try to include any such
         refs, which may cause some operations to fail. This is usually
         preferable, as potentially destructive operations (e.g.,
@@ -3577,6 +3649,20 @@ for full details.</p></div>
         should not normally need to set this to <code>0</code>, but it may be
         useful when trying to salvage data from a corrupted repository.
 </p>
+</dd>
+<dt class="hdlist1">
+<code>GIT_COMMIT_GRAPH_PARANOIA</code>
+</dt>
+<dd>
+<p>
+        When loading a commit object from the commit-graph, Git performs an
+        existence check on the object in the object database. This is done to
+        avoid issues with stale commit-graphs that contain references to
+        already-deleted commits, but comes with a performance penalty.
+</p>
+<div class="paragraph"><p>The default is "false", which disables the aforementioned behavior.
+Setting this to "true" enables the existence check so that stale commits
+will never be returned from the commit-graph at the cost of performance.</p></div>
 </dd>
 <dt class="hdlist1">
 <code>GIT_ALLOW_PROTOCOL</code>
@@ -3595,7 +3681,7 @@ for full details.</p></div>
 </dt>
 <dd>
 <p>
-        Set to 0 to prevent protocols used by fetch/push/clone which are
+        Set this Boolean environment variable to false to prevent protocols used by fetch/push/clone which are
         configured to the <code>user</code> state.  This is useful to restrict recursive
         submodule initialization from an untrusted repository or for programs
         which feed potentially-untrusted URLS to git commands.  See
@@ -3609,7 +3695,7 @@ for full details.</p></div>
 <p>
         For internal use only.  Used in handshaking the wire protocol.
         Contains a colon <em>:</em> separated list of keys with optional values
-        <em>key[=value]</em>.  Presence of unknown keys and values must be
+        <em>&lt;key&gt;[=&lt;value&gt;]</em>.  Presence of unknown keys and values must be
         ignored.
 </p>
 <div class="paragraph"><p>Note that servers may need to be configured to allow this variable to
@@ -3631,7 +3717,7 @@ be in the future).</p></div>
 </dt>
 <dd>
 <p>
-        If set to <code>0</code>, Git will complete any requested operation without
+        If this Boolean environment variable is set to false, Git will complete any requested operation without
         performing any optional sub-operations that require taking a lock.
         For example, this will prevent <code>git status</code> from refreshing the
         index as a side effect. This is useful for processes running in
@@ -3711,10 +3797,11 @@ purpose.</p></div>
 <div class="paragraph"><p>When first created, objects are stored in individual files, but for
 efficiency may later be compressed together into "pack files".</p></div>
 <div class="paragraph"><p>Named pointers called refs mark interesting points in history.  A ref
-may contain the SHA-1 name of an object or the name of another ref.  Refs
-with names beginning <code>ref/head/</code> contain the SHA-1 name of the most
+may contain the SHA-1 name of an object or the name of another ref (the
+latter is called a "symbolic ref").
+Refs with names beginning <code>refs/head/</code> contain the SHA-1 name of the most
 recent commit (or "head") of a branch under development.  SHA-1 names of
-tags of interest are stored under <code>ref/tags/</code>.  A special ref named
+tags of interest are stored under <code>refs/tags/</code>.  A symbolic ref named
 <code>HEAD</code> contains the name of the currently checked-out branch.</p></div>
 <div class="paragraph"><p>The index file is initialized with a list of all paths and, for each
 path, a blob object and a set of attributes.  The blob object represents
@@ -3752,7 +3839,7 @@ read <a href="gitcvs-migration.html">gitcvs-migration(7)</a>.</p></div>
 <div class="sectionbody">
 <div class="paragraph"><p>Git was started by Linus Torvalds, and is currently maintained by Junio
 C Hamano. Numerous contributions have come from the Git mailing list
-&lt;<a href="mailto:git@vger.kernel.org">git@vger.kernel.org</a>&gt;.  <a href="http://www.openhub.net/p/git/contributors/summary">http://www.openhub.net/p/git/contributors/summary</a>
+&lt;<a href="mailto:git@vger.kernel.org">git@vger.kernel.org</a>&gt;.  <a href="https://openhub.net/p/git/contributors/summary">https://openhub.net/p/git/contributors/summary</a>
 gives you a more complete list of contributors.</p></div>
 <div class="paragraph"><p>If you have a clone of git.git itself, the
 output of <a href="git-shortlog.html">git-shortlog(1)</a> and <a href="git-blame.html">git-blame(1)</a> can show you
@@ -3792,7 +3879,7 @@ the Git Security mailing list &lt;<a href="mailto:git-security@googlegroups.com"
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-bugreport(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,8 @@ git-bugreport(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git bugreport</em> [(-o | --output-directory) &lt;path&gt;] [(-s | --suffix) &lt;format&gt;]
+<pre class="content"><em>git bugreport</em> [(-o | --output-directory) &lt;path&gt;]
+                [(-s | --suffix) &lt;format&gt; | --no-suffix]
                 [--diagnose[=&lt;mode&gt;]]</pre>
 <div class="attribution">
 </div></div>
@@ -758,10 +759,11 @@ git-bugreport(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Captures information about the user&#8217;s machine, Git client, and repository state,
-as well as a form requesting information about the behavior the user observed,
-into a single text file which the user can then share, for example to the Git
-mailing list, in order to report an observed bug.</p></div>
+<div class="paragraph"><p>Collects information about the user&#8217;s machine, Git client, and repository
+state, in addition to a form requesting information about the behavior the
+user observed, and stores it in a single text file which the user can then
+share, for example to the Git mailing list, in order to report an observed
+bug.</p></div>
 <div class="paragraph"><p>The following information is requested from the user:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -839,11 +841,16 @@ the kind of information listed above when manually asking for help.</p></div>
 <dt class="hdlist1">
 --suffix &lt;format&gt;
 </dt>
+<dt class="hdlist1">
+--no-suffix
+</dt>
 <dd>
 <p>
         Specify an alternate suffix for the bugreport name, to create a file
-        named <em>git-bugreport-&lt;formatted suffix&gt;</em>. This should take the form of a
+        named <em>git-bugreport-&lt;formatted-suffix&gt;</em>. This should take the form of a
         strftime(3) format string; the current local time will be used.
+        <code>--no-suffix</code> disables the suffix and the file is just named
+        <code>git-bugreport</code> without any disambiguation measure.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -857,7 +864,7 @@ the kind of information listed above when manually asking for help.</p></div>
         Create a zip archive of supplemental information about the user&#8217;s
         machine, Git client, and repository state. The archive is written to the
         same output directory as the bug report and is named
-        <em>git-diagnostics-&lt;formatted suffix&gt;</em>.
+        <em>git-diagnostics-&lt;formatted-suffix&gt;</em>.
 </p>
 <div class="paragraph"><p>Without <code>mode</code> specified, the diagnostic archive will contain the default set of
 statistics reported by <code>git diagnose</code>. An optional <code>mode</code> value may be specified
@@ -879,7 +886,7 @@ about their usage.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-09-16 17:50:33 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

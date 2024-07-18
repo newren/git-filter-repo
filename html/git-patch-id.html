@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-patch-id(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-patch-id(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git patch-id</em> [--stable | --unstable]</pre>
+<pre class="content"><em>git patch-id</em> [--stable | --unstable | --verbatim]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -759,10 +759,10 @@ git-patch-id(1) Manual Page
 <div class="sectionbody">
 <div class="paragraph"><p>Read a patch from the standard input and compute the patch ID for it.</p></div>
 <div class="paragraph"><p>A "patch ID" is nothing but a sum of SHA-1 of the file diffs associated with a
-patch, with whitespace and line numbers ignored.  As such, it&#8217;s "reasonably
-stable", but at the same time also reasonably unique, i.e., two patches that
-have the same "patch ID" are almost guaranteed to be the same thing.</p></div>
-<div class="paragraph"><p>IOW, you can use this thing to look for likely duplicate commits.</p></div>
+patch, with line numbers ignored.  As such, it&#8217;s "reasonably stable", but at
+the same time also reasonably unique, i.e., two patches that have the same
+"patch ID" are almost guaranteed to be the same thing.</p></div>
+<div class="paragraph"><p>The main usecase for this command is to look for likely duplicate commits.</p></div>
 <div class="paragraph"><p>When dealing with <em>git diff-tree</em> output, it takes advantage of
 the fact that the patch is prefixed with the object name of the
 commit, and outputs two 40-byte hexadecimal strings.  The first
@@ -774,6 +774,19 @@ This can be used to make a mapping from patch ID to commit ID.</p></div>
 <h2 id="_options">OPTIONS</h2>
 <div class="sectionbody">
 <div class="dlist"><dl>
+<dt class="hdlist1">
+--verbatim
+</dt>
+<dd>
+<p>
+        Calculate the patch-id of the input as it is given, do not strip
+        any whitespace.
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>This is the default if patchid.verbatim is true.</code></pre>
+</div></div>
+</dd>
 <dt class="hdlist1">
 --stable
 </dt>
@@ -800,6 +813,11 @@ Result is different from the value produced by git 1.9 and older
            of "-O&lt;orderfile&gt;", thereby making existing databases storing such
            "unstable" or historical patch-ids unusable.
 </p>
+</li>
+<li>
+<p>
+All whitespace within the patch is ignored and does not affect the id.
+</p>
 <div class="literalblock">
 <div class="content">
 <pre><code>This is the default if patchid.stable is set to true.</code></pre>
@@ -814,9 +832,9 @@ Result is different from the value produced by git 1.9 and older
 <p>
         Use an "unstable" hash as the patch ID. With this option,
         the result produced is compatible with the patch-id value produced
-        by git 1.9 and older.  Users with pre-existing databases storing
-        patch-ids produced by git 1.9 and older (who do not deal with reordered
-        patches) may want to use this option.
+        by git 1.9 and older and whitespace is ignored.  Users with pre-existing
+        databases storing patch-ids produced by git 1.9 and older (who do not deal
+        with reordered patches) may want to use this option.
 </p>
 <div class="literalblock">
 <div class="content">
@@ -837,7 +855,7 @@ Result is different from the value produced by git 1.9 and older
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-01-27 18:10:56 PST
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

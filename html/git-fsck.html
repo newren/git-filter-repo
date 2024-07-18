@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-fsck(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -775,7 +775,7 @@ git-fsck(1) Manual Page
         An object to treat as the head of an unreachability trace.
 </p>
 <div class="paragraph"><p>If no objects are given, <em>git fsck</em> defaults to using the
-index file, all SHA-1 references in <code>refs</code> namespace, and all reflogs
+index file, all SHA-1 references in the <code>refs</code> namespace, and all reflogs
 (unless --no-reflogs is given) as heads.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -854,7 +854,7 @@ index file, all SHA-1 references in <code>refs</code> namespace, and all reflogs
 <p>
         Check only the connectivity of reachable objects, making sure
         that any objects referenced by a reachable tag, commit, or tree
-        is present. This speeds up the operation by avoiding reading
+        are present. This speeds up the operation by avoiding reading
         blobs entirely (though it does still check that referenced blobs
         exist). This will detect corruption in commits and trees, but
         not do any semantic checks (e.g., for format errors). Corruption
@@ -873,7 +873,7 @@ care about this output and want to speed it up further.</p></div>
         recorded with g+w bit set, which was created by older
         versions of Git.  Existing repositories, including the
         Linux kernel, Git itself, and sparse repository have old
-        objects that triggers this check, but it is recommended
+        objects that trigger this check, but it is recommended
         to check new projects with this flag.
 </p>
 </dd>
@@ -945,12 +945,12 @@ to accept pushes of such data set <code>receive.fsck.&lt;msg-id&gt;</code> inste
 to clone or fetch it set <code>fetch.fsck.&lt;msg-id&gt;</code>.</p></div>
 <div class="paragraph"><p>The rest of the documentation discusses <code>fsck.*</code> for brevity, but the
 same applies for the corresponding <code>receive.fsck.*</code> and
-<code>fetch.&lt;msg-id&gt;.*</code>. variables.</p></div>
-<div class="paragraph"><p>Unlike variables like <code>color.ui</code> and <code>core.editor</code> the
+<code>fetch.fsck.*</code>. variables.</p></div>
+<div class="paragraph"><p>Unlike variables like <code>color.ui</code> and <code>core.editor</code>, the
 <code>receive.fsck.&lt;msg-id&gt;</code> and <code>fetch.fsck.&lt;msg-id&gt;</code> variables will not
 fall back on the <code>fsck.&lt;msg-id&gt;</code> configuration if they aren&#8217;t set. To
-uniformly configure the same fsck settings in different circumstances
-all three of them they must all set to the same values.</p></div>
+uniformly configure the same fsck settings in different circumstances,
+all three of them must be set to the same values.</p></div>
 <div class="paragraph"><p>When <code>fsck.&lt;msg-id&gt;</code> is set, errors can be switched to warnings and
 vice versa by configuring the <code>fsck.&lt;msg-id&gt;</code> setting where the
 <code>&lt;msg-id&gt;</code> is the fsck message ID and the value is one of <code>error</code>,
@@ -965,6 +965,8 @@ allow new instances of the same breakages go unnoticed.</p></div>
 <div class="paragraph"><p>Setting an unknown <code>fsck.&lt;msg-id&gt;</code> value will cause fsck to die, but
 doing the same for <code>receive.fsck.&lt;msg-id&gt;</code> and <code>fetch.fsck.&lt;msg-id&gt;</code>
 will only cause git to warn.</p></div>
+<div class="paragraph"><p>See the <code>Fsck Messages</code> section of <a href="git-fsck.html">git-fsck(1)</a> for supported
+values of <code>&lt;msg-id&gt;</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 fsck.skipList
@@ -973,12 +975,12 @@ fsck.skipList
 <p>
         The path to a list of object names (i.e. one unabbreviated SHA-1 per
         line) that are known to be broken in a non-fatal way and should
-        be ignored. On versions of Git 2.20 and later comments (<em>#</em>), empty
-        lines, and any leading and trailing whitespace is ignored. Everything
+        be ignored. On versions of Git 2.20 and later, comments (<em>#</em>), empty
+        lines, and any leading and trailing whitespace are ignored. Everything
         but a SHA-1 per line will error out on older versions.
 </p>
 <div class="paragraph"><p>This feature is useful when an established project should be accepted
-despite early commits containing errors that can be safely ignored
+despite early commits containing errors that can be safely ignored,
 such as invalid committer email addresses.  Note: corrupt objects
 cannot be skipped with this setting.</p></div>
 <div class="paragraph"><p>Like <code>fsck.&lt;msg-id&gt;</code> this variable has corresponding
@@ -986,10 +988,10 @@ cannot be skipped with this setting.</p></div>
 <div class="paragraph"><p>Unlike variables like <code>color.ui</code> and <code>core.editor</code> the
 <code>receive.fsck.skipList</code> and <code>fetch.fsck.skipList</code> variables will not
 fall back on the <code>fsck.skipList</code> configuration if they aren&#8217;t set. To
-uniformly configure the same fsck settings in different circumstances
-all three of them they must all set to the same values.</p></div>
+uniformly configure the same fsck settings in different circumstances,
+all three of them must be set to the same values.</p></div>
 <div class="paragraph"><p>Older versions of Git (before 2.20) documented that the object names
-list should be sorted. This was never a requirement, the object names
+list should be sorted. This was never a requirement; the object names
 could appear in any order, but when reading the list we tracked whether
 the list was sorted for the purposes of an internal binary search
 implementation, which could save itself some work with an already sorted
@@ -1065,6 +1067,489 @@ hash mismatch &lt;object&gt;
 </div>
 </div>
 <div class="sect1">
+<h2 id="_fsck_messages">FSCK MESSAGES</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The following lists the types of errors <code>git fsck</code> detects and what
+each error means, with their default severity.  The severity of the
+error, other than those that are marked as "(FATAL)", can be tweaked
+by setting the corresponding <code>fsck.&lt;msg-id&gt;</code> configuration variable.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>badDate</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Invalid date format in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badDateOverflow</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Invalid date value in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badEmail</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Invalid email format in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badFilemode</code>
+</dt>
+<dd>
+<p>
+        (INFO) A tree contains a bad filemode entry.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badName</code>
+</dt>
+<dd>
+<p>
+        (ERROR) An author/committer name is empty.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badObjectSha1</code>
+</dt>
+<dd>
+<p>
+        (ERROR) An object has a bad sha1.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badParentSha1</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A commit object has a bad parent sha1.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badTagName</code>
+</dt>
+<dd>
+<p>
+        (INFO) A tag has an invalid format.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badTimezone</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Found an invalid time zone in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badTree</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A tree cannot be parsed.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badTreeSha1</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A tree has an invalid format.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badType</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Found an invalid object type.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>duplicateEntries</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A tree contains duplicate file entries.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>emptyName</code>
+</dt>
+<dd>
+<p>
+        (WARN) A path contains an empty name.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>extraHeaderEntry</code>
+</dt>
+<dd>
+<p>
+        (IGNORE) Extra headers found after <code>tagger</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>fullPathname</code>
+</dt>
+<dd>
+<p>
+        (WARN) A path contains the full path starting with "/".
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitattributesBlob</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A non-blob found at <code>.gitattributes</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitattributesLarge</code>
+</dt>
+<dd>
+<p>
+        (ERROR) The <code>.gitattributes</code> blob is too large.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitattributesLineLength</code>
+</dt>
+<dd>
+<p>
+        (ERROR) The <code>.gitattributes</code> blob contains too long lines.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitattributesMissing</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Unable to read <code>.gitattributes</code> blob.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitattributesSymlink</code>
+</dt>
+<dd>
+<p>
+        (INFO) <code>.gitattributes</code> is a symlink.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitignoreSymlink</code>
+</dt>
+<dd>
+<p>
+        (INFO) <code>.gitignore</code> is a symlink.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesBlob</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A non-blob found at <code>.gitmodules</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesLarge</code>
+</dt>
+<dd>
+<p>
+        (ERROR) The <code>.gitmodules</code> file is too large to parse.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesMissing</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Unable to read <code>.gitmodules</code> blob.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesName</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A submodule name is invalid.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesParse</code>
+</dt>
+<dd>
+<p>
+        (INFO) Could not parse <code>.gitmodules</code> blob.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p><code>gitmodulesLarge</code>;
+        (ERROR) <code>.gitmodules</code> blob is too large to parse.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>gitmodulesPath</code>
+</dt>
+<dd>
+<p>
+        (ERROR) <code>.gitmodules</code> path is invalid.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesSymlink</code>
+</dt>
+<dd>
+<p>
+        (ERROR) <code>.gitmodules</code> is a symlink.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesUpdate</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Found an invalid submodule update setting.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>gitmodulesUrl</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Found an invalid submodule url.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>hasDot</code>
+</dt>
+<dd>
+<p>
+        (WARN) A tree contains an entry named <code>.</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>hasDotdot</code>
+</dt>
+<dd>
+<p>
+        (WARN) A tree contains an entry named <code>..</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>hasDotgit</code>
+</dt>
+<dd>
+<p>
+        (WARN) A tree contains an entry named <code>.git</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>largePathname</code>
+</dt>
+<dd>
+<p>
+        (WARN) A tree contains an entry with a very long path name. If
+        the value of <code>fsck.largePathname</code> contains a colon, that value
+        is used as the maximum allowable length (e.g., "warn:10" would
+        complain about any path component of 11 or more bytes). The
+        default value is 4096.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>mailmapSymlink</code>
+</dt>
+<dd>
+<p>
+        (INFO) <code>.mailmap</code> is a symlink.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingAuthor</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Author is missing.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingCommitter</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Committer is missing.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingEmail</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Email is missing in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingNameBeforeEmail</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Missing name before an email in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingObject</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Missing <code>object</code> line in tag object.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingSpaceBeforeDate</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Missing space before date in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingSpaceBeforeEmail</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Missing space before the email in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingTag</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Unexpected end after <code>type</code> line in a tag object.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingTagEntry</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Missing <code>tag</code> line in a tag object.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingTaggerEntry</code>
+</dt>
+<dd>
+<p>
+        (INFO) Missing <code>tagger</code> line in a tag object.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingTree</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Missing <code>tree</code> line in a commit object.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingType</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Invalid type value on the <code>type</code> line in a tag object.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>missingTypeEntry</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Missing <code>type</code> line in a tag object.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>multipleAuthors</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Multiple author lines found in a commit.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>nulInCommit</code>
+</dt>
+<dd>
+<p>
+        (WARN) Found a NUL byte in the commit object body.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>nulInHeader</code>
+</dt>
+<dd>
+<p>
+        (FATAL) NUL byte exists in the object header.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>nullSha1</code>
+</dt>
+<dd>
+<p>
+        (WARN) Tree contains entries pointing to a null sha1.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>treeNotSorted</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A tree is not properly sorted.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>unknownType</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Found an unknown object type.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>unterminatedHeader</code>
+</dt>
+<dd>
+<p>
+        (FATAL) Missing end-of-line in the object header.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>zeroPaddedDate</code>
+</dt>
+<dd>
+<p>
+        (ERROR) Found a zero padded date in an author/committer line.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>zeroPaddedFilemode</code>
+</dt>
+<dd>
+<p>
+        (WARN) Found a zero padded filemode in a tree.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_environment_variables">Environment Variables</h2>
 <div class="sectionbody">
 <div class="dlist"><dl>
@@ -1106,7 +1591,7 @@ GIT_ALTERNATE_OBJECT_DIRECTORIES
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

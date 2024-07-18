@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-grep(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -768,7 +768,7 @@ git-grep(1) Manual Page
            [-f &lt;file&gt;] [-e] &lt;pattern&gt;
            [--and|--or|--not|(|)|-e &lt;pattern&gt;&#8230;]
            [--recurse-submodules] [--parent-basename &lt;basename&gt;]
-           [ [--[no-]exclude-standard] [--cached | --no-index | --untracked] | &lt;tree&gt;&#8230;]
+           [ [--[no-]exclude-standard] [--cached | --untracked | --no-index] | &lt;tree&gt;&#8230;]
            [--] [&lt;pathspec&gt;&#8230;]</pre>
 <div class="attribution">
 </div></div>
@@ -797,14 +797,6 @@ characters.  An empty string as search expression matches all lines.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---no-index
-</dt>
-<dd>
-<p>
-        Search files in the current directory that is not managed by Git.
-</p>
-</dd>
-<dt class="hdlist1">
 --untracked
 </dt>
 <dd>
@@ -812,6 +804,21 @@ characters.  An empty string as search expression matches all lines.</p></div>
         In addition to searching in the tracked files in the working
         tree, search also in untracked files.
 </p>
+</dd>
+<dt class="hdlist1">
+--no-index
+</dt>
+<dd>
+<p>
+        Search files in the current directory that is not managed by Git,
+        or by ignoring that the current directory is managed by Git.  This
+        is rather similar to running the regular <code>grep(1)</code> utility with its
+        <code>-r</code> option specified, but with some additional benefits, such as
+        using pathspec patterns to limit paths;  see the <em>pathspec</em> entry
+        in <a href="gitglossary.html">gitglossary(7)</a> for more information.
+</p>
+<div class="paragraph"><p>This option cannot be used together with <code>--cached</code> or <code>--untracked</code>.
+See also <code>grep.fallbackToNoIndex</code> in <em>CONFIGURATION</em> below.</p></div>
 </dd>
 <dt class="hdlist1">
 --no-exclude-standard
@@ -839,9 +846,9 @@ characters.  An empty string as search expression matches all lines.</p></div>
 <p>
         Recursively search in each submodule that is active and
         checked out in the repository.  When used in combination with the
-        &lt;tree&gt; option the prefix of all submodule output will be the name of
-        the parent project&#8217;s &lt;tree&gt; object. This option has no effect
-        if <code>--no-index</code> is given.
+        <em>&lt;tree&gt;</em> option the prefix of all submodule output will be the name of
+        the parent project&#8217;s <em>&lt;tree&gt;</em> object.  This option cannot be used together
+        with <code>--untracked</code>, and it has no effect if <code>--no-index</code> is specified.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1088,7 +1095,7 @@ providing this option will cause it to die.</p></div>
         Use \0 as the delimiter for pathnames in the output, and print
         them verbatim. Without this option, pathnames with "unusual"
         characters are quoted as explained for the configuration
-        variable core.quotePath (see <a href="git-config.html">git-config(1)</a>).
+        variable <code>core.quotePath</code> (see <a href="git-config.html">git-config(1)</a>).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1241,8 +1248,8 @@ providing this option will cause it to die.</p></div>
 </dt>
 <dd>
 <p>
-        Number of grep worker threads to use.
-        See <code>grep.threads</code> in <em>CONFIGURATION</em> for more information.
+        Number of <code>grep</code> worker threads to use.  See <em>NOTES ON THREADS</em>
+        and <code>grep.threads</code> in <em>CONFIGURATION</em> for more information.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1396,12 +1403,12 @@ in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
 <div class="sect1">
 <h2 id="_notes_on_threads">NOTES ON THREADS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The <code>--threads</code> option (and the grep.threads configuration) will be ignored when
+<div class="paragraph"><p>The <code>--threads</code> option (and the <code>grep.threads</code> configuration) will be ignored when
 <code>--open-files-in-pager</code> is used, forcing a single-threaded execution.</p></div>
 <div class="paragraph"><p>When grepping the object store (with <code>--cached</code> or giving tree objects), running
-with multiple threads might perform slower than single threaded if <code>--textconv</code>
-is given and there&#8217;re too many text conversions. So if you experience low
-performance in this case, it might be desirable to use <code>--threads=1</code>.</p></div>
+with multiple threads might perform slower than single-threaded if <code>--textconv</code>
+is given and there are too many text conversions.  Thus, if low performance is
+experienced in this case, it might be desirable to use <code>--threads=1</code>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1471,7 +1478,7 @@ grep.fallbackToNoIndex
 </dt>
 <dd>
 <p>
-        If set to true, fall back to git grep --no-index if git grep
+        If set to true, fall back to <code>git grep --no-index</code> if <code>git grep</code>
         is executed outside of a git repository.  Defaults to false.
 </p>
 </dd>
@@ -1489,7 +1496,7 @@ grep.fallbackToNoIndex
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

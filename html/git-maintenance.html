@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-maintenance(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -751,7 +751,7 @@ git-maintenance(1) Manual Page
 <div class="verseblock">
 <pre class="content"><em>git maintenance</em> run [&lt;options&gt;]
 <em>git maintenance</em> start [--scheduler=&lt;scheduler&gt;]
-<em>git maintenance</em> (stop|register|unregister)</pre>
+<em>git maintenance</em> (stop|register|unregister) [&lt;options&gt;]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -812,13 +812,13 @@ register
 </dt>
 <dd>
 <p>
-        Initialize Git config values so any scheduled maintenance will
-        start running on this repository. This adds the repository to the
-        <code>maintenance.repo</code> config variable in the current user&#8217;s global
-        config and enables some recommended configuration values for
-        <code>maintenance.&lt;task&gt;.schedule</code>. The tasks that are enabled are safe
-        for running in the background without disrupting foreground
-        processes.
+        Initialize Git config values so any scheduled maintenance will start
+        running on this repository. This adds the repository to the
+        <code>maintenance.repo</code> config variable in the current user&#8217;s global config,
+        or the config specified by --config-file option, and enables some
+        recommended configuration values for <code>maintenance.&lt;task&gt;.schedule</code>. The
+        tasks that are enabled are safe for running in the background without
+        disrupting foreground processes.
 </p>
 <div class="paragraph"><p>The <code>register</code> subcommand will also set the <code>maintenance.strategy</code> config
 value to <code>incremental</code>, if this value is not previously set. The
@@ -867,6 +867,9 @@ unregister
         only removes the repository from the configured list. It does not
         stop the background maintenance processes from running.
 </p>
+<div class="paragraph"><p>The <code>unregister</code> subcommand will report an error if the current repository
+is not already registered. Use the <code>--force</code> option to return success even
+when the current repository is not registered.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -899,9 +902,9 @@ prefetch
         requested refs within <code>refs/prefetch/</code>. Also, tags are not updated.
 </p>
 <div class="paragraph"><p>This is done to avoid disrupting the remote-tracking branches. The end users
-expect these refs to stay unmoved unless they initiate a fetch.  With prefetch
-task, however, the objects necessary to complete a later real fetch would
-already be obtained, so the real fetch would go faster.  In the ideal case,
+expect these refs to stay unmoved unless they initiate a fetch.  However,
+with the prefetch task, the objects necessary to complete a later real fetch
+would already be obtained, making the real fetch faster.  In the ideal case,
 it will just become an update to a bunch of remote-tracking branches without
 any object transfer.</p></div>
 </dd>
@@ -1263,7 +1266,7 @@ maintenance.strategy
 <div class="ulist"><ul>
 <li>
 <p>
-<code>none</code>: This default setting implies no task are run at any schedule.
+<code>none</code>: This default setting implies no tasks are run at any schedule.
 </p>
 </li>
 <li>
@@ -1356,7 +1359,7 @@ maintenance.incremental-repack.auto
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

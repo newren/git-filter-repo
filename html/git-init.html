@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-init(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,10 +749,11 @@ git-init(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git init</em> [-q | --quiet] [--bare] [--template=&lt;template-directory&gt;]
-          [--separate-git-dir &lt;git-dir&gt;] [--object-format=&lt;format&gt;]
-          [-b &lt;branch-name&gt; | --initial-branch=&lt;branch-name&gt;]
-          [--shared[=&lt;permissions&gt;]] [&lt;directory&gt;]</pre>
+<pre class="content"><code>git init</code> [<code>-q</code> | <code>--quiet</code>] [<code>--bare</code>] [<code>--template=</code><em>&lt;template-directory&gt;</em>]
+          [<code>--separate-git-dir</code> <em>&lt;git-dir&gt;</em>] [<code>--object-format=</code><em>&lt;format&gt;</em>]
+          [<code>--ref-format=</code><em>&lt;format&gt;</em>]
+          [<code>-b</code> <em>&lt;branch-name&gt;</em> | <code>--initial-branch=</code><em>&lt;branch-name&gt;</em>]
+          [<code>--shared</code>[<code>=</code><em>&lt;permissions&gt;</em>]] [<em>&lt;directory&gt;</em>]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -769,12 +770,12 @@ for its name).</p></div>
 to use instead of <code>./.git</code> for the base of the repository.</p></div>
 <div class="paragraph"><p>If the object storage directory is specified via the
 <code>$GIT_OBJECT_DIRECTORY</code> environment variable then the sha1 directories
-are created underneath - otherwise the default <code>$GIT_DIR/objects</code>
+are created underneath; otherwise, the default <code>$GIT_DIR/objects</code>
 directory is used.</p></div>
-<div class="paragraph"><p>Running <em>git init</em> in an existing repository is safe. It will not
+<div class="paragraph"><p>Running <code>git init</code> in an existing repository is safe. It will not
 overwrite things that are already there. The primary reason for
-rerunning <em>git init</em> is to pick up newly added templates (or to move
-the repository to another place if --separate-git-dir is given).</p></div>
+rerunning <code>git init</code> is to pick up newly added templates (or to move
+the repository to another place if <code>--separate-git-dir</code> is given).</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -782,10 +783,10 @@ the repository to another place if --separate-git-dir is given).</p></div>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
--q
+<code>-q</code>
 </dt>
 <dt class="hdlist1">
---quiet
+<code>--quiet</code>
 </dt>
 <dd>
 <p>
@@ -793,7 +794,7 @@ Only print error and warning messages; all other output will be suppressed.
 </p>
 </dd>
 <dt class="hdlist1">
---bare
+<code>--bare</code>
 </dt>
 <dd>
 <p>
@@ -802,22 +803,47 @@ current working directory.
 </p>
 </dd>
 <dt class="hdlist1">
---object-format=&lt;format&gt;
+<code>--object-format=</code><em>&lt;format&gt;</em>
 </dt>
 <dd>
 <p>
-Specify the given object format (hash algorithm) for the repository.  The valid
-values are <em>sha1</em> and (if enabled) <em>sha256</em>.  <em>sha1</em> is the default.
+Specify the given object <em>&lt;format&gt;</em> (hash algorithm) for the repository.  The valid
+values are <code>sha1</code> and (if enabled) <code>sha256</code>.  <code>sha1</code> is the default.
 </p>
-<div class="paragraph"><p>THIS OPTION IS EXPERIMENTAL! SHA-256 support is experimental and still
-in an early stage.  A SHA-256 repository will in general not be able to
-share work with "regular" SHA-1 repositories.  It should be assumed
-that, e.g., Git internal file formats in relation to SHA-256
-repositories may change in backwards-incompatible ways.  Only use
-<code>--object-format=sha256</code> for testing purposes.</p></div>
+<div class="paragraph"><p>Note: At present, there is no interoperability between SHA-256
+repositories and SHA-1 repositories.</p></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Historically, we warned that SHA-256 repositories may later need
+backward incompatible changes when we introduce such interoperability
+features. Today, we only expect compatible changes. Furthermore, if such
+changes prove to be necessary, it can be expected that SHA-256 repositories
+created with today&#8217;s Git will be usable by future versions of Git
+without data loss.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>--ref-format=</code><em>&lt;format&gt;</em>
+</dt>
+<dd>
+<p>
+Specify the given ref storage <em>&lt;format&gt;</em> for the repository. The valid values are:
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>files</code> for loose files with packed-refs. This is the default.
+</p>
+</li>
+<li>
+<p>
+<code>reftable</code> for the reftable format. This format is experimental and its
+  internals are subject to change.
+</p>
+</li>
+</ul></div>
 </dd>
 <dt class="hdlist1">
---template=&lt;template-directory&gt;
+<code>--template=</code><em>&lt;template-directory&gt;</em>
 </dt>
 <dd>
 <p>
@@ -826,76 +852,88 @@ DIRECTORY" section below.)
 </p>
 </dd>
 <dt class="hdlist1">
---separate-git-dir=&lt;git-dir&gt;
+<code>--separate-git-dir=</code><em>&lt;git-dir&gt;</em>
 </dt>
 <dd>
 <p>
 Instead of initializing the repository as a directory to either <code>$GIT_DIR</code> or
 <code>./.git/</code>, create a text file there containing the path to the actual
-repository.  This file acts as filesystem-agnostic Git symbolic link to the
+repository.  This file acts as a filesystem-agnostic Git symbolic link to the
 repository.
 </p>
-<div class="paragraph"><p>If this is reinitialization, the repository will be moved to the specified path.</p></div>
+<div class="paragraph"><p>If this is a reinitialization, the repository will be moved to the specified path.</p></div>
 </dd>
 <dt class="hdlist1">
--b &lt;branch-name&gt;
+<code>-b</code> <em>&lt;branch-name&gt;</em>
 </dt>
 <dt class="hdlist1">
---initial-branch=&lt;branch-name&gt;
+<code>--initial-branch=</code><em>&lt;branch-name&gt;</em>
 </dt>
 <dd>
 <p>
-Use the specified name for the initial branch in the newly created
+Use <em>&lt;branch-name&gt;</em> for the initial branch in the newly created
 repository.  If not specified, fall back to the default name (currently
 <code>master</code>, but this is subject to change in the future; the name can be
 customized via the <code>init.defaultBranch</code> configuration variable).
 </p>
 </dd>
 <dt class="hdlist1">
---shared[=(false|true|umask|group|all|world|everybody|&lt;perm&gt;)]
+<code>--shared</code>[<code>=</code>(<code>false</code>|<code>true</code>|<code>umask</code>|<code>group</code>|<code>all</code>|<code>world</code>|<code>everybody</code>|<em>&lt;perm&gt;</em>)]
 </dt>
 <dd>
 <p>
 Specify that the Git repository is to be shared amongst several users.  This
 allows users belonging to the same group to push into that
-repository.  When specified, the config variable "core.sharedRepository" is
+repository.  When specified, the config variable <code>core.sharedRepository</code> is
 set so that files and directories under <code>$GIT_DIR</code> are created with the
 requested permissions.  When not specified, Git will use permissions reported
-by umask(2).
+by <code>umask</code>(2).
 </p>
-<div class="paragraph"><p>The option can have the following values, defaulting to <em>group</em> if no value
+<div class="paragraph"><p>The option can have the following values, defaulting to <code>group</code> if no value
 is given:</p></div>
 <div class="openblock">
 <div class="content">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<em>umask</em> (or <em>false</em>)
+<code>umask</code>
+</dt>
+<dt class="hdlist1">
+<code>false</code>
 </dt>
 <dd>
 <p>
-Use permissions reported by umask(2). The default, when <code>--shared</code> is not
+Use permissions reported by <code>umask</code>(2). The default, when <code>--shared</code> is not
 specified.
 </p>
 </dd>
 <dt class="hdlist1">
-<em>group</em> (or <em>true</em>)
+<code>group</code>
+</dt>
+<dt class="hdlist1">
+<code>true</code>
 </dt>
 <dd>
 <p>
-Make the repository group-writable, (and g+sx, since the git group may be not
+Make the repository group-writable, (and <code>g+sx</code>, since the git group may not be
 the primary group of all users). This is used to loosen the permissions of an
-otherwise safe umask(2) value. Note that the umask still applies to the other
-permission bits (e.g. if umask is <em>0022</em>, using <em>group</em> will not remove read
-privileges from other (non-group) users). See <em>0xxx</em> for how to exactly specify
+otherwise safe <code>umask</code>(2) value. Note that the umask still applies to the other
+permission bits (e.g. if umask is <code>0022</code>, using <code>group</code> will not remove read
+privileges from other (non-group) users). See <code>0xxx</code> for how to exactly specify
 the repository permissions.
 </p>
 </dd>
 <dt class="hdlist1">
-<em>all</em> (or <em>world</em> or <em>everybody</em>)
+<code>all</code>
+</dt>
+<dt class="hdlist1">
+<code>world</code>
+</dt>
+<dt class="hdlist1">
+<code>everybody</code>
 </dt>
 <dd>
 <p>
-Same as <em>group</em>, but make the repository readable by all users.
+Same as <code>group</code>, but make the repository readable by all users.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -904,10 +942,10 @@ Same as <em>group</em>, but make the repository readable by all users.
 <dd>
 <p>
 <em>&lt;perm&gt;</em> is a 3-digit octal number prefixed with &#8216;0` and each file
-will have mode <em>&lt;perm&gt;</em>. <em>&lt;perm&gt;</em> will override users&#8217; umask(2)
-value (and not only loosen permissions as <em>group</em> and <em>all</em>
-does). <em>0640</em> will create a repository which is group-readable, but
-not group-writable or accessible to others. <em>0660</em> will create a repo
+will have mode <em>&lt;perm&gt;</em>. <em>&lt;perm&gt;</em> will override users&#8217; <code>umask</code>(2)
+value (and not only loosen permissions as <code>group</code> and <code>all</code>
+do). <code>0640</code> will create a repository which is group-readable, but
+not group-writable or accessible to others. <code>0660</code> will create a repo
 that is readable and writable to the current user and group, but
 inaccessible to others (directories and executable files get their
 <code>x</code> bit from the <code>r</code> bit for corresponding classes of users).
@@ -920,7 +958,7 @@ inaccessible to others (directories and executable files get their
 <div class="paragraph"><p>By default, the configuration flag <code>receive.denyNonFastForwards</code> is enabled
 in shared repositories, so that you cannot force a non fast-forwarding push
 into it.</p></div>
-<div class="paragraph"><p>If you provide a <em>directory</em>, the command is run inside it. If this directory
+<div class="paragraph"><p>If you provide a <em>&lt;directory&gt;</em>, the command is run inside it. If this directory
 does not exist, it will be created.</p></div>
 </div>
 </div>
@@ -977,7 +1015,7 @@ $ git commit    <b>&lt;3&gt;</b></code></pre>
 <div class="colist arabic"><ol>
 <li>
 <p>
-Create a /path/to/my/codebase/.git directory.
+Create a <code>/path/to/my/codebase/.git</code> directory.
 </p>
 </li>
 <li>
@@ -1003,16 +1041,15 @@ from the <a href="git-config.html">git-config(1)</a> documentation. The content 
 as what&#8217;s found there:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
-init.templateDir
+<code>init.templateDir</code>
 </dt>
 <dd>
 <p>
-        Specify the directory from which templates will be copied.
-        (See the "TEMPLATE DIRECTORY" section of <a href="git-init.html">git-init(1)</a>.)
+        Specify the directory from which templates will be copied. 
 </p>
 </dd>
 <dt class="hdlist1">
-init.defaultBranch
+<code>init.defaultBranch</code>
 </dt>
 <dd>
 <p>
@@ -1034,7 +1071,7 @@ init.defaultBranch
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>

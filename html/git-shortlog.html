@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-shortlog(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -821,6 +821,16 @@ reference to the current repository.</p></div>
 </div></div>
 </dd>
 <dt class="hdlist1">
+--date=&lt;format&gt;
+</dt>
+<dd>
+<p>
+        Show dates formatted according to the given date string. (See
+        the <code>--date</code> option in the "Commit Formatting" section of
+        <a href="git-log.html">git-log(1)</a>). Useful with <code>--group=format:&lt;format&gt;</code>.
+</p>
+</dd>
+<dt class="hdlist1">
 --group=&lt;type&gt;
 </dt>
 <dd>
@@ -848,6 +858,13 @@ reference to the current repository.</p></div>
    example, if your project uses <code>Reviewed-by</code> trailers, you might want
    to see who has been reviewing with
    <code>git shortlog -ns --group=trailer:reviewed-by</code>.
+</p>
+</li>
+<li>
+<p>
+<code>format:&lt;format&gt;</code>, any string accepted by the <code>--format</code> option of
+   <em>git log</em>. (See the "PRETTY FORMATS" section of
+   <a href="git-log.html">git-log(1)</a>.)
 </p>
 <div class="paragraph"><p>Note that commits that do not include the trailer will not be counted.
 Likewise, commits with multiple trailers (e.g., multiple signoffs) may
@@ -1013,7 +1030,7 @@ ordering and formatting options, such as <code>--reverse</code>.</p></div>
 </dt>
 <dd>
 <p>
-        Limit the commits output to ones with log message that
+        Limit the commits output to ones with a log message that
         matches the specified pattern (regular expression).  With
         more than one <code>--grep=&lt;pattern&gt;</code>, commits whose message
         matches any of the given patterns are chosen (but see
@@ -1036,7 +1053,7 @@ matched as if it were part of the log message.</p></div>
 </dt>
 <dd>
 <p>
-        Limit the commits output to ones with log message that do not
+        Limit the commits output to ones with a log message that do not
         match the pattern specified with <code>--grep=&lt;pattern&gt;</code>.
 </p>
 </dd>
@@ -1182,6 +1199,10 @@ parents) and <code>--max-parents=-1</code> (negative numbers denote no upper lim
 <p>
         Reverses the meaning of the <em>&#94;</em> prefix (or lack thereof)
         for all following revision specifiers, up to the next <code>--not</code>.
+        When used on the command line before --stdin, the revisions passed
+        through stdin will not be affected by it. Conversely, when passed
+        via standard input, the revisions passed on the command line will
+        not be affected by it.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1256,6 +1277,19 @@ or <code>--all</code>. If a trailing <em>/&#42;</em> is intended, it must be giv
 explicitly.</p></div>
 </dd>
 <dt class="hdlist1">
+--exclude-hidden=[fetch|receive|uploadpack]
+</dt>
+<dd>
+<p>
+        Do not include refs that would be hidden by <code>git-fetch</code>,
+        <code>git-receive-pack</code> or <code>git-upload-pack</code> by consulting the appropriate
+        <code>fetch.hideRefs</code>, <code>receive.hideRefs</code> or <code>uploadpack.hideRefs</code>
+        configuration along with <code>transfer.hideRefs</code> (see
+        <a href="git-config.html">git-config(1)</a>). This option affects the next pseudo-ref option
+        <code>--all</code> or <code>--glob</code> and is cleared after processing them.
+</p>
+</dd>
+<dt class="hdlist1">
 --reflog
 </dt>
 <dd>
@@ -1315,10 +1349,13 @@ explicitly.</p></div>
 </dt>
 <dd>
 <p>
-        In addition to the <em>&lt;commit&gt;</em> listed on the command
-        line, read them from the standard input. If a <code>--</code> separator is
-        seen, stop reading commits and start reading paths to limit the
-        result.
+        In addition to getting arguments from the command line, read
+        them from standard input as well. This accepts commits and
+        pseudo-options like <code>--all</code> and <code>--glob=</code>. When a <code>--</code> separator
+        is seen, the following input is treated as paths and used to
+        limit the result. Flags like <code>--not</code> which are read via standard input
+        are only respected for arguments passed in the same way and will not
+        influence any subsequent command line arguments.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1394,15 +1431,15 @@ list.</p></div>
 <div class="paragraph"><p>With <code>--pretty</code> format other than <code>oneline</code> and <code>reference</code> (for obvious reasons),
 this causes the output to have two extra lines of information
 taken from the reflog.  The reflog designator in the output may be shown
-as <code>ref@{Nth}</code> (where <code>Nth</code> is the reverse-chronological index in the
-reflog) or as <code>ref@{timestamp}</code> (with the timestamp for that entry),
+as <code>ref@{&lt;Nth&gt;}</code> (where <em>&lt;Nth&gt;</em> is the reverse-chronological index in the
+reflog) or as <code>ref@{&lt;timestamp&gt;}</code> (with the <em>&lt;timestamp&gt;</em> for that entry),
 depending on a few rules:</p></div>
 <div class="openblock">
 <div class="content">
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-If the starting point is specified as <code>ref@{Nth}</code>, show the index
+If the starting point is specified as <code>ref@{&lt;Nth&gt;}</code>, show the index
    format.
 </p>
 </li>
@@ -1436,8 +1473,11 @@ See also <a href="git-reflog.html">git-reflog(1)</a>.</p></div>
 </dt>
 <dd>
 <p>
-        After a failed merge, show refs that touch files having a
-        conflict and don&#8217;t exist on all heads to merge.
+        Show commits touching conflicted paths in the range <code>HEAD...&lt;other&gt;</code>,
+        where <code>&lt;other&gt;</code> is the first existing pseudoref in <code>MERGE_HEAD</code>,
+        <code>CHERRY_PICK_HEAD</code>, <code>REVERT_HEAD</code> or <code>REBASE_HEAD</code>. Only works
+        when the index has unmerged entries. This option can be used to show
+        relevant commits when resolving conflicts from a 3-way merge.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2000,7 +2040,7 @@ the current directory.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-06-28 20:23:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

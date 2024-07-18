@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 9.1.0" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-branch(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -875,7 +875,7 @@ way to clean up all obsolete remote-tracking branches.</p></div>
 </dt>
 <dd>
 <p>
-        Reset &lt;branchname&gt; to &lt;startpoint&gt;, even if &lt;branchname&gt; exists
+        Reset &lt;branchname&gt; to &lt;start-point&gt;, even if &lt;branchname&gt; exists
         already. Without <code>-f</code>, <em>git branch</em> refuses to change an existing branch.
         In combination with <code>-d</code> (or <code>--delete</code>), allow deleting the
         branch irrespective of its merged status, or whether it even
@@ -883,6 +883,9 @@ way to clean up all obsolete remote-tracking branches.</p></div>
         <code>-m</code> (or <code>--move</code>), allow renaming the branch even if the new
         branch name already exists, the same applies for <code>-c</code> (or <code>--copy</code>).
 </p>
+<div class="paragraph"><p>Note that <em>git branch -f &lt;branchname&gt; [&lt;start-point&gt;]</em>, even with <em>-f</em>,
+refuses to change an existing branch <code>&lt;branchname&gt;</code> that is checked out
+in another worktree linked to the same repository.</p></div>
 </dd>
 <dt class="hdlist1">
 -m
@@ -951,6 +954,15 @@ way to clean up all obsolete remote-tracking branches.</p></div>
 <dd>
 <p>
         Sorting and filtering branches are case insensitive.
+</p>
+</dd>
+<dt class="hdlist1">
+--omit-empty
+</dt>
+<dd>
+<p>
+        Do not print a newline after formatted refs where the format expands
+        to the empty string.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1231,7 +1243,8 @@ superproject&#8217;s "origin/main", but tracks the submodule&#8217;s "origin/mai
 </dt>
 <dd>
 <p>
-        The name of an existing branch to rename.
+        The name of an existing branch.  If this option is omitted,
+        the name of the current branch will be used instead.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1253,7 +1266,7 @@ superproject&#8217;s "origin/main", but tracks the submodule&#8217;s "origin/mai
         multiple times, in which case the last key becomes the primary
         key. The keys supported are the same as those in <code>git
         for-each-ref</code>. Sort order defaults to the value configured for the
-        <code>branch.sort</code> variable if exists, or to sorting based on the
+        <code>branch.sort</code> variable if it exists, or to sorting based on the
         full refname (including <code>refs/...</code> prefix). This lists
         detached HEAD (if present) first, then local branches and
         finally remote-tracking branches. See <a href="git-config.html">git-config(1)</a>.
@@ -1346,7 +1359,7 @@ branch.&lt;name&gt;.remote
 <dd>
 <p>
         When on branch &lt;name&gt;, it tells <em>git fetch</em> and <em>git push</em>
-        which remote to fetch from/push to.  The remote to push to
+        which remote to fetch from or push to.  The remote to push to
         may be overridden with <code>remote.pushDefault</code> (for all branches).
         The remote to push to, for the current branch, may be further
         overridden by <code>branch.&lt;name&gt;.pushRemote</code>.  If no remote is
@@ -1384,7 +1397,7 @@ branch.&lt;name&gt;.merge
         handled like the remote part of a refspec, and must match a
         ref which is fetched from the remote given by
         "branch.&lt;name&gt;.remote".
-        The merge information is used by <em>git pull</em> (which at first calls
+        The merge information is used by <em>git pull</em> (which first calls
         <em>git fetch</em>) to lookup the default branch for merging. Without
         this option, <em>git pull</em> defaults to merge the first refspec fetched.
         Specify multiple values to get an octopus merge.
@@ -1431,7 +1444,7 @@ branch.&lt;name&gt;.description
 <p>
         Branch description, can be edited with
         <code>git branch --edit-description</code>. Branch description is
-        automatically added in the format-patch cover letter or
+        automatically added to the format-patch cover letter or
         request-pull summary.
 </p>
 </dd>
@@ -1580,7 +1593,7 @@ a branch?&#8221;</a> in the Git User&#8217;s Manual.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-10-08 14:40:28 PDT
+ 2024-06-28 10:59:43 PDT
 </div>
 </div>
 </body>

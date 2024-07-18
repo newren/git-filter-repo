@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 10.2.0" />
-<title>git-rev-list(1)</title>
+<title>git-replay(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -735,12 +735,12 @@ asciidoc.install();
 <body class="manpage">
 <div id="header">
 <h1>
-git-rev-list(1) Manual Page
+git-replay(1) Manual Page
 </h1>
 <h2>NAME</h2>
 <div class="sectionbody">
-<p>git-rev-list -
-   Lists commit objects in reverse chronological order
+<p>git-replay -
+   EXPERIMENTAL: Replay commits on a new base, works with bare repos too
 </p>
 </div>
 </div>
@@ -749,7 +749,7 @@ git-rev-list(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git rev-list</em> [&lt;options&gt;] &lt;commit&gt;&#8230; [--] [&lt;path&gt;&#8230;]</pre>
+<pre class="content">(EXPERIMENTAL!) <em>git replay</em> ([--contained] --onto &lt;newbase&gt; | --advance &lt;branch&gt;) &lt;revision-range&gt;&#8230;</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -757,49 +757,56 @@ git-rev-list(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>List commits that are reachable by following the <code>parent</code> links from the
-given commit(s), but exclude commits that are reachable from the one(s)
-given with a <em>&#94;</em> in front of them.  The output is given in reverse
-chronological order by default.</p></div>
-<div class="paragraph"><p>You can think of this as a set operation. Commits reachable from any of
-the commits given on the command line form a set, and then commits reachable
-from any of the ones given with <em>&#94;</em> in front are subtracted from that
-set.  The remaining commits are what comes out in the command&#8217;s output.
-Various other options and paths parameters can be used to further limit the
-result.</p></div>
-<div class="paragraph"><p>Thus, the following command:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>$ git rev-list foo bar ^baz</code></pre>
-</div></div>
-<div class="paragraph"><p>means "list all the commits which are reachable from <em>foo</em> or <em>bar</em>, but
-not from <em>baz</em>".</p></div>
-<div class="paragraph"><p>A special notation "<em>&lt;commit1&gt;</em>..<em>&lt;commit2&gt;</em>" can be used as a
-short-hand for "^<em>&lt;commit1&gt;</em> <em>&lt;commit2&gt;</em>". For example, either of
-the following may be used interchangeably:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>$ git rev-list origin..HEAD
-$ git rev-list HEAD ^origin</code></pre>
-</div></div>
-<div class="paragraph"><p>Another special notation is "<em>&lt;commit1&gt;</em>&#8230;<em>&lt;commit2&gt;</em>" which is useful
-for merges.  The resulting set of commits is the symmetric difference
-between the two operands.  The following two commands are equivalent:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>$ git rev-list A B --not $(git merge-base --all A B)
-$ git rev-list A...B</code></pre>
-</div></div>
-<div class="paragraph"><p><em>rev-list</em> is an essential Git command, since it
-provides the ability to build and traverse commit ancestry graphs. For
-this reason, it has a lot of different options that enable it to be
-used by commands as different as <em>git bisect</em> and
-<em>git repack</em>.</p></div>
+<div class="paragraph"><p>Takes ranges of commits and replays them onto a new location. Leaves
+the working tree and the index untouched, and updates no references.
+The output of this command is meant to be used as input to
+<code>git update-ref --stdin</code>, which would update the relevant branches
+(see the OUTPUT section below).</p></div>
+<div class="paragraph"><p>THIS COMMAND IS EXPERIMENTAL. THE BEHAVIOR MAY CHANGE.</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_options">OPTIONS</h2>
 <div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--onto &lt;newbase&gt;
+</dt>
+<dd>
+<p>
+        Starting point at which to create the new commits.  May be any
+        valid commit, and not just an existing branch name.
+</p>
+<div class="paragraph"><p>When <code>--onto</code> is specified, the update-ref command(s) in the output will
+update the branch(es) in the revision range to point at the new
+commits, similar to the way how <code>git rebase --update-refs</code> updates
+multiple branches in the affected range.</p></div>
+</dd>
+<dt class="hdlist1">
+--advance &lt;branch&gt;
+</dt>
+<dd>
+<p>
+        Starting point at which to create the new commits; must be a
+        branch name.
+</p>
+<div class="paragraph"><p>When <code>--advance</code> is specified, the update-ref command(s) in the output
+will update the branch passed as an argument to <code>--advance</code> to point at
+the new commits (in other words, this mimics a cherry-pick operation).</p></div>
+</dd>
+<dt class="hdlist1">
+&lt;revision-range&gt;
+</dt>
+<dd>
+<p>
+        Range of commits to replay. More than one &lt;revision-range&gt; can
+        be passed, but in <code>--advance &lt;branch&gt;</code> mode, they should have
+        a single tip, so that it&#8217;s clear where &lt;branch&gt; should point
+        to. See "Specifying Ranges" in <a href="git-rev-parse.html">git-rev-parse(1)</a> and the
+        "Commit Limiting" options below.
+</p>
+</dd>
+</dl></div>
 <div class="sect2">
 <h3 id="_commit_limiting">Commit Limiting</h3>
 <div class="paragraph"><p>Besides specifying a range of commits that should be listed using the
@@ -867,17 +874,6 @@ ordering and formatting options, such as <code>--reverse</code>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---max-age=&lt;timestamp&gt;
-</dt>
-<dt class="hdlist1">
---min-age=&lt;timestamp&gt;
-</dt>
-<dd>
-<p>
-        Limit the commits output to specified time range.
-</p>
-</dd>
-<dt class="hdlist1">
 --author=&lt;pattern&gt;
 </dt>
 <dt class="hdlist1">
@@ -915,6 +911,8 @@ ordering and formatting options, such as <code>--reverse</code>.</p></div>
         matches any of the given patterns are chosen (but see
         <code>--all-match</code>).
 </p>
+<div class="paragraph"><p>When <code>--notes</code> is in effect, the message from the notes is
+matched as if it were part of the log message.</p></div>
 </dd>
 <dt class="hdlist1">
 --all-match
@@ -1211,6 +1209,17 @@ explicitly.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--bisect
+</dt>
+<dd>
+<p>
+        Pretend as if the bad bisection ref <code>refs/bisect/bad</code>
+        was listed and as if it was followed by <code>--not</code> and the good
+        bisection refs <code>refs/bisect/good-*</code> on the command
+        line.
+</p>
+</dd>
+<dt class="hdlist1">
 --stdin
 </dt>
 <dd>
@@ -1222,37 +1231,6 @@ explicitly.</p></div>
         limit the result. Flags like <code>--not</code> which are read via standard input
         are only respected for arguments passed in the same way and will not
         influence any subsequent command line arguments.
-</p>
-</dd>
-<dt class="hdlist1">
---quiet
-</dt>
-<dd>
-<p>
-        Don&#8217;t print anything to standard output.  This form
-        is primarily meant to allow the caller to
-        test the exit status to see if a range of objects is fully
-        connected (or not).  It is faster than redirecting stdout
-        to <code>/dev/null</code> as the output does not have to be formatted.
-</p>
-</dd>
-<dt class="hdlist1">
---disk-usage
-</dt>
-<dt class="hdlist1">
---disk-usage=human
-</dt>
-<dd>
-<p>
-        Suppress normal output; instead, print the sum of the bytes used
-        for on-disk storage by the selected commits or objects. This is
-        equivalent to piping the output into <code>git cat-file
-        --batch-check='%(objectsize:disk)'</code>, except that it runs much
-        faster (especially with <code>--use-bitmap-index</code>). See the <code>CAVEATS</code>
-        section in <a href="git-cat-file.html">git-cat-file(1)</a> for the limitations of what
-        "on-disk storage" means.
-        With the optional value <code>human</code>, on-disk storage size is shown
-        in human-readable string(e.g. 12.24 Kib, 3.50 Mib).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1384,25 +1362,6 @@ See also <a href="git-reflog.html">git-reflog(1)</a>.</p></div>
 <p>
         Output excluded boundary commits. Boundary commits are
         prefixed with <code>-</code>.
-</p>
-</dd>
-<dt class="hdlist1">
---use-bitmap-index
-</dt>
-<dd>
-<p>
-        Try to speed up the traversal using the pack bitmap index (if
-        one is available). Note that when traversing with <code>--objects</code>,
-        trees and blobs will not have their associated path printed.
-</p>
-</dd>
-<dt class="hdlist1">
---progress=&lt;header&gt;
-</dt>
-<dd>
-<p>
-        Show progress reports on stderr as objects are considered. The
-        <code>&lt;header&gt;</code> text will be printed with each progress update.
 </p>
 </dd>
 </dl></div>
@@ -1935,73 +1894,6 @@ contents of the paths given on the command line.  All other
 commits are marked as TREESAME (subject to be simplified away).</p></div>
 </div>
 <div class="sect2">
-<h3 id="_bisection_helpers">Bisection Helpers</h3>
-<div class="dlist"><dl>
-<dt class="hdlist1">
---bisect
-</dt>
-<dd>
-<p>
-        Limit output to the one commit object which is roughly halfway between
-        included and excluded commits. Note that the bad bisection ref
-        <code>refs/bisect/bad</code> is added to the included commits (if it
-        exists) and the good bisection refs <code>refs/bisect/good-*</code> are
-        added to the excluded commits (if they exist). Thus, supposing there
-        are no refs in <code>refs/bisect/</code>, if
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code>        $ git rev-list --bisect foo ^bar ^baz</code></pre>
-</div></div>
-<div class="paragraph"><p>outputs <em>midpoint</em>, the output of the two commands</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>        $ git rev-list foo ^midpoint
-        $ git rev-list midpoint ^bar ^baz</code></pre>
-</div></div>
-<div class="paragraph"><p>would be of roughly the same length.  Finding the change which
-introduces a regression is thus reduced to a binary search: repeatedly
-generate and test new 'midpoint&#8217;s until the commit chain is of length
-one.</p></div>
-</dd>
-<dt class="hdlist1">
---bisect-vars
-</dt>
-<dd>
-<p>
-        This calculates the same as <code>--bisect</code>, except that refs in
-        <code>refs/bisect/</code> are not used, and except that this outputs
-        text ready to be eval&#8217;ed by the shell. These lines will assign the
-        name of the midpoint revision to the variable <code>bisect_rev</code>, and the
-        expected number of commits to be tested after <code>bisect_rev</code> is tested
-        to <code>bisect_nr</code>, the expected number of commits to be tested if
-        <code>bisect_rev</code> turns out to be good to <code>bisect_good</code>, the expected
-        number of commits to be tested if <code>bisect_rev</code> turns out to be bad to
-        <code>bisect_bad</code>, and the number of commits we are bisecting right now to
-        <code>bisect_all</code>.
-</p>
-</dd>
-<dt class="hdlist1">
---bisect-all
-</dt>
-<dd>
-<p>
-        This outputs all the commit objects between the included and excluded
-        commits, ordered by their distance to the included and excluded
-        commits. Refs in <code>refs/bisect/</code> are not used. The farthest
-        from them is displayed first. (This is the only one displayed by
-        <code>--bisect</code>.)
-</p>
-<div class="paragraph"><p>This is useful because it makes it easy to choose a good commit to
-test when you want to avoid to test some of them for some reason (they
-may not compile for example).</p></div>
-<div class="paragraph"><p>This option can be used along with <code>--bisect-vars</code>, in this case,
-after all the sorted commit objects, there will be the same text as if
-<code>--bisect-vars</code> had been used alone.</p></div>
-</dd>
-</dl></div>
-</div>
-<div class="sect2">
 <h3 id="_commit_ordering">Commit Ordering</h3>
 <div class="paragraph"><p>By default, the commits are shown in reverse chronological order.</p></div>
 <div class="dlist"><dl>
@@ -2064,200 +1956,6 @@ together.</p></div>
 <div class="paragraph"><p>These options are mostly targeted for packing of Git repositories.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
---objects
-</dt>
-<dd>
-<p>
-        Print the object IDs of any object referenced by the listed
-        commits.  <code>--objects foo ^bar</code> thus means &#8220;send me
-        all object IDs which I need to download if I have the commit
-        object <em>bar</em> but not <em>foo</em>&#8221;. See also <code>--object-names</code> below.
-</p>
-</dd>
-<dt class="hdlist1">
---in-commit-order
-</dt>
-<dd>
-<p>
-        Print tree and blob ids in order of the commits. The tree
-        and blob ids are printed after they are first referenced
-        by a commit.
-</p>
-</dd>
-<dt class="hdlist1">
---objects-edge
-</dt>
-<dd>
-<p>
-        Similar to <code>--objects</code>, but also print the IDs of excluded
-        commits prefixed with a &#8220;-&#8221; character.  This is used by
-        <a href="git-pack-objects.html">git-pack-objects(1)</a> to build a &#8220;thin&#8221; pack, which records
-        objects in deltified form based on objects contained in these
-        excluded commits to reduce network traffic.
-</p>
-</dd>
-<dt class="hdlist1">
---objects-edge-aggressive
-</dt>
-<dd>
-<p>
-        Similar to <code>--objects-edge</code>, but it tries harder to find excluded
-        commits at the cost of increased time.  This is used instead of
-        <code>--objects-edge</code> to build &#8220;thin&#8221; packs for shallow repositories.
-</p>
-</dd>
-<dt class="hdlist1">
---indexed-objects
-</dt>
-<dd>
-<p>
-        Pretend as if all trees and blobs used by the index are listed
-        on the command line.  Note that you probably want to use
-        <code>--objects</code>, too.
-</p>
-</dd>
-<dt class="hdlist1">
---unpacked
-</dt>
-<dd>
-<p>
-        Only useful with <code>--objects</code>; print the object IDs that are not
-        in packs.
-</p>
-</dd>
-<dt class="hdlist1">
---object-names
-</dt>
-<dd>
-<p>
-        Only useful with <code>--objects</code>; print the names of the object IDs
-        that are found. This is the default behavior. Note that the
-        "name" of each object is ambiguous, and mostly intended as a
-        hint for packing objects. In particular: no distinction is made between
-        the names of tags, trees, and blobs; path names may be modified
-        to remove newlines; and if an object would appear multiple times
-        with different names, only one name is shown.
-</p>
-</dd>
-<dt class="hdlist1">
---no-object-names
-</dt>
-<dd>
-<p>
-        Only useful with <code>--objects</code>; does not print the names of the object
-        IDs that are found. This inverts <code>--object-names</code>. This flag allows
-        the output to be more easily parsed by commands such as
-        <a href="git-cat-file.html">git-cat-file(1)</a>.
-</p>
-</dd>
-<dt class="hdlist1">
---filter=&lt;filter-spec&gt;
-</dt>
-<dd>
-<p>
-        Only useful with one of the <code>--objects*</code>; omits objects (usually
-        blobs) from the list of printed objects.  The <em>&lt;filter-spec&gt;</em>
-        may be one of the following:
-</p>
-<div class="paragraph"><p>The form <em>--filter=blob:none</em> omits all blobs.</p></div>
-<div class="paragraph"><p>The form <em>--filter=blob:limit=&lt;n&gt;[kmg]</em> omits blobs of size at least n
-bytes or units.  n may be zero.  The suffixes k, m, and g can be used
-to name units in KiB, MiB, or GiB.  For example, <em>blob:limit=1k</em>
-is the same as <em>blob:limit=1024</em>.</p></div>
-<div class="paragraph"><p>The form <em>--filter=object:type=(tag|commit|tree|blob)</em> omits all objects
-which are not of the requested type.</p></div>
-<div class="paragraph"><p>The form <em>--filter=sparse:oid=&lt;blob-ish&gt;</em> uses a sparse-checkout
-specification contained in the blob (or blob-expression) <em>&lt;blob-ish&gt;</em>
-to omit blobs that would not be required for a sparse checkout on
-the requested refs.</p></div>
-<div class="paragraph"><p>The form <em>--filter=tree:&lt;depth&gt;</em> omits all blobs and trees whose depth
-from the root tree is &gt;= &lt;depth&gt; (minimum depth if an object is located
-at multiple depths in the commits traversed). &lt;depth&gt;=0 will not include
-any trees or blobs unless included explicitly in the command-line (or
-standard input when --stdin is used). &lt;depth&gt;=1 will include only the
-tree and blobs which are referenced directly by a commit reachable from
-&lt;commit&gt; or an explicitly-given object. &lt;depth&gt;=2 is like &lt;depth&gt;=1
-while also including trees and blobs one more level removed from an
-explicitly-given commit or tree.</p></div>
-<div class="paragraph"><p>Note that the form <em>--filter=sparse:path=&lt;path&gt;</em> that wants to read
-from an arbitrary path on the filesystem has been dropped for security
-reasons.</p></div>
-<div class="paragraph"><p>Multiple <em>--filter=</em> flags can be specified to combine filters. Only
-objects which are accepted by every filter are included.</p></div>
-<div class="paragraph"><p>The form <em>--filter=combine:&lt;filter1&gt;+&lt;filter2&gt;+&#8230;&lt;filterN&gt;</em> can also be
-used to combined several filters, but this is harder than just repeating
-the <em>--filter</em> flag and is usually not necessary. Filters are joined by
-<em>&#43;</em> and individual filters are %-encoded (i.e. URL-encoded).
-Besides the <em>&#43;</em> and <em>%</em> characters, the following characters are
-reserved and also must be encoded: <code>~!@#$^&amp;*()[]{}\;",&lt;&gt;?</code><code>&#39;&#96;</code>
-as well as all characters with ASCII code &lt;= <code>0x20</code>, which includes
-space and newline.</p></div>
-<div class="paragraph"><p>Other arbitrary characters can also be encoded. For instance,
-<em>combine:tree:3+blob:none</em> and <em>combine:tree%3A3+blob%3Anone</em> are
-equivalent.</p></div>
-</dd>
-<dt class="hdlist1">
---no-filter
-</dt>
-<dd>
-<p>
-        Turn off any previous <code>--filter=</code> argument.
-</p>
-</dd>
-<dt class="hdlist1">
---filter-provided-objects
-</dt>
-<dd>
-<p>
-        Filter the list of explicitly provided objects, which would otherwise
-        always be printed even if they did not match any of the filters. Only
-        useful with <code>--filter=</code>.
-</p>
-</dd>
-<dt class="hdlist1">
---filter-print-omitted
-</dt>
-<dd>
-<p>
-        Only useful with <code>--filter=</code>; prints a list of the objects omitted
-        by the filter.  Object IDs are prefixed with a &#8220;~&#8221; character.
-</p>
-</dd>
-<dt class="hdlist1">
---missing=&lt;missing-action&gt;
-</dt>
-<dd>
-<p>
-        A debug option to help with future "partial clone" development.
-        This option specifies how missing objects are handled.
-</p>
-<div class="paragraph"><p>The form <em>--missing=error</em> requests that rev-list stop with an error if
-a missing object is encountered.  This is the default action.</p></div>
-<div class="paragraph"><p>The form <em>--missing=allow-any</em> will allow object traversal to continue
-if a missing object is encountered.  Missing objects will silently be
-omitted from the results.</p></div>
-<div class="paragraph"><p>The form <em>--missing=allow-promisor</em> is like <em>allow-any</em>, but will only
-allow object traversal to continue for EXPECTED promisor missing objects.
-Unexpected missing objects will raise an error.</p></div>
-<div class="paragraph"><p>The form <em>--missing=print</em> is like <em>allow-any</em>, but will also print a
-list of the missing objects.  Object IDs are prefixed with a &#8220;?&#8221; character.</p></div>
-<div class="paragraph"><p>If some tips passed to the traversal are missing, they will be
-considered as missing too, and the traversal will ignore them. In case
-we cannot get their Object ID though, an error will be raised.</p></div>
-</dd>
-<dt class="hdlist1">
---exclude-promisor-objects
-</dt>
-<dd>
-<p>
-        (For internal use only.)  Prefilter object traversal at
-        promisor boundary.  This is used with partial clone.  This is
-        stronger than <code>--missing=allow-promisor</code> because it limits the
-        traversal, rather than just silencing errors about missing
-        objects.
-</p>
-</dd>
-<dt class="hdlist1">
 --no-walk[=(sorted|unsorted)]
 </dt>
 <dd>
@@ -2283,9 +1981,6 @@ we cannot get their Object ID though, an error will be raised.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_commit_formatting">Commit Formatting</h3>
-<div class="paragraph"><p>Using these options, <a href="git-rev-list.html">git-rev-list(1)</a> will act similar to the
-more specialized family of commit log tools: <a href="git-log.html">git-log(1)</a>,
-<a href="git-show.html">git-show(1)</a>, and <a href="git-whatchanged.html">git-whatchanged(1)</a></p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 --pretty[=&lt;format&gt;]
@@ -2379,6 +2074,62 @@ message by 4 spaces (i.e.  <em>medium</em>, which is the default, <em>full</em>,
 and <em>fuller</em>).</p></div>
 </dd>
 <dt class="hdlist1">
+--notes[=&lt;ref&gt;]
+</dt>
+<dd>
+<p>
+        Show the notes (see <a href="git-notes.html">git-notes(1)</a>) that annotate the
+        commit, when showing the commit log message.  This is the default
+        for <code>git log</code>, <code>git show</code> and <code>git whatchanged</code> commands when
+        there is no <code>--pretty</code>, <code>--format</code>, or <code>--oneline</code> option given
+        on the command line.
+</p>
+<div class="paragraph"><p>By default, the notes shown are from the notes refs listed in the
+<code>core.notesRef</code> and <code>notes.displayRef</code> variables (or corresponding
+environment overrides). See <a href="git-config.html">git-config(1)</a> for more details.</p></div>
+<div class="paragraph"><p>With an optional <em>&lt;ref&gt;</em> argument, use the ref to find the notes
+to display.  The ref can specify the full refname when it begins
+with <code>refs/notes/</code>; when it begins with <code>notes/</code>, <code>refs/</code> and otherwise
+<code>refs/notes/</code> is prefixed to form the full name of the ref.</p></div>
+<div class="paragraph"><p>Multiple --notes options can be combined to control which notes are
+being displayed. Examples: "--notes=foo" will show only notes from
+"refs/notes/foo"; "--notes=foo --notes" will show both notes from
+"refs/notes/foo" and from the default notes ref(s).</p></div>
+</dd>
+<dt class="hdlist1">
+--no-notes
+</dt>
+<dd>
+<p>
+        Do not show notes. This negates the above <code>--notes</code> option, by
+        resetting the list of notes refs from which notes are shown.
+        Options are parsed in the order given on the command line, so e.g.
+        "--notes --notes=foo --no-notes --notes=bar" will only show notes
+        from "refs/notes/bar".
+</p>
+</dd>
+<dt class="hdlist1">
+--show-notes-by-default
+</dt>
+<dd>
+<p>
+        Show the default notes unless options for displaying specific
+        notes are given.
+</p>
+</dd>
+<dt class="hdlist1">
+--show-notes[=&lt;ref&gt;]
+</dt>
+<dt class="hdlist1">
+--[no-]standard-notes
+</dt>
+<dd>
+<p>
+        These options are deprecated. Use the above --notes/--no-notes
+        options instead.
+</p>
+</dd>
+<dt class="hdlist1">
 --show-signature
 </dt>
 <dd>
@@ -2468,33 +2219,6 @@ the local time zone is used, e.g. <code>Thu Jan 1 00:00:00 1970 +0000</code>.</p
 </div></div>
 </dd>
 <dt class="hdlist1">
---header
-</dt>
-<dd>
-<p>
-        Print the contents of the commit in raw-format; each record is
-        separated with a NUL character.
-</p>
-</dd>
-<dt class="hdlist1">
---no-commit-header
-</dt>
-<dd>
-<p>
-        Suppress the header line containing "commit" and the object ID printed before
-        the specified format.  This has no effect on the built-in formats; only custom
-        formats are affected.
-</p>
-</dd>
-<dt class="hdlist1">
---commit-header
-</dt>
-<dd>
-<p>
-        Overrides a previous <code>--no-commit-header</code>.
-</p>
-</dd>
-<dt class="hdlist1">
 --parents
 </dt>
 <dd>
@@ -2510,14 +2234,6 @@ the local time zone is used, e.g. <code>Thu Jan 1 00:00:00 1970 +0000</code>.</p
 <p>
         Print also the children of the commit (in the form "commit child&#8230;").
         Also enables parent rewriting, see <em>History Simplification</em> above.
-</p>
-</dd>
-<dt class="hdlist1">
---timestamp
-</dt>
-<dd>
-<p>
-        Print the raw commit timestamp.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2579,1188 +2295,78 @@ the local time zone is used, e.g. <code>Thu Jan 1 00:00:00 1970 +0000</code>.</p
         is the string that will be shown instead of the default one.
 </p>
 </dd>
-<dt class="hdlist1">
---count
-</dt>
-<dd>
-<p>
-        Print a number stating how many commits would have been
-        listed, and suppress all other output.  When used together
-        with <code>--left-right</code>, instead print the counts for left and
-        right commits, separated by a tab. When used together with
-        <code>--cherry-mark</code>, omit patch equivalent commits from these
-        counts and print the count for equivalent commits separated
-        by a tab.
-</p>
-</dd>
 </dl></div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_pretty_formats">PRETTY FORMATS</h2>
+<h2 id="_output">OUTPUT</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>If the commit is a merge, and if the pretty-format
-is not <em>oneline</em>, <em>email</em> or <em>raw</em>, an additional line is
-inserted before the <em>Author:</em> line.  This line begins with
-"Merge: " and the hashes of ancestral commits are printed,
-separated by spaces.  Note that the listed commits may not
-necessarily be the list of the <strong>direct</strong> parent commits if you
-have limited your view of history: for example, if you are
-only interested in changes related to a certain directory or
-file.</p></div>
-<div class="paragraph"><p>There are several built-in formats, and you can define
-additional formats by setting a pretty.&lt;name&gt;
-config option to either another format name, or a
-<em>format:</em> string, as described below (see
-<a href="git-config.html">git-config(1)</a>). Here are the details of the
-built-in formats:</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-<em>oneline</em>
-</p>
+<div class="paragraph"><p>When there are no conflicts, the output of this command is usable as
+input to <code>git update-ref --stdin</code>.  It is of the form:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;hash&gt; &lt;title-line&gt;</code></pre>
+<pre><code>update refs/heads/branch1 ${NEW_branch1_HASH} ${OLD_branch1_HASH}
+update refs/heads/branch2 ${NEW_branch2_HASH} ${OLD_branch2_HASH}
+update refs/heads/branch3 ${NEW_branch3_HASH} ${OLD_branch3_HASH}</code></pre>
 </div></div>
-<div class="paragraph"><p>This is designed to be as compact as possible.</p></div>
-</li>
-<li>
-<p>
-<em>short</em>
-</p>
-<div class="literalblock">
-<div class="content">
-<pre><code>commit &lt;hash&gt;
-Author: &lt;author&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;title-line&gt;</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-<em>medium</em>
-</p>
-<div class="literalblock">
-<div class="content">
-<pre><code>commit &lt;hash&gt;
-Author: &lt;author&gt;
-Date:   &lt;author-date&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;title-line&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;full-commit-message&gt;</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-<em>full</em>
-</p>
-<div class="literalblock">
-<div class="content">
-<pre><code>commit &lt;hash&gt;
-Author: &lt;author&gt;
-Commit: &lt;committer&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;title-line&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;full-commit-message&gt;</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-<em>fuller</em>
-</p>
-<div class="literalblock">
-<div class="content">
-<pre><code>commit &lt;hash&gt;
-Author:     &lt;author&gt;
-AuthorDate: &lt;author-date&gt;
-Commit:     &lt;committer&gt;
-CommitDate: &lt;committer-date&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;title-line&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;full-commit-message&gt;</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-<em>reference</em>
-</p>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;abbrev-hash&gt; (&lt;title-line&gt;, &lt;short-author-date&gt;)</code></pre>
-</div></div>
-<div class="paragraph"><p>This format is used to refer to another commit in a commit message and
-is the same as <code>--pretty='format:%C(auto)%h (%s, %ad)'</code>.  By default,
-the date is formatted with <code>--date=short</code> unless another <code>--date</code> option
-is explicitly specified.  As with any <code>format:</code> with format
-placeholders, its output is not affected by other options like
-<code>--decorate</code> and <code>--walk-reflogs</code>.</p></div>
-</li>
-<li>
-<p>
-<em>email</em>
-</p>
-<div class="literalblock">
-<div class="content">
-<pre><code>From &lt;hash&gt; &lt;date&gt;
-From: &lt;author&gt;
-Date: &lt;author-date&gt;
-Subject: [PATCH] &lt;title-line&gt;</code></pre>
-</div></div>
-<div class="literalblock">
-<div class="content">
-<pre><code>&lt;full-commit-message&gt;</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-<em>mboxrd</em>
-</p>
-<div class="paragraph"><p>Like <em>email</em>, but lines in the commit message starting with "From "
-(preceded by zero or more "&gt;") are quoted with "&gt;" so they aren&#8217;t
-confused as starting a new commit.</p></div>
-</li>
-<li>
-<p>
-<em>raw</em>
-</p>
-<div class="paragraph"><p>The <em>raw</em> format shows the entire commit exactly as
-stored in the commit object.  Notably, the hashes are
-displayed in full, regardless of whether --abbrev or
---no-abbrev are used, and <em>parents</em> information show the
-true parent commits, without taking grafts or history
-simplification into account. Note that this format affects the way
-commits are displayed, but not the way the diff is shown e.g. with
-<code>git log --raw</code>. To get full object names in a raw diff format,
-use <code>--no-abbrev</code>.</p></div>
-</li>
-<li>
-<p>
-<em>format:&lt;format-string&gt;</em>
-</p>
-<div class="paragraph"><p>The <em>format:&lt;format-string&gt;</em> format allows you to specify which information
-you want to show. It works a little bit like printf format,
-with the notable exception that you get a newline with <em>%n</em>
-instead of <em>\n</em>.</p></div>
-<div class="paragraph"><p>E.g, <em>format:"The author of %h was %an, %ar%nThe title was &gt;&gt;%s&lt;&lt;%n"</em>
-would show something like this:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>The author of fe6e0ee was Junio C Hamano, 23 hours ago
-The title was &gt;&gt;t4119: test autocomputing -p&lt;n&gt; for traditional diff input.&lt;&lt;</code></pre>
-</div></div>
-<div class="paragraph"><p>The placeholders are:</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-Placeholders that expand to a single literal character:
-</p>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-<em>%n</em>
-</dt>
-<dd>
-<p>
-newline
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%%</em>
-</dt>
-<dd>
-<p>
-a raw <em>%</em>
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%x00</em>
-</dt>
-<dd>
-<p>
-<em>%x</em> followed by two hexadecimal digits is replaced with a
-         byte with the hexadecimal digits' value (we will call this
-         "literal formatting code" in the rest of this document).
-</p>
-</dd>
-</dl></div>
-</li>
-<li>
-<p>
-Placeholders that affect formatting of later placeholders:
-</p>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-<em>%Cred</em>
-</dt>
-<dd>
-<p>
-switch color to red
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%Cgreen</em>
-</dt>
-<dd>
-<p>
-switch color to green
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%Cblue</em>
-</dt>
-<dd>
-<p>
-switch color to blue
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%Creset</em>
-</dt>
-<dd>
-<p>
-reset color
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%C(&#8230;)</em>
-</dt>
-<dd>
-<p>
-color specification, as described under Values in the
-            "CONFIGURATION FILE" section of <a href="git-config.html">git-config(1)</a>.  By
-            default, colors are shown only when enabled for log output
-            (by <code>color.diff</code>, <code>color.ui</code>, or <code>--color</code>, and respecting
-            the <code>auto</code> settings of the former if we are going to a
-            terminal). <code>%C(auto,...)</code> is accepted as a historical
-            synonym for the default (e.g., <code>%C(auto,red)</code>). Specifying
-            <code>%C(always,...)</code> will show the colors even when color is
-            not otherwise enabled (though consider just using
-            <code>--color=always</code> to enable color for the whole output,
-            including this format and anything else git might color).
-            <code>auto</code> alone (i.e. <code>%C(auto)</code>) will turn on auto coloring
-            on the next placeholders until the color is switched
-            again.
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%m</em>
-</dt>
-<dd>
-<p>
-left (<code>&lt;</code>), right (<code>&gt;</code>) or boundary (<code>-</code>) mark
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%w([&lt;w&gt;[,&lt;i1&gt;[,&lt;i2&gt;]]])</em>
-</dt>
-<dd>
-<p>
-switch line wrapping, like the -w option of
-                            <a href="git-shortlog.html">git-shortlog(1)</a>.
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%&lt;( &lt;N&gt; [,trunc|ltrunc|mtrunc])</em>
-</dt>
-<dd>
-<p>
-make the next placeholder take at
-                                  least N column widths, padding spaces on
-                                  the right if necessary.  Optionally
-                                  truncate (with ellipsis <em>..</em>) at the left (ltrunc) <code>..ft</code>,
-                                  the middle (mtrunc) <code>mi..le</code>, or the end
-                                  (trunc) <code>rig..</code>, if the output is longer than
-                                  N columns.
-                                  Note 1: that truncating
-                                  only works correctly with N &gt;= 2.
-                                  Note 2: spaces around the N and M (see below)
-                                  values are optional.
-                                  Note 3: Emojis and other wide characters
-                                  will take two display columns, which may
-                                  over-run column boundaries.
-                                  Note 4: decomposed character combining marks
-                                  may be misplaced at padding boundaries.
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%&lt;|( &lt;M&gt; )</em>
-</dt>
-<dd>
-<p>
-make the next placeholder take at least until Mth
-             display column, padding spaces on the right if necessary.
-             Use negative M values for column positions measured
-             from the right hand edge of the terminal window.
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%&gt;( &lt;N&gt; )</em>, <em>%&gt;|( &lt;M&gt; )</em>
-</dt>
-<dd>
-<p>
-similar to <em>%&lt;( &lt;N&gt; )</em>, <em>%&lt;|( &lt;M&gt; )</em> respectively,
-                        but padding spaces on the left
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%&gt;&gt;( &lt;N&gt; )</em>, <em>%&gt;&gt;|( &lt;M&gt; )</em>
-</dt>
-<dd>
-<p>
-similar to <em>%&gt;( &lt;N&gt; )</em>, <em>%&gt;|( &lt;M&gt; )</em>
-                          respectively, except that if the next
-                          placeholder takes more spaces than given and
-                          there are spaces on its left, use those
-                          spaces
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%&gt;&lt;( &lt;N&gt; )</em>, <em>%&gt;&lt;|( &lt;M&gt; )</em>
-</dt>
-<dd>
-<p>
-similar to <em>%&lt;( &lt;N&gt; )</em>, <em>%&lt;|( &lt;M&gt; )</em>
-                          respectively, but padding both sides
-                          (i.e. the text is centered)
-</p>
-</dd>
-</dl></div>
-</li>
-<li>
-<p>
-Placeholders that expand to information extracted from the commit:
-</p>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-<em>%H</em>
-</dt>
-<dd>
-<p>
-commit hash
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%h</em>
-</dt>
-<dd>
-<p>
-abbreviated commit hash
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%T</em>
-</dt>
-<dd>
-<p>
-tree hash
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%t</em>
-</dt>
-<dd>
-<p>
-abbreviated tree hash
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%P</em>
-</dt>
-<dd>
-<p>
-parent hashes
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%p</em>
-</dt>
-<dd>
-<p>
-abbreviated parent hashes
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%an</em>
-</dt>
-<dd>
-<p>
-author name
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%aN</em>
-</dt>
-<dd>
-<p>
-author name (respecting .mailmap, see <a href="git-shortlog.html">git-shortlog(1)</a>
-        or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ae</em>
-</dt>
-<dd>
-<p>
-author email
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%aE</em>
-</dt>
-<dd>
-<p>
-author email (respecting .mailmap, see <a href="git-shortlog.html">git-shortlog(1)</a>
-        or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%al</em>
-</dt>
-<dd>
-<p>
-author email local-part (the part before the <em>@</em> sign)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%aL</em>
-</dt>
-<dd>
-<p>
-author local-part (see <em>%al</em>) respecting .mailmap, see
-        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ad</em>
-</dt>
-<dd>
-<p>
-author date (format respects --date= option)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%aD</em>
-</dt>
-<dd>
-<p>
-author date, RFC2822 style
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ar</em>
-</dt>
-<dd>
-<p>
-author date, relative
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%at</em>
-</dt>
-<dd>
-<p>
-author date, UNIX timestamp
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ai</em>
-</dt>
-<dd>
-<p>
-author date, ISO 8601-like format
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%aI</em>
-</dt>
-<dd>
-<p>
-author date, strict ISO 8601 format
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%as</em>
-</dt>
-<dd>
-<p>
-author date, short format (<code>YYYY-MM-DD</code>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ah</em>
-</dt>
-<dd>
-<p>
-author date, human style (like the <code>--date=human</code> option of
-        <a href="git-rev-list.html">git-rev-list(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cn</em>
-</dt>
-<dd>
-<p>
-committer name
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cN</em>
-</dt>
-<dd>
-<p>
-committer name (respecting .mailmap, see
-        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ce</em>
-</dt>
-<dd>
-<p>
-committer email
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cE</em>
-</dt>
-<dd>
-<p>
-committer email (respecting .mailmap, see
-        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cl</em>
-</dt>
-<dd>
-<p>
-committer email local-part (the part before the <em>@</em> sign)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cL</em>
-</dt>
-<dd>
-<p>
-committer local-part (see <em>%cl</em>) respecting .mailmap, see
-        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cd</em>
-</dt>
-<dd>
-<p>
-committer date (format respects --date= option)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cD</em>
-</dt>
-<dd>
-<p>
-committer date, RFC2822 style
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cr</em>
-</dt>
-<dd>
-<p>
-committer date, relative
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ct</em>
-</dt>
-<dd>
-<p>
-committer date, UNIX timestamp
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ci</em>
-</dt>
-<dd>
-<p>
-committer date, ISO 8601-like format
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cI</em>
-</dt>
-<dd>
-<p>
-committer date, strict ISO 8601 format
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%cs</em>
-</dt>
-<dd>
-<p>
-committer date, short format (<code>YYYY-MM-DD</code>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ch</em>
-</dt>
-<dd>
-<p>
-committer date, human style (like the <code>--date=human</code> option of
-        <a href="git-rev-list.html">git-rev-list(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%d</em>
-</dt>
-<dd>
-<p>
-ref names, like the --decorate option of <a href="git-log.html">git-log(1)</a>
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%D</em>
-</dt>
-<dd>
-<p>
-ref names without the " (", ")" wrapping.
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%(decorate[:&lt;options&gt;])</em>
-</dt>
-<dd>
-<p>
-ref names with custom decorations. The <code>decorate</code> string may be followed by a
-colon and zero or more comma-separated options. Option values may contain
-literal formatting codes. These must be used for commas (<code>%x2C</code>) and closing
-parentheses (<code>%x29</code>), due to their role in the option syntax.
-</p>
-<div class="ulist"><ul>
-<li>
-<p>
-<em>prefix=&lt;value&gt;</em>: Shown before the list of ref names.  Defaults to "&#160;<code>(</code>".
-</p>
-</li>
-<li>
-<p>
-<em>suffix=&lt;value&gt;</em>: Shown after the list of ref names.  Defaults to "<code>)</code>".
-</p>
-</li>
-<li>
-<p>
-<em>separator=&lt;value&gt;</em>: Shown between ref names.  Defaults to "<code>,</code>&#160;".
-</p>
-</li>
-<li>
-<p>
-<em>pointer=&lt;value&gt;</em>: Shown between HEAD and the branch it points to, if any.
-                      Defaults to "&#160;<code>-&gt;</code>&#160;".
-</p>
-</li>
-<li>
-<p>
-<em>tag=&lt;value&gt;</em>: Shown before tag names. Defaults to "<code>tag:</code>&#160;".
-</p>
-</li>
-</ul></div>
-<div class="paragraph"><p>For example, to produce decorations with no wrapping
-or tag annotations, and spaces as separators:</p></div>
-<div class="paragraph"><p><code>%(decorate:prefix=,suffix=,tag=,separator= )</code></p></div>
-</dd>
-<dt class="hdlist1">
-<em>%(describe[:&lt;options&gt;])</em>
-</dt>
-<dd>
-<p>
-human-readable name, like <a href="git-describe.html">git-describe(1)</a>; empty string for
-undescribable commits.  The <code>describe</code> string may be followed by a colon and
-zero or more comma-separated options.  Descriptions can be inconsistent when
-tags are added or removed at the same time.
-</p>
-<div class="ulist"><ul>
-<li>
-<p>
-<em>tags[=&lt;bool-value&gt;]</em>: Instead of only considering annotated tags,
-   consider lightweight tags as well.
-</p>
-</li>
-<li>
-<p>
-<em>abbrev=&lt;number&gt;</em>: Instead of using the default number of hexadecimal digits
-   (which will vary according to the number of objects in the repository with a
-   default of 7) of the abbreviated object name, use &lt;number&gt; digits, or as many
-   digits as needed to form a unique object name.
-</p>
-</li>
-<li>
-<p>
-<em>match=&lt;pattern&gt;</em>: Only consider tags matching the given
-   <code>glob(7)</code> pattern, excluding the "refs/tags/" prefix.
-</p>
-</li>
-<li>
-<p>
-<em>exclude=&lt;pattern&gt;</em>: Do not consider tags matching the given
-   <code>glob(7)</code> pattern, excluding the "refs/tags/" prefix.
-</p>
-</li>
-</ul></div>
-</dd>
-<dt class="hdlist1">
-<em>%S</em>
-</dt>
-<dd>
-<p>
-ref name given on the command line by which the commit was reached
-       (like <code>git log --source</code>), only works with <code>git log</code>
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%e</em>
-</dt>
-<dd>
-<p>
-encoding
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%s</em>
-</dt>
-<dd>
-<p>
-subject
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%f</em>
-</dt>
-<dd>
-<p>
-sanitized subject line, suitable for a filename
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%b</em>
-</dt>
-<dd>
-<p>
-body
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%B</em>
-</dt>
-<dd>
-<p>
-raw body (unwrapped subject and body)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%GG</em>
-</dt>
-<dd>
-<p>
-raw verification message from GPG for a signed commit
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%G?</em>
-</dt>
-<dd>
-<p>
-show "G" for a good (valid) signature,
-        "B" for a bad signature,
-        "U" for a good signature with unknown validity,
-        "X" for a good signature that has expired,
-        "Y" for a good signature made by an expired key,
-        "R" for a good signature made by a revoked key,
-        "E" if the signature cannot be checked (e.g. missing key)
-        and "N" for no signature
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%GS</em>
-</dt>
-<dd>
-<p>
-show the name of the signer for a signed commit
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%GK</em>
-</dt>
-<dd>
-<p>
-show the key used to sign a signed commit
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%GF</em>
-</dt>
-<dd>
-<p>
-show the fingerprint of the key used to sign a signed commit
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%GP</em>
-</dt>
-<dd>
-<p>
-show the fingerprint of the primary key whose subkey was used
-        to sign a signed commit
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%GT</em>
-</dt>
-<dd>
-<p>
-show the trust level for the key used to sign a signed commit
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%gD</em>
-</dt>
-<dd>
-<p>
-reflog selector, e.g., <code>refs/stash@{1}</code> or <code>refs/stash@{2
-        minutes ago}</code>; the format follows the rules described for the
-        <code>-g</code> option. The portion before the <code>@</code> is the refname as
-        given on the command line (so <code>git log -g refs/heads/master</code>
-        would yield <code>refs/heads/master@{0}</code>).
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%gd</em>
-</dt>
-<dd>
-<p>
-shortened reflog selector; same as <code>%gD</code>, but the refname
-        portion is shortened for human readability (so
-        <code>refs/heads/master</code> becomes just <code>master</code>).
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%gn</em>
-</dt>
-<dd>
-<p>
-reflog identity name
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%gN</em>
-</dt>
-<dd>
-<p>
-reflog identity name (respecting .mailmap, see
-        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%ge</em>
-</dt>
-<dd>
-<p>
-reflog identity email
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%gE</em>
-</dt>
-<dd>
-<p>
-reflog identity email (respecting .mailmap, see
-        <a href="git-shortlog.html">git-shortlog(1)</a> or <a href="git-blame.html">git-blame(1)</a>)
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%gs</em>
-</dt>
-<dd>
-<p>
-reflog subject
-</p>
-</dd>
-<dt class="hdlist1">
-<em>%(trailers[:&lt;options&gt;])</em>
-</dt>
-<dd>
-<p>
-display the trailers of the body as interpreted by
-<a href="git-interpret-trailers.html">git-interpret-trailers(1)</a>. The <code>trailers</code> string may be followed by
-a colon and zero or more comma-separated options. If any option is provided
-multiple times, the last occurrence wins.
-</p>
-<div class="ulist"><ul>
-<li>
-<p>
-<em>key=&lt;key&gt;</em>: only show trailers with specified &lt;key&gt;. Matching is done
-   case-insensitively and trailing colon is optional. If option is
-   given multiple times trailer lines matching any of the keys are
-   shown. This option automatically enables the <code>only</code> option so that
-   non-trailer lines in the trailer block are hidden. If that is not
-   desired it can be disabled with <code>only=false</code>.  E.g.,
-   <code>%(trailers:key=Reviewed-by)</code> shows trailer lines with key
-   <code>Reviewed-by</code>.
-</p>
-</li>
-<li>
-<p>
-<em>only[=&lt;bool&gt;]</em>: select whether non-trailer lines from the trailer
-   block should be included.
-</p>
-</li>
-<li>
-<p>
-<em>separator=&lt;sep&gt;</em>: specify the separator inserted between trailer
-   lines. Defaults to a line feed character. The string &lt;sep&gt; may contain
-   the literal formatting codes described above. To use comma as
-   separator one must use <code>%x2C</code> as it would otherwise be parsed as
-   next option. E.g., <code>%(trailers:key=Ticket,separator=%x2C )</code>
-   shows all trailer lines whose key is "Ticket" separated by a comma
-   and a space.
-</p>
-</li>
-<li>
-<p>
-<em>unfold[=&lt;bool&gt;]</em>: make it behave as if interpret-trailer&#8217;s <code>--unfold</code>
-   option was given. E.g.,
-   <code>%(trailers:only,unfold=true)</code> unfolds and shows all trailer lines.
-</p>
-</li>
-<li>
-<p>
-<em>keyonly[=&lt;bool&gt;]</em>: only show the key part of the trailer.
-</p>
-</li>
-<li>
-<p>
-<em>valueonly[=&lt;bool&gt;]</em>: only show the value part of the trailer.
-</p>
-</li>
-<li>
-<p>
-<em>key_value_separator=&lt;sep&gt;</em>: specify the separator inserted between
-   the key and value of each trailer. Defaults to ": ". Otherwise it
-   shares the same semantics as <em>separator=&lt;sep&gt;</em> above.
-</p>
-</li>
-</ul></div>
-</dd>
-</dl></div>
-</li>
-</ul></div>
-</li>
-</ul></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">Some placeholders may depend on other options given to the
-revision traversal engine. For example, the <code>%g*</code> reflog options will
-insert an empty string unless we are traversing reflog entries (e.g., by
-<code>git log -g</code>). The <code>%d</code> and <code>%D</code> placeholders will use the "short"
-decoration format if <code>--decorate</code> was not already provided on the command
-line.</td>
-</tr></table>
+<div class="paragraph"><p>where the number of refs updated depends on the arguments passed and
+the shape of the history being replayed.  When using <code>--advance</code>, the
+number of refs updated is always one, but for <code>--onto</code>, it can be one
+or more (rebasing multiple branches simultaneously is supported).</p></div>
 </div>
-<div class="paragraph"><p>The boolean options accept an optional value <code>[=&lt;bool-value&gt;]</code>. The values
-<code>true</code>, <code>false</code>, <code>on</code>, <code>off</code> etc. are all accepted. See the "boolean"
-sub-section in "EXAMPLES" in <a href="git-config.html">git-config(1)</a>. If a boolean
-option is given with no value, it&#8217;s enabled.</p></div>
-<div class="paragraph"><p>If you add a <code>+</code> (plus sign) after <em>%</em> of a placeholder, a line-feed
-is inserted immediately before the expansion if and only if the
-placeholder expands to a non-empty string.</p></div>
-<div class="paragraph"><p>If you add a <code>-</code> (minus sign) after <em>%</em> of a placeholder, all consecutive
-line-feeds immediately preceding the expansion are deleted if and only if the
-placeholder expands to an empty string.</p></div>
-<div class="paragraph"><p>If you add a ` ` (space) after <em>%</em> of a placeholder, a space
-is inserted immediately before the expansion if and only if the
-placeholder expands to a non-empty string.</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-<em>tformat:</em>
-</p>
-<div class="paragraph"><p>The <em>tformat:</em> format works exactly like <em>format:</em>, except that it
-provides "terminator" semantics instead of "separator" semantics. In
-other words, each commit has the message terminator character (usually a
-newline) appended, rather than a separator placed between entries.
-This means that the final entry of a single-line format will be properly
-terminated with a new line, just as the "oneline" format does.
-For example:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>$ git log -2 --pretty=format:%h 4da45bef \
-  | perl -pe '$_ .= " -- NO NEWLINE\n" unless /\n/'
-4da45be
-7134973 -- NO NEWLINE
-
-$ git log -2 --pretty=tformat:%h 4da45bef \
-  | perl -pe '$_ .= " -- NO NEWLINE\n" unless /\n/'
-4da45be
-7134973</code></pre>
-</div></div>
-<div class="paragraph"><p>In addition, any unrecognized string that has a <code>%</code> in it is interpreted
-as if it has <code>tformat:</code> in front of it.  For example, these two are
-equivalent:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>$ git log -2 --pretty=tformat:%h 4da45bef
-$ git log -2 --pretty=%h 4da45bef</code></pre>
-</div></div>
-</li>
-</ul></div>
+</div>
+<div class="sect1">
+<h2 id="_exit_status">EXIT STATUS</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>For a successful, non-conflicted replay, the exit status is 0.  When
+the replay has conflicts, the exit status is 1.  If the replay is not
+able to complete (or start) due to some kind of error, the exit status
+is something other than 0 or 1.</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_examples">EXAMPLES</h2>
 <div class="sectionbody">
-<div class="ulist"><ul>
-<li>
-<p>
-Print the list of commits reachable from the current branch.
-</p>
+<div class="paragraph"><p>To simply rebase <code>mybranch</code> onto <code>target</code>:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>git rev-list HEAD</code></pre>
+<pre><code>$ git replay --onto target origin/main..mybranch
+update refs/heads/mybranch ${NEW_mybranch_HASH} ${OLD_mybranch_HASH}</code></pre>
 </div></div>
-</li>
-<li>
-<p>
-Print the list of commits on this branch, but not present in the
-  upstream branch.
-</p>
+<div class="paragraph"><p>To cherry-pick the commits from mybranch onto target:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>git rev-list @{upstream}..HEAD</code></pre>
+<pre><code>$ git replay --advance target origin/main..mybranch
+update refs/heads/target ${NEW_target_HASH} ${OLD_target_HASH}</code></pre>
 </div></div>
-</li>
-<li>
-<p>
-Format commits with their author and commit message (see also the
-  porcelain <a href="git-log.html">git-log(1)</a>).
-</p>
+<div class="paragraph"><p>Note that the first two examples replay the exact same commits and on
+top of the exact same new base, they only differ in that the first
+provides instructions to make mybranch point at the new commits and
+the second provides instructions to make target point at them.</p></div>
+<div class="paragraph"><p>What if you have a stack of branches, one depending upon another, and
+you&#8217;d really like to rebase the whole set?</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>git rev-list --format=medium HEAD</code></pre>
+<pre><code>$ git replay --contained --onto origin/main origin/main..tipbranch
+update refs/heads/branch1 ${NEW_branch1_HASH} ${OLD_branch1_HASH}
+update refs/heads/branch2 ${NEW_branch2_HASH} ${OLD_branch2_HASH}
+update refs/heads/tipbranch ${NEW_tipbranch_HASH} ${OLD_tipbranch_HASH}</code></pre>
 </div></div>
-</li>
-<li>
-<p>
-Format commits along with their diffs (see also the porcelain
-  <a href="git-log.html">git-log(1)</a>, which can do this in a single process).
-</p>
+<div class="paragraph"><p>When calling <code>git replay</code>, one does not need to specify a range of
+commits to replay using the syntax <code>A..B</code>; any range expression will
+do:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>git rev-list HEAD |
-git diff-tree --stdin --format=medium -p</code></pre>
+<pre><code>$ git replay --onto origin/main ^base branch1 branch2 branch3
+update refs/heads/branch1 ${NEW_branch1_HASH} ${OLD_branch1_HASH}
+update refs/heads/branch2 ${NEW_branch2_HASH} ${OLD_branch2_HASH}
+update refs/heads/branch3 ${NEW_branch3_HASH} ${OLD_branch3_HASH}</code></pre>
 </div></div>
-</li>
-<li>
-<p>
-Print the list of commits on the current branch that touched any
-  file in the <code>Documentation</code> directory.
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code>git rev-list HEAD -- Documentation/</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-Print the list of commits authored by you in the past year, on
-  any branch, tag, or other ref.
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code>git rev-list --author=you@example.com --since=1.year.ago --all</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-Print the list of objects reachable from the current branch (i.e., all
-  commits and the blobs and trees they contain).
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code>git rev-list --objects HEAD</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-Compare the disk size of all reachable objects, versus those
-  reachable from reflogs, versus the total packed size. This can tell
-  you whether running <code>git repack -ad</code> might reduce the repository size
-  (by dropping unreachable objects), and whether expiring reflogs might
-  help.
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code># reachable objects
-git rev-list --disk-usage --objects --all
-# plus reflogs
-git rev-list --disk-usage --objects --all --reflog
-# total disk size used
-du -c .git/objects/pack/*.pack .git/objects/??/*
-# alternative to du: add up "size" and "size-pack" fields
-git count-objects -v</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-Report the disk size of each branch, not including objects used by the
-  current branch. This can find outliers that are contributing to a
-  bloated repository size (e.g., because somebody accidentally committed
-  large build artifacts).
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code>git for-each-ref --format='%(refname)' |
-while read branch
-do
-        size=$(git rev-list --disk-usage --objects HEAD..$branch)
-        echo "$size $branch"
-done |
-sort -n</code></pre>
-</div></div>
-</li>
-<li>
-<p>
-Compare the on-disk size of branches in one group of refs, excluding
-  another. If you co-mingle objects from multiple remotes in a single
-  repository, this can show which remotes are contributing to the
-  repository size (taking the size of <code>origin</code> as a baseline).
-</p>
-<div class="listingblock">
-<div class="content">
-<pre><code>git rev-list --disk-usage --objects --remotes=$suspect --not --remotes=origin</code></pre>
-</div></div>
-</li>
-</ul></div>
+<div class="paragraph"><p>This will simultaneously rebase <code>branch1</code>, <code>branch2</code>, and <code>branch3</code>,
+all commits they have since <code>base</code>, playing them on top of
+<code>origin/main</code>. These three branches may have commits on top of <code>base</code>
+that they have in common, but that does not need to be the case.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -3774,7 +2380,7 @@ Compare the on-disk size of branches in one group of refs, excluding
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-07-17 14:55:26 PDT
 </div>
 </div>
 </body>
