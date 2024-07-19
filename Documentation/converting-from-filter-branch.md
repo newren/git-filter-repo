@@ -165,16 +165,11 @@ such, filter-repo just uses the same mechanism:
 
 ```shell
   git replace --graft $commit-id $graft-id
-  git filter-repo --force
+  git filter-repo --proceed
 ```
 
-NOTE: --force should usually be avoided unless you have taken care to
-make sure you have a backup (or are running on a fresh clone of) your
-repo.  It is needed in this case because filter-repo errors out when
-no arguments are specified, and because it usually first checks
-whether you are in a fresh clone before irrecoverably rewriting your
-repository (git-replace created a new graft and thus added something
-to your previously fresh clone).
+NOTE: --proceed is needed here because filter-repo errors out if no
+arguments are specified (doing so is usually an error).
 
 ### Removing commits by a certain author
 

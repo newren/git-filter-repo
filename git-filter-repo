@@ -2929,6 +2929,24 @@ class RepoFilter(object):
       os.chdir(cwd)
 
   @staticmethod
+  def loose_objects_are_replace_refs(git_dir, refs, num_loose_objects):
+    replace_objects = set()
+    for refname, rev in refs.items():
+      if not refname.startswith(b'refs/replace/'):
+        continue
+      replace_objects.add(rev)
+
+    validobj_re = re.compile(rb'^[0-9a-f]{40}$')
+    object_dir=os.path.join(git_dir, b'objects')
+    for root, dirs, files in os.walk(object_dir):
+      for filename in files:
+        objname = os.path.basename(root)+filename
+        if objname not in replace_objects and validobj_re.match(objname):
+          return False
+
+    return True
+
+  @staticmethod
   def sanity_check(refs, is_bare):
     def abort(reason):
       try:
@@ -2947,6 +2965,14 @@ class RepoFilter(object):
           "Please operate on a fresh clone instead.  If you want to proceed\n"
           "anyway, use --force.") % (reason, msg))
 
+    # Avoid letting people running with weird setups and overwriting GIT_DIR
+    # elsewhere
+    git_dir = GitUtils.determine_git_dir(b'.')
+    if is_bare and git_dir != b'.':
+      abort(_("GIT_DIR must be ."))
+    elif not is_bare and git_dir != b'.git':
+      abort(_("GIT_DIR must be .git"))
+
     # Make sure repo is fully packed, just like a fresh clone would be.
     # Note that transfer.unpackLimit defaults to 100, meaning that a
     # repository with no packs and less than 100 objects should be considered
@@ -2956,8 +2982,10 @@ class RepoFilter(object):
     num_packs = int(stats[b'packs'])
     num_loose_objects = int(stats[b'count'])
     if num_packs > 1 or \
-       (num_packs == 1 and num_loose_objects > 0) or \
-       num_loose_objects >= 100:
+       num_loose_objects >= 100 or \
+       (num_packs == 1 and num_loose_objects > 0 and
+        not RepoFilter.loose_objects_are_replace_refs(git_dir, refs,
+                                                      num_loose_objects)):
       abort(_("expected freshly packed repo"))
 
     # Make sure there is precisely one remote, named "origin"...or that this
@@ -2965,14 +2993,6 @@ class RepoFilter(object):
     output = subproc.check_output('git remote'.split()).strip()
     if not (output == b"origin" or (num_packs == 0 and not output)):
       abort(_("expected one remote, origin"))
-
-    # Avoid letting people running with weird setups and overwriting GIT_DIR
-    # elsewhere
-    git_dir = GitUtils.determine_git_dir(b'.')
-    if is_bare and git_dir != b'.':
-      abort(_("GIT_DIR must be ."))
-    elif not is_bare and git_dir != b'.git':
-      abort(_("GIT_DIR must be .git"))
 
     # Make sure that all reflogs have precisely one entry
     reflog_dir=os.path.join(git_dir, b'logs')

@@ -442,7 +442,7 @@ test_expect_success FUNNYNAMES 'refs/replace/ to skip a parent' '
 		git tag -d v2.0 &&
 		git replace HEAD~1 HEAD~2 &&
 
-		git filter-repo --replace-refs delete-no-add --path "" --force &&
+		git filter-repo --proceed &&
 		test $(git rev-list --count HEAD) = 2 &&
 		git cat-file --batch-check --batch-all-objects >all-objs &&
 		test_line_count = 16 all-objs &&
@@ -466,14 +466,22 @@ test_expect_success FUNNYNAMES 'refs/replace/ to add more initial history' '
 		git add numbers/small &&
 		git clean -fd &&
 		git commit -m new.root &&
-
-		git replace --graft master~2 new_root &&
+		NEW_ROOT=$(git rev-parse HEAD) &&
 		git checkout master &&
+
+		# Make it look like a fresh clone...
+		git gc &&
+		git reflog expire --expire=now HEAD &&
+		git branch -D new_root &&
+
+		# ...but add a replace object to give us a new root commit
+		git replace --graft master~2 $NEW_ROOT &&
 
 		git --no-replace-objects cat-file -p master~2 >grandparent &&
 		! grep parent grandparent &&
+		rm grandparent &&
 
-		git filter-repo --replace-refs delete-no-add --path "" --force &&
+		git filter-repo --proceed &&
 
 		git --no-replace-objects cat-file -p master~2 >new-grandparent &&
 		grep parent new-grandparent &&

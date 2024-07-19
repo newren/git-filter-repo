@@ -990,7 +990,7 @@ rewrite history to make it permanent:
 
 --------------------------------------------------
 git replace $commit_A $commit_B
-git filter-repo --force
+git filter-repo --proceed
 --------------------------------------------------
 
 To create a new commit with the same contents as $commit_A except with
@@ -999,12 +999,14 @@ and rewrite history to make it permanent:
 
 --------------------------------------------------
 git replace --graft $commit_A $new_parent_or_parents
-git filter-repo --force
+git filter-repo --proceed
 --------------------------------------------------
 
-The reason to specify --force is two-fold: filter-repo will error out
-if no arguments are specified, and the new graft commit would
-otherwise trigger the not-a-fresh-clone check.
+The `--proceed` option is needed to avoid failing the "no arguments
+specified" check.  Note that older versions of git-filter-repo
+required `--force` to be passed after creating a graft to avoid
+triggering the not-a-fresh-clone check; that check has been modified
+to remove this overuse of `--force`.
 
 Partial history rewrites
 ~~~~~~~~~~~~~~~~~~~~~~~~
