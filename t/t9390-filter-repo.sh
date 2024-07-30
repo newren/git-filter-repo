@@ -564,9 +564,8 @@ test_expect_success FUNNYNAMES 'creation/deletion/updating of replace refs' '
 		git show-ref | grep refs/replace/ >output &&
 		test_cmp output expect &&
 
-		# Test the default
 		rsync -a --delete ../replace_handling/ ./ &&
-		git filter-repo --path-rename numbers:counting &&
+		git filter-repo --replace-refs update-no-add --path-rename numbers:counting &&
 		echo "$(git rev-parse master~1) refs/replace/$master_1" >expect &&
 		git show-ref | grep refs/replace/ >output &&
 		test_cmp output expect
