@@ -3783,10 +3783,12 @@ class RepoFilter(object):
     if p.wait():
       raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
-    # Now remove
-    if self._args.debug:
-      print("[DEBUG] Removing 'origin' remote (rewritten history will no ")
-      print("        longer be related; consider re-pushing it elsewhere.")
+    # Now remove the origin remote
+    print("NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'\n"
+          "        in the manual if you want to push back there.")
+    cmd = 'git config remote.origin.url'
+    origin_url = subproc.check_output(cmd.split()).strip()
+    print(f"        (was {origin_url.decode(errors='replace')})")
     subproc.call('git remote rm origin'.split(), cwd=target_working_dir)
 
   def _final_commands(self):

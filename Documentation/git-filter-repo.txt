@@ -538,11 +538,13 @@ history rewrite are roughly as follows:
      they have to clone a new URL.
 
    * Rewriting history will rewrite tags; those who have already
-     downloaded tags will not get the updated tags by default (see the
-     "On Re-tagging" section of linkgit:git-tag[1]).  Every user
-     trying to use an existing clone will have to forcibly delete all
-     tags and re-fetch them; it may be easier for them to just
-     re-clone, which they are more likely to do with a new clone URL.
+     downloaded tags will not get the updated tags by default.
+     Further, they won't get the updated tags even if they specify
+     `--tags` to `git fetch` or `git pull` (see the "On Re-tagging"
+     section of linkgit:git-tag[1]).  Every user trying to use an
+     existing clone will have to forcibly delete all tags _before_
+     re-fetching them; it may be easier for them to just re-clone,
+     which they are more likely to do with a new clone URL.
 
    * Rewriting history may delete some refs (e.g. branches that only
      had files that you wanted excised from history); unless you run
@@ -555,10 +557,13 @@ history rewrite are roughly as follows:
      `--prune` option as well.  Simply re-cloning from a new URL is
      easier.
 
-   * The server may not allow you to force push over some refs.
-     For example, code review systems may have special ref
-     namespaces (e.g. refs/changes/, refs/pull/,
-     refs/merge-requests/) that they have locked down.
+   * The server may not allow you to force push over some refs.  For
+     example, code review systems may have special ref namespaces
+     (e.g. refs/changes/, refs/pull/, refs/merge-requests/) that they
+     have locked down, and you'll need to somehow prevent users from
+     merging those locked-down (and thus not cleaned up) histories
+     with your cleaned-up history.  Every software code review system
+     handles this differently (see below for some links).
 
 5. If you still want to push your rewritten history back to the
    original url despite my warnings above, you'll have to manage it
@@ -566,26 +571,27 @@ history rewrite are roughly as follows:
 
    * git-filter-repo deletes the "origin" remote to help avoid people
      accidentally repushing to the same repository, so you'll need to
-     remind git what origin's url was.  You'll have to look up the
-     command for that.
+     remind git what origin's url was.
 
    * You'll need to carefully synchronize with *everyone* who has
-     cloned the repository, and will also need to carefully
-     synchronize with *everything* (e.g. CI systems) that has cloned
-     it.  Every single clone will either need to be thrown away and
-     re-cloned, or need to take all the steps outlined in item 4 as
-     well as follow the necessary steps from "RECOVERING FROM UPSTREAM
-     REBASE" section of linkgit:git-rebase[1].  If you miss fixing any
-     clones, you'll risk mixing old and new history and end up with an
-     even worse mess to clean up.
+     cloned the repository (including forks on various software forges
+     and clones thereof), and will also need to carefully synchronize
+     with *everything* (e.g. CI systems) that has cloned it.  Every
+     single clone will either need to be thrown away and re-cloned, or
+     need to take all the steps outlined in item 4 as well as follow
+     the necessary steps from "RECOVERING FROM UPSTREAM REBASE"
+     section of linkgit:git-rebase[1].  If you miss fixing any clones,
+     you'll risk mixing old and new history and end up with an even
+     worse mess to clean up.
 
    * Finally, you'll need to consult any documentation from your
      hosting provider about how to remove any server-side references
      to the old commits (example:
      https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html[GitLab's
-     excellent docs on reducing repository size], or
+     docs on reducing repository size], or
      https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository#fully-removing-the-data-from-github[the
-     first and second steps under "Fully removing the data from GitHub"]).
+     first and second steps under "Fully removing the data from
+     GitHub"]).
 
 6. (Optional) Some additional considerations
 
@@ -615,6 +621,51 @@ history rewrite are roughly as follows:
      differently, some provide specialized commands
      (e.g. https://gerrit-review.googlesource.com/Documentation/cmd-ban-commit.html),
      others require you to write hooks.
+
+Why is my origin removed?
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you rewrite history, all commit IDs (starting with the first one
+where changes are made) are modified.  Even if you think you didn't
+change an intermediate commit, the fact that you changed any of its
+ancestors is also a change that counts and will cause a commit's ID to
+change as well.  It is unfortunately all-too-easy for yourself or
+someone else to accidentally merge the old ugly history you were
+trying to rewrite with the new history, resulting in not only the old
+ugly history returning but getting you "two copies" of each commit
+(both an original commit and a cleaned-up alternative), and thus
+doubling the number of commits in your repository.  In short, you end
+up with an even bigger mess to clean up than you started with.
+
+This happens frequently to people using `git filter-branch` or `BFG
+repo cleaner`, and can happen to folks using `git filter-repo` if they
+insist on pushing back to the original repo.  Example ways you can get
+such an even uglier history include:
+
+  * at the command line (of another clone of the same repo from before the
+    cleanup): "git pull && git push"
+  * in a software forge: "reopen old Pull-Request/Merge-Request/Code-Review
+    and hit the merge/submit button"
+
+Removing the `origin` remote and suggesting people push to a new repo
+(and ensuring they tell others to clone the new repo) is usually a
+good forcing function to avoid these problems.  But, if people really
+want to push to the original repository despite these warnings, it is
+trivial to do so; simply run:
+
+  * `git remote add origin $ORIGINAL_CLONE_URL`
+
+and then you can push (e.g. `git push --force --branches --tags
+--prune`).  Since removing the origin url is such a cheap way to
+potentially prevent big messes, and it's so easy to work around for
+those that really do want to push back over the original history,
+removing the origin url is a great safety measure that I employ.
+
+One final warning if you really want to push back to the original
+repo: there are more details about the kinds of messes that pushing to
+the original repo can lead to (and what you'd need to do to avoid
+those messes) in items #4 and #5 earlier in this DISCUSSION section.
+Please read those first.
 
 [[EXAMPLES]]
 EXAMPLES
