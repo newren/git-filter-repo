@@ -21,21 +21,10 @@ test:
 fixup_locale:
 	sed -ie s%@@LOCALEDIR@@%$(localedir)% git-filter-repo
 
-# People installing from tarball will already have man1/git-filter-repo.1 and
-# html/git-filter-repo.html.  But let's support people installing from a git
-# clone too; for them, just cheat and snag a copy of the built docs that I
-# record in a different branch.
-snag_docs: Documentation/man1/git-filter-repo.1 Documentation/html/git-filter-repo.html
+doc:
+	$(MAKE) -C Documentation man html
 
-Documentation/man1/git-filter-repo.1:
-	mkdir -p Documentation/man1
-	git show origin/docs:man1/git-filter-repo.1 >Documentation/man1/git-filter-repo.1
-
-Documentation/html/git-filter-repo.html:
-	mkdir -p Documentation/html
-	git show origin/docs:html/git-filter-repo.html >Documentation/html/git-filter-repo.html
-
-install: snag_docs #fixup_locale
+install: doc #fixup_locale
 	$(INSTALL) -Dm0755 git-filter-repo "$(DESTDIR)/$(bindir)/git-filter-repo"
 	$(INSTALL) -dm0755 "$(DESTDIR)/$(pythondir)"
 	ln -sf "$(bindir)/git-filter-repo" "$(DESTDIR)/$(pythondir)/git_filter_repo.py"
