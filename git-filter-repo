@@ -2853,12 +2853,14 @@ class RepoFilter(object):
     self._finalize_handled = False
     self._orig_refs = None
     self._newnames = {}
+    self._stash = None
 
     # Cache a few message translations for performance reasons
     self._parsed_message = _("Parsed %d commits")
 
     # Compile some regexes and cache those
     self._hash_re = re.compile(br'(\b[0-9a-f]{7,40}\b)')
+    self._full_hash_re = re.compile(br'(\b[0-9a-f]{40}\b)')
 
   def _handle_arg_callbacks(self):
     def make_callback(argname, str):
@@ -3036,8 +3038,8 @@ class RepoFilter(object):
       if len(output.splitlines()) > 1:
         abort(_('you have multiple worktrees'))
 
-  @staticmethod
-  def cleanup(repo, repack, reset, run_quietly=False, show_debuginfo=False):
+  def cleanup(self, repo, repack, reset,
+              run_quietly=False, show_debuginfo=False):
     ''' cleanup repo; if repack then expire reflogs and do a gc --prune=now.
         if reset then do a reset --hard.  Optionally also curb output if
         run_quietly is True, or go the opposite direction and show extra
@@ -3058,6 +3060,8 @@ class RepoFilter(object):
       if show_debuginfo:
         print("[DEBUG] Running{}: {}".format(location_info, ' '.join(cmd)))
       subproc.call(cmd, cwd=repo)
+      if cmd[0:3] == 'git reflog expire'.split():
+        self._write_stash()
 
   def _get_rename(self, old_hash):
     # If we already know the rename, just return it
@@ -3114,6 +3118,13 @@ class RepoFilter(object):
 
     assert new_hash is not None
     return new_hash[0:orig_len]
+
+  def _translate_full_commit_hash(self, matchobj):
+    old_hash = matchobj.group(1)
+    new_hash = self._get_rename(old_hash)
+    if new_hash is None:
+      return old_hash
+    return new_hash
 
   def _trim_extra_parents(self, orig_parents, parents):
     '''Due to pruning of empty commits, some parents could be non-existent
@@ -3685,12 +3696,37 @@ class RepoFilter(object):
     # Handle sanity checks, though currently none needed for export-only cases
     self._run_sanity_checks()
 
+  def _read_stash(self):
+    if self._orig_refs and b'refs/stash' in self._orig_refs and \
+       self._args.refs == ['--all']:
+      repo_working_dir = self._args.source or b'.'
+      git_dir = GitUtils.determine_git_dir(repo_working_dir)
+      stash = os.path.join(git_dir, b'logs', b'refs', b'stash')
+      if os.path.exists(stash):
+        with open(stash, 'br') as f:
+          self._stash = f.read()
+        out = subproc.check_output('git rev-list -g refs/stash'.split(),
+                                   cwd=repo_working_dir)
+        self._args.refs.extend(decode(out.strip()).split())
+
+  def _write_stash(self):
+    if self._stash:
+      target_working_dir = self._args.target or b'.'
+      git_dir = GitUtils.determine_git_dir(target_working_dir)
+      stash = os.path.join(git_dir, b'logs', b'refs', b'stash')
+      with open(stash, 'bw') as f:
+        self._stash = self._full_hash_re.sub(self._translate_full_commit_hash,
+                                             self._stash)
+        f.write(self._stash)
+      print(_("Rewrote the stash."))
+
   def _setup_input(self, use_done_feature):
     if self._args.stdin:
       self._input = sys.stdin.detach()
       sys.stdin = None # Make sure no one tries to accidentally use it
       self._fe_orig = None
     else:
+      self._read_stash()
       skip_blobs = (self._blob_callback is None and
                     self._args.replace_text is None and
                     self._args.source == self._args.target)
@@ -4038,9 +4074,9 @@ class RepoFilter(object):
     #   If we need a repack, then nuke the reflogs and repack.
     #   If we need a reset, do a reset --hard
     reset = not GitUtils.is_repository_bare(target_working_dir)
-    RepoFilter.cleanup(target_working_dir, self._args.repack, reset,
-                       run_quietly=self._args.quiet,
-                       show_debuginfo=self._args.debug)
+    self.cleanup(target_working_dir, self._args.repack, reset,
+                 run_quietly=self._args.quiet,
+                 show_debuginfo=self._args.debug)
 
     # Let user know how long it took
     print(_("Completely finished after {:.2f} seconds.")

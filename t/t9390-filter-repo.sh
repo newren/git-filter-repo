@@ -1918,4 +1918,26 @@ test_expect_success 'empty author ident' '
 	)
 '
 
+test_expect_success 'rewrite stash' '
+	test_create_repo rewrite_stash &&
+	(
+		cd rewrite_stash &&
+
+		git init &&
+		test_write_lines 1 2 3 4 5 6 7 8 9 10 >numbers &&
+		git add numbers &&
+		git commit -qm initial &&
+
+		echo 11 >>numbers &&
+		git stash push -m "add eleven" &&
+		echo foobar >>numbers &&
+		git stash push -m "add foobar" &&
+
+		git filter-repo --force --path-rename numbers:values &&
+
+		git stash list >output &&
+		test 2 -eq $(cat output | wc -l)
+	)
+'
+
 test_done
