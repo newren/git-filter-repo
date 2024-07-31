@@ -40,7 +40,7 @@ filter-repo requires:
 
   * git >= 2.22.0 at a minimum; [some features](#upstream-improvements)
     require git >= 2.24.0 or later
-  * python3 >= 3.5
+  * python3 >= 3.6
 
 # How do I install it?
 

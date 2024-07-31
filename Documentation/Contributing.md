@@ -34,7 +34,7 @@ with a few exceptions:
       2019 and should not be used.  (Commit 4d0264ab723c
       ("filter-repo: workaround python<2.7.9 exec bug", 2019-04-30)
       was the last version of filter-repo that worked with python2).
-    * You can depend on anything in python 3.5 or earlier.  I may bump
+    * You can depend on anything in python 3.6 or earlier.  I may bump
       this minimum version over time, but do want to generally work
       with the python3 version found in current enterprise Linux
       distributions.
