@@ -3863,6 +3863,8 @@ class RepoFilter(object):
       raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
     # Now remove the origin remote
+    if b'remote.origin.url' not in self._config_settings:
+      return
     url = self._config_settings[b'remote.origin.url'].decode(errors='replace')
     m = _("NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'\n"
           "        in the manual if you want to push back there.\n"

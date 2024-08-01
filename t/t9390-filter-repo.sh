@@ -1978,4 +1978,20 @@ test_expect_success POSIXPERM 'failure to run cleanup' '
 	)
 '
 
+test_expect_success 'origin refs without origin remote does not die' '
+	test_create_repo origin_refs_with_origin_remote &&
+	(
+		cd origin_refs_with_origin_remote &&
+
+		test_commit numbers &&
+		git update-ref refs/remotes/origin/svnhead master &&
+
+		git filter-repo --force --path-rename numbers.t:values.t &&
+
+		git show svnhead:values.t >actual &&
+		echo numbers >expect &&
+		test_cmp expect actual
+	)
+'
+
 test_done
