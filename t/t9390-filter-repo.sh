@@ -1347,7 +1347,27 @@ test_expect_success 'startup sanity checks' '
 		test_must_fail git filter-repo --path numbers 2>../err &&
 		test_i18ngrep "expected freshly packed repo" ../err &&
 		test_i18ngrep "when cloning local repositories" ../err &&
-		rm ../err
+		rm ../err &&
+
+		cd ../startup_sanity_checks &&
+		git config core.ignoreCase true &&
+		rev=$(git rev-parse refs/remotes/origin/other) &&
+		echo "$rev refs/remotes/origin/zcase" >>.git/packed-refs &&
+		echo "$rev refs/remotes/origin/zCASE" >>.git/packed-refs &&
+		test_must_fail git filter-repo --path numbers 2>../err
+		test_i18ngrep "Cannot rewrite history on a case insensitive" ../err &&
+		git update-ref -d refs/remotes/origin/zCASE &&
+		git config --unset core.ignoreCase &&
+
+		git config core.precomposeUnicode true &&
+		rev=$(git rev-parse refs/heads/master) &&
+		echo "$rev refs/remotes/origin/zlamé" >>.git/packed-refs &&
+		echo "$rev refs/remotes/origin/zlamé" >>.git/packed-refs &&
+		test_must_fail git filter-repo --path numbers 2>../err
+		test_i18ngrep "Cannot rewrite history on a character normalizing" ../err &&
+		git update-ref -d refs/remotes/origin/zlamé &&
+		git config --unset core.precomposeUnicode &&
+		cd ..
 	)
 '
 

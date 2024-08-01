@@ -2986,6 +2986,36 @@ class RepoFilter(object):
     elif not is_bare and git_dir != b'.git':
       abort(_("GIT_DIR must be .git"))
 
+    # Check for refname collisions
+    if config_settings.get(b'core.ignorecase', b'false') == b'true':
+      collisions = collections.defaultdict(list)
+      for ref in refs:
+        collisions[ref.lower()].append(ref)
+      msg = ""
+      for ref in collisions:
+        if len(collisions[ref]) >= 2:
+          msg += "    " + decode(b", ".join(collisions[ref])) + "\n"
+      if msg:
+        raise SystemExit(
+          _("Aborting: Cannot rewrite history on a case insensitive\n"
+            "filesystem since you have refs that differ in case only:\n"
+            "%s") % msg)
+    if config_settings.get(b'core.precomposeunicode', b'false') == b'true':
+      import unicodedata # Mac users need to have python-3.8
+      collisions = collections.defaultdict(list)
+      for ref in refs:
+        strref = decode(ref)
+        collisions[unicodedata.normalize('NFC', strref)].append(strref)
+      msg = ""
+      for ref in collisions:
+        if len(collisions[ref]) >= 2:
+          msg += "    " + ", ".join(collisions[ref]) + "\n"
+      if msg:
+        raise SystemExit(
+          _("Aborting: Cannot rewrite history on a character normalizing\n"
+            "filesystem since you have refs that differ in normalization:\n"
+            "%s") % msg)
+
     # Make sure repo is fully packed, just like a fresh clone would be.
     # Note that transfer.unpackLimit defaults to 100, meaning that a
     # repository with no packs and less than 100 objects should be considered
