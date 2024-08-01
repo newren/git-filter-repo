@@ -1550,6 +1550,19 @@ class GitUtils(object):
     return dict(reversed(x.split()) for x in output.splitlines())
 
   @staticmethod
+  def get_config_settings(repo_working_dir):
+    output = ''
+    try:
+      output = subproc.check_output('git config --list'.split(),
+                                    cwd=repo_working_dir)
+    except subprocess.CalledProcessError as e: # pragma: no cover
+      raise SystemExit('fatal: {}'.format(e))
+
+    # FIXME: Ignores multi-valued keys, just let them overwrite for now
+    return dict(line.split(b'=', maxsplit=1)
+                for line in output.strip().split(b"\n"))
+
+  @staticmethod
   def get_blob_sizes(quiet = False):
     blob_size_progress = ProgressWriter()
     num_blobs = 0
@@ -2852,6 +2865,7 @@ class RepoFilter(object):
     self._sanity_checks_handled = False
     self._finalize_handled = False
     self._orig_refs = None
+    self._config_settings = {}
     self._newnames = {}
     self._stash = None
 
@@ -2911,6 +2925,7 @@ class RepoFilter(object):
     target_working_dir = self._args.target or b'.'
     self._orig_refs = GitUtils.get_refs(target_working_dir)
     is_bare = GitUtils.is_repository_bare(target_working_dir)
+    self._config_settings = GitUtils.get_config_settings(target_working_dir)
 
     # Determine if this is second or later run of filter-repo
     tmp_dir = self.results_tmp_dir(create_if_missing=False)
@@ -2927,7 +2942,7 @@ class RepoFilter(object):
     if not self._args.force and not already_ran:
       cwd = os.getcwd()
       os.chdir(target_working_dir)
-      RepoFilter.sanity_check(self._orig_refs, is_bare)
+      RepoFilter.sanity_check(self._orig_refs, is_bare, self._config_settings)
       os.chdir(cwd)
 
   @staticmethod
@@ -2949,15 +2964,11 @@ class RepoFilter(object):
     return True
 
   @staticmethod
-  def sanity_check(refs, is_bare):
+  def sanity_check(refs, is_bare, config_settings):
     def abort(reason):
-      try:
-        cmd = 'git config remote.origin.url'
-        output = subproc.check_output(cmd.split()).strip()
-      except subprocess.CalledProcessError as e:
-        output = None
+      dirname = config_settings.get(b'remote.origin.url', b'')
       msg = ""
-      if output and os.path.isdir(output):
+      if dirname and os.path.isdir(dirname):
         msg = _("Note: when cloning local repositories, you need to pass\n"
                 "      --no-local to git clone to avoid this issue.\n")
       raise SystemExit(
@@ -3820,11 +3831,11 @@ class RepoFilter(object):
       raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
     # Now remove the origin remote
-    print("NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'\n"
-          "        in the manual if you want to push back there.")
-    cmd = 'git config remote.origin.url'
-    origin_url = subproc.check_output(cmd.split()).strip()
-    print(f"        (was {origin_url.decode(errors='replace')})")
+    url = self._config_settings[b'remote.origin.url'].decode(errors='replace')
+    m = _("NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'\n"
+          "        in the manual if you want to push back there.\n"
+          "        (was %s)") % url
+    print(m)
     subproc.call('git remote rm origin'.split(), cwd=target_working_dir)
 
   def _final_commands(self):
