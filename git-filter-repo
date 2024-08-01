@@ -3100,7 +3100,9 @@ class RepoFilter(object):
     for cmd in cleanup_cmds:
       if show_debuginfo:
         print("[DEBUG] Running{}: {}".format(location_info, ' '.join(cmd)))
-      subproc.call(cmd, cwd=repo)
+      ret = subproc.call(cmd, cwd=repo)
+      if ret != 0:
+        raise SystemExit("fatal: running '%s' failed!" % ' '.join(cmd))
       if cmd[0:3] == 'git reflog expire'.split():
         self._write_stash()
 

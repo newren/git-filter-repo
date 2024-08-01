@@ -1960,4 +1960,22 @@ test_expect_success 'rewrite stash' '
 	)
 '
 
+test_expect_success POSIXPERM 'failure to run cleanup' '
+	test_create_repo fail_to_cleanup &&
+	(
+		cd fail_to_cleanup &&
+
+		git init &&
+		test_write_lines 1 2 3 4 5 6 7 8 9 10 >numbers &&
+		git add numbers &&
+		git commit -qm initial &&
+
+		chmod u-w .git/logs &&
+		test_must_fail git filter-repo --force \
+		                       --path-rename numbers:values 2> ../err &&
+		chmod u+w .git/logs &&
+		grep fatal.*git.reflog.expire.*failed ../err
+	)
+'
+
 test_done
