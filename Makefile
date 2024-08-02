@@ -41,7 +41,7 @@ install: snag_docs #fixup_locale
 	ln -sf "$(bindir)/git-filter-repo" "$(DESTDIR)/$(pythondir)/git_filter_repo.py"
 	$(INSTALL) -Dm0644 Documentation/man1/git-filter-repo.1 "$(DESTDIR)/$(mandir)/man1/git-filter-repo.1"
 	$(INSTALL) -Dm0644 Documentation/html/git-filter-repo.html "$(DESTDIR)/$(htmldir)/git-filter-repo.html"
-	if which mandb > /dev/null; then mandb; fi
+	$(if $(no-refresh-mandb),,if which mandb > /dev/null; then mandb; fi)
 
 
 #
