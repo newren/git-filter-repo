@@ -1899,7 +1899,17 @@ test_expect_success 'tweaking just a tag' '
 	)
 '
 
-test_expect_success '--version' '
+test_lazy_prereq IN_FILTER_REPO_CLONE '
+	git -C ../../ rev-parse HEAD:git-filter-repo &&
+	grep @@LOCALEDIR@@ ../../../git-filter-repo &&
+	head -n 1 ../../../git-filter-repo | grep "/usr/bin/env python3$"
+'
+
+# Next test depends on git-filter-repo coming from the git-filter-repo
+# not having been modified by e.g. normal installation.  Skip the test
+# if we're in some kind of installation of filter-repo rather than in a
+# simple clone of the original repository.
+test_expect_success IN_FILTER_REPO_CLONE '--version' '
 	git filter-repo --version >actual &&
 	git hash-object ../../git-filter-repo | cut -c 1-12 >expect &&
 	test_cmp expect actual
