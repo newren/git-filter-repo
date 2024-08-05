@@ -3059,8 +3059,16 @@ class RepoFilter(object):
         abort(_("you have uncommitted changes"))
       if subproc.call('git diff --quiet'.split()):
         abort(_("you have unstaged changes"))
-      if len(subproc.check_output('git ls-files -o'.split())) > 0:
-        abort(_("you have untracked changes"))
+      untracked_output = subproc.check_output('git ls-files -o'.split())
+      if len(untracked_output) > 0:
+        uf = untracked_output.rstrip(b'\n').split(b'\n')
+        # Since running git-filter-repo can result in files being written to
+        # __pycache__ (depending on python version, env vars, etc.), let's
+        # ignore those as far as "clean clone" is concerned.
+        relevant_uf = [x for x in uf
+                       if not x.startswith(b'__pycache__/git_filter_repo.')]
+        if len(relevant_uf) > 0:
+          abort(_("you have untracked changes"))
 
       # Avoid unpushed changes
       for refname, rev in refs.items():
