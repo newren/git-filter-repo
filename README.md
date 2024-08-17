@@ -48,11 +48,6 @@ filter-repo requires:
 installation for basic use on many systems trivial: just place that
 file into your $PATH.
 
-`git-filter-repo` is also available as 
-[PyPI-package](https://pypi.org/project/git-filter-repo/). Therefore, it
-can be [pipx](https://pypa.github.io/pipx/)-installed (also on Windows): 
-`pipx install git-filter-repo`
-
 See [INSTALL.md](INSTALL.md) for things beyond basic usage or special
 cases.  The more involved instructions are only needed if one of the
 following apply:

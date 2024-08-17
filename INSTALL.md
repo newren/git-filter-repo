@@ -2,6 +2,7 @@
 
   * [Pre-requisites](#pre-requisites)
   * [Simple Installation](#simple-installation)
+  * [Installation as Python Package from PyPI](#installation-as-python-package-from-pypi)
   * [Installation via Package Manager](#installation-via-package-manager)
   * [Detailed installation explanation for
      packagers](#detailed-installation-explanation-for-packagers)
@@ -39,6 +40,15 @@ Optionally, if you also want to use some of the contrib scripts, then
 you need to make sure you have a `git_filter_repo.py` file which is
 either a link to or copy of `git-filter-repo`, and you need to place
 that git_filter_repo.py file in $PYTHONPATH.
+
+# Installation as Python Package from PyPI
+
+`git-filter-repo` is also available as 
+[PyPI-package](https://pypi.org/project/git-filter-repo/). 
+
+Therefore, it can be [pipx](https://pypa.github.io/pipx/)-installed:
+
+`pipx install git-filter-repo`
 
 # Installation via Package Manager
 
@@ -147,7 +157,15 @@ you'll still need to do that yourself.
 
 # Notes for Windows Users
 
-Windows likes to make things difficult.  Common and historical issues:
+Installing `git-filter-repo` via pip into a virtual envirinment is known to
+work well. This makes `git-filter-repo` available as executable script in the
+virtual env.
+
+An alternative is using [pipx](https://pypa.github.io/pipx/) that is made to
+simplify installing and running Python-scripts. It does also work for
+`git-filter-repo` on Windows.
+
+If you face problems, look through these common and historical issues:
 
   * **Non-functional Python stub**: Windows apparently ships with a
     [non-functional
