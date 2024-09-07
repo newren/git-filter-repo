@@ -1043,7 +1043,16 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_i18ngrep "Pathnames cannot begin with a ./" err &&
 
 		test_must_fail git filter-repo --subdirectory-filter /foo 2>err &&
-		test_i18ngrep "Pathnames cannot begin with a ./" err
+		test_i18ngrep "Pathnames cannot begin with a ./" err &&
+
+		test_must_fail git filter-repo --sdr --stdin </dev/null 2>err &&
+		test_i18ngrep ": sensitive data removal is incompatible with --stdin" err &&
+
+		test_must_fail git filter-repo --sdr --source . 2>err &&
+		test_i18ngrep ": sensitive data removal is incompatible with --source and --target" err &&
+
+		test_must_fail git filter-repo --sdr --target . 2>err &&
+		test_i18ngrep ": sensitive data removal is incompatible with --source and --target" err
 	)
 '
 

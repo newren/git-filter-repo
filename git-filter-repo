@@ -2107,6 +2107,13 @@ EXAMPLES
         help=_("Python code body for processing reset objects; see "
                "CALLBACKS section below."))
 
+    sdr = parser.add_argument_group(title=_("Sensitive Data Removal Handling"))
+    sdr.add_argument('--sensitive-data-removal', '--sdr', action='store_true',
+        help=_("This rewrite is intended to remove sensitive data from a "
+               "repository.  Gather extra information from the rewrite needed "
+               "to provide additional instructions on how to clean up other "
+               "copies."))
+
     desc = _(
       "Specifying alternate source or target locations implies --partial,\n"
       "except that the normal default for --replace-refs is used.  However,\n"
@@ -3136,6 +3143,29 @@ class RepoFilter(object):
         if response.lower() != 'y':
           os.remove(ran_path)
           self._already_ran = False
+
+    # Interaction between --already-ran and --sensitive_data_removal
+    msg = textwrap.dedent(_("""\
+      Error: Cannot specify --sensitive-data-removal on a follow-up invocation
+             of git-filter-repo unless it was specified in previously runs."""))
+    if self._already_ran:
+      sdr_path = os.path.join(tmp_dir, b'sensitive_data_removal')
+      sdr_previously = os.path.isfile(sdr_path)
+      if not sdr_previously and self._args.sensitive_data_removal:
+        raise SystemExit(msg)
+      # Treat this as a --sensitive-data-removal run if a previous run was,
+      # even if it wasn't specified this time
+      self._args.sensitive_data_removal = sdr_previously
+
+    # Have to check sensitive_data_removal interactions here instead of
+    # sanity_check_args because of the above interaction with already_ran stuff
+    if self._args.sensitive_data_removal:
+      if self._args.stdin:
+        msg = _("Error: sensitive data removal is incompatible with --stdin")
+        raise SystemExit(msg)
+      if self._args.source or self._args.target:
+        msg = _("Error: sensitive data removal is incompatible with --source and --target")
+        raise SystemExit(msg)
 
     # Default for --replace-refs
     if not self._args.replace_refs:
@@ -4469,6 +4499,18 @@ class RepoFilter(object):
     self._flush_renames()
     commit_renames, ref_maps, first_changes = \
       self._compute_metadata(metadata_dir, orig_refs)
+
+    if self._args.sensitive_data_removal:
+      changed_commits = sum(k!=v for (k,v) in commit_renames.items())
+      print(f"You rewrote {changed_commits} (of {len(commit_renames)}) commits.")
+      print("") # Add a blank line before important rewrite information
+      print(f"NOTE: First Changed Commit(s) is/are:\n  "
+            + decode(b"\n  ".join(x for x in first_changes)))
+
+      with open(os.path.join(metadata_dir, b'sensitive_data_removal'), 'bw') as f:
+        pass # Write nothing; we only need the file created
+
+      print("") # Add a blank line after important rewrite information
 
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())

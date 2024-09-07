@@ -548,4 +548,33 @@ test_expect_success 'use --refs heavily with a rerun' '
 	)
 '
 
+test_expect_success 'sdr: basic usage' '
+	test_create_repo use_sdr &&
+	(
+		cd use_sdr &&
+		git fast-import --quiet <$DATA/simple &&
+
+		git filter-repo --invert-paths --path nuke-me --force \
+		                --sensitive-data-removal >output &&
+
+		grep "You rewrote.*commits" output &&
+		grep "First Changed Commit(s) is/are:" output
+	)
+'
+
+test_expect_success 'sdr: must use consistently' '
+	test_create_repo use_sdr_consistently &&
+	(
+		cd use_sdr_consistently &&
+		git fast-import --quiet <$DATA/simple &&
+
+		git filter-repo --path nuke-me --force &&
+
+		test_must_fail git filter-repo --sensitive-data-removal \
+		                   --path nuke-me 2>err &&
+
+		grep "Cannot specify --sensitive-data-removal" err
+	)
+'
+
 test_done
