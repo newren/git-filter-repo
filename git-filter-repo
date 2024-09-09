@@ -204,9 +204,27 @@ class AncestryGraph(object):
   """
   A class that maintains a direct acycle graph of commits for the purpose of
   determining if one commit is the ancestor of another.
+
+  A note about identifiers in Commit objects:
+    * Commit objects have 2 identifiers: commit.old_id and commit.id, because:
+    * The original fast-export stream identified commits by an identifier.
+      This is often an integer, but is sometimes a hash (particularly when
+      --reference-excluded-parents is provided)
+    * The new fast-import stream we use may not use the same identifiers.
+      If new blobs or commits are inserted (such as lint-history does), then
+      the integer (or hash) are no longer valid.
+
+  A note about identifiers in AncestryGraph objects, of which there are two:
+    * A given AncestryGraph is based on either commit.old_id or commit.id, but
+      not both.  These are the keys for self.value.
+    * Using full hashes (occasionally) for children in self.graph felt
+      wasteful, so we use our own internal integer within self.graph.
+      self.value maps from commit {old_}id to our internal integer id.
   """
 
   def __init__(self):
+    # The next internal identifier we will use; increments with every commit
+    # added to the AncestryGraph
     self.cur_value = 0
 
     # A mapping from the external identifers given to us to the simple integers
@@ -214,8 +232,8 @@ class AncestryGraph(object):
     self.value = {}
 
     # A tuple of (depth, list-of-ancestors).  Values and keys in this graph are
-    # all integers from the self.value dict.  The depth of a commit is one more
-    # than the max depth of any of its ancestors.
+    # all integers from the (values of the) self.value dict.  The depth of a
+    # commit is one more than the max depth of any of its ancestors.
     self.graph = {}
 
     # Cached results from previous calls to is_ancestor().
@@ -234,8 +252,11 @@ class AncestryGraph(object):
 
   def add_commit_and_parents(self, commit, parents):
     """
-    Record in graph that commit has the given parents.  parents _MUST_ have
-    been first recorded.  commit _MUST_ not have been recorded yet.
+    Record in graph that commit has the given parents (all identified by
+    fast export stream identifiers, usually integers but sometimes hashes).
+    parents _MUST_ have been first recorded.  commit _MUST_ not have been
+    recorded yet.  Also, record the mapping between commit and githash, if
+    githash is given.
     """
     assert all(p in self.value for p in parents)
     assert commit not in self.value
