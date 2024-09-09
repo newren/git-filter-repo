@@ -441,7 +441,12 @@ class _IDs(object):
       rv += "  %d -> %s\n" % (k, self._translation[k])
 
     rv += "Reverse translation:\n"
-    for k in sorted(self._reverse_translation):
+    reverse_keys = list(self._reverse_translation.keys())
+    if None in reverse_keys: # pragma: no cover
+      reverse_keys.remove(None)
+      reverse_keys = sorted(reverse_keys)
+      reverse_keys.append(None)
+    for k in reverse_keys:
       rv += "  " + str(k) + " -> " + str(self._reverse_translation[k]) + "\n"
 
     return rv
