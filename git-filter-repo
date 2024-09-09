@@ -214,12 +214,16 @@ class AncestryGraph(object):
       If new blobs or commits are inserted (such as lint-history does), then
       the integer (or hash) are no longer valid.
 
-  A note about identifiers in AncestryGraph objects, of which there are two:
+  A note about identifiers in AncestryGraph objects, of which there are three:
     * A given AncestryGraph is based on either commit.old_id or commit.id, but
       not both.  These are the keys for self.value.
     * Using full hashes (occasionally) for children in self.graph felt
       wasteful, so we use our own internal integer within self.graph.
       self.value maps from commit {old_}id to our internal integer id.
+    * When working with commit.old_id, it is also sometimes useful to be able
+      to map these to the original hash, i.e. commit.original_id.  So, we
+      also have self.git_hash for mapping from commit.old_id to git's commit
+      hash.
   """
 
   def __init__(self):
@@ -236,6 +240,14 @@ class AncestryGraph(object):
     # commit is one more than the max depth of any of its ancestors.
     self.graph = {}
 
+    # A mapping from external identifier (i.e. from the keys of self.value) to
+    # the hash of the given commit.  Only populated for graphs based on
+    # commit.old_id, since we won't know until later what the git_hash for
+    # graphs based on commit.id (since we have to wait for fast-import to
+    # create the commit and notify us of its hash; see _pending_renames).
+    # elsewhere
+    self.git_hash = {}
+
     # Cached results from previous calls to is_ancestor().
     self._cached_is_ancestor = {}
 
@@ -249,8 +261,9 @@ class AncestryGraph(object):
         self.cur_value += 1
         self.value[c] = self.cur_value
         self.graph[self.cur_value] = (1, [])
+        self.git_hash[c] = c
 
-  def add_commit_and_parents(self, commit, parents):
+  def add_commit_and_parents(self, commit, parents, githash = None):
     """
     Record in graph that commit has the given parents (all identified by
     fast export stream identifiers, usually integers but sometimes hashes).
@@ -264,6 +277,8 @@ class AncestryGraph(object):
     # Get values for commit and parents
     self.cur_value += 1
     self.value[commit] = self.cur_value
+    if githash:
+      self.git_hash[commit] = githash
     graph_parents = [self.value[x] for x in parents]
 
     # Determine depth for commit, then insert the info into the graph
@@ -271,6 +286,12 @@ class AncestryGraph(object):
     if parents:
       depth += max(self.graph[p][0] for p in graph_parents)
     self.graph[self.cur_value] = (depth, graph_parents)
+
+  def map_to_hash(self, commit_id):
+    '''
+    Given a commit (by fast export stream id), return its hash
+    '''
+    return self.git_hash.get(commit_id, None)
 
   def is_ancestor(self, possible_ancestor, check):
     """
