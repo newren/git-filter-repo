@@ -474,6 +474,14 @@ class _IDs(object):
     else:
       return old_id
 
+  def reverse_translate(self, new_id):
+    """
+    If new_id is an alternate id mapping, return the list of original ids.
+    (Since commits get pruned, multiple old commit ids map map to the same
+    new commit id.)
+    """
+    return self._reverse_translation.get(new_id, [new_id])
+
   def __str__(self):
     """
     Convert IDs to string; used for debugging
@@ -584,8 +592,7 @@ class Blob(_GitElementWithId):
     Write this blob element to a file.
     """
     self.dumped = 1
-    HASH_TO_ID[self.original_id] = self.id
-    ID_TO_HASH[self.id] = self.original_id
+    BLOB_HASH_TO_NEW_ID[self.original_id] = self.id
 
     file_.write(b'blob\n')
     file_.write(b'mark :%d\n' % self.id)
@@ -748,8 +755,6 @@ class Commit(_GitElementWithId):
     Write this commit element to a file.
     """
     self.dumped = 1
-    HASH_TO_ID[self.original_id] = self.id
-    ID_TO_HASH[self.id] = self.original_id
 
     # Make output to fast-import slightly easier for humans to read if the
     # message has no trailing newline of its own; cosmetic, but a nice touch...
@@ -839,8 +844,6 @@ class Tag(_GitElementWithId):
     """
 
     self.dumped = 1
-    HASH_TO_ID[self.original_id] = self.id
-    ID_TO_HASH[self.id] = self.original_id
 
     file_.write(b'tag %s\n' % self.ref)
     if (write_marks and self.id):
@@ -1507,8 +1510,7 @@ def record_id_rename(old_id, new_id):
 # Internal globals
 _IDS = _IDs()
 _SKIPPED_COMMITS = set()
-HASH_TO_ID = {}
-ID_TO_HASH = {}
+BLOB_HASH_TO_NEW_ID = {}
 
 class SubprocessWrapper(object):
   @staticmethod
@@ -1662,7 +1664,7 @@ class GitUtils(object):
       if changetype == b'D':
         file_changes.append(FileChange(b'D', path))
       elif changetype in (b'A', b'M', b'T'):
-        identifier = HASH_TO_ID.get(newhash, newhash)
+        identifier = BLOB_HASH_TO_NEW_ID.get(newhash, newhash)
         file_changes.append(FileChange(b'M', path, identifier, mode))
       else: # pragma: no cover
         raise SystemExit("Unknown change type for line {}".format(line))
@@ -3627,8 +3629,9 @@ class RepoFilter(object):
       external_parents = [p for p in parents if not isinstance(p, int)]
     self._graph.record_external_commits(external_parents)
     self._orig_graph.record_external_commits(external_parents)
-    self._graph.add_commit_and_parents(commit.id, parents)
-    self._orig_graph.add_commit_and_parents(commit.old_id, orig_parents)
+    self._graph.add_commit_and_parents(commit.id, parents) # new githash unknown
+    self._orig_graph.add_commit_and_parents(commit.old_id, orig_parents,
+                                            commit.original_id)
 
     # Prune parents (due to pruning of empty commits) if relevant
     old_1st_parent = parents[0] if parents else None
@@ -3638,8 +3641,16 @@ class RepoFilter(object):
     # If parents were pruned, then we need our file changes to be relative
     # to the new first parent
     if parents and old_1st_parent != parents[0]:
+      # Get the id from the original fast export stream corresponding to the
+      # new 1st parent.  Since pruning of commits can cause multiple old
+      # commits to map to the same new commit, we have a uniqueness problem,
+      # but pruning means there are no relevant file changes between the
+      # commit so we can just take the first old commit id.
+      new_1st_parent_old_id = _IDS.reverse_translate(parents[0])[0]
+      # Now, translate that to a hash
+      new_1st_parent_old_hash = self._orig_graph.map_to_hash(new_1st_parent_old_id)
       commit.file_changes = GitUtils.get_file_changes(self._repo_working_dir,
-                                                      ID_TO_HASH[parents[0]],
+                                                      new_1st_parent_old_hash,
                                                       commit.original_id)
       orig_file_changes = set(commit.file_changes)
       self._filter_files(commit)
