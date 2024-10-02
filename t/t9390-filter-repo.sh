@@ -785,7 +785,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		  Number of file extensions: 2
 
 		  Total unpacked size (bytes): 206
-		  Total packed size (bytes): 387
+		  Total packed size (bytes): 389
 
 		EOF
 		head -n 9 README >actual &&
@@ -794,7 +794,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		cat >expect <<-\EOF &&
 		=== Files by sha and associated pathnames in reverse size ===
 		Format: sha, unpacked size, packed size, filename(s) object stored as
-		  a89c82a2d4b713a125a4323d25adda062cc0013d         44         48 numbers/medium.num
+		  a89c82a2d4b713a125a4323d25adda062cc0013d         44         50 numbers/medium.num
 		  c58ae2ffaf8352bd9860bf4bbb6ea78238dca846         35         41 fickle
 		  ccff62141ec7bae42e01a3dcb7615b38aa9fa5b3         24         40 fickle
 		  f00c965d8307308469e537302baa73048488f162         21         37 numbers/small.num
@@ -809,8 +809,8 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		cat >expect <<-EOF &&
 		=== All directories by reverse size ===
 		Format: unpacked size, packed size, date deleted, directory name
-		         206        387 <present>  <toplevel>
-		          65         85 2005-04-07 numbers
+		         206        389 <present>  <toplevel>
+		          65         87 2005-04-07 numbers
 		          13         58 <present>  words
 		          10         40 <present>  sequence
 		EOF
@@ -819,7 +819,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		cat >expect <<-EOF &&
 		=== Deleted directories by reverse size ===
 		Format: unpacked size, packed size, date deleted, directory name
-		          65         85 2005-04-07 numbers
+		          65         87 2005-04-07 numbers
 		EOF
 		test_cmp expect directories-deleted-sizes.txt &&
 
@@ -827,14 +827,14 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		=== All extensions by reverse size ===
 		Format: unpacked size, packed size, date deleted, extension name
 		         141        302 <present>  <no extension>
-		          65         85 2005-04-07 .num
+		          65         87 2005-04-07 .num
 		EOF
 		test_cmp expect extensions-all-sizes.txt &&
 
 		cat >expect <<-EOF &&
 		=== Deleted extensions by reverse size ===
 		Format: unpacked size, packed size, date deleted, extension name
-		          65         85 2005-04-07 .num
+		          65         87 2005-04-07 .num
 		EOF
 		test_cmp expect extensions-deleted-sizes.txt &&
 
@@ -842,7 +842,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		=== All paths by reverse accumulated size ===
 		Format: unpacked size, packed size, date deleted, path name
 		          72        110 <present>  fickle
-		          44         48 2005-04-07 numbers/medium.num
+		          44         50 2005-04-07 numbers/medium.num
 		           8         38 <present>  words/know
 		          21         37 2005-04-07 numbers/small.num
 		          20         36 <present>  whatever
@@ -857,7 +857,7 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		cat >expect <<-EOF &&
 		=== Deleted paths by reverse accumulated size ===
 		Format: unpacked size, packed size, date deleted, path name(s)
-		          44         48 2005-04-07 numbers/medium.num
+		          44         50 2005-04-07 numbers/medium.num
 		          21         37 2005-04-07 numbers/small.num
 		EOF
 		test_cmp expect path-deleted-sizes.txt
