@@ -405,6 +405,33 @@ references were changed.
   * An all-zeros hash, or null SHA, represents a non-existent object.
     When in the "new" column, this means the ref was removed entirely.
 
+Already Ran
+~~~~~~~~~~~
+
+The `$GIT_DIR/filter-repo/already_ran` file contains a file recording that
+git-filter-repo has been run.  When this file is present, future runs will
+be treated as an extension of the previous filtering operation.
+
+Concretely, this means:
+  * The "Fresh Clone" check is bypassed
+
+    This is done because past runs would cause the repository to no longer
+    look like a fresh clone, and thus fail the fresh clone check, but doing
+    filtering via multiple invocations of git-filter-repo is an intended
+    and support usecase.  You already passed or bypassed the "Fresh Clone"
+    check on your initial run.
+
+However, if the already_ran file exists but is older than 1 day when they
+invoke git-filter-repo, the user will be prompted for whether the new run
+should be considered a continuation of the previous run.  If they do not
+answer in the affirmative, then the above bullet will not apply.
+This prompt exists because users might do a history rewrite in a repository,
+forget about it and leave the $GIT_DIR/filter-repo directory around, and
+then some months or years later need to do another rewrite.  If commits
+have been made public and shared from the previous rewrite, then the next
+filter-repo run should not be considered a continuation of the previous
+filtering run.
+
 [[FRESHCLONE]]
 FRESH CLONE SAFETY CHECK AND --FORCE
 ------------------------------------

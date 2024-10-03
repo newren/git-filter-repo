@@ -2942,7 +2942,21 @@ class RepoFilter(object):
 
     # Determine if this is second or later run of filter-repo
     tmp_dir = self.results_tmp_dir(create_if_missing=False)
-    already_ran = os.path.isfile(os.path.join(tmp_dir, b'already_ran'))
+    ran_path = os.path.join(tmp_dir, b'already_ran')
+    already_ran = os.path.isfile(ran_path)
+    if already_ran:
+      current_time = time.time()
+      file_mod_time = os.path.getmtime(ran_path)
+      file_age = current_time - file_mod_time
+      if file_age > 86400: # file older than a day
+        msg = (f"The previous run is older than a day ({decode(ran_path)} already exists).\n"
+               f"See \"Already Ran\" section in the manual for more information.\n"
+               f"Treat this run as a continuation of filtering in the previous run (Y/N)? ")
+        response = input(msg)
+
+        if response.lower() != 'y':
+          os.remove(ran_path)
+          already_ran = False
 
     # Default for --replace-refs
     if not self._args.replace_refs:
