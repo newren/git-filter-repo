@@ -354,17 +354,24 @@ class ProgressWriter(object):
 class _IDs(object):
   """
   A class that maintains the 'name domain' of all the 'marks' (short int
-  id for a blob/commit git object). The reason this mechanism is necessary
-  is because the text of fast-export may refer to an object using a different
-  mark than the mark that was assigned to that object using IDS.new(). This
-  class allows you to translate the fast-export marks (old) to the marks
-  assigned from IDS.new() (new).
+  id for a blob/commit git object). There are two reasons this mechanism
+  is necessary:
+    (1) the output text of fast-export may refer to an object using a different
+        mark than the mark that was assigned to that object using IDS.new().
+        (This class allows you to translate the fast-export marks, "old" to
+         the marks assigned from IDS.new(), "new").
+    (2) when we prune a commit, its "old" id becomes invalid.  Any commits
+        which had that commit as a parent needs to use the nearest unpruned
+        ancestor as its parent instead.
 
-  Note that there are two reasons why the marks may differ: (1) The
-  user manually creates Blob or Commit objects (for insertion into the
-  stream) (2) We're reading the data from two different repositories
-  and trying to combine the data (git fast-export will number ids from
-  1...n, and having two 1's, two 2's, two 3's, causes issues).
+  Note that for purpose (1) above, this typically comes about because the user
+  manually creates Blob or Commit objects (for insertion into the stream).
+  It could also come about if we attempt to read the data from two different
+  repositories and trying to combine the data (git fast-export will number ids
+  from 1...n, and having two 1's, two 2's, two 3's, causes issues; granted, we
+  this scheme doesn't handle the two streams perfectly either, but if the first
+  fast export stream is entirely processed and handled before the second stream
+  is started, this mechanism may be sufficient to handle it).
   """
 
   def __init__(self):
