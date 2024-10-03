@@ -287,6 +287,15 @@ class AncestryGraph(object):
       depth += max(self.graph[p][0] for p in graph_parents)
     self.graph[self.cur_value] = (depth, graph_parents)
 
+  def record_hash(self, commit_id, githash):
+    '''
+    If a githash was not recorded for commit_id, when add_commit_and_parents
+    was called, add it now.
+    '''
+    assert commit_id in self.value
+    assert commit_id not in self.git_hash
+    self.git_hash[commit_id] = githash
+
   def map_to_hash(self, commit_id):
     '''
     Given a commit (by fast export stream id), return its hash
@@ -2892,10 +2901,9 @@ class RepoFilter(object):
     # commit became empty and was pruned or was otherwise dropped.
     self._commit_renames = {}
 
-    # A set of original_ids for which we have not yet gotten the
-    # new_ids; we use OrderedDict because we need to know the order of
-    # insertion, but the values are always ignored (and set to None).
-    # If there was an OrderedSet class, I'd use it instead.
+    # A set of original_ids (i.e. original hashes) for which we have not yet
+    # gotten the new hashses; the value is always the corresponding fast-export
+    # id (i.e. commit.id)
     self._pending_renames = collections.OrderedDict()
 
     # A dict of commit_hash[0:7] -> set(commit_hashes with that prefix).
@@ -3211,9 +3219,10 @@ class RepoFilter(object):
       return
     fi_input, fi_output = self._import_pipes
     while self._pending_renames:
-      orig_hash, ignore = self._pending_renames.popitem(last=False)
+      orig_hash, new_fast_export_id = self._pending_renames.popitem(last=False)
       new_hash = fi_output.readline().rstrip()
       self._commit_renames[orig_hash] = new_hash
+      self._graph.record_hash(new_fast_export_id, new_hash)
       if old_hash == orig_hash:
         return
       if limit and len(self._pending_renames) < limit:
@@ -3445,7 +3454,7 @@ class RepoFilter(object):
       self._commit_short_old_hashes[orig_id[0:7]].add(orig_id)
       # Note that we have queued up an id for later reading; flush a
       # few of the older ones if we have too many queued up
-      self._pending_renames[orig_id] = None
+      self._pending_renames[orig_id] = commit.id
       self._flush_renames(None, limit=40)
     # Also, record if this was a merge commit that turned into a non-merge
     # commit.
