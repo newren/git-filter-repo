@@ -4021,59 +4021,71 @@ class RepoFilter(object):
     if p.wait():
       raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
-  def _record_metadata(self, metadata_dir, orig_refs):
-    self._flush_renames()
-    with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
-      f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
-      for (old,new) in self._commit_renames.items():
-        msg = b'%s %s\n' % (old, new if new != None else deleted_hash)
-        f.write(msg)
+  def _compute_metadata(self, metadata_dir, orig_refs):
+    commit_renames = {old: new
+                      for old, new in self._commit_renames.items()}
 
+    ref_maps = {}
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
-
     batch_check_process = None
     batch_check_output_re = re.compile(b'^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
-    with open(os.path.join(metadata_dir, b'ref-map'), 'bw') as f:
-      f.write(("%-40s %-40s %s\n" % (_("old"), _("new"), _("ref"))).encode())
-      for refname, old_hash in orig_refs.items():
-        if refname not in exported_refs:
-          continue
-        if refname not in imported_refs:
+    for refname, old_hash in orig_refs.items():
+      if refname not in exported_refs:
+        continue
+      if refname not in imported_refs:
+        new_hash = deleted_hash
+      elif old_hash in self._commit_renames:
+        new_hash = self._commit_renames[old_hash]
+        new_hash = new_hash if new_hash != None else deleted_hash
+      else: # Must be either an annotated tag, or a ref whose tip was pruned
+        if not batch_check_process:
+          cmd = 'git cat-file --batch-check'.split()
+          target_working_dir = self._args.target or b'.'
+          batch_check_process = subproc.Popen(cmd,
+                                              stdin=subprocess.PIPE,
+                                              stdout=subprocess.PIPE,
+                                              cwd=target_working_dir)
+        batch_check_process.stdin.write(refname+b"\n")
+        batch_check_process.stdin.flush()
+        line = batch_check_process.stdout.readline()
+        m = batch_check_output_re.match(line)
+        if m and m.group(2) in (b'tag', b'commit'):
+          new_hash = m.group(1)
+        elif line.endswith(b' missing\n'):
           new_hash = deleted_hash
-        elif old_hash in self._commit_renames:
-          new_hash = self._commit_renames[old_hash]
-          new_hash = new_hash if new_hash != None else deleted_hash
-        else: # Must be either an annotated tag, or a ref whose tip was pruned
-          if not batch_check_process:
-            cmd = 'git cat-file --batch-check'.split()
-            target_working_dir = self._args.target or b'.'
-            batch_check_process = subproc.Popen(cmd,
-                                                stdin=subprocess.PIPE,
-                                                stdout=subprocess.PIPE,
-                                                cwd=target_working_dir)
-          batch_check_process.stdin.write(refname+b"\n")
-          batch_check_process.stdin.flush()
-          line = batch_check_process.stdout.readline()
-          m = batch_check_output_re.match(line)
-          if m and m.group(2) in (b'tag', b'commit'):
-            new_hash = m.group(1)
-          elif line.endswith(b' missing\n'):
-            new_hash = deleted_hash
-          else:
-            raise SystemExit(_("Failed to find new id for %(refname)s "
-                               "(old id was %(old_hash)s)")
-                             % ({'refname': refname, 'old_hash': old_hash})
-                             ) # pragma: no cover
-        f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
-      if self._args.source or self._args.target:
-        new_refs = GitUtils.get_refs(self._args.target or b'.')
-        for ref, new_hash in new_refs.items():
-          if ref not in orig_refs and not ref.startswith(b'refs/replace/'):
-            old_hash = b'0'*len(new_hash)
-            f.write(b'%s %s %s\n' % (old_hash, new_hash, ref))
+        else:
+          raise SystemExit(_("Failed to find new id for %(refname)s "
+                             "(old id was %(old_hash)s)")
+                           % ({'refname': refname, 'old_hash': old_hash})
+                           ) # pragma: no cover
+      ref_maps[refname] = (old_hash, new_hash)
+    if self._args.source or self._args.target:
+      new_refs = GitUtils.get_refs(self._args.target or b'.')
+      for ref, new_hash in new_refs.items():
+        if ref not in orig_refs and not ref.startswith(b'refs/replace/'):
+          old_hash = b'0'*len(new_hash)
+          ref_maps[ref] = (old_hash, new_hash)
     if batch_check_process:
       batch_check_process.stdin.close()
       batch_check_process.wait()
+
+    return commit_renames, ref_maps
+
+  def _record_metadata(self, metadata_dir, orig_refs):
+    self._flush_renames()
+    commit_renames, ref_maps = self._compute_metadata(metadata_dir, orig_refs)
+
+    with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
+      f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
+      for (old,new) in commit_renames.items():
+        msg = b'%s %s\n' % (old, new if new != None else deleted_hash)
+        f.write(msg)
+
+    with open(os.path.join(metadata_dir, b'ref-map'), 'bw') as f:
+      f.write(("%-40s %-40s %s\n" % (_("old"), _("new"), _("ref"))).encode())
+      for refname, hash_pair in ref_maps.items():
+        (old_hash, new_hash) = hash_pair
+        f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
 
     with open(os.path.join(metadata_dir, b'suboptimal-issues'), 'bw') as f:
       issues_found = False
