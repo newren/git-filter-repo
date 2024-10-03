@@ -38,7 +38,7 @@ test_expect_success 'a re-run that is treated as a clean slate' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp <(sort expect) <(sort .git/filter-repo/commit-map) &&
+		test_cmp expect .git/filter-repo/commit-map &&
 
 		cat <<-EOF | sort -k 3 >sha-expect &&
 		${FILE_D_CHANGE} ${NEW_FILE_D_CHANGE} $(git symbolic-ref HEAD)
@@ -63,7 +63,7 @@ test_expect_success 'a re-run that is treated as a clean slate' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp <(sort expect) <(sort .git/filter-repo/commit-map) &&
+		test_cmp expect .git/filter-repo/commit-map &&
 
 		cat <<-EOF | sort -k 3 >sha-expect &&
 		${NEW_FILE_D_CHANGE} ${FINAL_FILE_D_CHANGE} $(git symbolic-ref HEAD)

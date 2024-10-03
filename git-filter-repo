@@ -4077,13 +4077,13 @@ class RepoFilter(object):
 
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
-      for (old,new) in commit_renames.items():
+      for (old,new) in sorted(commit_renames.items()):
         msg = b'%s %s\n' % (old, new if new != None else deleted_hash)
         f.write(msg)
 
     with open(os.path.join(metadata_dir, b'ref-map'), 'bw') as f:
       f.write(("%-40s %-40s %s\n" % (_("old"), _("new"), _("ref"))).encode())
-      for refname, hash_pair in ref_maps.items():
+      for refname, hash_pair in sorted(ref_maps.items()):
         (old_hash, new_hash) = hash_pair
         f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
 
