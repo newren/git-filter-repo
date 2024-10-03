@@ -131,9 +131,22 @@ test_expect_success 'remove two files, then remove a later file' '
 		FILE_B_CHANGE=$(git rev-list -1 HEAD -- fileB) &&
 		FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		ORIGINAL_TAG=$(git rev-parse v1.0) &&
 
 		git filter-repo --invert-paths --path nuke-me --path fileC \
 		                --force &&
+
+		NEW_FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		NEW_TAG=$(git rev-parse v1.0) &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${NEW_FILE_D_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${DELETED_SHA} refs/heads/orphan-me
+		${ORIGINAL_TAG} ${NEW_TAG} refs/tags/v1.0
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map &&
 
 		git filter-repo --invert-paths --path fileD &&
 
@@ -149,7 +162,16 @@ test_expect_success 'remove two files, then remove a later file' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/commit-map
+		test_cmp expect .git/filter-repo/commit-map &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${FILE_B_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${DELETED_SHA} refs/heads/orphan-me
+		${ORIGINAL_TAG} ${FINAL_TAG} refs/tags/v1.0
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map
 	)
 '
 
@@ -165,6 +187,7 @@ test_expect_success 'remove two files, then remove a later file via --refs' '
 		FILE_B_CHANGE=$(git rev-list -1 HEAD -- fileB) &&
 		FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		ORIGINAL_TAG=$(git rev-parse v1.0) &&
 
 		git filter-repo --invert-paths --path nuke-me --path fileB \
 		                --force &&
@@ -172,6 +195,8 @@ test_expect_success 'remove two files, then remove a later file via --refs' '
 		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 
 		git filter-repo --invert-paths --path fileD --refs HEAD~1..HEAD &&
+		FINAL_TAG=$(git rev-parse v1.0) &&
+
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${DELETED_SHA}
 		${FINAL_ORPHAN} ${DELETED_SHA}
@@ -182,7 +207,16 @@ test_expect_success 'remove two files, then remove a later file via --refs' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/commit-map
+		test_cmp expect .git/filter-repo/commit-map &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${NEW_FILE_C_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${DELETED_SHA} refs/heads/orphan-me
+		${ORIGINAL_TAG} ${FINAL_TAG} refs/tags/v1.0
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map
 	)
 '
 
@@ -198,6 +232,7 @@ test_expect_success 'remove two files, then remove an earlier file' '
 		FILE_B_CHANGE=$(git rev-list -1 HEAD -- fileB) &&
 		FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		ORIGINAL_TAG=$(git rev-parse v1.0) &&
 
 		git filter-repo --invert-paths --path nuke-me --path fileC \
 		                --force &&
@@ -205,6 +240,7 @@ test_expect_success 'remove two files, then remove an earlier file' '
 		git filter-repo --invert-paths --path fileB &&
 
 		NEW_FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		FINAL_TAG=$(git rev-parse v1.0) &&
 
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${DELETED_SHA}
@@ -216,7 +252,16 @@ test_expect_success 'remove two files, then remove an earlier file' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/commit-map
+		test_cmp expect .git/filter-repo/commit-map &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${NEW_FILE_D_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${DELETED_SHA} refs/heads/orphan-me
+		${ORIGINAL_TAG} ${FINAL_TAG} refs/tags/v1.0
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map
 	)
 '
 
@@ -232,6 +277,7 @@ test_expect_success 'modify a file, then remove a later file' '
 		FILE_B_CHANGE=$(git rev-list -1 HEAD -- fileB) &&
 		FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		ORIGINAL_TAG=$(git rev-parse v1.0) &&
 
 		echo "file 3 contents==>Alternate C" >changes &&
 		git filter-repo --force --replace-text changes &&
@@ -239,6 +285,8 @@ test_expect_success 'modify a file, then remove a later file' '
 		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 
 		git filter-repo --invert-paths --path fileD &&
+
+		FINAL_TAG=$(git rev-parse v1.0) &&
 
 		# Make sure the fileD commit was indeed removed
 		echo $NEW_FILE_C_CHANGE >expect &&
@@ -255,7 +303,16 @@ test_expect_success 'modify a file, then remove a later file' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/commit-map
+		test_cmp expect .git/filter-repo/commit-map &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${NEW_FILE_C_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${FINAL_ORPHAN} refs/heads/orphan-me
+		${ORIGINAL_TAG} ${FINAL_TAG} refs/tags/v1.0
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map
 	)
 '
 
@@ -272,6 +329,7 @@ test_expect_success 'modify a file, then remove a later file via --refs' '
 		FILE_B_CHANGE=$(git rev-list -1 HEAD -- fileB) &&
 		FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		ORIGINAL_TAG=$(git rev-parse v1.0) &&
 
 		echo "file 2 contents==>Alternate B" >changes &&
 		git filter-repo --force --replace-text changes &&
@@ -281,6 +339,7 @@ test_expect_success 'modify a file, then remove a later file via --refs' '
 
 		git filter-repo --invert-paths --path fileD \
 		                --refs HEAD~1..HEAD &&
+		FINAL_TAG=$(git rev-parse v1.0) &&
 
 		# Make sure the fileD commit was indeed removed
 		git rev-parse HEAD^ >expect &&
@@ -297,7 +356,16 @@ test_expect_success 'modify a file, then remove a later file via --refs' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/commit-map
+		test_cmp expect .git/filter-repo/commit-map &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${NEW_FILE_C_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${FINAL_ORPHAN} refs/heads/orphan-me
+		${ORIGINAL_TAG} ${FINAL_TAG} refs/tags/v1.0
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map
 	)
 '
 
@@ -313,6 +381,7 @@ test_expect_success 'modify a file, then remove an earlier file' '
 		FILE_B_CHANGE=$(git rev-list -1 HEAD -- fileB) &&
 		FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		ORIGINAL_TAG=$(git rev-parse v1.0) &&
 
 		echo "file 3 contents==>Alternate C" >changes &&
 		git filter-repo --force --replace-text changes &&
@@ -321,6 +390,7 @@ test_expect_success 'modify a file, then remove an earlier file' '
 
 		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		NEW_FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
+		FINAL_TAG=$(git rev-parse v1.0) &&
 
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${FIRST_ORPHAN}
@@ -332,7 +402,16 @@ test_expect_success 'modify a file, then remove an earlier file' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/commit-map
+		test_cmp expect .git/filter-repo/commit-map &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${NEW_FILE_D_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${FINAL_ORPHAN} refs/heads/orphan-me
+		${ORIGINAL_TAG} ${FINAL_TAG} refs/tags/v1.0
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map
 	)
 '
 
@@ -368,7 +447,15 @@ test_expect_success 'use --refs heavily with a rerun' '
 		EOF
 		printf "%-40s %s\n" old new >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/commit-map
+		test_cmp expect .git/filter-repo/commit-map &&
+
+		cat <<-EOF | sort -k 3 >sha-expect &&
+		${FILE_D_CHANGE} ${FILE_C_CHANGE} $(git symbolic-ref HEAD)
+		${FINAL_ORPHAN} ${NEW_FINAL_ORPHAN} refs/heads/orphan-me
+		EOF
+		printf "%-40s %-40s %s\n" old new ref >expect &&
+		cat sha-expect >>expect &&
+		test_cmp expect .git/filter-repo/ref-map
 	)
 '
 

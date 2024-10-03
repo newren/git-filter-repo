@@ -4084,18 +4084,53 @@ class RepoFilter(object):
     #
     # Second, handle ref_maps
     #
-    ref_maps = {}
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
+
+    old_commit_unrenames = dict()
+    if not already_ran:
+      old_ref_map = dict((refname, (old_hash, deleted_hash))
+                         for refname, old_hash in orig_refs.items()
+                         if refname in exported_refs)
+    else:
+      # old_commit_renames talk about how commits were renamed in the original
+      # run.  Let's reverse it to find out how to get from the intermediate
+      # commit name, back to the original.  Because everything in orig_refs
+      # right now refers to the intermediate commits after the first run(s),
+      # and we need to map them back to what they were before any changes.
+      old_commit_unrenames = dict((v,k) for (k,v) in old_commit_renames.items())
+
+      old_ref_map = {}
+      # Populate old_ref_map from the 'ref-map' file
+      with open(os.path.join(metadata_dir, b'ref-map'), 'br') as f:
+        f.readline() # Skip the header line
+        for line in f:
+          (old,intermediate,ref) = line.split()
+          old_ref_map[ref] = (old, intermediate)
+      # Append to old_ref_map items from orig_refs that were exported, but
+      # get the actual original commit name
+      for refname, old_hash in orig_refs.items():
+        if refname in old_ref_map:
+          continue
+        if refname not in exported_refs:
+          continue
+        # Compute older_hash
+        original_hash = old_commit_unrenames.get(old_hash, old_hash)
+        old_ref_map[refname] = (original_hash, deleted_hash)
+
     batch_check_process = None
     batch_check_output_re = re.compile(b'^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
-    for refname, old_hash in orig_refs.items():
-      if refname not in exported_refs:
-        continue
+    ref_maps = {}
+    self._orig_graph._ensure_reverse_maps_populated()
+    for refname, pair in old_ref_map.items():
+      old_hash, hash_ref_becomes_if_not_imported_in_this_run = pair
       if refname not in imported_refs:
-        new_hash = deleted_hash
-      elif old_hash in self._commit_renames:
-        new_hash = self._commit_renames[old_hash]
-        new_hash = new_hash if new_hash != None else deleted_hash
+        new_hash = hash_ref_becomes_if_not_imported_in_this_run
+      elif old_hash in commit_renames:
+        intermediate = old_commit_renames.get(old_hash,old_hash)
+        if intermediate in self._commit_renames:
+          new_hash = self._remap_to(intermediate)
+        else:
+          new_hash = intermediate
       else: # Must be either an annotated tag, or a ref whose tip was pruned
         if not batch_check_process:
           cmd = 'git cat-file --batch-check'.split()
@@ -4176,7 +4211,9 @@ class RepoFilter(object):
         f.write(_("No filtering problems encountered.\n").encode())
 
     with open(os.path.join(metadata_dir, b'already_ran'), 'bw') as f:
-       f.write(_("This file exists to allow you to filter again without --force.\n").encode())
+       f.write(_("This file exists to allow you to filter again without --force,\n"
+                 "and to specify that metadata files should be updated instead\n"
+                 "of rewritten").encode())
 
   def finish(self):
     ''' Alternative to run() when there is no input of our own to parse,
