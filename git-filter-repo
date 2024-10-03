@@ -4022,9 +4022,38 @@ class RepoFilter(object):
       raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
 
   def _compute_metadata(self, metadata_dir, orig_refs):
-    commit_renames = {old: new
-                      for old, new in self._commit_renames.items()}
+    already_ran = os.path.isfile(os.path.join(metadata_dir, b'already_ran'))
 
+    #
+    # First, handle commit_renames
+    #
+    old_commit_renames = dict()
+    if not already_ran:
+      commit_renames = {old: new
+                        for old, new in self._commit_renames.items()
+                       }
+    else:
+      # Read commit-map into old_commit_renames
+      with open(os.path.join(metadata_dir, b'commit-map'), 'br') as f:
+        f.readline() # Skip the header line
+        for line in f:
+          (old,new) = line.split()
+          old_commit_renames[old] = new
+      # Use A->B mappings in old_commit_renames, and B->C mappings in
+      # self._commit_renames to yield A->C mappings in commit_renames
+      commit_renames = {old: self._commit_renames.get(newish, newish)
+                        for old, newish in old_commit_renames.items()}
+      # If there are any B->C mappings in self._commit_renames for which
+      # there was no A->B mapping in old_commit_renames, then add the
+      # B->C mapping to commit_renames too.
+      seen = set(old_commit_renames.values())
+      commit_renames.update({old: new
+                             for old, new in self._commit_renames.items()
+                             if old not in seen})
+
+    #
+    # Second, handle ref_maps
+    #
     ref_maps = {}
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
     batch_check_process = None

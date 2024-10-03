@@ -421,10 +421,18 @@ Concretely, this means:
     and support usecase.  You already passed or bypassed the "Fresh Clone"
     check on your initial run.
 
+  * The commit-map file above will be updated rather than simply
+    rewritten.
+
+    In other words, if the first filter-repo invocation rewrote commit
+    A to commit B, and the second filter-repo invocation rewrite
+    commit B to commit C, then the second run would have an "A C"
+    entry rather than a "B C" entry for the changed commit.
+
 However, if the already_ran file exists but is older than 1 day when they
 invoke git-filter-repo, the user will be prompted for whether the new run
 should be considered a continuation of the previous run.  If they do not
-answer in the affirmative, then the above bullet will not apply.
+answer in the affirmative, then the above two bullets will not apply.
 This prompt exists because users might do a history rewrite in a repository,
 forget about it and leave the $GIT_DIR/filter-repo directory around, and
 then some months or years later need to do another rewrite.  If commits
