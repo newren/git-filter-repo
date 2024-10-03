@@ -248,6 +248,10 @@ class AncestryGraph(object):
     # elsewhere
     self.git_hash = {}
 
+    # Reverse map; only populated if needed.  Callers of functions using
+    # this reverse map are responsible to ensure it is populated
+    self._hash_to_id = {}
+
     # Cached results from previous calls to is_ancestor().
     self._cached_is_ancestor = {}
 
@@ -295,6 +299,10 @@ class AncestryGraph(object):
     assert commit_id in self.value
     assert commit_id not in self.git_hash
     self.git_hash[commit_id] = githash
+
+  def _ensure_reverse_maps_populated(self):
+    if not self._hash_to_id:
+      self._hash_to_id = {v: k for k, v in self.git_hash.items()}
 
   def map_to_hash(self, commit_id):
     '''
@@ -4029,6 +4037,19 @@ class RepoFilter(object):
     p.stdin.close()
     if p.wait():
       raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
+
+  def _remap_to(self, oldish_hash):
+    '''
+    Given an oldish_hash (from the beginning of the current run), return:
+       IF oldish_hash is NOT pruned:
+         the hash of the rewrite of oldish_hash
+       otherwise:
+         the hash of the rewrite of the first unpruned ancestor of oldish_hash
+    '''
+    old_id = self._orig_graph._hash_to_id[oldish_hash]
+    new_id = _IDS.translate(old_id)
+    new_hash = self._graph.git_hash[new_id] if new_id else deleted_hash
+    return new_hash
 
   def _compute_metadata(self, metadata_dir, orig_refs):
     already_ran = os.path.isfile(os.path.join(metadata_dir, b'already_ran'))
