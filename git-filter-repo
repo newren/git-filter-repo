@@ -248,8 +248,9 @@ class AncestryGraph(object):
     # elsewhere
     self.git_hash = {}
 
-    # Reverse map; only populated if needed.  Callers of functions using
-    # this reverse map are responsible to ensure it is populated
+    # Reverse maps; only populated if needed.  Caller responsible to check
+    # and ensure they are populated
+    self._reverse_value = {}
     self._hash_to_id = {}
 
     # Cached results from previous calls to is_ancestor().
@@ -302,7 +303,29 @@ class AncestryGraph(object):
 
   def _ensure_reverse_maps_populated(self):
     if not self._hash_to_id:
+      assert not self._reverse_value
       self._hash_to_id = {v: k for k, v in self.git_hash.items()}
+      self._reverse_value = {v: k for k, v in self.value.items()}
+
+  def get_parent_hashes(self, commit_hash):
+    '''
+    Given a commit_hash, return its parents hashes
+    '''
+    #
+    # We have to map:
+    #    commit hash -> fast export stream id -> graph id
+    # then lookup
+    #    parent graph ids for given graph id
+    # then we need to map
+    #    parent graph ids -> parent fast export ids -> parent commit hashes
+    #
+    self._ensure_reverse_maps_populated()
+    commit_fast_export_id = self._hash_to_id[commit_hash]
+    commit_graph_id = self.value[commit_fast_export_id]
+    parent_graph_ids = self.graph[commit_graph_id][1]
+    parent_fast_export_ids = [self._reverse_value[x] for x in parent_graph_ids]
+    parent_hashes = [self.git_hash[x] for x in parent_fast_export_ids]
+    return parent_hashes
 
   def map_to_hash(self, commit_id):
     '''
