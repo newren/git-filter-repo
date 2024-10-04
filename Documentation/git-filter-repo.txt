@@ -405,6 +405,26 @@ references were changed.
   * An all-zeros hash, or null SHA, represents a non-existent object.
     When in the "new" column, this means the ref was removed entirely.
 
+First Changed Commits
+~~~~~~~~~~~~~~~~~~~~~
+
+The `$GIT_DIR/filter-repo/first-changed-commits` contains a list of the
+first commit(s) changed by the filtering operation.  These are the commits
+that got rewritten and which had no parents that were also rewritten.
+
+So, for example if you had commits
+  A1-B1-C1-D1-E1
+before running git-filter-repo, and afterward you had commits
+  A1-B2-C2-D2-E2
+then the First Changed Commits file would contain just one line, which
+would be the hash of B2.
+
+In most cases, there will only be one commit listed, but if you had
+multiple root commits or a non-linear history where the commits on
+those diverging histories were the first ones modified, then there
+could be multiple first changed commits and they will each be listed
+on separate lines.
+
 Already Ran
 ~~~~~~~~~~~
 
@@ -429,10 +449,25 @@ Concretely, this means:
     commit B to commit C, then the second run would have an "A C"
     entry rather than a "B C" entry for the changed commit.
 
+  * The first changed commit(s) (reported When using the
+    --sensitive-data-removal option) will be the first original commit
+    modified, not the first intermediate commit modified.
+
+    In more detail, if the repository original had the following commits:
+       A1-B1-C1-D1-E1
+    and the first invocation of filter-repo changed this to
+       A1-B1-C2-D2-E2
+    then the first run would report "C1" as the first changed commit.  If
+    a second filter-repo run further changed this to
+       A1-B1-C2-D3-E3
+    then it would report "C1" as the first changed commit, not "D2",
+    because it is comparing to the original commits rather than the
+    intermediate ones.
+
 However, if the already_ran file exists but is older than 1 day when they
 invoke git-filter-repo, the user will be prompted for whether the new run
 should be considered a continuation of the previous run.  If they do not
-answer in the affirmative, then the above two bullets will not apply.
+answer in the affirmative, then the above three bullets will not apply.
 This prompt exists because users might do a history rewrite in a repository,
 forget about it and leave the $GIT_DIR/filter-repo directory around, and
 then some months or years later need to do another rewrite.  If commits

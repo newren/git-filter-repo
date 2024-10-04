@@ -21,6 +21,7 @@ filter_testcase() {
 		# Clean up from previous run
 		git pack-refs --all &&
 		rm .git/packed-refs &&
+		rm -rf .git/filter-repo/ &&
 
 		# Run the example
 		cat $DATA/$INPUT | git filter-repo --stdin --quiet --force --replace-refs delete-no-add "${REST[@]}" &&

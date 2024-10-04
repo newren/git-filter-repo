@@ -49,6 +49,11 @@ test_expect_success 'a re-run that is treated as a clean slate' '
 		cat sha-expect >>expect &&
 		test_cmp expect .git/filter-repo/ref-map &&
 
+		cat <<-EOF | sort >expect &&
+		${FILE_B_CHANGE} ${FILE_A_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		touch -t 197001010000 .git/filter-repo/already_ran &&
 		echo no | git filter-repo --invert-paths --path fileC --force &&
 		FINAL_FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
@@ -72,7 +77,12 @@ test_expect_success 'a re-run that is treated as a clean slate' '
 		EOF
 		printf "%-40s %-40s %s\n" old new ref >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/ref-map
+		test_cmp expect .git/filter-repo/ref-map &&
+
+		cat <<-EOF | sort >expect &&
+		${NEW_FILE_C_CHANGE} ${FILE_A_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits
 	)
 '
 
@@ -115,7 +125,13 @@ test_expect_success 'remove two files, no re-run' '
 		EOF
 		printf "%-40s %-40s %s\n" old new ref >expect &&
 		cat sha-expect >>expect &&
-		test_cmp expect .git/filter-repo/ref-map
+		test_cmp expect .git/filter-repo/ref-map &&
+
+		cat <<-EOF | sort >expect &&
+		${FIRST_ORPHAN} ${DELETED_SHA}
+		${FILE_C_CHANGE} ${FILE_B_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits
 	)
 '
 
@@ -139,6 +155,12 @@ test_expect_success 'remove two files, then remove a later file' '
 		NEW_FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
 		NEW_TAG=$(git rev-parse v1.0) &&
 
+		cat <<-EOF | sort >expect &&
+		${FIRST_ORPHAN} ${DELETED_SHA}
+		${FILE_C_CHANGE} ${FILE_B_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		cat <<-EOF | sort -k 3 >sha-expect &&
 		${FILE_D_CHANGE} ${NEW_FILE_D_CHANGE} $(git symbolic-ref HEAD)
 		${FINAL_ORPHAN} ${DELETED_SHA} refs/heads/orphan-me
@@ -151,6 +173,12 @@ test_expect_success 'remove two files, then remove a later file' '
 		git filter-repo --invert-paths --path fileD &&
 
 		FINAL_TAG=$(git rev-parse v1.0) &&
+
+		cat <<-EOF | sort >expect &&
+		${FIRST_ORPHAN} ${DELETED_SHA}
+		${FILE_C_CHANGE} ${FILE_B_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
 
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${DELETED_SHA}
@@ -194,8 +222,20 @@ test_expect_success 'remove two files, then remove a later file via --refs' '
 
 		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 
+		cat <<-EOF | sort >expect &&
+		${FIRST_ORPHAN} ${DELETED_SHA}
+		${FILE_B_CHANGE} ${FILE_A_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		git filter-repo --invert-paths --path fileD --refs HEAD~1..HEAD &&
 		FINAL_TAG=$(git rev-parse v1.0) &&
+
+		cat <<-EOF | sort >expect &&
+		${FIRST_ORPHAN} ${DELETED_SHA}
+		${FILE_B_CHANGE} ${FILE_A_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
 
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${DELETED_SHA}
@@ -242,6 +282,12 @@ test_expect_success 'remove two files, then remove an earlier file' '
 		NEW_FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
 		FINAL_TAG=$(git rev-parse v1.0) &&
 
+		cat <<-EOF | sort >expect &&
+		${FIRST_ORPHAN} ${DELETED_SHA}
+		${FILE_B_CHANGE} ${FILE_A_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${DELETED_SHA}
 		${FINAL_ORPHAN} ${DELETED_SHA}
@@ -284,9 +330,19 @@ test_expect_success 'modify a file, then remove a later file' '
 
 		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 
+		cat <<-EOF | sort >expect &&
+		${FILE_C_CHANGE} ${NEW_FILE_C_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		git filter-repo --invert-paths --path fileD &&
 
 		FINAL_TAG=$(git rev-parse v1.0) &&
+
+		cat <<-EOF | sort >expect &&
+		${FILE_C_CHANGE} ${NEW_FILE_C_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
 
 		# Make sure the fileD commit was indeed removed
 		echo $NEW_FILE_C_CHANGE >expect &&
@@ -337,9 +393,19 @@ test_expect_success 'modify a file, then remove a later file via --refs' '
 		NEW_FILE_B_CHANGE=$(git rev-list -1 HEAD -- fileB) &&
 		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 
+		cat <<-EOF | sort >expect &&
+		${FILE_B_CHANGE} ${NEW_FILE_B_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		git filter-repo --invert-paths --path fileD \
 		                --refs HEAD~1..HEAD &&
 		FINAL_TAG=$(git rev-parse v1.0) &&
+
+		cat <<-EOF | sort >expect &&
+		${FILE_B_CHANGE} ${NEW_FILE_B_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
 
 		# Make sure the fileD commit was indeed removed
 		git rev-parse HEAD^ >expect &&
@@ -386,11 +452,23 @@ test_expect_success 'modify a file, then remove an earlier file' '
 		echo "file 3 contents==>Alternate C" >changes &&
 		git filter-repo --force --replace-text changes &&
 
+		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
+
+		cat <<-EOF | sort >expect &&
+		${FILE_C_CHANGE} ${NEW_FILE_C_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		git filter-repo --invert-paths --path fileB &&
 
 		NEW_FILE_C_CHANGE=$(git rev-list -1 HEAD -- fileC) &&
 		NEW_FILE_D_CHANGE=$(git rev-list -1 HEAD -- fileD) &&
 		FINAL_TAG=$(git rev-parse v1.0) &&
+
+		cat <<-EOF | sort >expect &&
+		${FILE_B_CHANGE} ${FILE_A_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
 
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${FIRST_ORPHAN}
@@ -434,8 +512,19 @@ test_expect_success 'use --refs heavily with a rerun' '
 
 		NEW_FINAL_ORPHAN=$(git rev-list -1 orphan-me) &&
 
+		cat <<-EOF | sort >expect &&
+		${FINAL_ORPHAN} ${NEW_FINAL_ORPHAN}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
+
 		git filter-repo --refs $(git symbolic-ref HEAD) \
 		    --invert-paths --path fileD &&
+
+		cat <<-EOF | sort >expect &&
+		${FINAL_ORPHAN} ${NEW_FINAL_ORPHAN}
+		${FILE_D_CHANGE} ${FILE_C_CHANGE}
+		EOF
+		test_cmp expect .git/filter-repo/first-changed-commits &&
 
 		cat <<-EOF | sort >sha-expect &&
 		${FIRST_ORPHAN} ${FIRST_ORPHAN}
