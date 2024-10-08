@@ -3288,11 +3288,11 @@ class RepoFilter(object):
       return old_hash
     return new_hash
 
-  def _trim_extra_parents(self, orig_parents, parents):
+  def _maybe_trim_extra_parents(self, orig_parents, parents):
     '''Due to pruning of empty commits, some parents could be non-existent
        (None) or otherwise redundant.  Remove the non-existent parents, and
-       remove redundant parents so long as that doesn't transform a merge
-       commit into a non-merge commit.
+       remove redundant parents ***SO LONG AS*** that doesn't transform a
+       merge commit into a non-merge commit.
 
        Returns a tuple:
          (parents, new_first_parent_if_would_become_non_merge)'''
@@ -3675,7 +3675,8 @@ class RepoFilter(object):
 
     # Prune parents (due to pruning of empty commits) if relevant
     old_1st_parent = parents[0] if parents else None
-    parents, new_1st_parent = self._trim_extra_parents(orig_parents, parents)
+    parents, new_1st_parent = self._maybe_trim_extra_parents(orig_parents,
+                                                             parents)
     commit.parents = parents
 
     # If parents were pruned, then we need our file changes to be relative
