@@ -3673,7 +3673,9 @@ class RepoFilter(object):
     self._orig_graph.add_commit_and_parents(commit.old_id, orig_parents,
                                             commit.original_id)
 
-    # Prune parents (due to pruning of empty commits) if relevant
+    # Prune parents (due to pruning of empty commits) if relevant, note that
+    # new_1st_parent is None unless this was a merge commit that is becoming
+    # a non-merge
     prev_1st_parent = parents[0] if parents else None
     parents, new_1st_parent = self._maybe_trim_extra_parents(orig_parents,
                                                              parents)
@@ -3681,6 +3683,28 @@ class RepoFilter(object):
 
     # If parents were pruned, then we need our file changes to be relative
     # to the new first parent
+    #
+    # FIXME: Note that there are two cases we should be handling here:
+    #   * new_1st_parent and new_1st_parent != parents[0] uniquely happens for example when:
+    #       working on merge, selecting subset of files and merge base still
+    #       valid while first parent history doesn't touch any of those paths,
+    #       but second parent history does.  prev_1st_parent had already been
+    #       rewritten to the non-None first ancestor and it remains valid.
+    #       self._maybe_trim_extra_parents() avoids removing this first parent
+    #       because it'd make the commit a non-merge.  However, if there are
+    #       no file_changes of note, we'll drop this commit and mark
+    #       new_1st_parent as the new replacement.  To correctly determine if
+    #       there are no file_changes of note, we need to have the list of
+    #       file_changes relative to new_1st_parent.
+    #       (See t9390#3, "basic -> basic-ten using '--path ten'")
+    #   * prev_1st_parent != parents[0] happens for example when:
+    #       similar to above, but the merge base is no longer valid and was
+    #       pruned away as well.  Then parents started as e.g. [None, $num],
+    #       and both prev_1st_parent and new_1st_parent are None, while parents
+    #       after self._maybe_trim_extra_parents() becomes just [$num].
+    #       (See t9390#67, "degenerate merge with non-matching filename".)
+    #       Since $num was originally a second parent, we need to rewrite
+    #       file changes to be relative to parents[0].
     if parents and prev_1st_parent != parents[0]:
       # Get the id from the original fast export stream corresponding to the
       # new 1st parent.  Since pruning of commits can cause multiple old
