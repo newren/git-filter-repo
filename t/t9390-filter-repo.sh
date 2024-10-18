@@ -1875,7 +1875,7 @@ test_expect_success 'degenerate merge with typechange' '
 	)
 '
 
-test_expect_failure 'degenerate evil merge' '
+test_expect_success 'degenerate evil merge' '
 	test_create_repo degenerate_evil_merge &&
 	(
 		cd degenerate_evil_merge &&
