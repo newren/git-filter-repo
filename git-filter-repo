@@ -3674,14 +3674,14 @@ class RepoFilter(object):
                                             commit.original_id)
 
     # Prune parents (due to pruning of empty commits) if relevant
-    old_1st_parent = parents[0] if parents else None
+    prev_1st_parent = parents[0] if parents else None
     parents, new_1st_parent = self._maybe_trim_extra_parents(orig_parents,
                                                              parents)
     commit.parents = parents
 
     # If parents were pruned, then we need our file changes to be relative
     # to the new first parent
-    if parents and old_1st_parent != parents[0]:
+    if parents and prev_1st_parent != parents[0]:
       # Get the id from the original fast export stream corresponding to the
       # new 1st parent.  Since pruning of commits can cause multiple old
       # commits to map to the same new commit, we have a uniqueness problem,
