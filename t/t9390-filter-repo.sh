@@ -1875,6 +1875,22 @@ test_expect_success 'degenerate merge with typechange' '
 	)
 '
 
+test_expect_success 'degenerate evil merge' '
+	test_create_repo degenerate_evil_merge &&
+	(
+		cd degenerate_evil_merge &&
+
+		cat $DATA/degenerate-evil-merge | git fast-import --quiet &&
+		git filter-repo --force --subdirectory-filter module-of-interest &&
+		test_path_is_missing module-of-interest &&
+		test_path_is_missing other-module &&
+		test_path_is_missing irrelevant &&
+		test_path_is_file file1 &&
+		test_path_is_file file2 &&
+		test_path_is_file file3
+	)
+'
+
 test_expect_success 'Filtering a blob to make it match previous version' '
 	test_create_repo remove_unique_bits_of_blob &&
 	(
