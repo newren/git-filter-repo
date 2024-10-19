@@ -248,8 +248,9 @@ class AncestryGraph(object):
     # elsewhere
     self.git_hash = {}
 
-    # Reverse map; only populated if needed.  Callers of functions using
-    # this reverse map are responsible to ensure it is populated
+    # Reverse maps; only populated if needed.  Caller responsible to check
+    # and ensure they are populated
+    self._reverse_value = {}
     self._hash_to_id = {}
 
     # Cached results from previous calls to is_ancestor().
@@ -302,7 +303,29 @@ class AncestryGraph(object):
 
   def _ensure_reverse_maps_populated(self):
     if not self._hash_to_id:
+      assert not self._reverse_value
       self._hash_to_id = {v: k for k, v in self.git_hash.items()}
+      self._reverse_value = {v: k for k, v in self.value.items()}
+
+  def get_parent_hashes(self, commit_hash):
+    '''
+    Given a commit_hash, return its parents hashes
+    '''
+    #
+    # We have to map:
+    #    commit hash -> fast export stream id -> graph id
+    # then lookup
+    #    parent graph ids for given graph id
+    # then we need to map
+    #    parent graph ids -> parent fast export ids -> parent commit hashes
+    #
+    self._ensure_reverse_maps_populated()
+    commit_fast_export_id = self._hash_to_id[commit_hash]
+    commit_graph_id = self.value[commit_fast_export_id]
+    parent_graph_ids = self.graph[commit_graph_id][1]
+    parent_fast_export_ids = [self._reverse_value[x] for x in parent_graph_ids]
+    parent_hashes = [self.git_hash[x] for x in parent_fast_export_ids]
+    return parent_hashes
 
   def map_to_hash(self, commit_id):
     '''
@@ -4168,11 +4191,105 @@ class RepoFilter(object):
       batch_check_process.stdin.close()
       batch_check_process.wait()
 
-    return commit_renames, ref_maps
+    #
+    # Third, handle first_changes
+    #
+
+    old_first_changes = dict()
+    if already_ran:
+      # Read first_changes into old_first_changes
+      with open(os.path.join(metadata_dir, b'first-changed-commits'), 'br') as f:
+        for line in f:
+          changed_commit, undeleted_self_or_ancestor = line.strip().split()
+          old_first_changes[changed_commit] = undeleted_self_or_ancestor
+    # We need to find the commits that were modified whose parents were not.
+    # To be able to find parents, we need the commit names as of the beginning
+    # of this run, and then when we are done, we need to map them back to the
+    # name of the commits from before any git-filter-repo runs.
+    #
+    # We are excluding here any commits deleted in previous git-filter-repo
+    # runs
+    undo_old_commit_renames = dict((v,k) for (k,v) in old_commit_renames.items()
+                                   if v != deleted_hash)
+    # Get a list of all commits that were changed, as of the beginning of
+    # this latest run.
+    changed_commits = {new
+                       for (old,new) in old_commit_renames.items()
+                       if old != new and new != deleted_hash} | \
+                      {old
+                       for (old,new) in self._commit_renames.items()
+                       if old != new}
+    special_changed_commits = {old
+                               for (old,new) in old_commit_renames.items()
+                               if new == deleted_hash}
+    first_changes = dict()
+    for (old,new) in self._commit_renames.items():
+      if old == new:
+        # old wasn't modified, can't be first change if not even a change
+        continue
+      if old_commit_unrenames.get(old,old) != old:
+        # old was already modified in previous run; while it might represent
+        # something that is still a first change, we'll handle that as we
+        # loop over old_first_changes below
+        continue
+      if any(parent in changed_commits
+             for parent in self._orig_graph.get_parent_hashes(old)):
+        # a parent of old was modified, so old is not a first change
+        continue
+      # At this point, old IS a first change.  We need to find out what new
+      # commit it maps to, or if it doesn't map to one, what new commit was
+      # its most recent ancestor that wasn't pruned.
+      if new is None:
+        new = self._remap_to(old)
+      first_changes[old] = (new if new is not None else deleted_hash)
+    for (old,undeleted_self_or_ancestor) in old_first_changes.items():
+      if undeleted_self_or_ancestor == deleted_hash:
+        # old represents a commit that was pruned and whose entire ancestry
+        # was pruned.  So, old is still a first change
+        first_changes[old] = undeleted_self_or_ancestor
+        continue
+      intermediate = old_commit_renames.get(old, old)
+      usoa = undeleted_self_or_ancestor
+      new_ancestor = self._commit_renames.get(usoa, usoa)
+      if intermediate == deleted_hash:
+        # old was pruned in previous rewrite
+        if usoa != new_ancestor:
+          # old's ancestor got rewritten in this filtering run; we can drop
+          # this one from first_changes.
+          continue
+        # Getting here means old was a first change and old was pruned in a
+        # previous run, and its ancestors that survived were non rewritten in
+        # this run, so old remains a first change
+        first_changes[old] = new_ancestor # or usoa, since new_ancestor == usoa
+        continue
+      assert(usoa == intermediate) # old wasn't pruned => usoa == intermediate
+
+      # Check whether parents of intermediate were rewritten.  Note that
+      # intermediate in self._commit_renames only means that intermediate was
+      # processed by the latest filtering (not necessarily that it changed),
+      # but we need to know that before we can check for parent hashes having
+      # changed.
+      if intermediate not in self._commit_renames:
+        # This commit was not processed by this run, so it remains a first
+        # change
+        first_changes[old] = usoa
+        continue
+      if any(parent in changed_commits
+             for parent in self._orig_graph.get_parent_hashes(intermediate)):
+        # An ancestor was modified by this run, so it is no longer a first
+        # change; continue to the next one.
+        continue
+      # This change is a first_change; find the new commit its usoa maps to
+      new = self._remap_to(intermediate)
+      assert(new is not None)
+      first_changes[old] = new
+
+    return commit_renames, ref_maps, first_changes
 
   def _record_metadata(self, metadata_dir, orig_refs):
     self._flush_renames()
-    commit_renames, ref_maps = self._compute_metadata(metadata_dir, orig_refs)
+    commit_renames, ref_maps, first_changes = \
+      self._compute_metadata(metadata_dir, orig_refs)
 
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
@@ -4185,6 +4302,10 @@ class RepoFilter(object):
       for refname, hash_pair in sorted(ref_maps.items()):
         (old_hash, new_hash) = hash_pair
         f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
+
+    with open(os.path.join(metadata_dir, b'first-changed-commits'), 'bw') as f:
+      for commit, undeleted_self_or_ancestor in sorted(first_changes.items()):
+        f.write(b'%s %s\n' % (commit, undeleted_self_or_ancestor))
 
     with open(os.path.join(metadata_dir, b'suboptimal-issues'), 'bw') as f:
       issues_found = False
