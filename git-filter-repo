@@ -354,17 +354,24 @@ class ProgressWriter(object):
 class _IDs(object):
   """
   A class that maintains the 'name domain' of all the 'marks' (short int
-  id for a blob/commit git object). The reason this mechanism is necessary
-  is because the text of fast-export may refer to an object using a different
-  mark than the mark that was assigned to that object using IDS.new(). This
-  class allows you to translate the fast-export marks (old) to the marks
-  assigned from IDS.new() (new).
+  id for a blob/commit git object). There are two reasons this mechanism
+  is necessary:
+    (1) the output text of fast-export may refer to an object using a different
+        mark than the mark that was assigned to that object using IDS.new().
+        (This class allows you to translate the fast-export marks, "old" to
+         the marks assigned from IDS.new(), "new").
+    (2) when we prune a commit, its "old" id becomes invalid.  Any commits
+        which had that commit as a parent needs to use the nearest unpruned
+        ancestor as its parent instead.
 
-  Note that there are two reasons why the marks may differ: (1) The
-  user manually creates Blob or Commit objects (for insertion into the
-  stream) (2) We're reading the data from two different repositories
-  and trying to combine the data (git fast-export will number ids from
-  1...n, and having two 1's, two 2's, two 3's, causes issues).
+  Note that for purpose (1) above, this typically comes about because the user
+  manually creates Blob or Commit objects (for insertion into the stream).
+  It could also come about if we attempt to read the data from two different
+  repositories and trying to combine the data (git fast-export will number ids
+  from 1...n, and having two 1's, two 2's, two 3's, causes issues; granted, we
+  this scheme doesn't handle the two streams perfectly either, but if the first
+  fast export stream is entirely processed and handled before the second stream
+  is started, this mechanism may be sufficient to handle it).
   """
 
   def __init__(self):
@@ -399,7 +406,7 @@ class _IDs(object):
     """
     Record that old_id is being renamed to new_id.
     """
-    if old_id != new_id:
+    if old_id != new_id or old_id in self._translation:
       # old_id -> new_id
       self._translation[old_id] = new_id
 
@@ -434,7 +441,12 @@ class _IDs(object):
       rv += "  %d -> %s\n" % (k, self._translation[k])
 
     rv += "Reverse translation:\n"
-    for k in sorted(self._reverse_translation):
+    reverse_keys = list(self._reverse_translation.keys())
+    if None in reverse_keys: # pragma: no cover
+      reverse_keys.remove(None)
+      reverse_keys = sorted(reverse_keys)
+      reverse_keys.append(None)
+    for k in reverse_keys:
       rv += "  " + str(k) + " -> " + str(self._reverse_translation[k]) + "\n"
 
     return rv
@@ -2935,7 +2947,21 @@ class RepoFilter(object):
 
     # Determine if this is second or later run of filter-repo
     tmp_dir = self.results_tmp_dir(create_if_missing=False)
-    already_ran = os.path.isfile(os.path.join(tmp_dir, b'already_ran'))
+    ran_path = os.path.join(tmp_dir, b'already_ran')
+    already_ran = os.path.isfile(ran_path)
+    if already_ran:
+      current_time = time.time()
+      file_mod_time = os.path.getmtime(ran_path)
+      file_age = current_time - file_mod_time
+      if file_age > 86400: # file older than a day
+        msg = (f"The previous run is older than a day ({decode(ran_path)} already exists).\n"
+               f"See \"Already Ran\" section in the manual for more information.\n"
+               f"Treat this run as a continuation of filtering in the previous run (Y/N)? ")
+        response = input(msg)
+
+        if response.lower() != 'y':
+          os.remove(ran_path)
+          already_ran = False
 
     # Default for --replace-refs
     if not self._args.replace_refs:
@@ -3146,10 +3172,10 @@ class RepoFilter(object):
       return
     fi_input, fi_output = self._import_pipes
     while self._pending_renames:
-      orig_id, ignore = self._pending_renames.popitem(last=False)
-      new_id = fi_output.readline().rstrip()
-      self._commit_renames[orig_id] = new_id
-      if old_hash == orig_id:
+      orig_hash, ignore = self._pending_renames.popitem(last=False)
+      new_hash = fi_output.readline().rstrip()
+      self._commit_renames[orig_hash] = new_hash
+      if old_hash == orig_hash:
         return
       if limit and len(self._pending_renames) < limit:
         return
@@ -3914,7 +3940,7 @@ class RepoFilter(object):
       refs_to_nuke = set()
     if refs_to_nuke and self._args.debug:
       print("[DEBUG] Deleting the following refs:\n  "+
-            decode(b"\n  ".join(refs_to_nuke)))
+            decode(b"\n  ".join(sorted(refs_to_nuke))))
     p.stdin.write(b''.join([b"delete %s\n" % x
                            for x in refs_to_nuke]))
 
