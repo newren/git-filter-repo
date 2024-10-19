@@ -1577,12 +1577,15 @@ class GitUtils(object):
     unpacked_size = {}
     packed_size = {}
     for line in cf.stdout:
-      sha, objtype, objsize, objdisksize = line.split()
-      objsize, objdisksize = int(objsize), int(objdisksize)
-      if objtype == b'blob':
-        unpacked_size[sha] = objsize
-        packed_size[sha] = objdisksize
-        num_blobs += 1
+      try:
+        sha, objtype, objsize, objdisksize = line.split()
+        objsize, objdisksize = int(objsize), int(objdisksize)
+        if objtype == b'blob':
+          unpacked_size[sha] = objsize
+          packed_size[sha] = objdisksize
+          num_blobs += 1
+      except ValueError: # pragma: no cover
+        sys.stderr.write(_("Error: unexpected `git cat-file` output: \"%s\"\n") % line)
       if not quiet:
         blob_size_progress.show(processed_blobs_msg % num_blobs)
     cf.wait()
