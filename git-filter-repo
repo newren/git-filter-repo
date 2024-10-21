@@ -4194,8 +4194,8 @@ class RepoFilter(object):
         original_hash = old_commit_unrenames.get(old_hash, old_hash)
         old_ref_map[refname] = (original_hash, deleted_hash)
 
-    batch_check_process = None
-    batch_check_output_re = re.compile(b'^([0-9a-f]{40}) ([a-z]+) ([0-9]+)$')
+    new_refs = {}
+    new_refs_initialized = False
     ref_maps = {}
     self._orig_graph._ensure_reverse_maps_populated()
     for refname, pair in old_ref_map.items():
@@ -4209,36 +4209,22 @@ class RepoFilter(object):
         else:
           new_hash = intermediate
       else: # Must be either an annotated tag, or a ref whose tip was pruned
-        if not batch_check_process:
-          cmd = 'git cat-file --batch-check'.split()
+        if not new_refs_initialized:
           target_working_dir = self._args.target or b'.'
-          batch_check_process = subproc.Popen(cmd,
-                                              stdin=subprocess.PIPE,
-                                              stdout=subprocess.PIPE,
-                                              cwd=target_working_dir)
-        batch_check_process.stdin.write(refname+b"\n")
-        batch_check_process.stdin.flush()
-        line = batch_check_process.stdout.readline()
-        m = batch_check_output_re.match(line)
-        if m and m.group(2) in (b'tag', b'commit'):
-          new_hash = m.group(1)
-        elif line.endswith(b' missing\n'):
-          new_hash = deleted_hash
+          new_refs = GitUtils.get_refs(target_working_dir)
+        if refname in new_refs:
+          new_hash = new_refs[refname]
         else:
-          raise SystemExit(_("Failed to find new id for %(refname)s "
-                             "(old id was %(old_hash)s)")
-                           % ({'refname': refname, 'old_hash': old_hash})
-                           ) # pragma: no cover
+          new_hash = deleted_hash
       ref_maps[refname] = (old_hash, new_hash)
     if self._args.source or self._args.target:
-      new_refs = GitUtils.get_refs(self._args.target or b'.')
+      if not new_refs_initialized:
+        target_working_dir = self._args.target or b'.'
+        new_refs = GitUtils.get_refs(target_working_dir)
       for ref, new_hash in new_refs.items():
         if ref not in orig_refs and not ref.startswith(b'refs/replace/'):
           old_hash = b'0'*len(new_hash)
           ref_maps[ref] = (old_hash, new_hash)
-    if batch_check_process:
-      batch_check_process.stdin.close()
-      batch_check_process.wait()
 
     #
     # Third, handle first_changes
