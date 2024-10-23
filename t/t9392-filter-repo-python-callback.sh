@@ -60,6 +60,19 @@ test_expect_success '--filename-callback' '
 	)
 '
 
+test_expect_success '--file-info-callback acting like --filename-callback' '
+	setup fileinfo-as-filename-callback &&
+	(
+		cd fileinfo-as-filename-callback &&
+		git filter-repo --file-info-callback "return (None if filename.endswith(b\".doc\") else b\"src/\"+filename, mode, blob_id)" &&
+		git log --format=%n --name-only | sort | uniq | grep -v ^$ > f &&
+		! grep file.doc f &&
+		COMPARE=$(wc -l <f) &&
+		grep src/ f >filtered_f &&
+		test_line_count = $COMPARE filtered_f
+	)
+'
+
 test_expect_success '--message-callback' '
 	setup message-callback &&
 	(
@@ -124,6 +137,21 @@ test_expect_success '--blob-callback' '
 		test_line_count = 5 f &&
 		rm f &&
 		git filter-repo --blob-callback "if len(blob.data) > 25: blob.skip()" &&
+		git log --format=%n --name-only | sort | uniq | grep -v ^$ > f &&
+		test_line_count = 2 f
+	)
+'
+
+test_expect_success '--file-info-callback acting like --blob-callback' '
+	setup fileinfo-as-blob-callback &&
+	(
+		cd fileinfo-as-blob-callback &&
+		git log --format=%n --name-only | sort | uniq | grep -v ^$ > f &&
+		test_line_count = 5 f &&
+		rm f &&
+		git filter-repo --file-info-callback "
+		    size = value.get_size_by_identifier(blob_id)
+		    return (None if size > 25 else filename, mode, blob_id)" &&
 		git log --format=%n --name-only | sort | uniq | grep -v ^$ > f &&
 		test_line_count = 2 f
 	)
@@ -224,6 +252,122 @@ test_expect_success 'tweaking just a tag' '
 		git filter-repo --force --refs mytag ^mytag^{commit} --name-callback "return name.replace(b\"Mitter\", b\"L D\")" &&
 
 		git cat-file -p mytag | grep C.O.L.D
+	)
+'
+
+test_expect_success '--file-info-callback messing with history' '
+	setup messing_with_files &&
+	(
+		cd messing_with_files &&
+
+		echo "1-2-3-4==>1-2-3-4-5" >replacement &&
+		# Trying to count the levels of backslash escaping is not fun.
+		echo "regex:\\\$[^\$]*\\\$==>cvs is lame" >>replacement &&
+		git filter-repo --force --file-info-callback "
+		    size = value.get_size_by_identifier(blob_id)
+		    contents = value.get_contents_by_identifier(blob_id)
+		    if not value.is_binary(contents):
+		      contents = value.apply_replace_text(contents)
+		    if contents[-1] != 10:
+		      contents += bytes([10])
+		    blob_id = value.insert_file_with_contents(contents)
+		    newname = bytes(reversed(filename))
+		    if size == 27 and len(contents) == 27:
+		      newname = None
+		    return (newname, mode, blob_id)
+                    " --replace-text replacement &&
+
+		cat <<-EOF >expect &&
+		c.raboof
+		dlrow
+		ecivda
+		terces
+		EOF
+
+		git ls-files >actual &&
+		test_cmp expect actual &&
+
+		echo "The launch code is 1-2-3-4-5." >expect &&
+		test_cmp expect terces &&
+
+		echo "  cvs is lame" >expect &&
+		test_cmp expect c.raboof
+	)
+'
+
+test_expect_success '--file-info-callback and deletes and drops' '
+	setup file_info_deletes_drops &&
+	(
+		cd file_info_deletes_drops &&
+
+		git rm file.doc &&
+		git commit -m "Nuke doc file" &&
+
+		git filter-repo --force --file-info-callback "
+		    size = value.get_size_by_identifier(blob_id)
+		    (newname, newmode) = (filename, mode)
+		    if filename == b\"world\" and size == 12:
+		      newname = None
+		    if filename == b\"advice\" and size == 77:
+		      newmode = None
+		    return (newname, newmode, blob_id)
+                    "
+
+		cat <<-EOF >expect &&
+		foobar.c
+		secret
+		world
+		EOF
+
+		echo 1 >expect &&
+		git rev-list --count HEAD -- world >actual &&
+		test_cmp expect actual &&
+
+		echo 2 >expect &&
+		git rev-list --count HEAD -- advice >actual &&
+		test_cmp expect actual &&
+
+		echo hello >expect &&
+		test_cmp expect world
+	)
+'
+
+test_lazy_prereq UNIX2DOS '
+        unix2dos -h
+        test $? -ne 127
+'
+
+test_expect_success UNIX2DOS '--file-info-callback acting like lint-history' '
+	setup lint_history_replacement &&
+	(
+		cd lint_history_replacement &&
+		git ls-files -s | grep -v file.doc >expect &&
+
+		git filter-repo --force --file-info-callback "
+		    if not filename.endswith(b\".doc\"):
+		      return (filename, mode, blob_id)
+
+		    if blob_id in value.data:
+		      return (filename, mode, value.data[blob_id])
+
+		    contents = value.get_contents_by_identifier(blob_id)
+		    tmpfile = os.path.basename(filename)
+		    with open(tmpfile, \"wb\") as f:
+		      f.write(contents)
+		    subprocess.check_call([\"unix2dos\", filename])
+		    with open(filename, \"rb\") as f:
+		      contents = f.read()
+		    new_blob_id = value.insert_file_with_contents(contents)
+
+		    value.data[blob_id] = new_blob_id
+		    return (filename, mode, new_blob_id)
+                    " &&
+
+		git ls-files -s | grep -v file.doc >actual &&
+		test_cmp expect actual &&
+
+		printf "A file that you cant trust\r\n" >expect &&
+		test_cmp expect file.doc
 	)
 '
 

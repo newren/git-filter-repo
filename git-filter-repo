@@ -625,6 +625,7 @@ class Blob(_GitElementWithId):
     """
     self.dumped = 1
     BLOB_HASH_TO_NEW_ID[self.original_id] = self.id
+    BLOB_NEW_ID_TO_HASH[self.id] = self.original_id
 
     file_.write(b'blob\n')
     file_.write(b'mark :%d\n' % self.id)
@@ -1543,6 +1544,7 @@ def record_id_rename(old_id, new_id):
 _IDS = _IDs()
 _SKIPPED_COMMITS = set()
 BLOB_HASH_TO_NEW_ID = {}
+BLOB_NEW_ID_TO_HASH = {}
 
 class SubprocessWrapper(object):
   @staticmethod
@@ -1802,7 +1804,7 @@ class FilteringOptions(object):
     # Provide a long helpful examples section
     example_text = _('''CALLBACKS
 
-    All callback functions are of the same general format.  For a command line
+    Most callback functions are of the same general format.  For a command line
     argument like
       --foo-callback 'BODY'
 
@@ -1810,7 +1812,11 @@ class FilteringOptions(object):
       def foo_callback(foo):
         BODY
 
-    Thus, to replace 'Jon' with 'John' in author/committer/tagger names:
+    The exception on callbacks is the --file-info-callback, which will be
+    discussed further below.
+
+    Given the callback style, we can thus make a simple callback to replace
+    'Jon' with 'John' in author/committer/tagger names:
       git filter-repo --name-callback 'return name.replace(b"Jon", b"John")'
 
     To remove all 'Tested-by' tags in commit (or tag) messages:
@@ -1821,6 +1827,29 @@ class FilteringOptions(object):
 
     Note that if BODY resolves to a filename, then the contents of that file
     will be used as the BODY in the callback function.
+
+    The --file-info-callback has a more involved function callback; for it the
+    following code will be compiled and called:
+      def file_info_callback(filename, mode, blob_id, value):
+        BODY
+
+    It is designed to be used in cases where filtering depends on both
+    filename and contents (and maybe mode).  It is called for file changes
+    other than deletions (since deletions have no file contents to operate
+    on).  This callback is expected to return a tuple of (filename, mode,
+    blob_id).  It can make use of the following functions from the value
+    instance:
+      value.get_contents_by_identifier(blob_id) -> contents (bytestring)
+      value.get_size_by_identifier(blob_id) -> size_of_blob (int)
+      value.insert_file_with_contents(contents) -> blob_id
+      value.is_binary(contents) -> bool
+      value.apply_replace_text(contents) -> new_contents (bytestring)
+    and can read/write the following data member from the value instance:
+      value.data (dict)
+
+    The filename can be used for renaming the file similar to
+    --filename-callback (or None to drop the change), and mode is one
+    of b'100644', b'100755', b'120000', or b'160000'.
 
     For more detailed examples and explanations AND caveats, see
       https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#CALLBACKS
@@ -2048,6 +2077,9 @@ EXAMPLES
     callback.add_argument('--filename-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing filenames; see CALLBACKS "
                "sections below."))
+    callback.add_argument('--file-info-callback', metavar="FUNCTION_BODY_OR_FILE",
+        help=_("Python code body for processing file and metadata; see "
+               "CALLBACKS sections below."))
     callback.add_argument('--message-callback', metavar="FUNCTION_BODY_OR_FILE",
         help=_("Python code body for processing messages (both commit "
                "messages and tag messages); see CALLBACKS section below."))
@@ -2232,6 +2264,10 @@ EXAMPLES
         args.max_blob_size = int(args.max_blob_size[0:-1]) * mult[suffix]
       else:
         args.max_blob_size = int(args.max_blob_size)
+    if args.file_info_callback and (
+        args.stdin or args.blob_callback or args.filename_callback):
+      raise SystemExit(_("Error: --file-info-callback is incompatible with "
+                         "--stdin, --blob-callback,\nand --filename-callback."))
 
   @staticmethod
   def get_replace_text(filename):
@@ -2821,6 +2857,56 @@ class RepoAnalyze(object):
     RepoAnalyze.write_report(reportdir, stats)
     sys.stdout.write(_("done.\n"))
 
+class FileInfoValueHelper:
+  def __init__(self, replace_text, insert_blob_func, source_working_dir):
+    self.data = {}
+    self._replace_text = replace_text
+    self._insert_blob_func = insert_blob_func
+    cmd = ['git', 'cat-file', '--batch-command']
+    self._cat_file_process = subproc.Popen(cmd,
+                                           stdin = subprocess.PIPE,
+                                           stdout = subprocess.PIPE,
+                                           cwd = source_working_dir)
+
+  def finalize(self):
+    self._cat_file_process.stdin.close()
+    self._cat_file_process.wait()
+
+  def get_contents_by_identifier(self, blobhash):
+    self._cat_file_process.stdin.write(b'contents '+blobhash+b'\n')
+    self._cat_file_process.stdin.flush()
+    line = self._cat_file_process.stdout.readline()
+    (oid, oidtype, size) = line.split()
+    size = int(size) # Convert e.g. b'6283' to 6283
+    assert(oidtype == b'blob')
+    contents_plus_newline = self._cat_file_process.stdout.read(size+1)
+    return contents_plus_newline[:-1] # return all but the newline
+
+  def get_size_by_identifier(self, blobhash):
+    self._cat_file_process.stdin.write(b'info '+blobhash+b'\n')
+    self._cat_file_process.stdin.flush()
+    line = self._cat_file_process.stdout.readline()
+    (oid, oidtype, size) = line.split()
+    size = int(size) # Convert e.g. b'6283' to 6283
+    assert(oidtype == b'blob')
+    return size
+
+  def insert_file_with_contents(self, contents):
+    blob = Blob(contents)
+    self._insert_blob_func(blob)
+    return blob.id
+
+  def is_binary(self, contents):
+    return b"\0" in contents[0:8192]
+
+  def apply_replace_text(self, contents):
+    new_contents = contents
+    for literal, replacement in self._replace_text['literals']:
+      new_contents = new_contents.replace(literal, replacement)
+    for regex,   replacement in self._replace_text['regexes']:
+      new_contents = regex.sub(replacement, new_contents)
+    return new_contents
+
 class InputFileBackup:
   def __init__(self, input_file, output_file):
     self.input_file  = input_file
@@ -2869,7 +2955,8 @@ class RepoFilter(object):
                commit_callback = None,
                tag_callback = None,
                reset_callback = None,
-               done_callback = None):
+               done_callback = None,
+               file_info_callback = None):
 
     self._args = args
 
@@ -2889,7 +2976,11 @@ class RepoFilter(object):
     self._name_callback        = name_callback      # author, committer, tagger
     self._email_callback       = email_callback     # author, committer, tagger
     self._refname_callback     = refname_callback   # from commit/tag/reset
+    self._file_info_callback   = file_info_callback # various file info
     self._handle_arg_callbacks()
+
+    # Helpers for callbacks
+    self._file_info_value = None
 
     # Defaults for input
     self._input = None
@@ -2972,15 +3063,20 @@ class RepoFilter(object):
     self._hash_re = re.compile(br'(\b[0-9a-f]{7,40}\b)')
 
   def _handle_arg_callbacks(self):
-    def make_callback(argname, bdy):
+    def make_callback(args, bdy):
       callback_globals = {g: globals()[g] for g in public_globals}
       callback_locals = {}
-      exec('def callback({}, _do_not_use_this_var = None):\n'.format(argname)+
+      if type(args) == str:
+        args = (args, '_do_not_use_this_var = None')
+      exec('def callback({}):\n'.format(', '.join(args))+
            '  '+'\n  '.join(bdy.splitlines()), callback_globals, callback_locals)
       return callback_locals['callback']
-    def handle(which):
-      callback_field = '_{}_callback'.format(which)
-      code_string = getattr(self._args, which+'_callback')
+    def handle(which, args=None):
+      which_under = which.replace('-','_')
+      if not args:
+        args = which
+      callback_field = '_{}_callback'.format(which_under)
+      code_string = getattr(self._args, which_under+'_callback')
       if code_string:
         if os.path.exists(code_string):
           with open(code_string, 'r', encoding='utf-8') as f:
@@ -2988,12 +3084,12 @@ class RepoFilter(object):
         if getattr(self, callback_field):
           raise SystemExit(_("Error: Cannot pass a %s_callback to RepoFilter "
                              "AND pass --%s-callback"
-                           % (which, which)))
+                           % (which_under, which)))
         if 'return ' not in code_string and \
            which not in ('blob', 'commit', 'tag', 'reset'):
           raise SystemExit(_("Error: --%s-callback should have a return statement")
                            % which)
-        setattr(self, callback_field, make_callback(which, code_string))
+        setattr(self, callback_field, make_callback(args, code_string))
     handle('filename')
     handle('message')
     handle('name')
@@ -3003,6 +3099,7 @@ class RepoFilter(object):
     handle('commit')
     handle('tag')
     handle('reset')
+    handle('file-info', ('filename', 'mode', 'blob_id', 'value'))
 
   def _run_sanity_checks(self):
     self._sanity_checks_handled = True
@@ -3498,6 +3595,7 @@ class RepoFilter(object):
       blob.skip()
 
     if ( self._args.replace_text
+        and not self._file_info_callback
         # not (if blob contains zero byte in the first 8Kb, that is, if blob is binary data)
         and not b"\0" in blob.data[0:8192]
     ):
@@ -3749,6 +3847,37 @@ class RepoFilter(object):
       orig_file_changes = set(commit.file_changes)
       self._filter_files(commit)
 
+    # Process the --file-info-callback
+    if self._file_info_callback:
+      if self._file_info_value is None:
+        source_working_dir = self._args.source or b'.'
+        self._file_info_value = FileInfoValueHelper(self._args.replace_text,
+                                                    self.insert,
+                                                    source_working_dir)
+      new_file_changes = []
+      for change in commit.file_changes:
+        if change.type != b'D':
+          assert(change.type == b'M')
+          (filename, mode, blob_id) = \
+            self._file_info_callback(change.filename,
+                                     change.mode,
+                                     change.blob_id,
+                                     self._file_info_value)
+          if mode is None:
+            # TODO: Should deletion of the file even be a feature?  Might
+            # want to remove this branch of the if-elif-else.
+            assert(filename is not None)
+            assert(blob_id is not None)
+            new_change = FileChange(b'D', filename)
+          elif filename is None:
+            continue # Drop the FileChange from this commit
+          else:
+            new_change = FileChange(b'M', filename, blob_id, mode)
+        else:
+          new_change = change  # use change as-is for deletions
+        new_file_changes.append(new_change)
+      commit.file_changes = new_file_changes
+
     # Call the user-defined callback, if any
     if self._commit_callback:
       self._commit_callback(commit, self.callback_metadata(aux_info))
@@ -3963,7 +4092,8 @@ class RepoFilter(object):
     else:
       self._read_stash()
       skip_blobs = (self._blob_callback is None and
-                    self._args.replace_text is None and
+                    (self._args.replace_text is None or
+                     self._file_info_callback is not None) and
                     self._args.source == self._args.target)
       extra_flags = []
       if skip_blobs:
@@ -4068,6 +4198,8 @@ class RepoFilter(object):
     self._finalize_handled = True
     self._done_callback and self._done_callback()
 
+    if self._file_info_value:
+      self._file_info_value.finalize()
     if not self._args.quiet:
       self._progress_writer.finish()
 

@@ -288,6 +288,14 @@ Generic callback code snippets
 --refname-callback <function_body>::
 	Python code body for processing refnames; see <<CALLBACKS>>.
 
+--file-info-callback <function_body>::
+	Python code body for processing the combination of filename, mode,
+	and associated file contents; see <<CALLBACKS>.  Note that when
+	--file-info-callback is specified, any replacements specified by
+	--replace-text will not be automatically applied; instead, you
+	have control within the --file-info-callback to choose which files
+	to apply those transformations to.
+
 --blob-callback <function_body>::
 	Python code body for processing blob objects; see <<CALLBACKS>>.
 
@@ -1164,8 +1172,9 @@ that you should be aware of before using them; see the "API BACKWARD
 COMPATIBILITY CAVEAT" comment near the top of git-filter-repo source
 code.
 
-All callback functions are of the same general format.  For a command line
-argument like
+Most callback functions are of the same general format
+(--file-info-callback is an exception which will be noted later).  For
+a command line argument like
 
 --------------------------------------------------
 --foo-callback 'BODY'
@@ -1209,6 +1218,7 @@ callbacks are:
 --name-callback
 --email-callback
 --refname-callback
+--file-info-callback
 --------------------------------------------------
 
 in each you are expected to simply return a new value based on the one
@@ -1272,10 +1282,106 @@ git-filter-repo --filename-callback '
   '
 --------------------------------------------------
 
-In contrast, the blob, reset, tag, and commit callbacks are not
-expected to return a value, but are instead expected to modify the
-object passed in.  Major fields for these objects are (subject to API
-backward compatibility caveats mentioned previously):
+The file-info callback is more involved.  It is designed to be used in
+cases where filtering depends on both filename and contents (and maybe
+mode).  It is called for file changes other than deletions (since
+deletions have no file contents to operate on).  The file info
+callback takes four parameters (filename, mode, blob_id, and value),
+and expects three to be returned (filename, mode, blob_id).  The
+filename is handled similar to the filename callback; it can be used
+to rename the file (or set to None to drop the change).  The mode is a
+simple bytestring (b"100644" for regular non-executable files,
+b"100755" for executable files/scripts, b"120000" for symlinks, and
+b"160000" for submodules).  The blob_id is most useful in conjunction
+with the value parameter.  The value parameter is an instance of a
+class that has the following functions
+  value.get_contents_by_identifier(blob_id) -> contents (bytestring)
+  value.get_size_by_identifier(blob_id) -> size_of_blob (int)
+  value.insert_file_with_contents(contents) -> blob_id
+  value.is_binary(contents) -> bool
+  value.apply_replace_text(contents) -> new_contents (bytestring)
+and has the following member data you can write to
+  value.data (dict)
+These functions allow you to get the contents of the file, or its
+size, create a new file in the stream whose blob_id you can return,
+check whether some given contents are binary (using the heuristic from
+the grep(1) command), and apply the replacement rules from --replace-text
+(note that --file-info-callback makes the changes from --replace-text not
+auto-apply).  You could use this for example to only apply the changes
+from --replace-text to certain file types and simultaneously rename the
+files it applies the changes to:
+
+--------------------------------------------------
+git-filter-repo --file-info-callback '
+  if not filename.endswith(b".config"):
+    # Make no changes to the file; return as-is
+    return (filename, mode, blob_id)
+
+  new_filename = filename[0:-7] + b".cfg"
+
+  contents = value.get_contents_by_identifier(blob_id)
+  new_contents = value.apply_replace_text(contents)
+  new_blob_id = value.insert_file_with_contents(new_contents)
+
+  return (new_filename, mode, new_blob_id)
+--------------------------------------------------
+
+Note that if history has multiple revisions with the same file
+(e.g. it was cherry-picked to multiple branches or there were a number
+of reverts), then the --file-info-callback will be called multiple
+times.  If you want to avoid processing the same file multiple times,
+then you can stash transformation results in the value.data dict.
+For, example, we could modify the above example to make it only apply
+transformations on blob_ids we have not seen before:
+
+--------------------------------------------------
+git-filter-repo --file-info-callback '
+  if not filename.endswith(b".config"):
+    # Make no changes to the file; return as-is
+    return (filename, mode, blob_id)
+
+  new_filename = filename[0:-7] + b".cfg"
+
+  if blob_id in value.data:
+    return (new_filename, mode, value.data[blob_id])
+
+  contents = value.get_contents_by_identifier(blob_id)
+  new_contents = value.apply_replace_text(contents)
+  new_blob_id = value.insert_file_with_contents(new_contents)
+  value.data[blob_id] = new_blob_id
+
+  return (new_filename, mode, new_blob_id)
+--------------------------------------------------
+
+An alternative example for the --file-info-callback is to make all
+.sh files executable and add an extra trailing newline to the .sh
+files:
+
+--------------------------------------------------
+git-filter-repo --file-info-callback '
+  if not filename.endswith(b".sh"):
+    # Make no changes to the file; return as-is
+    return (filename, mode, blob_id)
+
+  # There are only 4 valid modes in git:
+  #   - 100644, for regular non-executable files
+  #   - 100755, for executable files/scripts
+  #   - 120000, for symlinks
+  #   - 160000, for submodules
+  new_mode = b"100755"
+
+  contents = value.get_contents_by_identifier(blob_id)
+  new_contents = contents + b"\n"
+  new_blob_id = value.insert_file_with_contents(new_contents)
+
+  return (filename, new_mode, new_blob_id)
+--------------------------------------------------
+
+In contrast to the previous callback types, the blob, reset, tag, and
+commit callbacks are not expected to return a value, but are instead
+expected to modify the object passed in.  Major fields for these
+objects are (subject to API backward compatibility caveats mentioned
+previously):
 
   * Blob: `original_id` (original hash) and `data`
   * Reset: `ref` (name of reference) and `from_ref` (hash or integer mark)
