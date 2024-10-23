@@ -2970,15 +2970,15 @@ class RepoFilter(object):
     self._full_hash_re = re.compile(br'(\b[0-9a-f]{40}\b)')
 
   def _handle_arg_callbacks(self):
-    def make_callback(argname, str):
+    def make_callback(argname, bdy):
       callback_globals = {g: globals()[g] for g in public_globals}
       callback_locals = {}
       exec('def callback({}, _do_not_use_this_var = None):\n'.format(argname)+
-           '  '+'\n  '.join(str.splitlines()), callback_globals, callback_locals)
+           '  '+'\n  '.join(bdy.splitlines()), callback_globals, callback_locals)
       return callback_locals['callback']
-    def handle(type):
-      callback_field = '_{}_callback'.format(type)
-      code_string = getattr(self._args, type+'_callback')
+    def handle(which):
+      callback_field = '_{}_callback'.format(which)
+      code_string = getattr(self._args, which+'_callback')
       if code_string:
         if os.path.exists(code_string):
           with open(code_string, 'r', encoding='utf-8') as f:
@@ -2986,12 +2986,12 @@ class RepoFilter(object):
         if getattr(self, callback_field):
           raise SystemExit(_("Error: Cannot pass a %s_callback to RepoFilter "
                              "AND pass --%s-callback"
-                           % (type, type)))
+                           % (which, which)))
         if 'return ' not in code_string and \
-           type not in ('blob', 'commit', 'tag', 'reset'):
+           which not in ('blob', 'commit', 'tag', 'reset'):
           raise SystemExit(_("Error: --%s-callback should have a return statement")
-                           % type)
-        setattr(self, callback_field, make_callback(type, code_string))
+                           % which)
+        setattr(self, callback_field, make_callback(which, code_string))
     handle('filename')
     handle('message')
     handle('name')
