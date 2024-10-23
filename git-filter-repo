@@ -3754,6 +3754,10 @@ class RepoFilter(object):
       orig_file_changes = set(commit.file_changes)
       self._filter_files(commit)
 
+    # Call the user-defined callback, if any
+    if self._commit_callback:
+      self._commit_callback(commit, self.callback_metadata(aux_info))
+
     # Find out which files were modified by the callbacks.  Such paths could
     # lead to subsequent commits being empty (e.g. if removing a line containing
     # a password from every version of a file that had the password, and some
@@ -3764,10 +3768,6 @@ class RepoFilter(object):
     else:
       differences = orig_file_changes.symmetric_difference(final_file_changes)
     self._files_tweaked.update(x.filename for x in differences)
-
-    # Call the user-defined callback, if any
-    if self._commit_callback:
-      self._commit_callback(commit, self.callback_metadata(aux_info))
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
