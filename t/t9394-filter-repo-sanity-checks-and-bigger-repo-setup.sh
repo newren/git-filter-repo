@@ -1001,6 +1001,15 @@ test_expect_success 'other startup error cases and requests for help' '
 		test_must_fail git filter-repo --path-rename foo:bar --use-base-name 2>err &&
 		test_i18ngrep ": --use-base-name and --path-rename are incompatible" err &&
 
+		test_must_fail git filter-repo --file-info-callback "None" --stdin 2>err &&
+		test_i18ngrep ": --file-info-callback is incompatible with" err &&
+
+		test_must_fail git filter-repo --file-info-callback "None" --blob-callback "None" 2>err &&
+		test_i18ngrep ": --file-info-callback is incompatible with" err &&
+
+		test_must_fail git filter-repo --file-info-callback "None" --filename-callback "None" 2>err &&
+		test_i18ngrep ": --file-info-callback is incompatible with" err &&
+
 		test_must_fail git filter-repo --path-rename foo:bar/ 2>err &&
 		test_i18ngrep "either ends with a slash then both must." err &&
 

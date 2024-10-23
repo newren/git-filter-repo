@@ -320,20 +320,44 @@ filter-branch:
       '
 ```
 
-filter-repo decided not to provide a way to run an external program to
-do filtering, because most filter-branch uses of this ability are
-riddled with [safety
-problems](https://git-scm.com/docs/git-filter-branch#SAFETY) and
-[performance
-issues](https://git-scm.com/docs/git-filter-branch#PERFORMANCE).
-However, in special cases like this it's fairly safe.  One can write a
-script that uses filter-repo as a library to achieve this, while also
-gaining filter-repo's automatic handling of other concerns like
-rewriting commit IDs in commit messages or pruning commits that become
-empty.  In fact, one of the [contrib
+though it has the disadvantage of running on every c file for every
+commit in history, even if some commits do not modify any c files.  This
+means this kind of command can be excruciatingly slow.
+
+The same functionality is slightly more involved in filter-repo for
+two reasons:
+  - fast-export and fast-import split file contents and file names into
+    completely different data structures that aren't normally available
+    together
+  - to run a program on a file, you'll need to write the contents to the
+    a file, execute the program on that file, and then read the contents
+    of the file back in
+
+```shell
+  git filter-repo --file-info-callback '
+    if not filename.endswith(b".c"):
+      return (filename, mode, blob_id)  # no changes
+
+    contents = value.get_contents_by_identifier(blob_id)
+    tmpfile = os.path.basename(filename)
+    with open(tmpfile, "wb") as f:
+      f.write(contents)
+    subprocess.check_call(["clang-format", "-style=file", "-i", filename])
+    with open(filename, "rb") as f:
+      contents = f.read()
+    new_blob_id = value.insert_file_with_contents(contents)
+
+    return (filename, mode, new_blob_id)
+    '
+```
+
+However, one can write a script that uses filter-repo as a library to
+simplify this, while also gaining filter-repo's automatic handling of
+other concerns like rewriting commit IDs in commit messages or pruning
+commits that become empty.  In fact, one of the [contrib
 demos](../contrib/filter-repo-demos),
-[lint-history](../contrib/filter-repo-demos/lint-history), handles
-this exact type of situation already:
+[lint-history](../contrib/filter-repo-demos/lint-history), was
+specifically written to make this kind of case really easy:
 
 ```shell
   lint-history --relevant 'return filename.endswith(b".c")' \
