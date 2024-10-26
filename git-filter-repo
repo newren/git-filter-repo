@@ -2947,6 +2947,9 @@ class RepoFilter(object):
     # now-missing commit hash, since there was nothing to map it to.
     self._commits_referenced_but_removed = set()
 
+    # Other vars related to metadata tracking
+    self._already_ran = False
+
     # Progress handling (number of commits parsed, etc.)
     self._progress_writer = ProgressWriter()
     self._num_commits = 0
@@ -3023,8 +3026,8 @@ class RepoFilter(object):
     # Determine if this is second or later run of filter-repo
     tmp_dir = self.results_tmp_dir(create_if_missing=False)
     ran_path = os.path.join(tmp_dir, b'already_ran')
-    already_ran = os.path.isfile(ran_path)
-    if already_ran:
+    self._already_ran = os.path.isfile(ran_path)
+    if self._already_ran:
       current_time = time.time()
       file_mod_time = os.path.getmtime(ran_path)
       file_age = current_time - file_mod_time
@@ -3036,17 +3039,17 @@ class RepoFilter(object):
 
         if response.lower() != 'y':
           os.remove(ran_path)
-          already_ran = False
+          self._already_ran = False
 
     # Default for --replace-refs
     if not self._args.replace_refs:
       self._args.replace_refs = 'delete-no-add'
     if self._args.replace_refs == 'old-default':
-      self._args.replace_refs = ('update-or-add' if already_ran
+      self._args.replace_refs = ('update-or-add' if self._already_ran
                                  else 'update-and-add')
 
     # Do sanity checks from the correct directory
-    if not self._args.force and not already_ran:
+    if not self._args.force and not self._already_ran:
       cwd = os.getcwd()
       os.chdir(target_working_dir)
       RepoFilter.sanity_check(self._orig_refs, is_bare, self._config_settings)
@@ -4134,13 +4137,11 @@ class RepoFilter(object):
     return new_hash
 
   def _compute_metadata(self, metadata_dir, orig_refs):
-    already_ran = os.path.isfile(os.path.join(metadata_dir, b'already_ran'))
-
     #
     # First, handle commit_renames
     #
     old_commit_renames = dict()
-    if not already_ran:
+    if not self._already_ran:
       commit_renames = {old: new
                         for old, new in self._commit_renames.items()
                        }
@@ -4169,7 +4170,7 @@ class RepoFilter(object):
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
 
     old_commit_unrenames = dict()
-    if not already_ran:
+    if not self._already_ran:
       old_ref_map = dict((refname, (old_hash, deleted_hash))
                          for refname, old_hash in orig_refs.items()
                          if refname in exported_refs)
@@ -4236,7 +4237,7 @@ class RepoFilter(object):
     #
 
     old_first_changes = dict()
-    if already_ran:
+    if self._already_ran:
       # Read first_changes into old_first_changes
       with open(os.path.join(metadata_dir, b'first-changed-commits'), 'br') as f:
         for line in f:
