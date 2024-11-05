@@ -1109,6 +1109,10 @@ class FastExportParser(object):
       if idnum[0:1] == b':':
         idnum = idnum[1:]
       path = path.rstrip(b'\n')
+      # Check for LFS objects from sources before we might toss this filechange
+      if self._lfs_object_tracker:
+        value = int(idnum) if len(idnum) != 40 else idnum
+        self._lfs_object_tracker.check_file_change_data(value, True)
       # We translate the idnum to our id system
       if len(idnum) != 40:
         idnum = _IDS.translate( int(idnum) )
@@ -1221,6 +1225,10 @@ class FastExportParser(object):
     if id_:
       blob.old_id = id_
       _IDS.record_rename(id_, blob.id)
+
+    # Check for LFS objects
+    if self._lfs_object_tracker:
+      self._lfs_object_tracker.check_blob_data(data, blob.old_id, True)
 
     # Call any user callback to allow them to use/modify the blob
     if self._blob_callback:
@@ -4739,6 +4747,8 @@ class RepoFilter(object):
 
   def _insert_into_stream(self, obj):
     if not obj.dumped:
+      if self._lfs_object_tracker:
+        self._lfs_object_tracker.check_output_object(obj)
       if self._parser:
         self._parser.insert(obj)
       else:
