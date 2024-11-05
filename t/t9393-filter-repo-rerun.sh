@@ -577,4 +577,44 @@ test_expect_success 'sdr: must use consistently' '
 	)
 '
 
+test_expect_success 'sdr: interaction with fetch and notes and stashes' '
+	test_create_repo sdr_with_fetch_and_notes &&
+	(
+		cd sdr_with_fetch_and_notes &&
+		git fast-import --quiet <$DATA/simple &&
+		git notes add -m "Here is a note" HEAD~1 &&
+		git notes add -m "Here is another note" HEAD &&
+		git clone "file://$(pwd)" fresh_clone &&
+
+		cd fresh_clone &&
+
+		echo stuff >>fileA &&
+		git stash save stuff &&
+		echo things >>fileB &&
+		git stash save things &&
+
+		test_line_count = 2 .git/logs/refs/stash &&
+
+		git show-ref | grep refs/remotes/origin &&
+		git filter-repo --sdr --path fileB --force >../output &&
+
+		grep "Fetching all refs from origin" ../output &&
+
+		git show-ref >ref-output &&
+		! grep refs/remotes/origin/ ref-output &&
+
+		# Only keeping path "nuke-me" would wipe out refs/notes/commits
+		# (meaning both its commits would be pruned and thus cause the
+		# ref itself to get pruned), if we did not have a special case
+		# for it.  Verify the special casing works.
+		echo 2 >expect &&
+		git rev-list --count refs/notes/commits >actual &&
+		test_cmp expect actual &&
+
+		! grep refs/remotes/origin .git/filter-repo/ref-map &&
+
+		test_line_count = 1 .git/logs/refs/stash
+	)
+'
+
 test_done
