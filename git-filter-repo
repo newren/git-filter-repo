@@ -1350,6 +1350,16 @@ class FastExportParser(object):
       commit.old_id = id_
       _IDS.record_rename(id_, commit.id)
 
+    # refs/notes/ put commit-message-related material in blobs, and name their
+    # files according to the hash of other commits.  That totally messes with
+    # all normal callbacks; fast-export should really export these as different
+    # kinds of objects.  Until then, let's just pass these commits through as-is
+    # and hope the blob callbacks don't mess things up.
+    if commit.branch.startswith(b'refs/notes/'):
+      self._imported_refs.add(commit.branch)
+      commit.dump(self._output)
+      return
+
     # Call any user callback to allow them to modify the commit
     aux_info = {'orig_parents': orig_parents,
                 'had_file_changes': had_file_changes}
@@ -4086,6 +4096,8 @@ class RepoFilter(object):
     self._run_sanity_checks()
 
   def _read_stash(self):
+    if self._stash:
+      return
     if self._orig_refs and b'refs/stash' in self._orig_refs and \
        self._args.refs == ['--all']:
       repo_working_dir = self._args.source or b'.'
@@ -4190,33 +4202,54 @@ class RepoFilter(object):
             .format(decode(self._fe_filt)))
 
   def _migrate_origin_to_heads(self):
+    source_working_dir = self._args.source or b'.'
+    target_working_dir = self._args.target or b'.'
     refs_to_migrate = set(x for x in self._orig_refs
                           if x.startswith(b'refs/remotes/origin/'))
-    if not refs_to_migrate:
-      return
-    if self._args.debug:
-      print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
-    target_working_dir = self._args.target or b'.'
-    p = subproc.Popen('git update-ref --no-deref --stdin'.split(),
-                      stdin=subprocess.PIPE, cwd=target_working_dir)
-    for ref in refs_to_migrate:
-      if ref == b'refs/remotes/origin/HEAD':
+    if refs_to_migrate:
+      if self._args.debug:
+        print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
+      p = subproc.Popen('git update-ref --no-deref --stdin'.split(),
+                        stdin=subprocess.PIPE, cwd=source_working_dir)
+      for ref in refs_to_migrate:
+        if ref == b'refs/remotes/origin/HEAD':
+          p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
+          del self._orig_refs[ref]
+          continue
+        newref = ref.replace(b'refs/remotes/origin/', b'refs/heads/')
+        if newref not in self._orig_refs:
+          p.stdin.write(b'create %s %s\n' % (newref, self._orig_refs[ref]))
         p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
+        self._orig_refs[newref] = self._orig_refs[ref]
         del self._orig_refs[ref]
-        continue
-      newref = ref.replace(b'refs/remotes/origin/', b'refs/heads/')
-      if newref not in self._orig_refs:
-        p.stdin.write(b'create %s %s\n' % (newref, self._orig_refs[ref]))
-      p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
-      self._orig_refs[newref] = self._orig_refs[ref]
-      del self._orig_refs[ref]
-    p.stdin.close()
-    if p.wait():
-      raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
+      p.stdin.close()
+      if p.wait(): # pragma: no cover
+        msg = _("git update-ref failed; see above")
+        raise SystemExit(msg)
 
-    # Now remove the origin remote
     if b'remote.origin.url' not in self._config_settings:
       return
+
+    # For sensitive data removals, fetch ALL refs.  Non-mirror clones normally
+    # only grab branches and tags, but other refs may hold on to the sensitive
+    # data as well.
+    if self._args.sensitive_data_removal and \
+       not self._already_ran and \
+       self._config_settings.get(b'remote.origin.mirror', b'false') != b'true':
+      cmd = 'git fetch -q --prune --update-head-ok --refmap "" origin +refs/*:refs/*'
+      m = _("NOTICE: Fetching all refs from origin to make sure we rewrite\n"
+            "        all history that may reference the sensitive data, via\n"
+            "      "+cmd)
+      print(m)
+      ret = subproc.call([arg if arg != '""' else '' for arg in cmd.split()],
+                         cwd=source_working_dir)
+      if ret != 0: # pragma: no cover
+        m = _("WARNING: Fetching all refs from origin failed")
+        print(m)
+    if self._args.sensitive_data_removal:
+      return
+
+    # Now remove the origin remote
     url = self._config_settings[b'remote.origin.url'].decode(errors='replace')
     m = _("NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'\n"
           "        in the manual if you want to push back there.\n"
@@ -4599,6 +4632,7 @@ class RepoFilter(object):
     if not self._input and not self._output:
       self._run_sanity_checks()
       if not self._args.dry_run and not self._args.partial:
+        self._read_stash()
         self._migrate_origin_to_heads()
       self._setup_input(use_done_feature = True)
       self._setup_output()
