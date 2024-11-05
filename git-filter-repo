@@ -4656,6 +4656,27 @@ class RepoFilter(object):
 
     return commit_renames, ref_maps, first_changes
 
+  def _handle_lfs_metadata(self, metadata_dir):
+    if self._lfs_object_tracker is None:
+      print("NOTE: LFS object orphaning not checked (LFS not in use)")
+      return
+
+    with open(os.path.join(metadata_dir, b'original_lfs_objects'), 'bw') as f:
+      for obj in sorted(self._lfs_object_tracker.source_objects.objects):
+        f.write(obj+b"\n")
+
+    orphaned_lfs_path = os.path.join(metadata_dir, b'orphaned_lfs_objects')
+    msg = textwrap.dedent(_(f"""\
+      NOTE: There were LFS Objects Orphaned by this rewrite recorded in
+            {decode(orphaned_lfs_path)}."""))
+    with open(orphaned_lfs_path, 'bw') as f:
+      differences = self._lfs_object_tracker.source_objects.objects - \
+                    self._lfs_object_tracker.target_objects.objects
+      for obj in sorted(differences):
+        f.write(obj+b"\n")
+      if differences:
+        print(msg)
+
   def _record_metadata(self, metadata_dir, orig_refs):
     self._flush_renames()
     commit_renames, ref_maps, first_changes = \
@@ -4671,6 +4692,7 @@ class RepoFilter(object):
       with open(os.path.join(metadata_dir, b'sensitive_data_removal'), 'bw') as f:
         pass # Write nothing; we only need the file created
 
+      self._handle_lfs_metadata(metadata_dir)
       print("") # Add a blank line after important rewrite information
 
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:

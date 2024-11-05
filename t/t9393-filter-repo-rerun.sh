@@ -643,7 +643,7 @@ test_expect_success 'sdr: handling local-only changes' '
 # attempting to smudge them, which would just result in an error.
 export GIT_LFS_SKIP_SMUDGE=1
 
-test_expect_failure 'lfs: not in use, no files to process' '
+test_expect_success 'lfs: not in use, no files to process' '
 	test_create_repo no_lfs_files_to_process &&
 	(
 		cd no_lfs_files_to_process &&
@@ -666,7 +666,7 @@ test_expect_failure 'lfs: not in use, no files to process' '
 	)
 '
 
-test_expect_failure 'lfs: no files orphaned' '
+test_expect_success 'lfs: no files orphaned' '
 	test_create_repo no_lfs_files_orphaned &&
 	(
 		cd no_lfs_files_orphaned &&
@@ -677,7 +677,7 @@ test_expect_failure 'lfs: no files orphaned' '
 		                --invert-paths --force >output &&
 
 		! grep "NOTE:.*LFS not in use" output &&
-		! grep "NOTE:.*LFS objects orphaned by this rewrite" output &&
+		! grep "NOTE:.*LFS Objects Orphaned by this rewrite" output &&
 
 		cat <<-EOF >expect &&
 		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -701,7 +701,7 @@ test_expect_failure 'lfs: orphaning across multiple runs' '
 		git filter-repo --sensitive-data-removal --path LB --path LD \
 		                --invert-paths --force >output &&
 
-		grep "NOTE:.*LFS objects orphaned by this rewrite" output &&
+		grep "NOTE:.*LFS Objects Orphaned by this rewrite" output &&
 
 		cat <<-EOF >orig_expect &&
 		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -738,7 +738,7 @@ test_expect_failure 'lfs: orphaning across multiple runs with blob callback' '
 		                --invert-paths --blob-callback pass \
 		                --force >output &&
 
-		grep "NOTE:.*LFS objects orphaned by this rewrite" output &&
+		grep "NOTE:.*LFS Objects Orphaned by this rewrite" output &&
 
 		cat <<-EOF >orig_expect &&
 		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
