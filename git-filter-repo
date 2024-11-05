@@ -2955,11 +2955,12 @@ class LFSObjectTracker:
       self.id_to_object_map = {}
       self.objects = set()
 
-  def __init__(self, file_info):
+  def __init__(self, file_info, check_sources):
     self.source_objects = LFSObjectTracker.LFSObjs()
     self.target_objects = LFSObjectTracker.LFSObjs()
     self.hash_to_object_map = {}
     self.file_info = file_info
+    self.check_sources = check_sources
 
   def _get_lfs_values(self, contents):
     values = {}
@@ -2976,12 +2977,16 @@ class LFSObjectTracker:
     return values
 
   def check_blob_data(self, contents, fast_export_id, source):
+    if source and not self.check_sources:
+      return
     mymap = self.source_objects if source else self.target_objects
     lfs_object_id = self._get_lfs_values(contents).get(b'oid')
     if lfs_object_id:
       mymap.id_to_object_map[fast_export_id] = lfs_object_id
 
   def check_file_change_data(self, git_id, source):
+    if source and not self.check_sources:
+      return
     mymap = self.source_objects if source else self.target_objects
     if isinstance(git_id, int):
       lfs_object_id = mymap.id_to_object_map.get(git_id)
@@ -3281,6 +3286,12 @@ class RepoFilter(object):
     # Do a couple checks to see if we want to do lfs orphaning checks
     if not self._args.sensitive_data_removal:
       return
+    metadata_dir = self.results_tmp_dir()
+    lfs_objects_file = os.path.join(metadata_dir, b'original_lfs_objects')
+    if self._already_ran:
+      # Check if we did lfs filtering in the previous run
+      if not os.path.isfile(lfs_objects_file):
+        return
 
     # Set up self._file_info_value so we can query git for stuff
     source_working_dir = self._args.source or b'.'
@@ -3288,14 +3299,24 @@ class RepoFilter(object):
                                                 self.insert,
                                                 source_working_dir)
 
-    # Check if lfs filtering is active in HEAD's .gitattributes file
-    a = self._file_info_value.get_contents_by_identifier(b"HEAD:.gitattributes")
-    if not a or not re.search(rb'\bfilter=lfs\b', a):
-      return
+    # One more check to see if we want to do lfs orphaning checks
+    if not self._already_ran:
+      # Check if lfs filtering is active in HEAD's .gitattributes file
+      a = self._file_info_value.get_contents_by_identifier(b"HEAD:.gitattributes")
+      if not a or not re.search(rb'\bfilter=lfs\b', a):
+        return
 
     # Set up the object tracker
-    self._lfs_object_tracker = LFSObjectTracker(self._file_info_value)
+    check_sources = not self._already_ran
+    self._lfs_object_tracker = LFSObjectTracker(self._file_info_value,
+                                                check_sources)
     self._parser._lfs_object_tracker = self._lfs_object_tracker # kinda gross
+
+    # Get initial objects
+    if self._already_ran:
+      with open(lfs_objects_file, 'br') as f:
+        for line in f:
+          self._lfs_object_tracker.source_objects.objects.add(line.strip())
 
   @staticmethod
   def loose_objects_are_replace_refs(git_dir, refs, num_loose_objects):
