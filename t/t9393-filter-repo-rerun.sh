@@ -639,4 +639,192 @@ test_expect_success 'sdr: handling local-only changes' '
 	)
 '
 
+# I use LFS pointer files to fake LFS objects below; prevent git-lfs from
+# attempting to smudge them, which would just result in an error.
+export GIT_LFS_SKIP_SMUDGE=1
+
+test_expect_failure 'lfs: not in use, no files to process' '
+	test_create_repo no_lfs_files_to_process &&
+	(
+		cd no_lfs_files_to_process &&
+		git fast-import --quiet <$DATA/simple &&
+
+		git filter-repo --sensitive-data-removal --force \
+		                --invert-paths --path nuke-me >output &&
+
+		grep "NOTE: LFS object orphaning not checked (LFS not in use)" output &&
+
+		test_path_is_missing .git/filter-repo/original_lfs_objects &&
+		test_path_is_missing .git/filter-repo/orphaned_lfs_objects &&
+
+		git filter-repo --sensitive-data-removal --path fileC >output &&
+
+		grep "NOTE: LFS object orphaning not checked (LFS not in use)" output &&
+
+		test_path_is_missing .git/filter-repo/original_lfs_objects &&
+		test_path_is_missing .git/filter-repo/orphaned_lfs_objects
+	)
+'
+
+test_expect_failure 'lfs: no files orphaned' '
+	test_create_repo no_lfs_files_orphaned &&
+	(
+		cd no_lfs_files_orphaned &&
+		git symbolic-ref HEAD refs/heads/main &&
+		git fast-import --quiet <$DATA/lfs &&
+
+		git filter-repo --sensitive-data-removal --path Z \
+		                --invert-paths --force >output &&
+
+		! grep "NOTE:.*LFS not in use" output &&
+		! grep "NOTE:.*LFS objects orphaned by this rewrite" output &&
+
+		cat <<-EOF >expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp expect .git/filter-repo/original_lfs_objects &&
+		test_must_be_empty .git/filter-repo/orphaned_lfs_objects
+	)
+'
+
+test_expect_failure 'lfs: orphaning across multiple runs' '
+	test_create_repo lfs_multiple_runs &&
+	(
+		cd lfs_multiple_runs &&
+		git symbolic-ref HEAD refs/heads/main &&
+		git fast-import --quiet <$DATA/lfs &&
+
+		git filter-repo --sensitive-data-removal --path LB --path LD \
+		                --invert-paths --force >output &&
+
+		grep "NOTE:.*LFS objects orphaned by this rewrite" output &&
+
+		cat <<-EOF >orig_expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp orig_expect .git/filter-repo/original_lfs_objects &&
+
+		echo "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" >expect &&
+		test_cmp expect .git/filter-repo/orphaned_lfs_objects &&
+
+		git filter-repo --path LA --invert-paths &&
+
+		cat <<-EOF >expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp expect .git/filter-repo/orphaned_lfs_objects
+	)
+'
+
+test_expect_failure 'lfs: orphaning across multiple runs with blob callback' '
+	test_create_repo lfs_multiple_runs_blob_callback &&
+	(
+		cd lfs_multiple_runs_blob_callback &&
+		git symbolic-ref HEAD refs/heads/main &&
+		git fast-import --quiet <$DATA/lfs &&
+
+		git filter-repo --sensitive-data-removal --path LB --path LD \
+		                --invert-paths --blob-callback pass \
+		                --force >output &&
+
+		grep "NOTE:.*LFS objects orphaned by this rewrite" output &&
+
+		cat <<-EOF >orig_expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp orig_expect .git/filter-repo/original_lfs_objects &&
+
+		echo "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" >expect &&
+		test_cmp expect .git/filter-repo/orphaned_lfs_objects &&
+
+		git filter-repo --path LA --invert-paths --blob-callback pass &&
+
+		cat <<-EOF >expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp expect .git/filter-repo/orphaned_lfs_objects
+	)
+'
+
+test_expect_failure 'lfs: partial history rewrite affecting orphaning' '
+	test_create_repo lfs_partial_history &&
+	(
+		cd lfs_partial_history &&
+		git symbolic-ref HEAD refs/heads/main &&
+		git fast-import --quiet <$DATA/lfs &&
+
+		git filter-repo --sensitive-data-removal --path LA \
+		                --refs HEAD~2..HEAD --force &&
+
+		cat <<-EOF >orig_expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp orig_expect .git/filter-repo/original_lfs_objects &&
+		test_must_be_empty .git/filter-repo/orphaned_lfs_objects
+
+		git filter-repo --path LA --invert-paths &&
+
+		cat <<-EOF >expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp expect .git/filter-repo/orphaned_lfs_objects
+	)
+'
+
+test_expect_failure 'lfs: full rewrite then partial' '
+	test_create_repo lfs_full_then_partial &&
+	(
+		cd lfs_full_then_partial &&
+		git symbolic-ref HEAD refs/heads/main &&
+		git fast-import --quiet <$DATA/lfs &&
+
+		git filter-repo --sensitive-data-removal \
+		                --invert-paths --path LB --force &&
+
+		cat <<-EOF >orig_expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp orig_expect .git/filter-repo/original_lfs_objects &&
+		test_must_be_empty .git/filter-repo/orphaned_lfs_objects
+
+		git filter-repo --path LA --path LD --invert-paths \
+		                --refs HEAD~2..HEAD &&
+
+		cat <<-EOF >expect &&
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp expect .git/filter-repo/orphaned_lfs_objects
+	)
+'
+
 test_done
