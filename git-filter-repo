@@ -2934,6 +2934,66 @@ class FileInfoValueHelper:
       new_contents = regex.sub(replacement, new_contents)
     return new_contents
 
+class LFSObjectTracker:
+  class LFSObjs:
+    def __init__(self):
+      self.id_to_object_map = {}
+      self.objects = set()
+
+  def __init__(self, file_info):
+    self.source_objects = LFSObjectTracker.LFSObjs()
+    self.target_objects = LFSObjectTracker.LFSObjs()
+    self.hash_to_object_map = {}
+    self.file_info = file_info
+
+  def _get_lfs_values(self, contents):
+    values = {}
+    if len(contents) > 1024:
+      return {}
+    for line in contents.splitlines():
+      try:
+        (key, value) = line.split(b' ', 1)
+      except ValueError:
+        return {}
+      if not values and key != b'version':
+        return values
+      values[key] = value
+    return values
+
+  def check_blob_data(self, contents, fast_export_id, source):
+    mymap = self.source_objects if source else self.target_objects
+    lfs_object_id = self._get_lfs_values(contents).get(b'oid')
+    if lfs_object_id:
+      mymap.id_to_object_map[fast_export_id] = lfs_object_id
+
+  def check_file_change_data(self, git_id, source):
+    mymap = self.source_objects if source else self.target_objects
+    if isinstance(git_id, int):
+      lfs_object_id = mymap.id_to_object_map.get(git_id)
+      if lfs_object_id:
+        mymap.objects.add(lfs_object_id)
+    else:
+      if git_id in self.hash_to_object_map:
+        mymap.objects.add(self.hash_to_object_map[git_id])
+        return
+      size = self.file_info.get_size_by_identifier(git_id)
+      if size >= 1024:
+        return
+      contents = self.file_info.get_contents_by_identifier(git_id)
+      lfs_object_id = self._get_lfs_values(contents).get(b'oid')
+      if lfs_object_id:
+        self.hash_to_object_map[git_id] = lfs_object_id
+        mymap.objects.add(lfs_object_id)
+
+  def check_output_object(self, obj):
+    if type(obj) == Blob:
+      self.check_blob_data(obj.data, obj.id, False)
+    elif type(obj) == Commit:
+      for change in obj.file_changes:
+        if change.type != b'M':
+          continue
+        self.check_file_change_data(change.blob_id, False)
+
 class InputFileBackup:
   def __init__(self, input_file, output_file):
     self.input_file  = input_file
