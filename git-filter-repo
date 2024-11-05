@@ -1035,6 +1035,9 @@ class FastExportParser(object):
     # Stores the contents of the current line of input being parsed
     self._currentline = ''
 
+    # Tracks LFS objects we have found
+    self._lfs_object_tracker = None
+
     # Compile some regexes and cache those
     self._mark_re = re.compile(br'mark :(\d+)\n$')
     self._parent_regexes = {}
@@ -2903,7 +2906,11 @@ class FileInfoValueHelper:
     self._cat_file_process.stdin.write(b'contents '+blobhash+b'\n')
     self._cat_file_process.stdin.flush()
     line = self._cat_file_process.stdout.readline()
-    (oid, oidtype, size) = line.split()
+    try:
+      (oid, oidtype, size) = line.split()
+    except ValueError:
+      assert(line == blobhash+b" missing\n")
+      return None
     size = int(size) # Convert e.g. b'6283' to 6283
     assert(oidtype == b'blob')
     contents_plus_newline = self._cat_file_process.stdout.read(size+1)
@@ -3127,6 +3134,7 @@ class RepoFilter(object):
 
     # Other vars related to metadata tracking
     self._already_ran = False
+    self._lfs_object_tracker = None
 
     # Progress handling (number of commits parsed, etc.)
     self._progress_writer = ProgressWriter()
@@ -3260,6 +3268,26 @@ class RepoFilter(object):
       os.chdir(target_working_dir)
       RepoFilter.sanity_check(self._orig_refs, is_bare, self._config_settings)
       os.chdir(cwd)
+
+  def _setup_lfs_orphaning_checks(self):
+    # Do a couple checks to see if we want to do lfs orphaning checks
+    if not self._args.sensitive_data_removal:
+      return
+
+    # Set up self._file_info_value so we can query git for stuff
+    source_working_dir = self._args.source or b'.'
+    self._file_info_value = FileInfoValueHelper(self._args.replace_text,
+                                                self.insert,
+                                                source_working_dir)
+
+    # Check if lfs filtering is active in HEAD's .gitattributes file
+    a = self._file_info_value.get_contents_by_identifier(b"HEAD:.gitattributes")
+    if not a or not re.search(rb'\bfilter=lfs\b', a):
+      return
+
+    # Set up the object tracker
+    self._lfs_object_tracker = LFSObjectTracker(self._file_info_value)
+    self._parser._lfs_object_tracker = self._lfs_object_tracker # kinda gross
 
   @staticmethod
   def loose_objects_are_replace_refs(git_dir, refs, num_loose_objects):
@@ -4738,6 +4766,7 @@ class RepoFilter(object):
                                       tag_callback    = self._tweak_tag,
                                       reset_callback  = self._tweak_reset,
                                       done_callback   = self._final_commands)
+      self._setup_lfs_orphaning_checks()
       self._parser.run(self._input, self._output)
       if not self._finalize_handled:
         self._final_commands()
