@@ -764,7 +764,7 @@ test_expect_success 'lfs: orphaning across multiple runs with blob callback' '
 	)
 '
 
-test_expect_failure 'lfs: partial history rewrite affecting orphaning' '
+test_expect_success 'lfs: partial history rewrite affecting orphaning' '
 	test_create_repo lfs_partial_history &&
 	(
 		cd lfs_partial_history &&
@@ -796,7 +796,7 @@ test_expect_failure 'lfs: partial history rewrite affecting orphaning' '
 	)
 '
 
-test_expect_failure 'lfs: full rewrite then partial' '
+test_expect_success 'lfs: full rewrite then partial' '
 	test_create_repo lfs_full_then_partial &&
 	(
 		cd lfs_full_then_partial &&
