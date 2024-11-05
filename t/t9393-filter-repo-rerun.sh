@@ -691,7 +691,7 @@ test_expect_success 'lfs: no files orphaned' '
 	)
 '
 
-test_expect_failure 'lfs: orphaning across multiple runs' '
+test_expect_success 'lfs: orphaning across multiple runs' '
 	test_create_repo lfs_multiple_runs &&
 	(
 		cd lfs_multiple_runs &&
@@ -727,7 +727,7 @@ test_expect_failure 'lfs: orphaning across multiple runs' '
 	)
 '
 
-test_expect_failure 'lfs: orphaning across multiple runs with blob callback' '
+test_expect_success 'lfs: orphaning across multiple runs with blob callback' '
 	test_create_repo lfs_multiple_runs_blob_callback &&
 	(
 		cd lfs_multiple_runs_blob_callback &&
