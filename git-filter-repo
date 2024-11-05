@@ -2955,12 +2955,13 @@ class LFSObjectTracker:
       self.id_to_object_map = {}
       self.objects = set()
 
-  def __init__(self, file_info, check_sources):
+  def __init__(self, file_info, check_sources, check_targets):
     self.source_objects = LFSObjectTracker.LFSObjs()
     self.target_objects = LFSObjectTracker.LFSObjs()
     self.hash_to_object_map = {}
     self.file_info = file_info
     self.check_sources = check_sources
+    self.check_targets = check_targets
 
   def _get_lfs_values(self, contents):
     values = {}
@@ -3006,6 +3007,8 @@ class LFSObjectTracker:
         mymap.objects.add(lfs_object_id)
 
   def check_output_object(self, obj):
+    if not self.check_targets:
+      return
     if type(obj) == Blob:
       self.check_blob_data(obj.data, obj.id, False)
     elif type(obj) == Commit:
@@ -3013,6 +3016,30 @@ class LFSObjectTracker:
         if change.type != b'M':
           continue
         self.check_file_change_data(change.blob_id, False)
+
+  def find_all_lfs_objects_in_repo(self, repo, source):
+    if not source:
+      self.file_info = FileInfoValueHelper(None, None, repo)
+    p = subproc.Popen(["git", "rev-list", "--objects", "--all"],
+                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                      cwd=repo)
+    for line in p.stdout.readlines():
+      try:
+        (git_oid, filename) = line.split()
+      except ValueError:
+        # Commit and tree objects only have oid
+        continue
+
+      mymap = self.source_objects if source else self.target_objects
+      size = self.file_info.get_size_by_identifier(git_oid)
+      if size >= 1024:
+        continue
+      contents = self.file_info.get_contents_by_identifier(git_oid)
+      lfs_object_id = self._get_lfs_values(contents).get(b'oid')
+      if lfs_object_id:
+        mymap.objects.add(lfs_object_id)
+    if not source:
+      self.file_info.finalize()
 
 class InputFileBackup:
   def __init__(self, input_file, output_file):
@@ -3307,9 +3334,11 @@ class RepoFilter(object):
         return
 
     # Set up the object tracker
-    check_sources = not self._already_ran
+    check_sources = not self._already_ran and not self._args.partial
+    check_targets = not self._args.partial
     self._lfs_object_tracker = LFSObjectTracker(self._file_info_value,
-                                                check_sources)
+                                                check_sources,
+                                                check_targets)
     self._parser._lfs_object_tracker = self._lfs_object_tracker # kinda gross
 
     # Get initial objects
@@ -3317,6 +3346,10 @@ class RepoFilter(object):
       with open(lfs_objects_file, 'br') as f:
         for line in f:
           self._lfs_object_tracker.source_objects.objects.add(line.strip())
+    elif self._args.partial:
+      source = True
+      self._lfs_object_tracker.find_all_lfs_objects_in_repo(source_working_dir,
+                                                            source)
 
   @staticmethod
   def loose_objects_are_replace_refs(git_dir, refs, num_loose_objects):
@@ -4681,6 +4714,12 @@ class RepoFilter(object):
     if self._lfs_object_tracker is None:
       print("NOTE: LFS object orphaning not checked (LFS not in use)")
       return
+
+    if self._args.partial:
+      target_working_dir = self._args.target or b'.'
+      source = False
+      self._lfs_object_tracker.find_all_lfs_objects_in_repo(target_working_dir,
+                                                            source)
 
     with open(os.path.join(metadata_dir, b'original_lfs_objects'), 'bw') as f:
       for obj in sorted(self._lfs_object_tracker.source_objects.objects):
