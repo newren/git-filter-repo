@@ -2970,7 +2970,6 @@ class RepoFilter(object):
 
     # Compile some regexes and cache those
     self._hash_re = re.compile(br'(\b[0-9a-f]{7,40}\b)')
-    self._full_hash_re = re.compile(br'(\b[0-9a-f]{40}\b)')
 
   def _handle_arg_callbacks(self):
     def make_callback(argname, bdy):
@@ -3280,13 +3279,6 @@ class RepoFilter(object):
 
     assert new_hash is not None
     return new_hash[0:orig_len]
-
-  def _translate_full_commit_hash(self, matchobj):
-    old_hash = matchobj.group(1)
-    new_hash = self._get_rename(old_hash)
-    if new_hash is None:
-      return old_hash
-    return new_hash
 
   def _maybe_trim_extra_parents(self, orig_parents, parents):
     '''Due to pruning of empty commits, some parents could be non-existent
@@ -3784,8 +3776,13 @@ class RepoFilter(object):
         if self._args.state_branch:
           alias = Alias(commit.old_id or commit.id, rewrite_to or deleted_hash)
           self._insert_into_stream(alias)
-        reset = Reset(commit.branch, rewrite_to or deleted_hash)
-        self._insert_into_stream(reset)
+        if commit.branch.startswith(b'refs/') or commit.branch == b'HEAD':
+          # The special check above is because when direct revisions are passed
+          # along to fast-export (such as with stashes), there is a chance the
+          # revision is rewritten to nothing.  In such cases, we don't want to
+          # point an invalid ref that just names a revision to some other point.
+          reset = Reset(commit.branch, rewrite_to or deleted_hash)
+          self._insert_into_stream(reset)
         self._commit_renames[commit.original_id] = None
 
     # Show progress
@@ -3936,21 +3933,26 @@ class RepoFilter(object):
       git_dir = GitUtils.determine_git_dir(repo_working_dir)
       stash = os.path.join(git_dir, b'logs', b'refs', b'stash')
       if os.path.exists(stash):
+        self._stash = []
         with open(stash, 'br') as f:
-          self._stash = f.read()
-        out = subproc.check_output('git rev-list -g refs/stash'.split(),
-                                   cwd=repo_working_dir)
-        self._args.refs.extend(decode(out.strip()).split())
+          for line in f:
+            (oldhash, newhash, rest) = line.split(None, 2)
+            self._stash.append((newhash, rest))
+        self._args.refs.extend([x[0] for x in self._stash])
 
   def _write_stash(self):
+    last = deleted_hash
     if self._stash:
       target_working_dir = self._args.target or b'.'
       git_dir = GitUtils.determine_git_dir(target_working_dir)
       stash = os.path.join(git_dir, b'logs', b'refs', b'stash')
       with open(stash, 'bw') as f:
-        self._stash = self._full_hash_re.sub(self._translate_full_commit_hash,
-                                             self._stash)
-        f.write(self._stash)
+        for (hash, rest) in self._stash:
+          new_hash = self._get_rename(hash)
+          if new_hash is None:
+            continue
+          f.write(b' '.join([last, new_hash, rest]) + b'\n')
+          last = new_hash
       print(_("Rewrote the stash."))
 
   def _setup_input(self, use_done_feature):
@@ -4086,6 +4088,10 @@ class RepoFilter(object):
     # Remove unused refs
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
     refs_to_nuke = exported_refs - imported_refs
+    # Because revisions can be passed to fast-export which handles them as
+    # though they were refs, we might have bad "refs" to nuke; strip them out.
+    refs_to_nuke = [x for x in refs_to_nuke
+                    if x.startswith(b'refs/') or x == b'HEAD']
     if self._args.partial:
       refs_to_nuke = set()
     if refs_to_nuke and self._args.debug:

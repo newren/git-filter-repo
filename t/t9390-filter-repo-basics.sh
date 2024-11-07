@@ -803,6 +803,43 @@ test_expect_success 'rewrite stash' '
 	)
 '
 
+test_expect_success 'rewrite stash and drop relevant entries' '
+	test_create_repo rewrite_stash_drop_entries &&
+	(
+		cd rewrite_stash_drop_entries &&
+
+		git init &&
+		test_write_lines 1 2 3 4 5 6 7 8 9 10 >numbers &&
+		git add numbers &&
+		git commit -qm numbers &&
+
+		echo 11 >>numbers &&
+		git stash push -m "add eleven" &&
+
+		test_write_lines a b c d e f g h i j >letters &&
+		test_write_lines hello hi welcome >greetings &&
+		git add letters greetings &&
+		git commit -qm "letters and greetings" &&
+
+		echo k >>letters &&
+		git stash push -m "add k" &&
+		echo hey >>greetings &&
+		git stash push -m "add hey" &&
+		echo 12 >>numbers &&
+		git stash push -m "add twelve" &&
+
+		test_line_count = 4 .git/logs/refs/stash &&
+
+		git filter-repo --force --path letters --path greetings &&
+
+		test_line_count = 3 .git/logs/refs/stash &&
+		! grep add.eleven .git/logs/refs/stash &&
+		grep add.k .git/logs/refs/stash &&
+		grep add.hey .git/logs/refs/stash &&
+		grep add.twelve .git/logs/refs/stash
+	)
+'
+
 test_expect_success POSIXPERM 'failure to run cleanup' '
 	test_create_repo fail_to_cleanup &&
 	(
