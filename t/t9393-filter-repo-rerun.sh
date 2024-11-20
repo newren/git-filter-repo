@@ -617,4 +617,26 @@ test_expect_success 'sdr: interaction with fetch and notes and stashes' '
 	)
 '
 
+test_expect_success 'sdr: handling local-only changes' '
+	test_create_repo sdr_with_local_only_changes &&
+	(
+		cd sdr_with_local_only_changes &&
+		git fast-import --quiet <$DATA/simple &&
+		git clone "file://$(pwd)" fresh_clone &&
+
+		cd fresh_clone &&
+
+		echo stuff >>fileB &&
+		git commit -m "random changes" fileB &&
+
+		echo n | git filter-repo --sdr --path fileB --force >../output &&
+
+		grep "You have refs modified from upstream" ../output &&
+
+		git log -1 --format=%s fileB >actual &&
+		echo "random changes" >expect &&
+		test_cmp expect actual
+	)
+'
+
 test_done
