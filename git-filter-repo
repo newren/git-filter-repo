@@ -4216,6 +4216,7 @@ class RepoFilter(object):
     target_working_dir = self._args.target or b'.'
     refs_to_migrate = set(x for x in self._orig_refs
                           if x.startswith(b'refs/remotes/origin/'))
+    refs_to_warn_about = set()
     if refs_to_migrate:
       if self._args.debug:
         print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
@@ -4229,8 +4230,10 @@ class RepoFilter(object):
         newref = ref.replace(b'refs/remotes/origin/', b'refs/heads/')
         if newref not in self._orig_refs:
           p.stdin.write(b'create %s %s\n' % (newref, self._orig_refs[ref]))
+          self._orig_refs[newref] = self._orig_refs[ref]
+        elif self._orig_refs[ref] != self._orig_refs[newref]:
+          refs_to_warn_about.add(newref)
         p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
-        self._orig_refs[newref] = self._orig_refs[ref]
         del self._orig_refs[ref]
       p.stdin.close()
       if p.wait(): # pragma: no cover
@@ -4247,6 +4250,22 @@ class RepoFilter(object):
        not self._args.no_fetch and \
        not self._already_ran and \
        self._config_settings.get(b'remote.origin.mirror', b'false') != b'true':
+
+      if refs_to_warn_about:
+        msg = ("Warning: You have refs modified from upstream:\n             " +
+               "\n            ".join([decode(x) for x in refs_to_warn_about]) +
+               "\n" +
+               "         We want to forcibly fetch from upstream to ensure\n" +
+               "         that all relevent refs are rewritten, but this will\n" +
+               "         discard your local changes before starting the\n" +
+               "         rewrite.  Proceed with fetch (Y/N)?")
+        response = input(msg)
+
+        if response.lower() != 'y':
+          self._args.no_fetch = True
+          # Don't do the fetch, and don't remove the origin remote
+          return
+
       cmd = 'git fetch -q --prune --update-head-ok --refmap "" origin +refs/*:refs/*'
       m = _("NOTICE: Fetching all refs from origin to make sure we rewrite\n"
             "        all history that may reference the sensitive data, via\n"
