@@ -489,9 +489,9 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		# Detect whether zlib or zlib-ng are in use; they give
 		# slightly different compression
 		echo e80fdf8cd5fb645649c14f41656a076dedc4e12a >expect &&
-		python -c "print(\"test\\t\" * 1000, end=\"\")" | git hash-object -w --stdin >actual &&
+		python3 -c "print(\"test\\t\" * 1000, end=\"\")" | git hash-object -w --stdin >actual &&
 		test_cmp expect actual &&
-		compressed_size=$(python -c "import os; print(os.path.getsize(\".git/objects/e8/0fdf8cd5fb645649c14f41656a076dedc4e12a\"))") &&
+		compressed_size=$(python3 -c "import os; print(os.path.getsize(\".git/objects/e8/0fdf8cd5fb645649c14f41656a076dedc4e12a\"))") &&
 		zlibng=$((72-${compressed_size})) &&
 		test $zlibng -eq "0" -o $zlibng -eq "2" &&
 
