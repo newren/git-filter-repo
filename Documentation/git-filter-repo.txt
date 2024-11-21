@@ -331,6 +331,8 @@ Sensitive Data Removal
 	    fresh clone and you have important local-only changes.
 
 	  - Tracking and reporting on the first changed commit(s)
+	  - Tracking and reporting whether any LFS objects become orphaned by
+	    the rewrite, so they can be removed
 	  - Providing additional instructions at the end on how to clean up
 	    the repository you cloned from, and other clones of the repo
 
@@ -883,6 +885,11 @@ Several comments on this command:
     included --force anyway as a visual reminder to readers that this
     is going to overwrite changes on the server.
 
+Also, if any LFS objects were orphaned by your rewrite, those objects
+likely contain sensitive data and need to be deleted/purged from the LFS
+server.  You'll have to ask the maintainer of the LFS server you are
+using for how to delete/purge those on the server.
+
 Make sure other copies are cleaned up: clones of colleagues
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -950,6 +957,12 @@ git for-each-ref --contains ${HASH_OF_FIRST_CHANGED_COMMIT}
 Also, remember, the cat-file command needs to come back with a fatal
 error for every `${HASH_OF_FIRST_CHANGED_COMMIT}` involved if you have
 more than one.
+
+After this is all done, then if any LFS objects were orphaned by the
+rewrite (which again, you will be told if you use the
+--sensitive-data-removal option when you run git-filter-repo), then you
+also need to remove those LFS objects.  Look for them a couple
+directories under .git/lfs/objects/, and delete them.
 
 Prevent repeats and avoid future sensitive data spills
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
