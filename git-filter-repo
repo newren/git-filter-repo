@@ -2123,6 +2123,14 @@ EXAMPLES
                "repository.  Gather extra information from the rewrite needed "
                "to provide additional instructions on how to clean up other "
                "copies."))
+    sdr.add_argument('--no-fetch', action='store_true',
+        help=_("By default, --sensitive-data-removal will trigger a "
+               "mirror-like fetch of all refs from origin, discarding local "
+               "changes, but ensuring that _all_ fetchable refs that hold on "
+               "to the sensitve data are rewritten.  This flag removes that "
+               "fetch, risking that other refs continue holding on to the "
+               "sensitive data.  This option is implied by --partial or any "
+               "flag that implies --partial."))
 
     desc = _(
       "Specifying alternate source or target locations implies --partial,\n"
@@ -2402,6 +2410,8 @@ EXAMPLES
     args.repack = not (args.partial or args.refs or args.no_gc)
     if args.refs or args.source or args.target:
       args.partial = True
+    if args.partial:
+      args.no_fetch = True
     if not args.refs:
       args.refs = ['--all']
     return args
@@ -4234,6 +4244,7 @@ class RepoFilter(object):
     # only grab branches and tags, but other refs may hold on to the sensitive
     # data as well.
     if self._args.sensitive_data_removal and \
+       not self._args.no_fetch and \
        not self._already_ran and \
        self._config_settings.get(b'remote.origin.mirror', b'false') != b'true':
       cmd = 'git fetch -q --prune --update-head-ok --refmap "" origin +refs/*:refs/*'

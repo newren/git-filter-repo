@@ -323,9 +323,23 @@ Sensitive Data Removal
 	includes:
 	  - Fetching all refs, so that if refs outside of branches and tags
 	    also reference the sensitive data, they can be cleaned up too
+
+	    Note that if you have any local-only changes (i.e. un-pushed
+	    changes) in your repository, on any branch or ref, this fetch step
+	    may discard them.  Working in a fresh clone avoids this problem;
+	    see also the --no-fetch option if you don't want to work with a
+	    fresh clone and you have important local-only changes.
+
 	  - Tracking and reporting on the first changed commit(s)
 	  - Providing additional instructions at the end on how to clean up
 	    the repository you cloned from, and other clones of the repo
+
+--no-fetch::
+	Avoid the "fetch all refs" step with --sensitive-data-removal, and
+	thus avoid overwriting local-only changes in the repository, but at
+	the risk of leaving the sensitive data in other refs in the source
+	repository.  This option is implied by --partial or any flag that
+	implies --partial.
 
 Location to filter from/to
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
