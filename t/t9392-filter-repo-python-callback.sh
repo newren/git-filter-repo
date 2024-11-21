@@ -192,5 +192,39 @@ test_expect_success 'Callback read from a file' '
 	)
 '
 
+test_expect_success 'Filtering a blob to make it match previous version' '
+	test_create_repo remove_unique_bits_of_blob &&
+	(
+		cd remove_unique_bits_of_blob &&
+
+		test_write_lines foo baz >metasyntactic_names &&
+		git add metasyntactic_names &&
+		git commit -m init &&
+
+		test_write_lines foo bar baz >metasyntactic_names &&
+		git add metasyntactic_names &&
+		git commit -m second &&
+
+		git filter-repo --force --blob-callback "blob.data = blob.data.replace(b\"\\nbar\", b\"\")"
+
+		echo 1 >expect &&
+		git rev-list --count HEAD >actual &&
+		test_cmp expect actual
+	)
+'
+
+test_expect_success 'tweaking just a tag' '
+	test_create_repo tweaking_just_a_tag &&
+	(
+		cd tweaking_just_a_tag &&
+
+		test_commit foo &&
+		git tag -a -m "Here is a tag" mytag &&
+
+		git filter-repo --force --refs mytag ^mytag^{commit} --name-callback "return name.replace(b\"Mitter\", b\"L D\")" &&
+
+		git cat-file -p mytag | grep C.O.L.D
+	)
+'
 
 test_done

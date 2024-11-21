@@ -2947,6 +2947,9 @@ class RepoFilter(object):
     # now-missing commit hash, since there was nothing to map it to.
     self._commits_referenced_but_removed = set()
 
+    # Other vars related to metadata tracking
+    self._already_ran = False
+
     # Progress handling (number of commits parsed, etc.)
     self._progress_writer = ProgressWriter()
     self._num_commits = 0
@@ -2967,18 +2970,17 @@ class RepoFilter(object):
 
     # Compile some regexes and cache those
     self._hash_re = re.compile(br'(\b[0-9a-f]{7,40}\b)')
-    self._full_hash_re = re.compile(br'(\b[0-9a-f]{40}\b)')
 
   def _handle_arg_callbacks(self):
-    def make_callback(argname, str):
+    def make_callback(argname, bdy):
       callback_globals = {g: globals()[g] for g in public_globals}
       callback_locals = {}
       exec('def callback({}, _do_not_use_this_var = None):\n'.format(argname)+
-           '  '+'\n  '.join(str.splitlines()), callback_globals, callback_locals)
+           '  '+'\n  '.join(bdy.splitlines()), callback_globals, callback_locals)
       return callback_locals['callback']
-    def handle(type):
-      callback_field = '_{}_callback'.format(type)
-      code_string = getattr(self._args, type+'_callback')
+    def handle(which):
+      callback_field = '_{}_callback'.format(which)
+      code_string = getattr(self._args, which+'_callback')
       if code_string:
         if os.path.exists(code_string):
           with open(code_string, 'r', encoding='utf-8') as f:
@@ -2986,12 +2988,12 @@ class RepoFilter(object):
         if getattr(self, callback_field):
           raise SystemExit(_("Error: Cannot pass a %s_callback to RepoFilter "
                              "AND pass --%s-callback"
-                           % (type, type)))
+                           % (which, which)))
         if 'return ' not in code_string and \
-           type not in ('blob', 'commit', 'tag', 'reset'):
+           which not in ('blob', 'commit', 'tag', 'reset'):
           raise SystemExit(_("Error: --%s-callback should have a return statement")
-                           % type)
-        setattr(self, callback_field, make_callback(type, code_string))
+                           % which)
+        setattr(self, callback_field, make_callback(which, code_string))
     handle('filename')
     handle('message')
     handle('name')
@@ -3023,8 +3025,8 @@ class RepoFilter(object):
     # Determine if this is second or later run of filter-repo
     tmp_dir = self.results_tmp_dir(create_if_missing=False)
     ran_path = os.path.join(tmp_dir, b'already_ran')
-    already_ran = os.path.isfile(ran_path)
-    if already_ran:
+    self._already_ran = os.path.isfile(ran_path)
+    if self._already_ran:
       current_time = time.time()
       file_mod_time = os.path.getmtime(ran_path)
       file_age = current_time - file_mod_time
@@ -3036,17 +3038,17 @@ class RepoFilter(object):
 
         if response.lower() != 'y':
           os.remove(ran_path)
-          already_ran = False
+          self._already_ran = False
 
     # Default for --replace-refs
     if not self._args.replace_refs:
       self._args.replace_refs = 'delete-no-add'
     if self._args.replace_refs == 'old-default':
-      self._args.replace_refs = ('update-or-add' if already_ran
+      self._args.replace_refs = ('update-or-add' if self._already_ran
                                  else 'update-and-add')
 
     # Do sanity checks from the correct directory
-    if not self._args.force and not already_ran:
+    if not self._args.force and not self._already_ran:
       cwd = os.getcwd()
       os.chdir(target_working_dir)
       RepoFilter.sanity_check(self._orig_refs, is_bare, self._config_settings)
@@ -3277,13 +3279,6 @@ class RepoFilter(object):
 
     assert new_hash is not None
     return new_hash[0:orig_len]
-
-  def _translate_full_commit_hash(self, matchobj):
-    old_hash = matchobj.group(1)
-    new_hash = self._get_rename(old_hash)
-    if new_hash is None:
-      return old_hash
-    return new_hash
 
   def _maybe_trim_extra_parents(self, orig_parents, parents):
     '''Due to pruning of empty commits, some parents could be non-existent
@@ -3754,6 +3749,10 @@ class RepoFilter(object):
       orig_file_changes = set(commit.file_changes)
       self._filter_files(commit)
 
+    # Call the user-defined callback, if any
+    if self._commit_callback:
+      self._commit_callback(commit, self.callback_metadata(aux_info))
+
     # Find out which files were modified by the callbacks.  Such paths could
     # lead to subsequent commits being empty (e.g. if removing a line containing
     # a password from every version of a file that had the password, and some
@@ -3764,10 +3763,6 @@ class RepoFilter(object):
     else:
       differences = orig_file_changes.symmetric_difference(final_file_changes)
     self._files_tweaked.update(x.filename for x in differences)
-
-    # Call the user-defined callback, if any
-    if self._commit_callback:
-      self._commit_callback(commit, self.callback_metadata(aux_info))
 
     # Now print the resulting commit, or if prunable skip it
     if not commit.dumped:
@@ -3781,8 +3776,13 @@ class RepoFilter(object):
         if self._args.state_branch:
           alias = Alias(commit.old_id or commit.id, rewrite_to or deleted_hash)
           self._insert_into_stream(alias)
-        reset = Reset(commit.branch, rewrite_to or deleted_hash)
-        self._insert_into_stream(reset)
+        if commit.branch.startswith(b'refs/') or commit.branch == b'HEAD':
+          # The special check above is because when direct revisions are passed
+          # along to fast-export (such as with stashes), there is a chance the
+          # revision is rewritten to nothing.  In such cases, we don't want to
+          # point an invalid ref that just names a revision to some other point.
+          reset = Reset(commit.branch, rewrite_to or deleted_hash)
+          self._insert_into_stream(reset)
         self._commit_renames[commit.original_id] = None
 
     # Show progress
@@ -3933,21 +3933,26 @@ class RepoFilter(object):
       git_dir = GitUtils.determine_git_dir(repo_working_dir)
       stash = os.path.join(git_dir, b'logs', b'refs', b'stash')
       if os.path.exists(stash):
+        self._stash = []
         with open(stash, 'br') as f:
-          self._stash = f.read()
-        out = subproc.check_output('git rev-list -g refs/stash'.split(),
-                                   cwd=repo_working_dir)
-        self._args.refs.extend(decode(out.strip()).split())
+          for line in f:
+            (oldhash, newhash, rest) = line.split(None, 2)
+            self._stash.append((newhash, rest))
+        self._args.refs.extend([x[0] for x in self._stash])
 
   def _write_stash(self):
+    last = deleted_hash
     if self._stash:
       target_working_dir = self._args.target or b'.'
       git_dir = GitUtils.determine_git_dir(target_working_dir)
       stash = os.path.join(git_dir, b'logs', b'refs', b'stash')
       with open(stash, 'bw') as f:
-        self._stash = self._full_hash_re.sub(self._translate_full_commit_hash,
-                                             self._stash)
-        f.write(self._stash)
+        for (hash, rest) in self._stash:
+          new_hash = self._get_rename(hash)
+          if new_hash is None:
+            continue
+          f.write(b' '.join([last, new_hash, rest]) + b'\n')
+          last = new_hash
       print(_("Rewrote the stash."))
 
   def _setup_input(self, use_done_feature):
@@ -4083,6 +4088,10 @@ class RepoFilter(object):
     # Remove unused refs
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
     refs_to_nuke = exported_refs - imported_refs
+    # Because revisions can be passed to fast-export which handles them as
+    # though they were refs, we might have bad "refs" to nuke; strip them out.
+    refs_to_nuke = [x for x in refs_to_nuke
+                    if x.startswith(b'refs/') or x == b'HEAD']
     if self._args.partial:
       refs_to_nuke = set()
     if refs_to_nuke and self._args.debug:
@@ -4134,13 +4143,11 @@ class RepoFilter(object):
     return new_hash
 
   def _compute_metadata(self, metadata_dir, orig_refs):
-    already_ran = os.path.isfile(os.path.join(metadata_dir, b'already_ran'))
-
     #
     # First, handle commit_renames
     #
     old_commit_renames = dict()
-    if not already_ran:
+    if not self._already_ran:
       commit_renames = {old: new
                         for old, new in self._commit_renames.items()
                        }
@@ -4169,7 +4176,7 @@ class RepoFilter(object):
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
 
     old_commit_unrenames = dict()
-    if not already_ran:
+    if not self._already_ran:
       old_ref_map = dict((refname, (old_hash, deleted_hash))
                          for refname, old_hash in orig_refs.items()
                          if refname in exported_refs)
@@ -4236,7 +4243,7 @@ class RepoFilter(object):
     #
 
     old_first_changes = dict()
-    if already_ran:
+    if self._already_ran:
       # Read first_changes into old_first_changes
       with open(os.path.join(metadata_dir, b'first-changed-commits'), 'br') as f:
         for line in f:
