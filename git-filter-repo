@@ -4791,6 +4791,10 @@ class RepoFilter(object):
         if old_hash != new_hash:
           self._changed_refs.add(refname)
 
+    with open(os.path.join(metadata_dir, b'changed-refs'), 'bw') as f:
+      for refname in sorted(self._changed_refs):
+        f.write(b'%s\n' % refname)
+
     with open(os.path.join(metadata_dir, b'first-changed-commits'), 'bw') as f:
       for commit, undeleted_self_or_ancestor in sorted(first_changes.items()):
         f.write(b'%s %s\n' % (commit, undeleted_self_or_ancestor))
