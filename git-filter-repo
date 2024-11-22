@@ -1566,6 +1566,25 @@ _IDS = _IDs()
 _SKIPPED_COMMITS = set()
 BLOB_HASH_TO_NEW_ID = {}
 BLOB_NEW_ID_TO_HASH = {}
+sdr_next_steps = _("""
+NEXT STEPS FOR YOUR SENSITIVE DATA REMOVAL:
+  * If you are doing your rewrite in multiple steps, ignore these next steps
+    until you have completed all your invocations of git-filter-repo.
+  * See the "Sensitive Data Removal" subsection of the "DISCUSSION" section
+    of the manual for more details about any of the steps below.
+  * Inspect this repository and verify that the sensitive data is indeed
+    completely removed from all commits.
+  * Force push the rewritten history to the server:
+      %s
+  * Contact the server admins for additional steps they need to take; the
+    First Changed Commit(s)%s may come in handy here.
+  * Have other colleagues with a clone either discard their clone and reclone
+    OR follow the detailed steps in the manual to repeatedly rebase and
+    purge the sensitive data from their copy.  Again, the First Changed
+    Commit(s)%s may come in handy.
+  * See the "Prevent repeats and avoid future sensitive data spills" section
+    of the manual.
+"""[1:])
 
 class SubprocessWrapper(object):
   @staticmethod
@@ -2962,6 +2981,7 @@ class LFSObjectTracker:
     self.file_info = file_info
     self.check_sources = check_sources
     self.check_targets = check_targets
+    self.objects_orphaned = False
 
   def _get_lfs_values(self, contents):
     values = {}
@@ -3174,6 +3194,7 @@ class RepoFilter(object):
 
     # Other vars related to metadata tracking
     self._already_ran = False
+    self._changed_refs = set()
     self._lfs_object_tracker = None
 
     # Progress handling (number of commits parsed, etc.)
@@ -4735,6 +4756,7 @@ class RepoFilter(object):
       for obj in sorted(differences):
         f.write(obj+b"\n")
       if differences:
+        self._lfs_object_tracker.objects_orphaned = True
         print(msg)
 
   def _record_metadata(self, metadata_dir, orig_refs):
@@ -4766,6 +4788,8 @@ class RepoFilter(object):
       for refname, hash_pair in sorted(ref_maps.items()):
         (old_hash, new_hash) = hash_pair
         f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
+        if old_hash != new_hash:
+          self._changed_refs.add(refname)
 
     with open(os.path.join(metadata_dir, b'first-changed-commits'), 'bw') as f:
       for commit, undeleted_self_or_ancestor in sorted(first_changes.items()):
@@ -4916,6 +4940,22 @@ class RepoFilter(object):
     # Let user know how long it took
     print(_("Completely finished after {:.2f} seconds.")
           .format(time.time()-start))
+
+    # Give post-rewrite instructions for cleaning up other copies for SDR
+    if self._args.sensitive_data_removal:
+      lfs_note = ""
+      if self._lfs_object_tracker and \
+         self._lfs_object_tracker.objects_orphaned == True:
+        lfs_note = _(" and LFS Objects Orphaned")
+      push_command = "git push --force --mirror origin"
+      if self._args.no_fetch:
+        if self._args.partial:
+          push_command = "git push --force origin " + \
+                     " ".join(sorted([decode(x) for x in self._changed_refs]))
+        else:
+          push_command = "git push --all --tags origin"
+      print("")
+      print(sdr_next_steps % (push_command, lfs_note, lfs_note))
 
 def main():
   setup_gettext()
