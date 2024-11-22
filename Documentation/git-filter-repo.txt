@@ -312,6 +312,37 @@ Generic callback code snippets
 --reset-callback <function_body>::
 	Python code body for processing reset objects; see <<CALLBACKS>>.
 
+Sensitive Data Removal
+~~~~~~~~~~~~~~~~~~~~~~
+
+--sensitive-data-removal::
+--sdr::
+	This rewrite is intended to remove sensitive data from a repository.
+	Gather extra information from the rewrite needed to provide
+	additional instructions on how to clean up other copies.  This
+	includes:
+	  - Fetching all refs, so that if refs outside of branches and tags
+	    also reference the sensitive data, they can be cleaned up too
+
+	    Note that if you have any local-only changes (i.e. un-pushed
+	    changes) in your repository, on any branch or ref, this fetch step
+	    may discard them.  Working in a fresh clone avoids this problem;
+	    see also the --no-fetch option if you don't want to work with a
+	    fresh clone and you have important local-only changes.
+
+	  - Tracking and reporting on the first changed commit(s)
+	  - Tracking and reporting whether any LFS objects become orphaned by
+	    the rewrite, so they can be removed
+	  - Providing additional instructions at the end on how to clean up
+	    the repository you cloned from, and other clones of the repo
+
+--no-fetch::
+	Avoid the "fetch all refs" step with --sensitive-data-removal, and
+	thus avoid overwriting local-only changes in the repository, but at
+	the risk of leaving the sensitive data in other refs in the source
+	repository.  This option is implied by --partial or any flag that
+	implies --partial.
+
 Location to filter from/to
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -413,6 +444,18 @@ references were (or were not) changed.
   * An all-zeros hash, or null SHA, represents a non-existent object.
     When in the "new" column, this means the ref was removed entirely.
 
+Changed References
+~~~~~~~~~~~~~~~~~~
+
+The `$GIT_DIR/filter-repo/changed-refs` file contains a list of refs that
+were changed.
+
+  * No header is provided
+  * Lists the subsets of refs from ref-map for which old != new
+  * While unnecessary since this provides no new information over ref-map,
+    it does make it easier to quickly determine which refs were changed by
+    the rewrite.
+
 First Changed Commits
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -482,6 +525,21 @@ then some months or years later need to do another rewrite.  If commits
 have been made public and shared from the previous rewrite, then the next
 filter-repo run should not be considered a continuation of the previous
 filtering run.
+
+Original LFS Objects
+~~~~~~~~~~~~~~~~~~~~
+
+When running with the --sensitive-data-removal flag, and LFS is in use by the
+repository, the `$GIT_DIR/filter-repo/original_lfs_objects` contains a list of
+LFS objects referenced by the repository before the rewrite, in sorted order.
+
+Orphaned LFS Objects
+~~~~~~~~~~~~~~~~~~~~
+
+When running with the --sensitive-data-removal flag, and LFS is in use by the
+repository, the `$GIT_DIR/filter-repo/orphaned_lfs_objects` contains a list of
+LFS objects that used to be referenced by the repository but no longer are after
+git-filter-repo has run.  Objects appear in sorted order.
 
 [[FRESHCLONE]]
 FRESH CLONE SAFETY CHECK AND --FORCE
@@ -581,55 +639,51 @@ this section.
 Steps to use git-filter-repo as part of the bigger picture of doing a
 history rewrite are roughly as follows:
 
-1. Create a clone of your repository (if you created special refs outside
-   of refs/heads/ or refs/tags/, make sure to fetch those too).  You may
-   pass `--bare` or `--mirror` to `git clone`, if you prefer.  You should
-   pass `--no-local` if the repository you are cloning from is on the local
+1. Create a clone of your repository.  You may pass `--bare` or
+   `--mirror` to `git clone`, if you prefer.  You should pass
+   `--no-local` if the repository you are cloning from is on the local
    filesystem.  Avoid other flags; some might confuse the fresh clone
-   check, and others could cause parts of the data to be missing that are
-   needed for the rewrite.
+   check, and others could cause parts of the data to be missing that
+   are needed for the rewrite.
 
 2. (Optional) Run `git filter-repo --analyze`.  This will create a
-   directory of reports mentioning renames that have occurred in your
-   repo and also listing sizes of objects aggregated by
-   path/directory/extension/blob-id; this information may be useful in
+   directory of reports mentioning multiple things: (a) paths that have
+   existed over time in your repo, (b) renames that have occurred in
+   your repo and (c) sizes of objects aggregated by
+   path/directory/extension/blob-id.  This information may be useful in
    choosing how to filter your repo.  It can also be useful to re-run
    --analyze after filtering to verify the changes look correct.
 
-3. Run filter-repo with your desired filtering options.  Many examples
-   are given below.  For more complex cases, note that doing the
-   filtering in multiple steps (by running multiple filter-repo
-   invocations in a sequence) is supported.  If anything goes wrong here,
-   simply delete your clone and restart.
+3. Before rewriting the history of your local copy with git-filter-repo,
+   determine where you will push the rewritten history to when you are
+   done.  In the special case that you are trying to remove sensitive
+   data from an existing repository, you will want to push it back where
+   you cloned from, as well as clean up all other clones/copies of the
+   repo.  If you will be pushing back to the repository you cloned from,
+   you will want to use the --sensitive-data-removal option and see the
+   Sensitive Data Removal section below.  In most cases not dealing with
+   sensitive data removal, you will want to push to a new repo, because:
 
-4. Push your new repository to its new home (note that
-   refs/remotes/origin/* will have been moved to refs/heads/* as the
-   first part of filter-repo, so you can just deal with normal branches
-   instead of remote tracking branches).  While you can force push this
-   to the same URL you cloned from, there are good reasons to consider
-   pushing to a different location instead:
-
-   * People who cloned from the original repo will have old history.
-     When they fetch the new history you force pushed up, unless they
-     do a `git reset --hard @{u}` on their branches or rebase their
-     local work, git will think they have hundreds or thousands of
-     commits with very similar commit messages as what exist upstream
-     (but which include files you wanted excised from history), and
-     allow the user to merge the two histories, resulting in what
-     looks like two copies of each commit.  If they then push this
-     history back up, then everyone now has history with two copies of
-     each commit and the bad files have returned.  You're more likely
-     to succeed in forcing people to get rid of the old history if
-     they have to clone a new URL.
+   * Even after you rewrite history and push it back, other people who
+     previously cloned from the original repo will have the old history.
+     If they simply run `git pull && git push`, it will merge the
+     unrewritten history with the new, resulting in what looks like two
+     copies of each commit involved in your rewrite -- a new copy of
+     each commit which has the cleanups you made, and an old copy of
+     each commit that has not been cleaned up -- being merged together.
+     That means everything you carefully worked to remove from the
+     repository has been pushed back.  You're more likely to succeed in
+     making sure they don't re-push the unclean data if you just give
+     them a new repository URL and tell them to reclone.
 
    * Rewriting history will rewrite tags; those who have already
-     downloaded tags will not get the updated tags by default.
-     Further, they won't get the updated tags even if they specify
+     downloaded tags will not get the updated tags even if they specify
      `--tags` to `git fetch` or `git pull` (see the "On Re-tagging"
      section of linkgit:git-tag[1]).  Every user trying to use an
-     existing clone will have to forcibly delete all tags _before_
-     re-fetching them; it may be easier for them to just re-clone,
-     which they are more likely to do with a new clone URL.
+     existing clone will have to forcibly delete all tags they already
+     downloaded _before_ re-fetching them; it may be easier for them to
+     just re-clone, which they are more likely to do with a new clone
+     URL.
 
    * Rewriting history may delete some refs (e.g. branches that only
      had files that you wanted excised from history); unless you run
@@ -648,35 +702,19 @@ history rewrite are roughly as follows:
      have locked down, and you'll need to somehow prevent users from
      merging those locked-down (and thus not cleaned up) histories
      with your cleaned-up history.  Every software code review system
-     handles this differently (see below for some links).
+     handles this differently (see the sensitive data removal section
+     for some links).
 
-5. If you still want to push your rewritten history back to the
-   original url despite my warnings above, you'll have to manage it
-   very carefully:
+4. Run filter-repo with your desired filtering options.  Many examples
+   are given in the <<EXAMPLES>> section.  For more complex cases, note
+   that doing the filtering in multiple steps (by running multiple
+   filter-repo invocations in a sequence) is supported.  If anything
+   goes wrong here, simply delete your clone and restart.
 
-   * git-filter-repo deletes the "origin" remote to help avoid people
-     accidentally repushing to the same repository, so you'll need to
-     remind git what origin's url was.
-
-   * You'll need to carefully synchronize with *everyone* who has
-     cloned the repository (including forks on various software forges
-     and clones thereof), and will also need to carefully synchronize
-     with *everything* (e.g. CI systems) that has cloned it.  Every
-     single clone will either need to be thrown away and re-cloned, or
-     need to take all the steps outlined in item 4 as well as follow
-     the necessary steps from "RECOVERING FROM UPSTREAM REBASE"
-     section of linkgit:git-rebase[1].  If you miss fixing any clones,
-     you'll risk mixing old and new history and end up with an even
-     worse mess to clean up.
-
-   * Finally, you'll need to consult any documentation from your
-     hosting provider about how to remove any server-side references
-     to the old commits (example:
-     https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html[GitLab's
-     docs on reducing repository size], or
-     https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository#fully-removing-the-data-from-github[the
-     first and second steps under "Fully removing the data from
-     GitHub"]).
+5. Push your new repository to its new home (note that
+   refs/remotes/origin/* will have been moved to refs/heads/* as the
+   first part of filter-repo, so you can just deal with normal branches
+   instead of remote tracking branches).
 
 6. (Optional) Some additional considerations
 
@@ -700,13 +738,6 @@ history rewrite are roughly as follows:
      relevant, users may want to locally delete the replace refs to
      regain the speedups from commit-graphs.
 
-   * If you have a central repo, you may want to prevent people
-     from pushing old commit IDs, in order to avoid mixing old
-     and new history.  Every repository manager does this
-     differently, some provide specialized commands
-     (e.g. https://gerrit-review.googlesource.com/Documentation/cmd-ban-commit.html),
-     others require you to write hooks.
-
 Why is my origin removed?
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -728,7 +759,7 @@ insist on pushing back to the original repo.  Example ways you can get
 such an even uglier history include:
 
   * at the command line (of another clone of the same repo from before the
-    cleanup): "git pull && git push"
+    cleanup): `git pull && git push`
   * in a software forge: "reopen old Pull-Request/Merge-Request/Code-Review
     and hit the merge/submit button"
 
@@ -746,11 +777,246 @@ potentially prevent big messes, and it's so easy to work around for
 those that really do want to push back over the original history,
 removing the origin url is a great safety measure that I employ.
 
-One final warning if you really want to push back to the original
-repo: there are more details about the kinds of messes that pushing to
-the original repo can lead to (and what you'd need to do to avoid
-those messes) in items #4 and #5 earlier in this DISCUSSION section.
-Please read those first.
+One final warning if you really want to push back to the original repo:
+see the next section on sensitive data removals.  Those are the steps
+needed when pushing back to the original repo; they are so involved that
+I assume they are only worth it when sensitive data is involved, but you
+can choose to follow them for other kinds of rewrites too.
+
+Sensitive Data Removals
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Sensitive data removals are a specialized type of history rewrite.
+While it is always very problematic to mix the cleaned-up history with
+the non-cleaned-up history, for sensitive data removals it is also bad
+to allow others to continue to view/clone/fetch the non-cleaned-up
+history at all; users often need to try to expunge the old history as
+well.
+
+Note that if the sensitive data under consideration is a
+token/password/credential/secret (as is often the case), then it is
+important that you revoke and rotate that credential first.  Once the
+credential is revoked or rotated, it can no longer be used for access.
+Revoking/rotating may resolve your problem without resorting to the
+heavy-handed action of rewriting and purging history.
+
+For sensitive data removal history rewrites, there are three high-level
+steps:
+
+  - Rewrite the repository locally, using git-filter-repo
+  - Make sure other copies are cleaned up, including:
+    * the server you cloned from
+    * other clones that exist, such as ones your colleagues made
+  - Prevent repeats and avoid future sensitive data spills
+
+Each will be discussed in greater detail below.
+
+One important thing to note, though, is that others working on the same
+repository should be instructed to stop while you do the cleanup; if
+they continue development during your cleanup, you'll likely be forced to
+either discard their changes or start over on your cleanup.
+
+Rewrite the repository locally, using git-filter-repo
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The first step is to rewrite a copy of your repository locally using
+git-filter-repo.  The exact commands to run will differ based on where
+in your repository the sensitive data is found, but some general tips:
+
+  - Use the --sensitive-data-removal flag.  It will provide additional
+    information useful for the other steps.
+
+  - If the sensitive data is the entirety of one or more files, and no
+    version of those files from history needs to be kept in your
+    repository, the --invert-paths flag together with one or more --path
+    arguments may come in handy.
+
+  - If the sensitive data is just a string found within one or more
+    files and you want to replace that sensitive string with something
+    else while leaving the rest of the file(s) intact, the --replace-text
+    option may come in handy.
+
+After rewriting the history locally, make sure to inspect it to ensure the
+sensitive data has been removed.  Some commands that might be handy for
+checking are:
+
+----
+git log --all --name-status -- ${PROBLEMATIC_FILE1} ${PROBLEMATIC_FILE2}
+----
+
+or
+
+----
+git log -S"${PROBLEMATIC_STRING}" --all -p --
+----
+
+If either of these commands turn up more sensitive data, then run additional
+git-filter-repo commands to clean up the necessary data before proceeding.
+
+Make sure other copies are cleaned up: primary server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Cleaning up the repository you cloned from requires force pushing your
+rewritten history over the original.  You need to force push all refs,
+not just your current branch.  You can use the following command to do so
+(read the bulleted list right after this command before running it):
+
+----
+git push --force --mirror origin
+----
+
+Several comments on this command:
+
+  * If any of your colleagues have pushed any changes since you
+    started, this force push command will discard their changes.
+
+  * This force push is likely to fail to push some refs, since most
+    forges (Gerrit, GitHub, GitLab, etc.) prevent you from updating
+    some refs (e.g. `refs/changes/*`, `refs/pull/*`,
+    `refs/merge-requests/*`).  You will need to follow the directions
+    from those forges to get the remaining refs updated or deleted,
+    and a garbage collection to be triggered on their end.  Some
+    examples:
+    (https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html[GitLab's
+    docs on reducing repository size], or
+    https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository#fully-removing-the-data-from-github[the
+    "Fully removing the data from GitHub" section of GitHub's docs]).
+
+  * If you passed the `--no-fetch` option to git-filter-repo (or
+    implied it with another option), you will either need to (1) drop
+    the `--mirror` option and figure out which refs or refspecs to
+    push on your own, or (2) use the `--mirror` option and risk
+    deleting any refs you didn't fetch.  Further, if you lacked some
+    refs the server had which included the sensitive data in their
+    history, then your only options at this point to actually clean up
+    the sensitive data from the server are to either redo your rewrite
+    from scratch (and make sure to get the relevant refs included this
+    time) or delete those refs on the server.
+
+  * Yes, I know that --mirror implies --force and is unnecessary.  I
+    included --force anyway as a visual reminder to readers that this
+    is going to overwrite changes on the server.
+
+Also, if any LFS objects were orphaned by your rewrite, those objects
+likely contain sensitive data and need to be deleted/purged from the LFS
+server.  You'll have to ask the maintainer of the LFS server you are
+using for how to delete/purge those on the server.
+
+Make sure other copies are cleaned up: clones of colleagues
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After you have cleaned up the server, the easiest way to clean up other
+clones is to make everyone delete their existing clones and reclone.
+
+If that isn't an option, then you will need to proceed carefully because
+a simple `git pull && git push` from any other clone will recontaminate
+the main repository and make the mess even harder to clean up.  To avoid
+this, before pushing from any other clone, you'll need to have them clean
+up their copy, as detailed below.
+
+First, though, let me note that you should *not* have other developers
+try to cleanup their clone by running the same `git-filter-repo`
+commands that you ran.  While that sometimes may happen to work, it is
+not reliable in general.  Running the same `git-filter-repo` commands,
+even if identical, can result in them getting new hashes for commits
+that are different than your new hashes, and you'll end up with a mess
+involving two or more copies of every commit.
+
+Instead developers with other clones of the repository should run
+through the following steps to clean up their copy if they are unwilling
+to discard their copy and reclone:
+
+  - delete all tags and run `git fetch --prune --tags`.  Running the
+    fetch command without deleting tags first will result in the old
+    tags being kept, which will keep the sensitive data.
+
+  - rebase any changes they have on any branch (or other ref) on top of
+    the new history.  See the "RECOVERING FROM UPSTREAM REBASE" section
+    of linkgit:git-rebase[1] (and in particular, "The hard case") for
+    instructions.
+
+  - run a few steps to clean out the pre-rebase history (note that the first
+    step drops all reflogs including all stash entries.  That's a high cost,
+    but needed to clean up the sensitive data):
+    * git reflog expire --expire=now --all
+    * git gc --prune=now
+
+Once these steps are complete, you also need to verify that the clone no
+longer contains any sensitive data (it is really easy to miss something,
+which puts you at risk of recontaminating other repositories with the
+sensitive data).  You can do so by running:
+
+----
+git cat-file -t ${HASH_OF_FIRST_CHANGED_COMMIT}
+----
+
+Where `${HASH_OF_FIRST_CHANGED_COMMIT}` was printed by git-filter-repo at
+the end of its run (if there was more than one "first changed commit",
+run this command multiple times, with each commit hash).  If this
+command returns a fatal error, then the commit has correctly been
+removed from this repository.  If it responds with "commit", then the
+object still exists and you need to re-delete tags, re-rebase all
+necessary branches/refs, and re-expire reflogs and redo the gc.  If you
+are curious about which branches or refs were the problematic ones
+holding on to `${HASH_OF_FIRST_CHANGED_COMMIT}`, then presuming you did
+the reflog expire and gc jobs above, the following command should help
+you find the problematic branches/refs:
+
+----
+git for-each-ref --contains ${HASH_OF_FIRST_CHANGED_COMMIT}
+----
+
+Also, remember, the cat-file command needs to come back with a fatal
+error for every `${HASH_OF_FIRST_CHANGED_COMMIT}` involved if you have
+more than one.
+
+After this is all done, then if any LFS objects were orphaned by the
+rewrite (which again, you will be told if you use the
+--sensitive-data-removal option when you run git-filter-repo), then you
+also need to remove those LFS objects.  Look for them a couple
+directories under .git/lfs/objects/, and delete them.
+
+Prevent repeats and avoid future sensitive data spills
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are several measures you can take to help avoid repeat problems.
+Not all may be applicable for your case, but the more that are, the more
+likely you can avoid problems.
+
+For dealing with the existing sensitive data spill:
+
+- Since it is so easy to re-contaminate the repository you cloned from
+  (it merely takes a colleague to run `git pull && git push` from their
+  clone that was created before your cleanup), take extra vigilance in
+  performing the clean ups steps above for other clones to ensure they
+  have all been cleaned up.
+
+- If you have a central repository everyone pushes to, look into methods
+  to ban the First Changed Commit(s) from being (re-)pushed to your
+  repository.  Sadly, few repository managers currently have such a
+  built-in capability (see Gerrit's ban-commit ability for one such
+  example at
+  https://gerrit-review.googlesource.com/Documentation/cmd-ban-commit.html),
+  but a few may allow you to write your own pre-receive hooks that
+  reject pushes containing these bad commits.  (Pro-tip for writing such
+  a pre-receive hook: use `git cat-file -t ${BAD_COMMIT}` as a cheap
+  check before checking if any revision range between `<old-oid>` and
+  `<new-oid>` contains `${BAD_COMMIT}`)
+
+Steps to help avoid other future sensitive data spills:
+
+* If sensitive data is likely to appear within certain filenames that
+  should not be tracked in git at all, then add those filenames to
+  .gitignore to reduce the risk that others accidentally add them.
+
+* Avoid hardcoding secrets in code.  Use environment variables,
+  configuration management tools, or secrets management services like
+  Azure Key Vault, AWS Secrets Manager, or HashiCorp Vault to manage and
+  inject secrets at runtime.
+
+* Create a pre-commit hook to check for sensitive data before it is
+  committed or pushed anywhere, or use a well-known tool in a pre-commit
+  hook like git-secrets or gitleaks.
 
 [[EXAMPLES]]
 EXAMPLES

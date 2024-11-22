@@ -1035,6 +1035,9 @@ class FastExportParser(object):
     # Stores the contents of the current line of input being parsed
     self._currentline = ''
 
+    # Tracks LFS objects we have found
+    self._lfs_object_tracker = None
+
     # Compile some regexes and cache those
     self._mark_re = re.compile(br'mark :(\d+)\n$')
     self._parent_regexes = {}
@@ -1106,6 +1109,10 @@ class FastExportParser(object):
       if idnum[0:1] == b':':
         idnum = idnum[1:]
       path = path.rstrip(b'\n')
+      # Check for LFS objects from sources before we might toss this filechange
+      if self._lfs_object_tracker:
+        value = int(idnum) if len(idnum) != 40 else idnum
+        self._lfs_object_tracker.check_file_change_data(value, True)
       # We translate the idnum to our id system
       if len(idnum) != 40:
         idnum = _IDS.translate( int(idnum) )
@@ -1218,6 +1225,10 @@ class FastExportParser(object):
     if id_:
       blob.old_id = id_
       _IDS.record_rename(id_, blob.id)
+
+    # Check for LFS objects
+    if self._lfs_object_tracker:
+      self._lfs_object_tracker.check_blob_data(data, blob.old_id, True)
 
     # Call any user callback to allow them to use/modify the blob
     if self._blob_callback:
@@ -1349,6 +1360,16 @@ class FastExportParser(object):
     if id_:
       commit.old_id = id_
       _IDS.record_rename(id_, commit.id)
+
+    # refs/notes/ put commit-message-related material in blobs, and name their
+    # files according to the hash of other commits.  That totally messes with
+    # all normal callbacks; fast-export should really export these as different
+    # kinds of objects.  Until then, let's just pass these commits through as-is
+    # and hope the blob callbacks don't mess things up.
+    if commit.branch.startswith(b'refs/notes/'):
+      self._imported_refs.add(commit.branch)
+      commit.dump(self._output)
+      return
 
     # Call any user callback to allow them to modify the commit
     aux_info = {'orig_parents': orig_parents,
@@ -1545,6 +1566,25 @@ _IDS = _IDs()
 _SKIPPED_COMMITS = set()
 BLOB_HASH_TO_NEW_ID = {}
 BLOB_NEW_ID_TO_HASH = {}
+sdr_next_steps = _("""
+NEXT STEPS FOR YOUR SENSITIVE DATA REMOVAL:
+  * If you are doing your rewrite in multiple steps, ignore these next steps
+    until you have completed all your invocations of git-filter-repo.
+  * See the "Sensitive Data Removal" subsection of the "DISCUSSION" section
+    of the manual for more details about any of the steps below.
+  * Inspect this repository and verify that the sensitive data is indeed
+    completely removed from all commits.
+  * Force push the rewritten history to the server:
+      %s
+  * Contact the server admins for additional steps they need to take; the
+    First Changed Commit(s)%s may come in handy here.
+  * Have other colleagues with a clone either discard their clone and reclone
+    OR follow the detailed steps in the manual to repeatedly rebase and
+    purge the sensitive data from their copy.  Again, the First Changed
+    Commit(s)%s may come in handy.
+  * See the "Prevent repeats and avoid future sensitive data spills" section
+    of the manual.
+"""[1:])
 
 class SubprocessWrapper(object):
   @staticmethod
@@ -2107,6 +2147,21 @@ EXAMPLES
         help=_("Python code body for processing reset objects; see "
                "CALLBACKS section below."))
 
+    sdr = parser.add_argument_group(title=_("Sensitive Data Removal Handling"))
+    sdr.add_argument('--sensitive-data-removal', '--sdr', action='store_true',
+        help=_("This rewrite is intended to remove sensitive data from a "
+               "repository.  Gather extra information from the rewrite needed "
+               "to provide additional instructions on how to clean up other "
+               "copies."))
+    sdr.add_argument('--no-fetch', action='store_true',
+        help=_("By default, --sensitive-data-removal will trigger a "
+               "mirror-like fetch of all refs from origin, discarding local "
+               "changes, but ensuring that _all_ fetchable refs that hold on "
+               "to the sensitve data are rewritten.  This flag removes that "
+               "fetch, risking that other refs continue holding on to the "
+               "sensitive data.  This option is implied by --partial or any "
+               "flag that implies --partial."))
+
     desc = _(
       "Specifying alternate source or target locations implies --partial,\n"
       "except that the normal default for --replace-refs is used.  However,\n"
@@ -2385,6 +2440,8 @@ EXAMPLES
     args.repack = not (args.partial or args.refs or args.no_gc)
     if args.refs or args.source or args.target:
       args.partial = True
+    if args.partial:
+      args.no_fetch = True
     if not args.refs:
       args.refs = ['--all']
     return args
@@ -2876,7 +2933,11 @@ class FileInfoValueHelper:
     self._cat_file_process.stdin.write(b'contents '+blobhash+b'\n')
     self._cat_file_process.stdin.flush()
     line = self._cat_file_process.stdout.readline()
-    (oid, oidtype, size) = line.split()
+    try:
+      (oid, oidtype, size) = line.split()
+    except ValueError:
+      assert(line == blobhash+b" missing\n")
+      return None
     size = int(size) # Convert e.g. b'6283' to 6283
     assert(oidtype == b'blob')
     contents_plus_newline = self._cat_file_process.stdout.read(size+1)
@@ -2906,6 +2967,99 @@ class FileInfoValueHelper:
     for regex,   replacement in self._replace_text['regexes']:
       new_contents = regex.sub(replacement, new_contents)
     return new_contents
+
+class LFSObjectTracker:
+  class LFSObjs:
+    def __init__(self):
+      self.id_to_object_map = {}
+      self.objects = set()
+
+  def __init__(self, file_info, check_sources, check_targets):
+    self.source_objects = LFSObjectTracker.LFSObjs()
+    self.target_objects = LFSObjectTracker.LFSObjs()
+    self.hash_to_object_map = {}
+    self.file_info = file_info
+    self.check_sources = check_sources
+    self.check_targets = check_targets
+    self.objects_orphaned = False
+
+  def _get_lfs_values(self, contents):
+    values = {}
+    if len(contents) > 1024:
+      return {}
+    for line in contents.splitlines():
+      try:
+        (key, value) = line.split(b' ', 1)
+      except ValueError:
+        return {}
+      if not values and key != b'version':
+        return values
+      values[key] = value
+    return values
+
+  def check_blob_data(self, contents, fast_export_id, source):
+    if source and not self.check_sources:
+      return
+    mymap = self.source_objects if source else self.target_objects
+    lfs_object_id = self._get_lfs_values(contents).get(b'oid')
+    if lfs_object_id:
+      mymap.id_to_object_map[fast_export_id] = lfs_object_id
+
+  def check_file_change_data(self, git_id, source):
+    if source and not self.check_sources:
+      return
+    mymap = self.source_objects if source else self.target_objects
+    if isinstance(git_id, int):
+      lfs_object_id = mymap.id_to_object_map.get(git_id)
+      if lfs_object_id:
+        mymap.objects.add(lfs_object_id)
+    else:
+      if git_id in self.hash_to_object_map:
+        mymap.objects.add(self.hash_to_object_map[git_id])
+        return
+      size = self.file_info.get_size_by_identifier(git_id)
+      if size >= 1024:
+        return
+      contents = self.file_info.get_contents_by_identifier(git_id)
+      lfs_object_id = self._get_lfs_values(contents).get(b'oid')
+      if lfs_object_id:
+        self.hash_to_object_map[git_id] = lfs_object_id
+        mymap.objects.add(lfs_object_id)
+
+  def check_output_object(self, obj):
+    if not self.check_targets:
+      return
+    if type(obj) == Blob:
+      self.check_blob_data(obj.data, obj.id, False)
+    elif type(obj) == Commit:
+      for change in obj.file_changes:
+        if change.type != b'M':
+          continue
+        self.check_file_change_data(change.blob_id, False)
+
+  def find_all_lfs_objects_in_repo(self, repo, source):
+    if not source:
+      self.file_info = FileInfoValueHelper(None, None, repo)
+    p = subproc.Popen(["git", "rev-list", "--objects", "--all"],
+                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                      cwd=repo)
+    for line in p.stdout.readlines():
+      try:
+        (git_oid, filename) = line.split()
+      except ValueError:
+        # Commit and tree objects only have oid
+        continue
+
+      mymap = self.source_objects if source else self.target_objects
+      size = self.file_info.get_size_by_identifier(git_oid)
+      if size >= 1024:
+        continue
+      contents = self.file_info.get_contents_by_identifier(git_oid)
+      lfs_object_id = self._get_lfs_values(contents).get(b'oid')
+      if lfs_object_id:
+        mymap.objects.add(lfs_object_id)
+    if not source:
+      self.file_info.finalize()
 
 class InputFileBackup:
   def __init__(self, input_file, output_file):
@@ -3040,6 +3194,8 @@ class RepoFilter(object):
 
     # Other vars related to metadata tracking
     self._already_ran = False
+    self._changed_refs = set()
+    self._lfs_object_tracker = None
 
     # Progress handling (number of commits parsed, etc.)
     self._progress_writer = ProgressWriter()
@@ -3137,6 +3293,29 @@ class RepoFilter(object):
           os.remove(ran_path)
           self._already_ran = False
 
+    # Interaction between --already-ran and --sensitive_data_removal
+    msg = textwrap.dedent(_("""\
+      Error: Cannot specify --sensitive-data-removal on a follow-up invocation
+             of git-filter-repo unless it was specified in previously runs."""))
+    if self._already_ran:
+      sdr_path = os.path.join(tmp_dir, b'sensitive_data_removal')
+      sdr_previously = os.path.isfile(sdr_path)
+      if not sdr_previously and self._args.sensitive_data_removal:
+        raise SystemExit(msg)
+      # Treat this as a --sensitive-data-removal run if a previous run was,
+      # even if it wasn't specified this time
+      self._args.sensitive_data_removal = sdr_previously
+
+    # Have to check sensitive_data_removal interactions here instead of
+    # sanity_check_args because of the above interaction with already_ran stuff
+    if self._args.sensitive_data_removal:
+      if self._args.stdin:
+        msg = _("Error: sensitive data removal is incompatible with --stdin")
+        raise SystemExit(msg)
+      if self._args.source or self._args.target:
+        msg = _("Error: sensitive data removal is incompatible with --source and --target")
+        raise SystemExit(msg)
+
     # Default for --replace-refs
     if not self._args.replace_refs:
       self._args.replace_refs = 'delete-no-add'
@@ -3150,6 +3329,48 @@ class RepoFilter(object):
       os.chdir(target_working_dir)
       RepoFilter.sanity_check(self._orig_refs, is_bare, self._config_settings)
       os.chdir(cwd)
+
+  def _setup_lfs_orphaning_checks(self):
+    # Do a couple checks to see if we want to do lfs orphaning checks
+    if not self._args.sensitive_data_removal:
+      return
+    metadata_dir = self.results_tmp_dir()
+    lfs_objects_file = os.path.join(metadata_dir, b'original_lfs_objects')
+    if self._already_ran:
+      # Check if we did lfs filtering in the previous run
+      if not os.path.isfile(lfs_objects_file):
+        return
+
+    # Set up self._file_info_value so we can query git for stuff
+    source_working_dir = self._args.source or b'.'
+    self._file_info_value = FileInfoValueHelper(self._args.replace_text,
+                                                self.insert,
+                                                source_working_dir)
+
+    # One more check to see if we want to do lfs orphaning checks
+    if not self._already_ran:
+      # Check if lfs filtering is active in HEAD's .gitattributes file
+      a = self._file_info_value.get_contents_by_identifier(b"HEAD:.gitattributes")
+      if not a or not re.search(rb'\bfilter=lfs\b', a):
+        return
+
+    # Set up the object tracker
+    check_sources = not self._already_ran and not self._args.partial
+    check_targets = not self._args.partial
+    self._lfs_object_tracker = LFSObjectTracker(self._file_info_value,
+                                                check_sources,
+                                                check_targets)
+    self._parser._lfs_object_tracker = self._lfs_object_tracker # kinda gross
+
+    # Get initial objects
+    if self._already_ran:
+      with open(lfs_objects_file, 'br') as f:
+        for line in f:
+          self._lfs_object_tracker.source_objects.objects.add(line.strip())
+    elif self._args.partial:
+      source = True
+      self._lfs_object_tracker.find_all_lfs_objects_in_repo(source_working_dir,
+                                                            source)
 
   @staticmethod
   def loose_objects_are_replace_refs(git_dir, refs, num_loose_objects):
@@ -3607,6 +3828,8 @@ class RepoFilter(object):
     if self._blob_callback:
       self._blob_callback(blob, self.callback_metadata())
 
+    self._insert_into_stream(blob)
+
   def _filter_files(self, commit):
     def filename_matches(path_expression, pathname):
       ''' Returns whether path_expression matches pathname or a leading
@@ -4056,6 +4279,8 @@ class RepoFilter(object):
     self._run_sanity_checks()
 
   def _read_stash(self):
+    if self._stash:
+      return
     if self._orig_refs and b'refs/stash' in self._orig_refs and \
        self._args.refs == ['--all']:
       repo_working_dir = self._args.source or b'.'
@@ -4160,33 +4385,74 @@ class RepoFilter(object):
             .format(decode(self._fe_filt)))
 
   def _migrate_origin_to_heads(self):
+    source_working_dir = self._args.source or b'.'
+    target_working_dir = self._args.target or b'.'
     refs_to_migrate = set(x for x in self._orig_refs
                           if x.startswith(b'refs/remotes/origin/'))
-    if not refs_to_migrate:
-      return
-    if self._args.debug:
-      print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
-    target_working_dir = self._args.target or b'.'
-    p = subproc.Popen('git update-ref --no-deref --stdin'.split(),
-                      stdin=subprocess.PIPE, cwd=target_working_dir)
-    for ref in refs_to_migrate:
-      if ref == b'refs/remotes/origin/HEAD':
+    refs_to_warn_about = set()
+    if refs_to_migrate:
+      if self._args.debug:
+        print("[DEBUG] Migrating refs/remotes/origin/* -> refs/heads/*")
+      p = subproc.Popen('git update-ref --no-deref --stdin'.split(),
+                        stdin=subprocess.PIPE, cwd=source_working_dir)
+      for ref in refs_to_migrate:
+        if ref == b'refs/remotes/origin/HEAD':
+          p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
+          del self._orig_refs[ref]
+          continue
+        newref = ref.replace(b'refs/remotes/origin/', b'refs/heads/')
+        if newref not in self._orig_refs:
+          p.stdin.write(b'create %s %s\n' % (newref, self._orig_refs[ref]))
+          self._orig_refs[newref] = self._orig_refs[ref]
+        elif self._orig_refs[ref] != self._orig_refs[newref]:
+          refs_to_warn_about.add(newref)
         p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
         del self._orig_refs[ref]
-        continue
-      newref = ref.replace(b'refs/remotes/origin/', b'refs/heads/')
-      if newref not in self._orig_refs:
-        p.stdin.write(b'create %s %s\n' % (newref, self._orig_refs[ref]))
-      p.stdin.write(b'delete %s %s\n' % (ref, self._orig_refs[ref]))
-      self._orig_refs[newref] = self._orig_refs[ref]
-      del self._orig_refs[ref]
-    p.stdin.close()
-    if p.wait():
-      raise SystemExit(_("git update-ref failed; see above")) # pragma: no cover
+      p.stdin.close()
+      if p.wait(): # pragma: no cover
+        msg = _("git update-ref failed; see above")
+        raise SystemExit(msg)
 
-    # Now remove the origin remote
     if b'remote.origin.url' not in self._config_settings:
       return
+
+    # For sensitive data removals, fetch ALL refs.  Non-mirror clones normally
+    # only grab branches and tags, but other refs may hold on to the sensitive
+    # data as well.
+    if self._args.sensitive_data_removal and \
+       not self._args.no_fetch and \
+       not self._already_ran and \
+       self._config_settings.get(b'remote.origin.mirror', b'false') != b'true':
+
+      if refs_to_warn_about:
+        msg = ("Warning: You have refs modified from upstream:\n             " +
+               "\n            ".join([decode(x) for x in refs_to_warn_about]) +
+               "\n" +
+               "         We want to forcibly fetch from upstream to ensure\n" +
+               "         that all relevent refs are rewritten, but this will\n" +
+               "         discard your local changes before starting the\n" +
+               "         rewrite.  Proceed with fetch (Y/N)?")
+        response = input(msg)
+
+        if response.lower() != 'y':
+          self._args.no_fetch = True
+          # Don't do the fetch, and don't remove the origin remote
+          return
+
+      cmd = 'git fetch -q --prune --update-head-ok --refmap "" origin +refs/*:refs/*'
+      m = _("NOTICE: Fetching all refs from origin to make sure we rewrite\n"
+            "        all history that may reference the sensitive data, via\n"
+            "      "+cmd)
+      print(m)
+      ret = subproc.call([arg if arg != '""' else '' for arg in cmd.split()],
+                         cwd=source_working_dir)
+      if ret != 0: # pragma: no cover
+        m = _("WARNING: Fetching all refs from origin failed")
+        print(m)
+    if self._args.sensitive_data_removal:
+      return
+
+    # Now remove the origin remote
     url = self._config_settings[b'remote.origin.url'].decode(errors='replace')
     m = _("NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'\n"
           "        in the manual if you want to push back there.\n"
@@ -4465,10 +4731,51 @@ class RepoFilter(object):
 
     return commit_renames, ref_maps, first_changes
 
+  def _handle_lfs_metadata(self, metadata_dir):
+    if self._lfs_object_tracker is None:
+      print("NOTE: LFS object orphaning not checked (LFS not in use)")
+      return
+
+    if self._args.partial:
+      target_working_dir = self._args.target or b'.'
+      source = False
+      self._lfs_object_tracker.find_all_lfs_objects_in_repo(target_working_dir,
+                                                            source)
+
+    with open(os.path.join(metadata_dir, b'original_lfs_objects'), 'bw') as f:
+      for obj in sorted(self._lfs_object_tracker.source_objects.objects):
+        f.write(obj+b"\n")
+
+    orphaned_lfs_path = os.path.join(metadata_dir, b'orphaned_lfs_objects')
+    msg = textwrap.dedent(_(f"""\
+      NOTE: There were LFS Objects Orphaned by this rewrite recorded in
+            {decode(orphaned_lfs_path)}."""))
+    with open(orphaned_lfs_path, 'bw') as f:
+      differences = self._lfs_object_tracker.source_objects.objects - \
+                    self._lfs_object_tracker.target_objects.objects
+      for obj in sorted(differences):
+        f.write(obj+b"\n")
+      if differences:
+        self._lfs_object_tracker.objects_orphaned = True
+        print(msg)
+
   def _record_metadata(self, metadata_dir, orig_refs):
     self._flush_renames()
     commit_renames, ref_maps, first_changes = \
       self._compute_metadata(metadata_dir, orig_refs)
+
+    if self._args.sensitive_data_removal:
+      changed_commits = sum(k!=v for (k,v) in commit_renames.items())
+      print(f"You rewrote {changed_commits} (of {len(commit_renames)}) commits.")
+      print("") # Add a blank line before important rewrite information
+      print(f"NOTE: First Changed Commit(s) is/are:\n  "
+            + decode(b"\n  ".join(x for x in first_changes)))
+
+      with open(os.path.join(metadata_dir, b'sensitive_data_removal'), 'bw') as f:
+        pass # Write nothing; we only need the file created
+
+      self._handle_lfs_metadata(metadata_dir)
+      print("") # Add a blank line after important rewrite information
 
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
@@ -4481,6 +4788,12 @@ class RepoFilter(object):
       for refname, hash_pair in sorted(ref_maps.items()):
         (old_hash, new_hash) = hash_pair
         f.write(b'%s %s %s\n' % (old_hash, new_hash, refname))
+        if old_hash != new_hash:
+          self._changed_refs.add(refname)
+
+    with open(os.path.join(metadata_dir, b'changed-refs'), 'bw') as f:
+      for refname in sorted(self._changed_refs):
+        f.write(b'%s\n' % refname)
 
     with open(os.path.join(metadata_dir, b'first-changed-commits'), 'bw') as f:
       for commit, undeleted_self_or_ancestor in sorted(first_changes.items()):
@@ -4544,6 +4857,8 @@ class RepoFilter(object):
 
   def _insert_into_stream(self, obj):
     if not obj.dumped:
+      if self._lfs_object_tracker:
+        self._lfs_object_tracker.check_output_object(obj)
       if self._parser:
         self._parser.insert(obj)
       else:
@@ -4557,6 +4872,7 @@ class RepoFilter(object):
     if not self._input and not self._output:
       self._run_sanity_checks()
       if not self._args.dry_run and not self._args.partial:
+        self._read_stash()
         self._migrate_origin_to_heads()
       self._setup_input(use_done_feature = True)
       self._setup_output()
@@ -4570,6 +4886,7 @@ class RepoFilter(object):
                                       tag_callback    = self._tweak_tag,
                                       reset_callback  = self._tweak_reset,
                                       done_callback   = self._final_commands)
+      self._setup_lfs_orphaning_checks()
       self._parser.run(self._input, self._output)
       if not self._finalize_handled:
         self._final_commands()
@@ -4627,6 +4944,22 @@ class RepoFilter(object):
     # Let user know how long it took
     print(_("Completely finished after {:.2f} seconds.")
           .format(time.time()-start))
+
+    # Give post-rewrite instructions for cleaning up other copies for SDR
+    if self._args.sensitive_data_removal:
+      lfs_note = ""
+      if self._lfs_object_tracker and \
+         self._lfs_object_tracker.objects_orphaned == True:
+        lfs_note = _(" and LFS Objects Orphaned")
+      push_command = "git push --force --mirror origin"
+      if self._args.no_fetch:
+        if self._args.partial:
+          push_command = "git push --force origin " + \
+                     " ".join(sorted([decode(x) for x in self._changed_refs]))
+        else:
+          push_command = "git push --all --tags origin"
+      print("")
+      print(sdr_next_steps % (push_command, lfs_note, lfs_note))
 
 def main():
   setup_gettext()
