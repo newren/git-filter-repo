@@ -33,6 +33,10 @@ parser.add_argument('--file', type=os.fsencode,
 args = parser.parse_args()
 if not args.file:
   raise SystemExit("Error: Need to specify the --file option")
+if any([x == b"." or x== b".." for x in args.file.split(b"/")]):
+  raise SystemExit(f"Error: Invalid path components in {fr.decode(args.file)}")
+if not os.path.isfile(args.file):
+  raise SystemExit(f"Error: {fr.decode(args.file)} not found")
 
 fhash = subprocess.check_output(['git', 'hash-object', '-w', args.file]).strip()
 fmode = b'100755' if os.access(args.file, os.X_OK) else b'100644'
