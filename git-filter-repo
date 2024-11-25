@@ -3867,8 +3867,10 @@ class RepoFilter(object):
           assert match_type in ('match','regex') # glob was translated to regex
           if match_type == 'match' and filename_matches(match, full_pathname):
             full_pathname = full_pathname.replace(match, repl, 1)
+            pathname = full_pathname # rename incompatible with use_base_name
           if match_type == 'regex':
             full_pathname = match.sub(repl, full_pathname)
+            pathname = full_pathname # rename incompatible with use_base_name
       return full_pathname if (wanted == filtering_is_inclusive) else None
 
     args = self._args

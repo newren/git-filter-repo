@@ -262,6 +262,27 @@ test_expect_success 'Mixing filtering and renaming paths, enough filters' '
 	)
 '
 
+test_expect_success 'Path rename also allowed before path filtering' '
+	create_path_filtering_and_renaming &&
+	git clone --no-local path_filtering_and_renaming \
+			     path_renaming_and_filtering &&
+	(
+		cd path_renaming_and_filtering &&
+
+		git filter-repo --invert-paths \
+				--path-rename src/main/java/com/org/foo/uptoten:src/main/java/org/foo/asbigasten \
+				--path src/main/java/com/ \
+
+		cat <<-EOF >expect &&
+		.gitignore
+		src/main/java/org/foo/asbigasten
+		src/main/resources/uptofive
+		EOF
+		git ls-files >actual &&
+		test_cmp expect actual
+	)
+'
+
 test_expect_success 'Mixing filtering and to-subdirectory-filter' '
 	create_path_filtering_and_renaming &&
 	git clone --no-local path_filtering_and_renaming \
