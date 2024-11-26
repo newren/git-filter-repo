@@ -444,6 +444,13 @@ has also driven numerous improvements to fast-export and fast-import
 (and occasionally other commands) in core git, based on things
 filter-repo needs to do its work:
 
+  * git-2.48.0 (to be released Jan 2025)
+    * [fast-import: disallow more path components](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=da91a90c2f)
+    * [fast-import: disallow "." and ".." path components](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=4a2790a257)
+    * [fast-import: avoid making replace refs point to themselves](
+      https://git.kernel.org/pub/scm/git/git.git/commit/?id=5e904f1a4a)
   * git-2.28.0
     * [fast-import: add new --date-format=raw-permissive format](
       https://git.kernel.org/pub/scm/git/git.git/commit/?id=d42a2fb72f)
