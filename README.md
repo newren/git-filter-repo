@@ -84,6 +84,8 @@ If you prefer learning from examples:
 section](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html#EXAMPLES)
   * I have collected a set of [example filterings based on user-filed issues](Documentation/examples-from-user-filed-issues.md)
 
+In either case, you may also find the [Frequently Answered Questions](Documentation/FAQ.md) useful.
+
 # Why filter-repo instead of other alternatives?
 
 This was covered in more detail in a [Git Rev News article on
