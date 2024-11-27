@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 10.1.2" />
-<title>gitk(1)</title>
+<title>gitpacking(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -735,12 +735,12 @@ asciidoc.install();
 <body class="manpage">
 <div id="header">
 <h1>
-gitk(1) Manual Page
+gitpacking(7) Manual Page
 </h1>
 <h2>NAME</h2>
 <div class="sectionbody">
-<p>gitk -
-   The Git repository browser
+<p>gitpacking -
+   Advanced concepts related to packing in Git
 </p>
 </div>
 </div>
@@ -748,346 +748,318 @@ gitk(1) Manual Page
 <div class="sect1">
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
-<div class="verseblock">
-<pre class="content"><em>gitk</em> [&lt;options&gt;] [&lt;revision-range&gt;] [--] [&lt;path&gt;&#8230;]</pre>
-<div class="attribution">
-</div></div>
+<div class="paragraph"><p>gitpacking</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Displays changes in a repository or a selected set of commits. This includes
-visualizing the commit graph, showing information related to each commit, and
-the files in the trees of each revision.</p></div>
+<div class="paragraph"><p>This document aims to describe some advanced concepts related to packing
+in Git.</p></div>
+<div class="paragraph"><p>Many concepts are currently described scattered between manual pages of
+various Git commands, including <a href="git-pack-objects.html">git-pack-objects(1)</a>,
+<a href="git-repack.html">git-repack(1)</a>, and others, as well as <a href="gitformat-pack.html">gitformat-pack(5)</a>,
+and parts of the <code>Documentation/technical</code> tree.</p></div>
+<div class="paragraph"><p>There are many aspects of packing in Git that are not covered in this
+document that instead live in the aforementioned areas. Over time, those
+scattered bits may coalesce into this document.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_options">OPTIONS</h2>
+<h2 id="_pseudo_merge_bitmaps">Pseudo-merge bitmaps</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>To control which revisions to show, gitk supports most options
-applicable to the <em>git rev-list</em> command.  It also supports a few
-options applicable to the <em>git diff-*</em> commands to control how the
-changes each commit introduces are shown.  Finally, it supports some
-gitk-specific options.</p></div>
-<div class="paragraph"><p>gitk generally only understands options with arguments in the
-<em>stuck</em> form (see <a href="gitcli.html">gitcli(7)</a>) due to limitations in the
-command-line parser.</p></div>
-<div class="sect2">
-<h3 id="_rev_list_options_and_arguments">rev-list options and arguments</h3>
-<div class="paragraph"><p>This manual page describes only the most frequently used options.  See
-<a href="git-rev-list.html">git-rev-list(1)</a> for a complete list.</p></div>
-<div class="dlist"><dl>
-<dt class="hdlist1">
---all
-</dt>
-<dd>
-<p>
-        Show all refs (branches, tags, etc.).
-</p>
-</dd>
-<dt class="hdlist1">
---branches[=&lt;pattern&gt;]
-</dt>
-<dt class="hdlist1">
---tags[=&lt;pattern&gt;]
-</dt>
-<dt class="hdlist1">
---remotes[=&lt;pattern&gt;]
-</dt>
-<dd>
-<p>
-        Pretend as if all the branches (tags, remote branches, resp.)
-        are listed on the command line as <em>&lt;commit&gt;</em>. If <em>&lt;pattern&gt;</em>
-        is given, limit refs to ones matching given shell glob. If
-        pattern lacks <em>?</em>, <em>&#42;</em>, or <em>[</em>, <em>/&#42;</em> at the
-        end is implied.
-</p>
-</dd>
-<dt class="hdlist1">
---since=&lt;date&gt;
-</dt>
-<dd>
-<p>
-        Show commits more recent than a specific date.
-</p>
-</dd>
-<dt class="hdlist1">
---until=&lt;date&gt;
-</dt>
-<dd>
-<p>
-        Show commits older than a specific date.
-</p>
-</dd>
-<dt class="hdlist1">
---date-order
-</dt>
-<dd>
-<p>
-        Sort commits by date when possible.
-</p>
-</dd>
-<dt class="hdlist1">
---merge
-</dt>
-<dd>
-<p>
-        After an attempt to merge stops with conflicts, show the commits on
-        the history between two branches (i.e. the HEAD and the MERGE_HEAD)
-        that modify the conflicted files and do not exist on all the heads
-        being merged.
-</p>
-</dd>
-<dt class="hdlist1">
---left-right
-</dt>
-<dd>
-<p>
-        Mark which side of a symmetric difference a commit is reachable
-        from.  Commits from the left side are prefixed with a &lt;
-        symbol and those from the right with a &gt; symbol.
-</p>
-</dd>
-<dt class="hdlist1">
---full-history
-</dt>
-<dd>
-<p>
-        When filtering history with <em>&lt;path&gt;&#8230;</em>, does not prune some
-        history.  (See "History simplification" in <a href="git-log.html">git-log(1)</a>
-        for a more detailed explanation.)
-</p>
-</dd>
-<dt class="hdlist1">
---simplify-merges
-</dt>
-<dd>
-<p>
-        Additional option to <code>--full-history</code> to remove some needless
-        merges from the resulting history, as there are no selected
-        commits contributing to this merge.  (See "History
-        simplification" in <a href="git-log.html">git-log(1)</a> for a more detailed
-        explanation.)
-</p>
-</dd>
-<dt class="hdlist1">
---ancestry-path
-</dt>
-<dd>
-<p>
-        When given a range of commits to display
-        (e.g. <em>commit1..commit2</em> or <em>commit2 &#94;commit1</em>), only
-        display commits that exist directly on the ancestry chain
-        between the <em>commit1</em> and <em>commit2</em>, i.e. commits that are
-        both descendants of <em>commit1</em>, and ancestors of <em>commit2</em>.
-        (See "History simplification" in <a href="git-log.html">git-log(1)</a> for a more
-        detailed explanation.)
-</p>
-</dd>
-<dt class="hdlist1">
--L&lt;start&gt;,&lt;end&gt;:&lt;file&gt;
-</dt>
-<dt class="hdlist1">
--L:&lt;funcname&gt;:&lt;file&gt;
-</dt>
-<dd>
-<p>
-        Trace the evolution of the line range given by <em>&lt;start&gt;,&lt;end&gt;</em>,
-        or by the function name regex <em>&lt;funcname&gt;</em>, within the <em>&lt;file&gt;</em>. You may
-        not give any pathspec limiters.  This is currently limited to
-        a walk starting from a single revision, i.e., you may only
-        give zero or one positive revision arguments, and
-        <em>&lt;start&gt;</em> and <em>&lt;end&gt;</em> (or <em>&lt;funcname&gt;</em>) must exist in the starting revision.
-        You can specify this option more than once. Implies <code>--patch</code>.
-        Patch output can be suppressed using <code>--no-patch</code>, but other diff formats
-        (namely <code>--raw</code>, <code>--numstat</code>, <code>--shortstat</code>, <code>--dirstat</code>, <code>--summary</code>,
-        <code>--name-only</code>, <code>--name-status</code>, <code>--check</code>) are not currently implemented.
-</p>
-<div class="paragraph"><p><em>&lt;start&gt;</em> and <em>&lt;end&gt;</em> can take one of these forms:</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-number
-</p>
-<div class="paragraph"><p>If <em>&lt;start&gt;</em> or <em>&lt;end&gt;</em> is a number, it specifies an
-absolute line number (lines count from 1).</p></div>
-</li>
-<li>
-<p>
-<code>/regex/</code>
-</p>
-<div class="paragraph"><p>This form will use the first line matching the given
-POSIX regex. If <em>&lt;start&gt;</em> is a regex, it will search from the end of
-the previous <code>-L</code> range, if any, otherwise from the start of file.
-If <em>&lt;start&gt;</em> is <code>^/regex/</code>, it will search from the start of file.
-If <em>&lt;end&gt;</em> is a regex, it will search
-starting at the line given by <em>&lt;start&gt;</em>.</p></div>
-</li>
-<li>
-<p>
-+offset or -offset
-</p>
-<div class="paragraph"><p>This is only valid for <em>&lt;end&gt;</em> and will specify a number
-of lines before or after the line given by <em>&lt;start&gt;</em>.</p></div>
-</li>
-</ul></div>
-<div class="paragraph"><p>If <code>:</code><em>&lt;funcname&gt;</em> is given in place of <em>&lt;start&gt;</em> and <em>&lt;end&gt;</em>, it is a
-regular expression that denotes the range from the first funcname line
-that matches <em>&lt;funcname&gt;</em>, up to the next funcname line. <code>:</code><em>&lt;funcname&gt;</em>
-searches from the end of the previous <code>-L</code> range, if any, otherwise
-from the start of file. <code>^:</code><em>&lt;funcname&gt;</em> searches from the start of
-file. The function names are determined in the same way as <code>git</code> <code>diff</code>
-works out patch hunk headers (see <em>Defining a custom hunk-header</em>
-in <a href="gitattributes.html">gitattributes(5)</a>).</p></div>
-</dd>
-<dt class="hdlist1">
-&lt;revision range&gt;
-</dt>
-<dd>
-<p>
-        Limit the revisions to show. This can be either a single revision
-        meaning show from the given revision and back, or it can be a range in
-        the form "<em>&lt;from&gt;</em>..<em>&lt;to&gt;</em>" to show all revisions between <em>&lt;from&gt;</em> and
-        back to <em>&lt;to&gt;</em>. Note, more advanced revision selection can be applied.
-        For a more complete list of ways to spell object names, see
-        <a href="gitrevisions.html">gitrevisions(7)</a>.
-</p>
-</dd>
-<dt class="hdlist1">
-&lt;path&gt;&#8230;
-</dt>
-<dd>
-<p>
-        Limit commits to the ones touching files in the given paths. Note, to
-        avoid ambiguity with respect to revision names use "--" to separate the paths
-        from any preceding options.
-</p>
-</dd>
-</dl></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Pseudo-merge bitmaps are considered an experimental feature, so
+the configuration and many of the ideas are subject to change.</td>
+</tr></table>
 </div>
 <div class="sect2">
-<h3 id="_gitk_specific_options">gitk-specific options</h3>
+<h3 id="_background">Background</h3>
+<div class="paragraph"><p>Reachability bitmaps are most efficient when we have on-disk stored
+bitmaps for one or more of the starting points of a traversal. For this
+reason, Git prefers storing bitmaps for commits at the tips of refs,
+because traversals tend to start with those points.</p></div>
+<div class="paragraph"><p>But if you have a large number of refs, it&#8217;s not feasible to store a
+bitmap for <em>every</em> ref tip. It takes up space, and just OR-ing all of
+those bitmaps together is expensive.</p></div>
+<div class="paragraph"><p>One way we can deal with that is to create bitmaps that represent
+<em>groups</em> of refs. When a traversal asks about the entire group, then we
+can use this single bitmap instead of considering each ref individually.
+Because these bitmaps represent the set of objects which would be
+reachable in a hypothetical merge of all of the commits, we call them
+pseudo-merge bitmaps.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_overview">Overview</h3>
+<div class="paragraph"><p>A "pseudo-merge bitmap" is used to refer to a pair of bitmaps, as
+follows:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
---argscmd=&lt;command&gt;
+Commit bitmap
 </dt>
 <dd>
 <p>
-        Command to be run each time gitk has to determine the revision
-        range to show.  The command is expected to print on its
-        standard output a list of additional revisions to be shown,
-        one per line.  Use this instead of explicitly specifying a
-        <em>&lt;revision-range&gt;</em> if the set of commits to show may vary
-        between refreshes.
+  A bitmap whose set bits describe the set of commits included in the
+  pseudo-merge&#8217;s "merge" bitmap (as below).
 </p>
 </dd>
 <dt class="hdlist1">
---select-commit=&lt;ref&gt;
+Merge bitmap
 </dt>
 <dd>
 <p>
-        Select the specified commit after loading the graph.
-        Default behavior is equivalent to specifying <em>--select-commit=HEAD</em>.
+  A bitmap whose set bits describe the reachability closure over the set
+  of commits in the pseudo-merge&#8217;s "commits" bitmap (as above). An
+  identical bitmap would be generated for an octopus merge with the same
+  set of parents as described in the commits bitmap.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Pseudo-merge bitmaps can accelerate bitmap traversals when all commits
+for a given pseudo-merge are listed on either side of the traversal,
+either directly (by explicitly asking for them as part of the <code>HAVES</code>
+or <code>WANTS</code>) or indirectly (by encountering them during a fill-in
+traversal).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_use_cases">Use-cases</h3>
+<div class="paragraph"><p>For example, suppose there exists a pseudo-merge bitmap with a large
+number of commits, all of which are listed in the <code>WANTS</code> section of
+some bitmap traversal query. When pseudo-merge bitmaps are enabled, the
+bitmap machinery can quickly determine there is a pseudo-merge which
+satisfies some subset of the wanted objects on either side of the query.
+Then, we can inflate the EWAH-compressed bitmap, and <code>OR</code> it in to the
+resulting bitmap. By contrast, without pseudo-merge bitmaps, we would
+have to repeat the decompression and <code>OR</code>-ing step over a potentially
+large number of individual bitmaps, which can take proportionally more
+time.</p></div>
+<div class="paragraph"><p>Another benefit of pseudo-merges arises when there is some combination
+of (a) a large number of references, with (b) poor bitmap coverage, and
+(c) deep, nested trees, making fill-in traversal relatively expensive.
+For example, suppose that there are a large enough number of tags where
+bitmapping each of the tags individually is infeasible. Without
+pseudo-merge bitmaps, computing the result of, say, <code>git</code> <code>rev-list</code>
+<code>--use-bitmap-index</code> <code>--count</code> <code>--objects</code> <code>--tags</code> would likely require a
+large amount of fill-in traversal. But when a large quantity of those
+tags are stored together in a pseudo-merge bitmap, the bitmap machinery
+can take advantage of the fact that we only care about the union of
+objects reachable from all of those tags, and answer the query much
+faster.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_configuration">Configuration</h3>
+<div class="paragraph"><p>Reference tips are grouped into different pseudo-merge groups according
+to two criteria. A reference name matches one or more of the defined
+pseudo-merge patterns, and optionally one or more capture groups within
+that pattern which further partition the group.</p></div>
+<div class="paragraph"><p>Within a group, commits may be considered "stable", or "unstable"
+depending on their age. These are adjusted by setting the
+<code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.stableThreshold</code> and
+<code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.threshold</code> configuration values, respectively.</p></div>
+<div class="paragraph"><p>All stable commits are grouped into pseudo-merges of equal size
+(<code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.stableSize</code>). If the <code>stableSize</code>
+configuration is set to, say, 100, then the first 100 commits (ordered
+by committer date) which are older than the <code>stableThreshold</code> value will
+form one group, the next 100 commits will form another group, and so on.</p></div>
+<div class="paragraph"><p>Among unstable commits, the pseudo-merge machinery will attempt to
+combine older commits into large groups as opposed to newer commits
+which will appear in smaller groups. This is based on the heuristic that
+references whose tip commit is older are less likely to be modified to
+point at a different commit than a reference whose tip commit is newer.</p></div>
+<div class="paragraph"><p>The size of groups is determined by a power-law decay function, and the
+decay parameter roughly corresponds to "k" in <code>f</code>(<code>n</code>) <code>=</code> <code>C</code>*n^(<code>-k/100</code>),
+where <code>f</code>(<code>n</code>) describes the size of the <code>n</code>-th pseudo-merge group. The
+sample rate controls what percentage of eligible commits are considered
+as candidates. The threshold parameter indicates the minimum age (so as
+to avoid including too-recent commits in a pseudo-merge group, making it
+less likely to be valid). The "maxMerges" parameter sets an upper-bound
+on the number of pseudo-merge commits an individual group</p></div>
+<div class="paragraph"><p>The "stable"-related parameters control "stable" pseudo-merge groups,
+comprised of a fixed number of commits which are older than the
+configured "stable threshold" value and may be grouped together in
+chunks of "stableSize" in order of age.</p></div>
+<div class="paragraph"><p>The exact configuration for pseudo-merges is as follows:</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">The configuration options in <code>bitmapPseudoMerge.</code>* are considered
+EXPERIMENTAL and may be subject to change or be removed entirely in the
+future. For more information about the pseudo-merge bitmap feature, see
+the "Pseudo-merge bitmaps" section of <a href="gitpacking.html">gitpacking(7)</a>.</td>
+</tr></table>
+</div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+bitmapPseudoMerge.&lt;name&gt;.pattern
+</dt>
+<dd>
+<p>
+        Regular expression used to match reference names. Commits
+        pointed to by references matching this pattern (and meeting
+        the below criteria, like <code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.sampleRate</code>
+        and <code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.threshold</code>) will be considered
+        for inclusion in a pseudo-merge bitmap.
+</p>
+<div class="paragraph"><p>Commits are grouped into pseudo-merge groups based on whether or not
+any reference(s) that point at a given commit match the pattern, which
+is an extended regular expression.</p></div>
+<div class="paragraph"><p>Within a pseudo-merge group, commits may be further grouped into
+sub-groups based on the capture groups in the pattern. These
+sub-groupings are formed from the regular expressions by concatenating
+any capture groups from the regular expression, with a <em>-</em> dash in
+between.</p></div>
+<div class="paragraph"><p>For example, if the pattern is <code>refs/tags/</code>, then all tags (provided
+they meet the below criteria) will be considered candidates for the
+same pseudo-merge group. However, if the pattern is instead
+<code>refs/remotes/</code>([<code>0-9</code>])<code>+/tags/</code>, then tags from different remotes will
+be grouped into separate pseudo-merge groups, based on the remote
+number.</p></div>
+</dd>
+<dt class="hdlist1">
+bitmapPseudoMerge.&lt;name&gt;.decay
+</dt>
+<dd>
+<p>
+        Determines the rate at which consecutive pseudo-merge bitmap
+        groups decrease in size. Must be non-negative. This parameter
+        can be thought of as <code>k</code> in the function <code>f</code>(<code>n</code>) <code>=</code> <code>C</code> * <code>n^-k</code>,
+        where <code>f</code>(<code>n</code>) is the size of the `n`th group.
+</p>
+<div class="paragraph"><p>Setting the decay rate equal to <code>0</code> will cause all groups to be the
+same size. Setting the decay rate equal to <code>1</code> will cause the <code>n</code>`th
+<code>group</code> <code>to</code> <code>be</code> `1/n the size of the initial group.  Higher values of the
+decay rate cause consecutive groups to shrink at an increasing rate.
+The default is <code>1</code>.</p></div>
+<div class="paragraph"><p>If all groups are the same size, it is possible that groups containing
+newer commits will be able to be used less often than earlier groups,
+since it is more likely that the references pointing at newer commits
+will be updated more often than a reference pointing at an old commit.</p></div>
+</dd>
+<dt class="hdlist1">
+bitmapPseudoMerge.&lt;name&gt;.sampleRate
+</dt>
+<dd>
+<p>
+        Determines the proportion of non-bitmapped commits (among
+        reference tips) which are selected for inclusion in an
+        unstable pseudo-merge bitmap. Must be between <code>0</code> and <code>1</code>
+        (inclusive). The default is <code>1</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+bitmapPseudoMerge.&lt;name&gt;.threshold
+</dt>
+<dd>
+<p>
+        Determines the minimum age of non-bitmapped commits (among
+        reference tips, as above) which are candidates for inclusion
+        in an unstable pseudo-merge bitmap. The default is
+        <code>1.week.ago</code>.
+</p>
+</dd>
+<dt class="hdlist1">
+bitmapPseudoMerge.&lt;name&gt;.maxMerges
+</dt>
+<dd>
+<p>
+        Determines the maximum number of pseudo-merge commits among
+        which commits may be distributed.
+</p>
+<div class="paragraph"><p>For pseudo-merge groups whose pattern does not contain any capture
+groups, this setting is applied for all commits matching the regular
+expression. For patterns that have one or more capture groups, this
+setting is applied for each distinct capture group.</p></div>
+<div class="paragraph"><p>For example, if your capture group is <code>refs/tags/</code>, then this setting
+will distribute all tags into a maximum of <code>maxMerges</code> pseudo-merge
+commits. However, if your capture group is, say,
+<code>refs/remotes/</code>([<code>0-9</code>]<code>+</code>)<code>/tags/</code>, then this setting will be applied to
+each remote&#8217;s set of tags individually.</p></div>
+<div class="paragraph"><p>Must be non-negative. The default value is 64.</p></div>
+</dd>
+<dt class="hdlist1">
+bitmapPseudoMerge.&lt;name&gt;.stableThreshold
+</dt>
+<dd>
+<p>
+        Determines the minimum age of commits (among reference tips,
+        as above, however stable commits are still considered
+        candidates even when they have been covered by a bitmap) which
+        are candidates for a stable a pseudo-merge bitmap. The default
+        is <code>1.month.ago</code>.
+</p>
+<div class="paragraph"><p>Setting this threshold to a smaller value (e.g., 1.week.ago) will cause
+more stable groups to be generated (which impose a one-time generation
+cost) but those groups will likely become stale over time. Using a
+larger value incurs the opposite penalty (fewer stable groups which are
+more useful).</p></div>
+</dd>
+<dt class="hdlist1">
+bitmapPseudoMerge.&lt;name&gt;.stableSize
+</dt>
+<dd>
+<p>
+        Determines the size (in number of commits) of a stable
+        psuedo-merge bitmap. The default is <code>512</code>.
 </p>
 </dd>
 </dl></div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_examples">Examples</h2>
-<div class="sectionbody">
-<div class="dlist"><dl>
-<dt class="hdlist1">
-gitk v2.6.12.. include/scsi drivers/scsi
-</dt>
-<dd>
-<p>
-        Show the changes since version <em>v2.6.12</em> that changed any
-        file in the include/scsi or drivers/scsi subdirectories
-</p>
-</dd>
-<dt class="hdlist1">
-gitk --since="2 weeks ago" -- gitk
-</dt>
-<dd>
-<p>
-        Show the changes during the last two weeks to the file <em>gitk</em>.
-        The "--" is necessary to avoid confusion with the <strong>branch</strong> named
-        <em>gitk</em>
-</p>
-</dd>
-<dt class="hdlist1">
-gitk --max-count=100 --all -- Makefile
-</dt>
-<dd>
-<p>
-        Show at most 100 changes made to the file <em>Makefile</em>. Instead of only
-        looking for changes in the current branch look in all branches.
-</p>
-</dd>
-</dl></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_files">Files</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>User configuration and preferences are stored at:</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-<code>$XDG_CONFIG_HOME/git/gitk</code> if it exists, otherwise
-</p>
-</li>
-<li>
-<p>
-<code>$HOME/.gitk</code> if it exists
-</p>
-</li>
-</ul></div>
-<div class="paragraph"><p>If neither of the above exist then <code>$XDG_CONFIG_HOME/git/gitk</code> is created and
-used by default. If <em>$XDG_CONFIG_HOME</em> is not set it defaults to
-<code>$HOME/.config</code> in all cases.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_history">History</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Gitk was the first graphical repository browser. It&#8217;s written in
-tcl/tk.</p></div>
-<div class="paragraph"><p><em>gitk</em> is actually maintained as an independent project, but stable
-versions are distributed as part of the Git suite for the convenience
-of end users.</p></div>
-<div class="paragraph"><p>gitk-git/ comes from Paul Mackerras&#8217;s gitk project:</p></div>
-<div class="literalblock">
+<div class="sect2">
+<h3 id="_examples">Examples</h3>
+<div class="paragraph"><p>Suppose that you have a repository with a large number of references,
+and you want a bare-bones configuration of pseudo-merge bitmaps that
+will enhance bitmap coverage of the <code>refs/</code> namespace. You may start
+with a configuration like so:</p></div>
+<div class="listingblock">
 <div class="content">
-<pre><code>git://ozlabs.org/~paulus/gitk</code></pre>
+<pre><code>[bitmapPseudoMerge "all"]
+        pattern = "refs/"
+        threshold = now
+        stableThreshold = never
+        sampleRate = 100
+        maxMerges = 64</code></pre>
 </div></div>
+<div class="paragraph"><p>This will create pseudo-merge bitmaps for all references, regardless of
+their age, and group them into 64 pseudo-merge commits.</p></div>
+<div class="paragraph"><p>If you wanted to separate tags from branches when generating
+pseudo-merge commits, you would instead define the pattern with a
+capture group, like so:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[bitmapPseudoMerge "all"]
+        pattern = "refs/(heads/tags)/"</code></pre>
+</div></div>
+<div class="paragraph"><p>Suppose instead that you are working in a fork-network repository, with
+each fork specified by some numeric ID, and whose refs reside in
+<code>refs/virtual/NNN/</code> (where <code>NNN</code> is the numeric ID corresponding to some
+fork) in the network. In this instance, you may instead write something
+like:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[bitmapPseudoMerge "all"]
+        pattern = "refs/virtual/([0-9]+)/(heads|tags)/"
+        threshold = now
+        stableThreshold = never
+        sampleRate = 100
+        maxMerges = 64</code></pre>
+</div></div>
+<div class="paragraph"><p>Which would generate pseudo-merge group identifiers like "1234-heads",
+and "5678-tags" (for branches in fork "1234", and tags in remote "5678",
+respectively).</p></div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
-<div class="dlist"><dl>
-<dt class="hdlist1">
-<em>qgit(1)</em>
-</dt>
-<dd>
-<p>
-        A repository browser written in C++ using Qt.
-</p>
-</dd>
-<dt class="hdlist1">
-<em>tig(1)</em>
-</dt>
-<dd>
-<p>
-        A minimal repository browser and Git tool output highlighter written
-        in C using Ncurses.
-</p>
-</dd>
-</dl></div>
+<div class="paragraph"><p><a href="git-pack-objects.html">git-pack-objects(1)</a>
+<a href="git-repack.html">git-repack(1)</a></p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1101,7 +1073,7 @@ of end users.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-10-31 16:05:06 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

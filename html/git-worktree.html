@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-worktree(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -767,7 +767,7 @@ git-worktree(1) Manual Page
 <div class="sectionbody">
 <div class="paragraph"><p>Manage multiple working trees attached to the same repository.</p></div>
 <div class="paragraph"><p>A git repository can support multiple working trees, allowing you to check
-out more than one branch at a time.  With <code>git worktree add</code> a new working
+out more than one branch at a time.  With <code>git</code> <code>worktree</code> <code>add</code> a new working
 tree is associated with the repository, along with additional metadata
 that differentiates that working tree from others in the same repository.
 The working tree, along with this metadata, is called a "worktree".</p></div>
@@ -775,27 +775,27 @@ The working tree, along with this metadata, is called a "worktree".</p></div>
 worktree" prepared by <a href="git-init.html">git-init(1)</a> or <a href="git-clone.html">git-clone(1)</a>.
 A repository has one main worktree (if it&#8217;s not a bare repository) and
 zero or more linked worktrees. When you are done with a linked worktree,
-remove it with <code>git worktree remove</code>.</p></div>
-<div class="paragraph"><p>In its simplest form, <code>git worktree add &lt;path&gt;</code> automatically creates a
-new branch whose name is the final component of <code>&lt;path&gt;</code>, which is
-convenient if you plan to work on a new topic. For instance, <code>git
-worktree add ../hotfix</code> creates new branch <code>hotfix</code> and checks it out at
-path <code>../hotfix</code>. To instead work on an existing branch in a new worktree,
-use <code>git worktree add &lt;path&gt; &lt;branch&gt;</code>. On the other hand, if you just
+remove it with <code>git</code> <code>worktree</code> <code>remove</code>.</p></div>
+<div class="paragraph"><p>In its simplest form, <code>git</code> <code>worktree</code> <code>add</code> <em>&lt;path&gt;</em> automatically creates a
+new branch whose name is the final component of <em>&lt;path&gt;</em>, which is
+convenient if you plan to work on a new topic. For instance, <code>git</code>
+<code>worktree</code> <code>add</code> <code>..</code><code>/hotfix</code> creates new branch <code>hotfix</code> and checks it out at
+path <code>..</code><code>/hotfix</code>. To instead work on an existing branch in a new worktree,
+use <code>git</code> <code>worktree</code> <code>add</code> <em>&lt;path&gt;</em> <em>&lt;branch&gt;</em>. On the other hand, if you just
 plan to make some experimental changes or do testing without disturbing
 existing development, it is often convenient to create a <em>throwaway</em>
 worktree not associated with any branch. For instance,
-<code>git worktree add -d &lt;path&gt;</code> creates a new worktree with a detached <code>HEAD</code>
+<code>git</code> <code>worktree</code> <code>add</code> <code>-d</code> <em>&lt;path&gt;</em> creates a new worktree with a detached <code>HEAD</code>
 at the same commit as the current branch.</p></div>
-<div class="paragraph"><p>If a working tree is deleted without using <code>git worktree remove</code>, then
+<div class="paragraph"><p>If a working tree is deleted without using <code>git</code> <code>worktree</code> <code>remove</code>, then
 its associated administrative files, which reside in the repository
 (see "DETAILS" below), will eventually be removed automatically (see
 <code>gc.worktreePruneExpire</code> in <a href="git-config.html">git-config(1)</a>), or you can run
-<code>git worktree prune</code> in the main or any linked worktree to clean up any
+<code>git</code> <code>worktree</code> <code>prune</code> in the main or any linked worktree to clean up any
 stale administrative files.</p></div>
 <div class="paragraph"><p>If the working tree for a linked worktree is stored on a portable device
 or network share which is not always mounted, you can prevent its
-administrative files from being pruned by issuing the <code>git worktree lock</code>
+administrative files from being pruned by issuing the <code>git</code> <code>worktree</code> <code>lock</code>
 command, optionally specifying <code>--reason</code> to explain why the worktree is
 locked.</p></div>
 </div>
@@ -809,14 +809,14 @@ add &lt;path&gt; [&lt;commit-ish&gt;]
 </dt>
 <dd>
 <p>
-Create a worktree at <code>&lt;path&gt;</code> and checkout <code>&lt;commit-ish&gt;</code> into it. The new worktree
+Create a worktree at <em>&lt;path&gt;</em> and checkout <em>&lt;commit-ish&gt;</em> into it. The new worktree
 is linked to the current repository, sharing everything except per-worktree
-files such as <code>HEAD</code>, <code>index</code>, etc. As a convenience, <code>&lt;commit-ish&gt;</code> may
-be a bare "<code>-</code>", which is synonymous with <code>@{-1}</code>.
+files such as <code>HEAD</code>, <code>index</code>, etc. As a convenience, <em>&lt;commit-ish&gt;</em> may
+be a bare "<code>-</code>", which is synonymous with <code>@</code>{-1}.
 </p>
-<div class="paragraph"><p>If <code>&lt;commit-ish&gt;</code> is a branch name (call it <code>&lt;branch&gt;</code>) and is not found,
+<div class="paragraph"><p>If <em>&lt;commit-ish&gt;</em> is a branch name (call it <em>&lt;branch&gt;</em>) and is not found,
 and neither <code>-b</code> nor <code>-B</code> nor <code>--detach</code> are used, but there does
-exist a tracking branch in exactly one remote (call it <code>&lt;remote&gt;</code>)
+exist a tracking branch in exactly one remote (call it <em>&lt;remote&gt;</em>)
 with a matching name, treat as equivalent to:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -824,24 +824,24 @@ with a matching name, treat as equivalent to:</p></div>
 </div></div>
 <div class="paragraph"><p>If the branch exists in multiple remotes and one of them is named by
 the <code>checkout.defaultRemote</code> configuration variable, we&#8217;ll use that
-one for the purposes of disambiguation, even if the <code>&lt;branch&gt;</code> isn&#8217;t
+one for the purposes of disambiguation, even if the <em>&lt;branch&gt;</em> isn&#8217;t
 unique across all remotes. Set it to
 e.g. <code>checkout.defaultRemote=origin</code> to always checkout remote
-branches from there if <code>&lt;branch&gt;</code> is ambiguous but exists on the
+branches from there if <em>&lt;branch&gt;</em> is ambiguous but exists on the
 <code>origin</code> remote. See also <code>checkout.defaultRemote</code> in
 <a href="git-config.html">git-config(1)</a>.</p></div>
-<div class="paragraph"><p>If <code>&lt;commit-ish&gt;</code> is omitted and neither <code>-b</code> nor <code>-B</code> nor <code>--detach</code> used,
+<div class="paragraph"><p>If <em>&lt;commit-ish&gt;</em> is omitted and neither <code>-b</code> nor <code>-B</code> nor <code>--detach</code> used,
 then, as a convenience, the new worktree is associated with a branch (call
-it <code>&lt;branch&gt;</code>) named after <code>$(basename &lt;path&gt;)</code>.  If <code>&lt;branch&gt;</code> doesn&#8217;t
+it <em>&lt;branch&gt;</em>) named after <code>$</code>(<code>basename</code> <em>&lt;path&gt;</em>).  If <em>&lt;branch&gt;</em> doesn&#8217;t
 exist, a new branch based on <code>HEAD</code> is automatically created as if
-<code>-b &lt;branch&gt;</code> was given.  If <code>&lt;branch&gt;</code> does exist, it will be checked out
+<code>-b</code> <em>&lt;branch&gt;</em> was given.  If <em>&lt;branch&gt;</em> does exist, it will be checked out
 in the new worktree, if it&#8217;s not checked out anywhere else, otherwise the
 command will refuse to create the worktree (unless <code>--force</code> is used).</p></div>
-<div class="paragraph"><p>If <code>&lt;commit-ish&gt;</code> is omitted, neither <code>--detach</code>, or <code>--orphan</code> is
+<div class="paragraph"><p>If <em>&lt;commit-ish&gt;</em> is omitted, neither <code>--detach</code>, or <code>--orphan</code> is
 used, and there are no valid local branches (or remote branches if
 <code>--guess-remote</code> is specified) then, as a convenience, the new worktree is
-associated with a new unborn branch named <code>&lt;branch&gt;</code> (after
-<code>$(basename &lt;path&gt;)</code> if neither <code>-b</code> or <code>-B</code> is used) as if <code>--orphan</code> was
+associated with a new unborn branch named <em>&lt;branch&gt;</em> (after
+<code>$</code>(<code>basename</code> <em>&lt;path&gt;</em>) if neither <code>-b</code> or <code>-B</code> is used) as if <code>--orphan</code> was
 passed to the command. In the event the repository has a remote and
 <code>--guess-remote</code> is used, but no remote or local branches exist, then the
 command fails with a warning reminding the user to fetch from their remote
@@ -878,7 +878,7 @@ move
 <p>
 Move a worktree to a new location. Note that the main worktree or linked
 worktrees containing submodules cannot be moved with this command. (The
-<code>git worktree repair</code> command, however, can reestablish the connection
+<code>git</code> <code>worktree</code> <code>repair</code> command, however, can reestablish the connection
 with linked worktrees if you move the main worktree manually.)
 </p>
 </dd>
@@ -914,13 +914,13 @@ worktrees will be unable to locate it. Running <code>repair</code> in the main
 worktree will reestablish the connection from linked worktrees back to the
 main worktree.</p></div>
 <div class="paragraph"><p>Similarly, if the working tree for a linked worktree is moved without
-using <code>git worktree move</code>, the main worktree (or bare repository) will be
+using <code>git</code> <code>worktree</code> <code>move</code>, the main worktree (or bare repository) will be
 unable to locate it. Running <code>repair</code> within the recently-moved worktree
 will reestablish the connection. If multiple linked worktrees are moved,
-running <code>repair</code> from any worktree with each tree&#8217;s new <code>&lt;path&gt;</code> as an
+running <code>repair</code> from any worktree with each tree&#8217;s new <em>&lt;path&gt;</em> as an
 argument, will reestablish the connection to all the specified paths.</p></div>
-<div class="paragraph"><p>If both the main worktree and linked worktrees have been moved manually,
-then running <code>repair</code> in the main worktree and specifying the new <code>&lt;path&gt;</code>
+<div class="paragraph"><p>If both the main worktree and linked worktrees have been moved or copied manually,
+then running <code>repair</code> in the main worktree and specifying the new <em>&lt;path&gt;</em>
 of each linked worktree will reestablish all connections in both
 directions.</p></div>
 </dd>
@@ -948,15 +948,15 @@ Unlock a worktree, allowing it to be pruned, moved or deleted.
 <dd>
 <p>
         By default, <code>add</code> refuses to create a new worktree when
-        <code>&lt;commit-ish&gt;</code> is a branch name and is already checked out by
-        another worktree, or if <code>&lt;path&gt;</code> is already assigned to some
-        worktree but is missing (for instance, if <code>&lt;path&gt;</code> was deleted
+        <em>&lt;commit-ish&gt;</em> is a branch name and is already checked out by
+        another worktree, or if <em>&lt;path&gt;</em> is already assigned to some
+        worktree but is missing (for instance, if <em>&lt;path&gt;</em> was deleted
         manually). This option overrides these safeguards. To add a missing but
         locked worktree path, specify <code>--force</code> twice.
 </p>
 <div class="paragraph"><p><code>move</code> refuses to move a locked worktree unless <code>--force</code> is specified
 twice. If the destination is already assigned to some other worktree but is
-missing (for instance, if <code>&lt;new-path&gt;</code> was deleted manually), then <code>--force</code>
+missing (for instance, if <em>&lt;new-path&gt;</em> was deleted manually), then <code>--force</code>
 allows the move to proceed; use <code>--force</code> twice if the destination is locked.</p></div>
 <div class="paragraph"><p><code>remove</code> refuses to remove an unclean worktree unless <code>--force</code> is used.
 To remove a locked worktree, specify <code>--force</code> twice.</p></div>
@@ -969,12 +969,12 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 </dt>
 <dd>
 <p>
-        With <code>add</code>, create a new branch named <code>&lt;new-branch&gt;</code> starting at
-        <code>&lt;commit-ish&gt;</code>, and check out <code>&lt;new-branch&gt;</code> into the new worktree.
-        If <code>&lt;commit-ish&gt;</code> is omitted, it defaults to <code>HEAD</code>.
+        With <code>add</code>, create a new branch named <em>&lt;new-branch&gt;</em> starting at
+        <em>&lt;commit-ish&gt;</em>, and check out <em>&lt;new-branch&gt;</em> into the new worktree.
+        If <em>&lt;commit-ish&gt;</em> is omitted, it defaults to <code>HEAD</code>.
         By default, <code>-b</code> refuses to create a new branch if it already
-        exists. <code>-B</code> overrides this safeguard, resetting <code>&lt;new-branch&gt;</code> to
-        <code>&lt;commit-ish&gt;</code>.
+        exists. <code>-B</code> overrides this safeguard, resetting <em>&lt;new-branch&gt;</em> to
+        <em>&lt;commit-ish&gt;</em>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -994,7 +994,7 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 </dt>
 <dd>
 <p>
-        By default, <code>add</code> checks out <code>&lt;commit-ish&gt;</code>, however, <code>--no-checkout</code> can
+        By default, <code>add</code> checks out <em>&lt;commit-ish&gt;</em>, however, <code>--no-checkout</code> can
         be used to suppress checkout in order to make customizations,
         such as configuring sparse-checkout. See "Sparse checkout"
         in <a href="git-read-tree.html">git-read-tree(1)</a>.
@@ -1005,9 +1005,9 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 </dt>
 <dd>
 <p>
-        With <code>worktree add &lt;path&gt;</code>, without <code>&lt;commit-ish&gt;</code>, instead
+        With <code>worktree</code> <code>add</code> <em>&lt;path&gt;</em>, without <em>&lt;commit-ish&gt;</em>, instead
         of creating a new branch from <code>HEAD</code>, if there exists a tracking
-        branch in exactly one remote matching the basename of <code>&lt;path&gt;</code>,
+        branch in exactly one remote matching the basename of <em>&lt;path&gt;</em>,
         base the new branch on the remote-tracking branch, and mark
         the remote-tracking branch as "upstream" from the new branch.
 </p>
@@ -1019,9 +1019,9 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 </dt>
 <dd>
 <p>
-        When creating a new branch, if <code>&lt;commit-ish&gt;</code> is a branch,
+        When creating a new branch, if <em>&lt;commit-ish&gt;</em> is a branch,
         mark it as "upstream" from the new branch.  This is the
-        default if <code>&lt;commit-ish&gt;</code> is a remote-tracking branch.  See
+        default if <em>&lt;commit-ish&gt;</em> is a remote-tracking branch.  See
         <code>--track</code> in <a href="git-branch.html">git-branch(1)</a> for details.
 </p>
 </dd>
@@ -1031,7 +1031,7 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 <dd>
 <p>
         Keep the worktree locked after creation. This is the
-        equivalent of <code>git worktree lock</code> after <code>git worktree add</code>,
+        equivalent of <code>git</code> <code>worktree</code> <code>lock</code> after <code>git</code> <code>worktree</code> <code>add</code>,
         but without a race condition.
 </p>
 </dd>
@@ -1053,7 +1053,7 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 <dd>
 <p>
         With <code>add</code>, make the new worktree and index empty, associating
-        the worktree with a new unborn branch named <code>&lt;new-branch&gt;</code>.
+        the worktree with a new unborn branch named <em>&lt;new-branch&gt;</em>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1106,17 +1106,17 @@ To remove a locked worktree, specify <code>--force</code> twice.</p></div>
 </dt>
 <dd>
 <p>
-        With <code>prune</code>, only expire unused worktrees older than <code>&lt;time&gt;</code>.
+        With <code>prune</code>, only expire unused worktrees older than <em>&lt;time&gt;</em>.
 </p>
 <div class="paragraph"><p>With <code>list</code>, annotate missing worktrees as prunable if they are older than
-<code>&lt;time&gt;</code>.</p></div>
+<em>&lt;time&gt;</em>.</p></div>
 </dd>
 <dt class="hdlist1">
 --reason &lt;string&gt;
 </dt>
 <dd>
 <p>
-        With <code>lock</code> or with <code>add --lock</code>, an explanation why the worktree
+        With <code>lock</code> or with <code>add</code> <code>--lock</code>, an explanation why the worktree
         is locked.
 </p>
 </dd>
@@ -1175,9 +1175,9 @@ will be applied to the main worktree only.</p></div>
 <div class="content">
 <pre><code>$ git config extensions.worktreeConfig true</code></pre>
 </div></div>
-<div class="paragraph"><p>In this mode, specific configuration stays in the path pointed by <code>git
-rev-parse --git-path config.worktree</code>. You can add or update
-configuration in this file with <code>git config --worktree</code>. Older Git
+<div class="paragraph"><p>In this mode, specific configuration stays in the path pointed by <code>git</code>
+<code>rev-parse</code> <code>--git-path</code> <code>config.worktree</code>. You can add or update
+configuration in this file with <code>git</code> <code>config</code> <code>--worktree</code>. Older Git
 versions will refuse to access repositories with this extension.</p></div>
 <div class="paragraph"><p>Note that in this file, the exception for <code>core.bare</code> and <code>core.worktree</code>
 is gone. If they exist in <code>$GIT_DIR/config</code>, you must move
@@ -1213,7 +1213,7 @@ share to all worktrees:</p></div>
 <code>$GIT_DIR/worktrees</code> directory.  The private sub-directory&#8217;s name is usually
 the base name of the linked worktree&#8217;s path, possibly appended with a
 number to make it unique.  For example, when <code>$GIT_DIR=/path/main/.git</code> the
-command <code>git worktree add /path/other/test-next next</code> creates the linked
+command <code>git</code> <code>worktree</code> <code>add</code> <code>/path/other/test-next</code> <code>next</code> creates the linked
 worktree in <code>/path/other/test-next</code> and also creates a
 <code>$GIT_DIR/worktrees/test-next</code> directory (or <code>$GIT_DIR/worktrees/test-next1</code>
 if <code>test-next</code> is already taken).</p></div>
@@ -1222,30 +1222,30 @@ directory (e.g. <code>/path/main/.git/worktrees/test-next</code> in the example)
 <code>$GIT_COMMON_DIR</code> is set to point back to the main worktree&#8217;s <code>$GIT_DIR</code>
 (e.g. <code>/path/main/.git</code>). These settings are made in a <code>.git</code> file located at
 the top directory of the linked worktree.</p></div>
-<div class="paragraph"><p>Path resolution via <code>git rev-parse --git-path</code> uses either
+<div class="paragraph"><p>Path resolution via <code>git</code> <code>rev-parse</code> <code>--git-path</code> uses either
 <code>$GIT_DIR</code> or <code>$GIT_COMMON_DIR</code> depending on the path. For example, in the
-linked worktree <code>git rev-parse --git-path HEAD</code> returns
+linked worktree <code>git</code> <code>rev-parse</code> <code>--git-path</code> <code>HEAD</code> returns
 <code>/path/main/.git/worktrees/test-next/HEAD</code> (not
-<code>/path/other/test-next/.git/HEAD</code> or <code>/path/main/.git/HEAD</code>) while <code>git
-rev-parse --git-path refs/heads/master</code> uses
+<code>/path/other/test-next/.git/HEAD</code> or <code>/path/main/.git/HEAD</code>) while <code>git</code>
+<code>rev-parse</code> <code>--git-path</code> <code>refs/heads/master</code> uses
 <code>$GIT_COMMON_DIR</code> and returns <code>/path/main/.git/refs/heads/master</code>,
 since refs are shared across all worktrees, except <code>refs/bisect</code>,
 <code>refs/worktree</code> and <code>refs/rewritten</code>.</p></div>
 <div class="paragraph"><p>See <a href="gitrepository-layout.html">gitrepository-layout(5)</a> for more information. The rule of
 thumb is do not make any assumption about whether a path belongs to
 <code>$GIT_DIR</code> or <code>$GIT_COMMON_DIR</code> when you need to directly access something
-inside <code>$GIT_DIR</code>. Use <code>git rev-parse --git-path</code> to get the final path.</p></div>
+inside <code>$GIT_DIR</code>. Use <code>git</code> <code>rev-parse</code> <code>--git-path</code> to get the final path.</p></div>
 <div class="paragraph"><p>If you manually move a linked worktree, you need to update the <code>gitdir</code> file
 in the entry&#8217;s directory. For example, if a linked worktree is moved
 to <code>/newpath/test-next</code> and its <code>.git</code> file points to
 <code>/path/main/.git/worktrees/test-next</code>, then update
 <code>/path/main/.git/worktrees/test-next/gitdir</code> to reference <code>/newpath/test-next</code>
-instead. Better yet, run <code>git worktree repair</code> to reestablish the connection
+instead. Better yet, run <code>git</code> <code>worktree</code> <code>repair</code> to reestablish the connection
 automatically.</p></div>
 <div class="paragraph"><p>To prevent a <code>$GIT_DIR/worktrees</code> entry from being pruned (which
 can be useful in some situations, such as when the
 entry&#8217;s worktree is stored on a portable device), use the
-<code>git worktree lock</code> command, which adds a file named
+<code>git</code> <code>worktree</code> <code>lock</code> command, which adds a file named
 <code>locked</code> to the entry&#8217;s directory. The file contains the reason in
 plain text. For example, if a linked worktree&#8217;s <code>.git</code> file points
 to <code>/path/main/.git/worktrees/test-next</code> then a file named
@@ -1253,13 +1253,13 @@ to <code>/path/main/.git/worktrees/test-next</code> then a file named
 <code>test-next</code> entry from being pruned.  See
 <a href="gitrepository-layout.html">gitrepository-layout(5)</a> for details.</p></div>
 <div class="paragraph"><p>When <code>extensions.worktreeConfig</code> is enabled, the config file
-<code>.git/worktrees/&lt;id&gt;/config.worktree</code> is read after <code>.git/config</code> is.</p></div>
+<code>.git/worktrees/</code><em>&lt;id&gt;</em><code>/config.worktree</code> is read after <code>.git/config</code> is.</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_list_output_format">LIST OUTPUT FORMAT</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The <code>worktree list</code> command has two output formats. The default format shows the
+<div class="paragraph"><p>The <code>worktree</code> <code>list</code> command has two output formats. The default format shows the
 details on a single line with columns.  For example:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1278,7 +1278,7 @@ These annotations are:</p></div>
 </li>
 <li>
 <p>
-<code>prunable</code>, if the worktree can be pruned via <code>git worktree prune</code>.
+<code>prunable</code>, if the worktree can be pruned via <code>git</code> <code>worktree</code> <code>prune</code>.
 </p>
 </li>
 </ul></div>
@@ -1399,7 +1399,7 @@ checkouts of a superproject.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

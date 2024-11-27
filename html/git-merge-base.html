@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-merge-base(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -852,7 +852,7 @@ from <a href="git-show-branch.html">git-show-branch(1)</a> when used with the <c
 <div class="sect1">
 <h2 id="_discussion">DISCUSSION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Given two commits <em>A</em> and <em>B</em>, <code>git merge-base A B</code> will output a commit
+<div class="paragraph"><p>Given two commits <em>A</em> and <em>B</em>, <code>git</code> <code>merge-base</code> <code>A</code> <code>B</code> will output a commit
 which is reachable from both <em>A</em> and <em>B</em> through the parent relationship.</p></div>
 <div class="paragraph"><p>For example, with this topology:</p></div>
 <div class="literalblock">
@@ -862,7 +862,7 @@ which is reachable from both <em>A</em> and <em>B</em> through the parent relati
 ---o---1---o---o---o---A</code></pre>
 </div></div>
 <div class="paragraph"><p>the merge base between <em>A</em> and <em>B</em> is <em>1</em>.</p></div>
-<div class="paragraph"><p>Given three commits <em>A</em>, <em>B</em>, and <em>C</em>, <code>git merge-base A B C</code> will compute the
+<div class="paragraph"><p>Given three commits <em>A</em>, <em>B</em>, and <em>C</em>, <code>git</code> <code>merge-base</code> <code>A</code> <code>B</code> <code>C</code> will compute the
 merge base between <em>A</em> and a hypothetical commit <em>M</em>, which is a merge
 between <em>B</em> and <em>C</em>.  For example, with this topology:</p></div>
 <div class="literalblock">
@@ -873,7 +873,7 @@ between <em>B</em> and <em>C</em>.  For example, with this topology:</p></div>
     /   /
 ---2---1---o---o---o---A</code></pre>
 </div></div>
-<div class="paragraph"><p>the result of <code>git merge-base A B C</code> is <em>1</em>.  This is because the
+<div class="paragraph"><p>the result of <code>git</code> <code>merge-base</code> <code>A</code> <code>B</code> <code>C</code> is <em>1</em>.  This is because the
 equivalent topology with a merge commit <em>M</em> between <em>B</em> and <em>C</em> is:</p></div>
 <div class="literalblock">
 <div class="content">
@@ -883,10 +883,10 @@ equivalent topology with a merge commit <em>M</em> between <em>B</em> and <em>C<
     /   /
 ---2---1---o---o---o---A</code></pre>
 </div></div>
-<div class="paragraph"><p>and the result of <code>git merge-base A M</code> is <em>1</em>.  Commit <em>2</em> is also a
+<div class="paragraph"><p>and the result of <code>git</code> <code>merge-base</code> <code>A</code> <code>M</code> is <em>1</em>.  Commit <em>2</em> is also a
 common ancestor between <em>A</em> and <em>M</em>, but <em>1</em> is a better common ancestor,
 because <em>2</em> is an ancestor of <em>1</em>.  Hence, <em>2</em> is not a merge base.</p></div>
-<div class="paragraph"><p>The result of <code>git merge-base --octopus A B C</code> is <em>2</em>, because <em>2</em> is
+<div class="paragraph"><p>The result of <code>git</code> <code>merge-base</code> <code>--octopus</code> <code>A</code> <code>B</code> <code>C</code> is <em>2</em>, because <em>2</em> is
 the best common ancestor of all commits.</p></div>
 <div class="paragraph"><p>When the history involves criss-cross merges, there can be more than one
 <em>best</em> common ancestor for two commits.  For example, with this topology:</p></div>
@@ -927,8 +927,8 @@ fi</code></pre>
 <div class="sect1">
 <h2 id="_discussion_on_fork_point_mode">Discussion on fork-point mode</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>After working on the <code>topic</code> branch created with <code>git switch -c
-topic origin/master</code>, the history of remote-tracking branch
+<div class="paragraph"><p>After working on the <code>topic</code> branch created with <code>git</code> <code>switch</code> <code>-c</code>
+<code>topic</code> <code>origin/master</code>, the history of remote-tracking branch
 <code>origin/master</code> may have been rewound and rebuilt, leading to a
 history of this shape:</p></div>
 <div class="literalblock">
@@ -946,12 +946,12 @@ points at B, and your <code>topic</code> branch was started on top of it back
 when <code>origin/master</code> was at B0, and you built three commits, D0, D1,
 and D, on top of it.  Imagine that you now want to rebase the work
 you did on the topic on top of the updated origin/master.</p></div>
-<div class="paragraph"><p>In such a case, <code>git merge-base origin/master topic</code> would return the
+<div class="paragraph"><p>In such a case, <code>git</code> <code>merge-base</code> <code>origin/master</code> <code>topic</code> would return the
 parent of B0 in the above picture, but B0^..D is <strong>not</strong> the range of
 commits you would want to replay on top of B (it includes B0, which
 is not what you wrote; it is a commit the other side discarded when
 it moved its tip from B0 to B1).</p></div>
-<div class="paragraph"><p><code>git merge-base --fork-point origin/master topic</code> is designed to
+<div class="paragraph"><p><code>git</code> <code>merge-base</code> <code>--fork-point</code> <code>origin/master</code> <code>topic</code> is designed to
 help in such a case.  It takes not only B but also B0, B1, and B2
 (i.e. old tips of the remote-tracking branches your repository&#8217;s
 reflog knows about) into account to see on which commit your topic
@@ -981,7 +981,7 @@ shape:</p></div>
            D0---D1---D (topic - old)</code></pre>
 </div></div>
 <div class="paragraph"><p>A caveat is that older reflog entries in your repository may be
-expired by <code>git gc</code>.  If B0 no longer appears in the reflog of the
+expired by <code>git</code> <code>gc</code>.  If B0 no longer appears in the reflog of the
 remote-tracking branch <code>origin/master</code>, the <code>--fork-point</code> mode
 obviously cannot find it and fails, avoiding to give a random and
 useless result (such as the parent of B0, like the same command
@@ -993,7 +993,7 @@ point (imagine in the above sample history B0 did not exist,
 origin/master started at B1, moved to B2 and then B, and you forked
 your topic at origin/master^ when origin/master was B1; the shape of
 the history would be the same as above, without B0, and the parent
-of B1 is what <code>git merge-base origin/master topic</code> correctly finds,
+of B1 is what <code>git</code> <code>merge-base</code> <code>origin/master</code> <code>topic</code> correctly finds,
 but the <code>--fork-point</code> mode will not, because it is not one of the
 commits that used to be at the tip of origin/master).</p></div>
 </div>
@@ -1017,7 +1017,7 @@ commits that used to be at the tip of origin/master).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

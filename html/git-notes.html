@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-notes(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -750,9 +750,9 @@ git-notes(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git notes</em> [list [&lt;object&gt;]]
-<em>git notes</em> add [-f] [--allow-empty] [--[no-]separator | --separator=&lt;paragraph-break&gt;] [--[no-]stripspace] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
+<em>git notes</em> add [-f] [--allow-empty] [--[no-]separator | --separator=&lt;paragraph-break&gt;] [--[no-]stripspace] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [-e] [&lt;object&gt;]
 <em>git notes</em> copy [-f] ( --stdin | &lt;from-object&gt; [&lt;to-object&gt;] )
-<em>git notes</em> append [--allow-empty] [--[no-]separator | --separator=&lt;paragraph-break&gt;] [--[no-]stripspace] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [&lt;object&gt;]
+<em>git notes</em> append [--allow-empty] [--[no-]separator | --separator=&lt;paragraph-break&gt;] [--[no-]stripspace] [-F &lt;file&gt; | -m &lt;msg&gt; | (-c | -C) &lt;object&gt;] [-e] [&lt;object&gt;]
 <em>git notes</em> edit [--allow-empty] [&lt;object&gt;] [--[no-]stripspace]
 <em>git notes</em> show [&lt;object&gt;]
 <em>git notes</em> merge [-v | -q] [-s &lt;strategy&gt; ] &lt;notes-ref&gt;
@@ -780,7 +780,7 @@ the original commit message. To distinguish these notes from the
 message stored in the commit object, the notes are indented like the
 message, after an unindented line saying "Notes (&lt;refname&gt;):" (or
 "Notes:" for <code>refs/notes/commits</code>).</p></div>
-<div class="paragraph"><p>Notes can also be added to patches prepared with <code>git format-patch</code> by
+<div class="paragraph"><p>Notes can also be added to patches prepared with <code>git</code> <code>format-patch</code> by
 using the <code>--notes</code> option. Such notes are added as a patch commentary
 after a three dash separator line.</p></div>
 <div class="paragraph"><p>To change which notes are shown by <em>git log</em>, see the
@@ -816,7 +816,9 @@ add
         the existing notes will be opened in the editor (like the <code>edit</code>
         subcommand). If you specify multiple <code>-m</code> and <code>-F</code>, a blank
         line will be inserted between the messages. Use the <code>--separator</code>
-        option to insert other delimiters.
+        option to insert other delimiters. You can use <code>-e</code> to edit and
+        fine-tune the message(s) supplied from <code>-m</code> and <code>-F</code> options
+        interactively (using an editor) before adding the note.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -828,7 +830,7 @@ copy
         HEAD). Abort if the second object already has notes, or if the first
         object has none (use -f to overwrite existing notes to the
         second object). This subcommand is equivalent to:
-        <code>git notes add [-f] -C $(git notes list &lt;from-object&gt;) &lt;to-object&gt;</code>
+        <code>git</code> <code>notes</code> <code>add</code> [<code>-f</code>] <code>-C</code> <code>$</code>(<code>git</code> <code>notes</code> <code>list</code> <em>&lt;from-object&gt;</em>) <em>&lt;to-object&gt;</em>
 </p>
 <div class="paragraph"><p>In <code>--stdin</code> mode, take lines in the format</p></div>
 <div class="listingblock">
@@ -836,7 +838,7 @@ copy
 <pre><code>&lt;from-object&gt; SP &lt;to-object&gt; [ SP &lt;rest&gt; ] LF</code></pre>
 </div></div>
 <div class="paragraph"><p>on standard input, and copy the notes from each &lt;from-object&gt; to its
-corresponding &lt;to-object&gt;.  (The optional <code>&lt;rest&gt;</code> is ignored so that
+corresponding &lt;to-object&gt;.  (The optional <em>&lt;rest&gt;</em> is ignored so that
 the command can read the input given to the <code>post-rewrite</code> hook.)</p></div>
 </dd>
 <dt class="hdlist1">
@@ -850,6 +852,8 @@ append
         an existing note, a blank line is added before each new
         message as an inter-paragraph separator.  The separator can
         be customized with the <code>--separator</code> option.
+        Edit the notes to be appended given by <code>-m</code> and <code>-F</code> options with
+        <code>-e</code> interactively (using an editor) before appending the note.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -945,7 +949,7 @@ get-ref
         Use the given note message (instead of prompting).
         If multiple <code>-m</code> options are given, their values
         are concatenated as separate paragraphs.
-        Lines starting with <code>#</code> and empty lines other than a
+        Lines starting with # and empty lines other than a
         single line between paragraphs will be stripped out.
         If you wish to keep them verbatim, use <code>--no-stripspace</code>.
 </p>
@@ -960,7 +964,7 @@ get-ref
 <p>
         Take the note message from the given file.  Use <em>-</em> to
         read the note message from the standard input.
-        Lines starting with <code>#</code> and empty lines other than a
+        Lines starting with # and empty lines other than a
         single line between paragraphs will be stripped out.
         If you wish to keep them verbatim, use <code>--no-stripspace</code>.
 </p>
@@ -974,10 +978,10 @@ get-ref
 <dd>
 <p>
         Take the given blob object (for example, another note) as the
-        note message. (Use <code>git notes copy &lt;object&gt;</code> instead to
+        note message. (Use <code>git</code> <code>notes</code> <code>copy</code> <em>&lt;object&gt;</em> instead to
         copy notes between objects.).  By default, message will be
         copied verbatim, but if you wish to strip out the lines
-        starting with <code>#</code> and empty lines other than a single line
+        starting with # and empty lines other than a single line
         between paragraphs, use with`--stripspace` option.
 </p>
 </dd>
@@ -1020,9 +1024,9 @@ get-ref
 <p>
         Strip leading and trailing whitespace from the note message.
         Also strip out empty lines other than a single line between
-        paragraphs. Lines starting with <code>#</code> will be stripped out
+        paragraphs. Lines starting with # will be stripped out
         in non-editor cases like <code>-m</code>, <code>-F</code> and <code>-C</code>, but not in
-        editor case like <code>git notes edit</code>, <code>-c</code>, etc.
+        editor case like <code>git</code> <code>notes</code> <code>edit</code>, <code>-c</code>, etc.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1149,13 +1153,13 @@ names of two hexadecimal digits each followed by a filename with the
 rest of the object ID.]<br /></span>.</p></div>
 <div class="paragraph"><p>Every notes change creates a new commit at the specified notes ref.
 You can therefore inspect the history of the notes by invoking, e.g.,
-<code>git log -p notes/commits</code>.  Currently the commit message only records
+<code>git</code> <code>log</code> <code>-p</code> <code>notes/commits</code>.  Currently the commit message only records
 which operation triggered the update, and the commit authorship is
 determined according to the usual rules (see <a href="git-commit.html">git-commit(1)</a>).
 These details may change in the future.</p></div>
 <div class="paragraph"><p>It is also permitted for a notes ref to point directly to a tree
 object, in which case the history of the notes can be read with
-<code>git log -p -g &lt;refname&gt;</code>.</p></div>
+<code>git</code> <code>log</code> <code>-p</code> <code>-g</code> <em>&lt;refname&gt;</em>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1212,7 +1216,7 @@ arbitrary files using <em>git hash-object</em>:</p></div>
 $ blob=$(git hash-object -w a.out)
 $ git notes --ref=built add --allow-empty -C "$blob" HEAD</code></pre>
 </div></div>
-<div class="paragraph"><p>(You cannot simply use <code>git notes --ref=built add -F a.out HEAD</code>
+<div class="paragraph"><p>(You cannot simply use <code>git</code> <code>notes</code> <code>--ref=built</code> <code>add</code> <code>-F</code> <code>a.out</code> <code>HEAD</code>
 because that is not binary-safe.)
 Of course, it doesn&#8217;t make much sense to display non-text-format notes
 with <em>git log</em>, so if you use such notes, you&#8217;ll probably need to write
@@ -1279,7 +1283,7 @@ globs.</p></div>
 <div class="paragraph"><p>A warning will be issued for refs that do not exist,
 but a glob that does not match any refs is silently ignored.</p></div>
 <div class="paragraph"><p>This setting can be disabled by the <code>--no-notes</code> option to the <em>git
-log</em> family of commands, or by the <code>--notes=&lt;ref&gt;</code> option accepted by
+log</em> family of commands, or by the <code>--notes=</code><em>&lt;ref&gt;</em> option accepted by
 those commands.</p></div>
 <div class="paragraph"><p>The effective value of "core.notesRef" (possibly overridden by
 GIT_NOTES_REF) is also implicitly added to the list of refs to be
@@ -1327,7 +1331,7 @@ notes.rewriteRef
 enable note rewriting.  Set it to <code>refs/notes/commits</code> to enable
 rewriting for the default commit notes.</p></div>
 <div class="paragraph"><p>Can be overridden with the <code>GIT_NOTES_REWRITE_REF</code> environment variable.
-See <code>notes.rewrite.&lt;command&gt;</code> above for a further description of its format.</p></div>
+See <code>notes.rewrite.</code><em>&lt;command&gt;</em> above for a further description of its format.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1380,7 +1384,7 @@ does not match any refs is silently ignored.</p></div>
         refs or globs.
 </p>
 <div class="paragraph"><p>If not set in the environment, the list of notes to copy depends
-on the <code>notes.rewrite.&lt;command&gt;</code> and <code>notes.rewriteRef</code> settings.</p></div>
+on the <code>notes.rewrite.</code><em>&lt;command&gt;</em> and <code>notes.rewriteRef</code> settings.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1396,7 +1400,7 @@ on the <code>notes.rewrite.&lt;command&gt;</code> and <code>notes.rewriteRef</co
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

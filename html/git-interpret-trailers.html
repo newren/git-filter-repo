@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-interpret-trailers(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -777,10 +777,10 @@ Signed-off-by: Bob &lt;bob@example.com&gt;</code></pre>
 If <code>--parse</code> is specified, the output consists of the parsed trailers
 coming from the input, without influencing them with any command line
 options or configuration variables.</p></div>
-<div class="paragraph"><p>Otherwise, this command applies <code>trailer.*</code> configuration variables
+<div class="paragraph"><p>Otherwise, this command applies <code>trailer.</code>* configuration variables
 (which could potentially add new trailers, as well as reposition them),
 as well as any command line arguments that can override configuration
-variables (such as <code>--trailer=...</code> which could also add new trailers),
+variables (such as <code>--trailer=.</code>.. which could also add new trailers),
 to each input file. The result is emitted on the standard output.</p></div>
 <div class="paragraph"><p>This command can also operate on the output of <a href="git-format-patch.html">git-format-patch(1)</a>,
 which is more elaborate than a plain commit message. Namely, such output
@@ -803,7 +803,7 @@ to remove starting and trailing whitespace, and the resulting trimmed
 <pre><code>key: value</code></pre>
 </div></div>
 <div class="paragraph"><p>This means that the trimmed &lt;key&gt; and &lt;value&gt; will be separated by
-<code>': '</code> (one colon followed by one space).</p></div>
+': ' (one colon followed by one space).</p></div>
 <div class="paragraph"><p>For convenience, a &lt;key-alias&gt; can be configured to make using <code>--trailer</code>
 shorter to type on the command line. This can be configured using the
 <em>trailer.&lt;key-alias&gt;.key</em> configuration variable. The &lt;keyAlias&gt; must be a prefix
@@ -813,8 +813,8 @@ example, if you have</p></div>
 <div class="content">
 <pre><code>trailer.sign.key "Signed-off-by: "</code></pre>
 </div></div>
-<div class="paragraph"><p>in your configuration, you only need to specify <code>--trailer="sign: foo"</code>
-on the command line instead of <code>--trailer="Signed-off-by: foo"</code>.</p></div>
+<div class="paragraph"><p>in your configuration, you only need to specify <code>--trailer=</code>"sign: <code>foo</code>"
+on the command line instead of <code>--trailer=</code>"Signed-off-by: <code>foo</code>".</p></div>
 <div class="paragraph"><p>By default the new trailer will appear at the end of all the existing
 trailers. If there is no existing trailer, the new trailer will appear
 at the end of the input. A blank line will be added before the new
@@ -884,7 +884,7 @@ rules for RFC 822 headers. For example they do not follow the encoding rule.</p>
 <p>
         Specify where all new trailers will be added.  A setting
         provided with <em>--where</em> overrides the <code>trailer.where</code> and any
-        applicable <code>trailer.&lt;keyAlias&gt;.where</code> configuration variables
+        applicable <code>trailer.</code><em>&lt;keyAlias&gt;</em><code>.where</code> configuration variables
         and applies to all <em>--trailer</em> options until the next occurrence of
         <em>--where</em> or <em>--no-where</em>. Upon encountering <em>--no-where</em>, clear the
         effect of any previous use of <em>--where</em>, such that the relevant configuration
@@ -903,7 +903,7 @@ rules for RFC 822 headers. For example they do not follow the encoding rule.</p>
         Specify what action will be performed when there is already at
         least one trailer with the same &lt;key&gt; in the input.  A setting
         provided with <em>--if-exists</em> overrides the <code>trailer.ifExists</code> and any
-        applicable <code>trailer.&lt;keyAlias&gt;.ifExists</code> configuration variables
+        applicable <code>trailer.</code><em>&lt;keyAlias&gt;</em><code>.ifExists</code> configuration variables
         and applies to all <em>--trailer</em> options until the next occurrence of
         <em>--if-exists</em> or <em>--no-if-exists</em>. Upon encountering '--no-if-exists, clear the
         effect of any previous use of '--if-exists, such that the relevant configuration
@@ -922,7 +922,7 @@ rules for RFC 822 headers. For example they do not follow the encoding rule.</p>
         Specify what action will be performed when there is no other
         trailer with the same &lt;key&gt; in the input.  A setting
         provided with <em>--if-missing</em> overrides the <code>trailer.ifMissing</code> and any
-        applicable <code>trailer.&lt;keyAlias&gt;.ifMissing</code> configuration variables
+        applicable <code>trailer.</code><em>&lt;keyAlias&gt;</em><code>.ifMissing</code> configuration variables
         and applies to all <em>--trailer</em> options until the next occurrence of
         <em>--if-missing</em> or <em>--no-if-missing</em>. Upon encountering '--no-if-missing,
         clear the effect of any previous use of '--if-missing, such that the relevant
@@ -944,7 +944,7 @@ rules for RFC 822 headers. For example they do not follow the encoding rule.</p>
 <dd>
 <p>
         Output only trailers that exist in the input; do not add any
-        from the command-line or by applying <code>trailer.*</code> configuration
+        from the command-line or by applying <code>trailer.</code>* configuration
         variables.
 </p>
 </dd>
@@ -962,8 +962,8 @@ rules for RFC 822 headers. For example they do not follow the encoding rule.</p>
 </dt>
 <dd>
 <p>
-        A convenience alias for <code>--only-trailers --only-input
-        --unfold</code>. This makes it easier to only see the trailers coming from the
+        A convenience alias for <code>--only-trailers</code> <code>--only-input</code>
+        <code>--unfold</code>. This makes it easier to only see the trailers coming from the
         input without influencing them with any command line options or
         configuration variables, while also making the output machine-friendly with
         --unfold.
@@ -976,7 +976,7 @@ rules for RFC 822 headers. For example they do not follow the encoding rule.</p>
 <p>
         Do not treat <code>---</code> as the end of the commit message. Use this
         when you know your input contains just the commit message itself
-        (and not an email or the output of <code>git format-patch</code>).
+        (and not an email or the output of <code>git</code> <code>format-patch</code>).
 </p>
 </dd>
 </dl></div>
@@ -1068,11 +1068,11 @@ trailer.&lt;keyAlias&gt;.key
 <dd>
 <p>
         Defines a &lt;keyAlias&gt; for the &lt;key&gt;. The &lt;keyAlias&gt; must be a
-        prefix (case does not matter) of the &lt;key&gt;. For example, in <code>git
-        config trailer.ack.key "Acked-by"</code> the "Acked-by" is the &lt;key&gt; and
+        prefix (case does not matter) of the &lt;key&gt;. For example, in <code>git</code>
+        <code>config</code> <code>trailer.ack.key</code> "Acked-by" the "Acked-by" is the &lt;key&gt; and
         the "ack" is the &lt;keyAlias&gt;. This configuration allows the shorter
-        <code>--trailer "ack:..."</code> invocation on the command line using the "ack"
-        &lt;keyAlias&gt; instead of the longer <code>--trailer "Acked-by:..."</code>.
+        <code>--trailer</code> "ack:<code>...</code>" invocation on the command line using the "ack"
+        &lt;keyAlias&gt; instead of the longer <code>--trailer</code> "Acked-by:<code>...</code>".
 </p>
 <div class="paragraph"><p>At the end of the &lt;key&gt;, a separator can appear and then some
 space characters. By default the only valid separator is <em>:</em>,
@@ -1393,7 +1393,7 @@ $ chmod +x .git/hooks/commit-msg</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-07-17 14:55:26 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

@@ -2,12 +2,12 @@
 .\"     Title: git-filter-repo
 .\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 2024-04-29
+.\"      Date: 2024-11-23
 .\"    Manual: Git Manual
-.\"    Source: Git 2.45.0.dirty
+.\"    Source: Git 2.47.0.319.g447b6794a4a.dirty
 .\"  Language: English
 .\"
-.TH "GIT\-FILTER\-REPO" "1" "2024\-04\-29" "Git 2\&.45\&.0\&.dirty" "Git Manual"
+.TH "GIT\-FILTER\-REPO" "1" "2024\-11\-23" "Git 2\&.47\&.0\&.319\&.g447b67" "Git Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -174,6 +174,28 @@ pruning commits which become empty due to the above filters (also handles edge c
 .sp -1
 .IP \(bu 2.3
 .\}
+rewriting stashes
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+baking the changes made by refs/replace/ refs into the permanent history and removing the replace refs
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
 stripping of original history to avoid mixing old and new history
 .RE
 .sp
@@ -239,7 +261,7 @@ Analyze repository history and create a report that may be useful in determining
 .RE
 .SS "Filtering based on paths (see also \-\-filename\-callback)"
 .sp
-These options specify the paths to select\&. Note that much like git itself, renames are NOT followed so you may need to specify multiple paths, e\&.g\&. \fB\-\-path olddir/ \-\-path newdir/\fR
+These options specify the paths to select\&. Note that much like git itself, renames are NOT followed so you may need to specify multiple paths, e\&.g\&. \fB\-\-path\fR \fBolddir/\fR \fB\-\-path\fR \fBnewdir/\fR
 .PP
 \-\-invert\-paths
 .RS 4
@@ -278,17 +300,13 @@ Path to rename; if filename or directory matches <old_name> rename to <new_name>
 \-\-paths\-from\-file <filename>
 .RS 4
 Specify several path filtering and renaming directives, one per line\&. Lines with
-\fB==>\fR
-in them specify path renames, and lines can begin with
+\fB==\fR> in them specify path renames, and lines can begin with
 \fBliteral:\fR
 (the default),
 \fBglob:\fR, or
 \fBregex:\fR
-to specify different matching styles\&. Blank lines and lines starting with a
-\fB#\fR
-are ignored (if you have a filename that you want to filter on that starts with
-\fBliteral:\fR,
-\fB#\fR,
+to specify different matching styles\&. Blank lines and lines starting with a # are ignored (if you have a filename that you want to filter on that starts with
+\fBliteral:\fR, #,
 \fBglob:\fR, or
 \fBregex:\fR, then prefix the line with
 \fIliteral:\fR)\&.
@@ -297,13 +315,17 @@ are ignored (if you have a filename that you want to filter on that starts with
 \-\-subdirectory\-filter <directory>
 .RS 4
 Only look at history that touches the given subdirectory and treat that directory as the project root\&. Equivalent to using
-\fB\-\-path <directory>/ \-\-path\-rename <directory>/:\fR
+\fB\-\-path\fR
+\fI<directory>\fR\fB/\fR
+\fB\-\-path\-rename\fR
+\fI<directory>\fR\fB/:\fR
 .RE
 .PP
 \-\-to\-subdirectory\-filter <directory>
 .RS 4
-Treat the project root as instead being under <directory>\&. Equivalent to using
-\fB\-\-path\-rename :<directory>/\fR
+Treat the project root as if it were under <directory>\&. Equivalent to using
+\fB\-\-path\-rename\fR
+\fB:\fR\fI<directory>\fR\fB/\fR
 .RE
 .SS "Content editing filters (see also \-\-blob\-callback)"
 .PP
@@ -314,9 +336,7 @@ A file with expressions that, if found, will be replaced\&. By default, each exp
 and
 \fBglob:\fR
 prefixes are supported\&. You can end the line with
-\fB==>\fR
-and some replacement text to choose a replacement choice other than the default of
-\fB***REMOVED***\fR\&.
+\fB==\fR> and some replacement text to choose a replacement choice other than the default of ***REMOVED***\&.
 .RE
 .PP
 \-\-strip\-blobs\-bigger\-than <size>
@@ -429,6 +449,11 @@ Python code body for processing refnames; see
 the section called \(lqCALLBACKS\(rq\&.
 .RE
 .PP
+\-\-file\-info\-callback <function_body>
+.RS 4
+Python code body for processing the combination of filename, mode, and associated file contents; see <<CALLBACKS>\&. Note that when \-\-file\-info\-callback is specified, any replacements specified by \-\-replace\-text will not be automatically applied; instead, you have control within the \-\-file\-info\-callback to choose which files to apply those transformations to\&.
+.RE
+.PP
 \-\-blob\-callback <function_body>
 .RS 4
 Python code body for processing blob objects; see
@@ -444,13 +469,82 @@ the section called \(lqCALLBACKS\(rq\&.
 \-\-tag\-callback <function_body>
 .RS 4
 Python code body for processing tag objects; see
-the section called \(lqCALLBACKS\(rq\&.
+the section called \(lqCALLBACKS\(rq\&. Note that lightweight tags have no tag object and thus are not handled by this callback\&. The only thing you really could do with a lightweight tag is rename it, but for that you should see \-\-refname\-callback instead\&.
 .RE
 .PP
 \-\-reset\-callback <function_body>
 .RS 4
 Python code body for processing reset objects; see
 the section called \(lqCALLBACKS\(rq\&.
+.RE
+.SS "Sensitive Data Removal"
+.PP
+\-\-sensitive\-data\-removal, \-\-sdr
+.RS 4
+This rewrite is intended to remove sensitive data from a repository\&. Gather extra information from the rewrite needed to provide additional instructions on how to clean up other copies\&. This includes:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Fetching all refs, so that if refs outside of branches and tags also reference the sensitive data, they can be cleaned up too
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+Note that if you have any local\-only changes (i\&.e\&. un\-pushed
+changes) in your repository, on any branch or ref, this fetch step
+may discard them\&.  Working in a fresh clone avoids this problem;
+see also the \-\-no\-fetch option if you don\*(Aqt want to work with a
+fresh clone and you have important local\-only changes\&.
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Tracking and reporting on the first changed commit(s)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Tracking and reporting whether any LFS objects become orphaned by the rewrite, so they can be removed
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Providing additional instructions at the end on how to clean up the repository you cloned from, and other clones of the repo
+.RE
+.RE
+.PP
+\-\-no\-fetch
+.RS 4
+Avoid the "fetch all refs" step with \-\-sensitive\-data\-removal, and thus avoid overwriting local\-only changes in the repository, but at the risk of leaving the sensitive data in other refs in the source repository\&. This option is implied by \-\-partial or any flag that implies \-\-partial\&.
 .RE
 .SS "Location to filter from/to"
 .if n \{\
@@ -511,7 +605,8 @@ Limit history rewriting to the specified refs\&. Implies \-\-partial\&. In addit
 \-\-dry\-run
 .RS 4
 Do not change the repository\&. Run
-\fBgit fast\-export\fR
+\fBgit\fR
+\fBfast\-export\fR
 and filter its output, and save both the original and the filtered version for comparison\&. This also disables rewriting commit messages due to not knowing new commit IDs and disables filtering of some empty commits due to inability to query the fast\-import backend\&.
 .RE
 .PP
@@ -523,7 +618,8 @@ Print additional information about operations being performed and commands being
 \-\-stdin
 .RS 4
 Instead of running
-\fBgit fast\-export\fR
+\fBgit\fR
+\fBfast\-export\fR
 and filtering its output, filter the fast\-export stream from stdin\&. The stdin must be in the expected input format (e\&.g\&. it needs to include original\-oid directives)\&.
 .RE
 .PP
@@ -533,10 +629,10 @@ Pass \-\-quiet to other git commands called\&.
 .RE
 .SH "OUTPUT"
 .sp
-Every time filter\-repo is run, files are created in the \fB\&.git/filter\-repo/\fR directory\&. These files are overwritten unconditionally on every run\&.
+Every time filter\-repo is run, files are created in the \fB\&.git/filter\-repo/\fR directory\&. These files are updated or overwritten on every run\&.
 .SS "Commit map"
 .sp
-The \fB\&.git/filter\-repo/commit\-map\fR file contains a mapping of how all commits were (or were not) changed\&.
+The \fB$GIT_DIR/filter\-repo/commit\-map\fR file contains a mapping of how all commits were (or were not) changed\&.
 .sp
 .RS 4
 .ie n \{\
@@ -568,7 +664,7 @@ Commit mappings are in no particular order
 .sp -1
 .IP \(bu 2.3
 .\}
-All commits in range of the rewrite will be listed, even commits that are unchanged (e\&.g\&. because the commit pre\-dated when the large file(s) were introduced to the repo)\&.
+All commits in range of the rewrite will be listed, even commits that are unchanged (e\&.g\&. because the commit pre\-dated when files the filtering operation are removing were introduced to the repo)\&.
 .RE
 .sp
 .RS 4
@@ -583,7 +679,7 @@ An all\-zeros hash, or null SHA, represents a non\-existent object\&. When in th
 .RE
 .SS "Reference map"
 .sp
-The \fB\&.git/filter\-repo/ref\-map\fR file contains a mapping of which local references were changed\&.
+The \fB$GIT_DIR/filter\-repo/ref\-map\fR file contains a mapping of which local references were (or were not) changed\&.
 .sp
 .RS 4
 .ie n \{\
@@ -604,7 +700,7 @@ A header is the first line with the text "old", "new" and "ref"
 .sp -1
 .IP \(bu 2.3
 .\}
-Reference mappings are in no particular order
+Reference mappings are sorted by ref
 .RE
 .sp
 .RS 4
@@ -617,6 +713,130 @@ Reference mappings are in no particular order
 .\}
 An all\-zeros hash, or null SHA, represents a non\-existent object\&. When in the "new" column, this means the ref was removed entirely\&.
 .RE
+.SS "Changed References"
+.sp
+The \fB$GIT_DIR/filter\-repo/changed\-refs\fR file contains a list of refs that were changed\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+No header is provided
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Lists the subsets of refs from ref\-map for which old != new
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+While unnecessary since this provides no new information over ref\-map, it does make it easier to quickly determine which refs were changed by the rewrite\&.
+.RE
+.SS "First Changed Commits"
+.sp
+The \fB$GIT_DIR/filter\-repo/first\-changed\-commits\fR contains a list of the first commit(s) changed by the filtering operation\&. These are the commits that got rewritten and which had no parents that were also rewritten\&.
+.sp
+So, for example if you had commits A1\-B1\-C1\-D1\-E1 before running git\-filter\-repo, and afterward you had commits A1\-B2\-C2\-D2\-E2 then the First Changed Commits file would contain just one line, which would be the hash of B2\&.
+.sp
+In most cases, there will only be one commit listed, but if you had multiple root commits or a non\-linear history where the commits on those diverging histories were the first ones modified, then there could be multiple first changed commits and they will each be listed on separate lines\&.
+.SS "Already Ran"
+.sp
+The \fB$GIT_DIR/filter\-repo/already_ran\fR file contains a file recording that git\-filter\-repo has been run\&. When this file is present, future runs will be treated as an extension of the previous filtering operation\&.
+.sp
+Concretely, this means: * The "Fresh Clone" check is bypassed
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+This is done because past runs would cause the repository to no longer
+look like a fresh clone, and thus fail the fresh clone check, but doing
+filtering via multiple invocations of git\-filter\-repo is an intended
+and support usecase\&.  You already passed or bypassed the "Fresh Clone"
+check on your initial run\&.
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The commit\-map and ref\-map files above will be updated rather than simply rewritten\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+In other words, if the first filter\-repo invocation rewrote commit
+A to commit B, and the second filter\-repo invocation rewrite
+commit B to commit C, then the second run would have an "A C"
+entry rather than a "B C" entry for the changed commit\&.
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+The first changed commit(s) (reported When using the \-\-sensitive\-data\-removal option) will be the first original commit modified, not the first intermediate commit modified\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+In more detail, if the repository original had the following commits:
+   A1\-B1\-C1\-D1\-E1
+and the first invocation of filter\-repo changed this to
+   A1\-B1\-C2\-D2\-E2
+then the first run would report "C1" as the first changed commit\&.  If
+a second filter\-repo run further changed this to
+   A1\-B1\-C2\-D3\-E3
+then it would report "C1" as the first changed commit, not "D2",
+because it is comparing to the original commits rather than the
+intermediate ones\&.
+.fi
+.if n \{\
+.RE
+.\}
+.RE
+.sp
+However, if the already_ran file exists but is older than 1 day when they invoke git\-filter\-repo, the user will be prompted for whether the new run should be considered a continuation of the previous run\&. If they do not answer in the affirmative, then the above three bullets will not apply\&. This prompt exists because users might do a history rewrite in a repository, forget about it and leave the $GIT_DIR/filter\-repo directory around, and then some months or years later need to do another rewrite\&. If commits have been made public and shared from the previous rewrite, then the next filter\-repo run should not be considered a continuation of the previous filtering run\&.
+.SS "Original LFS Objects"
+.sp
+When running with the \-\-sensitive\-data\-removal flag, and LFS is in use by the repository, the \fB$GIT_DIR/filter\-repo/original_lfs_objects\fR contains a list of LFS objects referenced by the repository before the rewrite, in sorted order\&.
+.SS "Orphaned LFS Objects"
+.sp
+When running with the \-\-sensitive\-data\-removal flag, and LFS is in use by the repository, the \fB$GIT_DIR/filter\-repo/orphaned_lfs_objects\fR contains a list of LFS objects that used to be referenced by the repository but no longer are after git\-filter\-repo has run\&. Objects appear in sorted order\&.
 .SH "FRESH CLONE SAFETY CHECK AND \-\-FORCE"
 .sp
 Since filter\-repo does irreversible rewriting of history, it is important to avoid making changes to a repo for which the user doesn\(cqt have a good backup\&. The primary defense mechanism is to simply educate users and rely on them to be good stewards of their data; thus there are several warnings in the documentation about how filter repo rewrites history\&.
@@ -700,12 +920,13 @@ Steps to use git\-filter\-repo as part of the bigger picture of doing a history 
 .sp -1
 .IP "  1." 4.2
 .\}
-Create a clone of your repository (if you created special refs outside of refs/heads/ or refs/tags/, make sure to fetch those too)\&. You may pass
+Create a clone of your repository\&. You may pass
 \fB\-\-bare\fR
 or
 \fB\-\-mirror\fR
 to
-\fBgit clone\fR, if you prefer\&. You should pass
+\fBgit\fR
+\fBclone\fR, if you prefer\&. You should pass
 \fB\-\-no\-local\fR
 if the repository you are cloning from is on the local filesystem\&. Avoid other flags; some might confuse the fresh clone check, and others could cause parts of the data to be missing that are needed for the rewrite\&.
 .RE
@@ -719,7 +940,9 @@ if the repository you are cloning from is on the local filesystem\&. Avoid other
 .IP "  2." 4.2
 .\}
 (Optional) Run
-\fBgit filter\-repo \-\-analyze\fR\&. This will create a directory of reports mentioning renames that have occurred in your repo and also listing sizes of objects aggregated by path/directory/extension/blob\-id; this information may be useful in choosing how to filter your repo\&. It can also be useful to re\-run \-\-analyze after filtering to verify the changes look correct\&.
+\fBgit\fR
+\fBfilter\-repo\fR
+\fB\-\-analyze\fR\&. This will create a directory of reports mentioning multiple things: (a) paths that have existed over time in your repo, (b) renames that have occurred in your repo and (c) sizes of objects aggregated by path/directory/extension/blob\-id\&. This information may be useful in choosing how to filter your repo\&. It can also be useful to re\-run \-\-analyze after filtering to verify the changes look correct\&.
 .RE
 .sp
 .RS 4
@@ -730,18 +953,7 @@ if the repository you are cloning from is on the local filesystem\&. Avoid other
 .sp -1
 .IP "  3." 4.2
 .\}
-Run filter\-repo with your desired filtering options\&. Many examples are given below\&. For more complex cases, note that doing the filtering in multiple steps (by running multiple filter\-repo invocations in a sequence) is supported\&. If anything goes wrong here, simply delete your clone and restart\&.
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04' 4.\h'+01'\c
-.\}
-.el \{\
-.sp -1
-.IP "  4." 4.2
-.\}
-Push your new repository to its new home (note that refs/remotes/origin/* will have been moved to refs/heads/* as the first part of filter\-repo, so you can just deal with normal branches instead of remote tracking branches)\&. While you can force push this to the same URL you cloned from, there are good reasons to consider pushing to a different location instead:
+Before rewriting the history of your local copy with git\-filter\-repo, determine where you will push the rewritten history to when you are done\&. In the special case that you are trying to remove sensitive data from an existing repository, you will want to push it back where you cloned from, as well as clean up all other clones/copies of the repo\&. If you will be pushing back to the repository you cloned from, you will want to use the \-\-sensitive\-data\-removal option and see the Sensitive Data Removal section below\&. In most cases not dealing with sensitive data removal, you will want to push to a new repo, because:
 .sp
 .RS 4
 .ie n \{\
@@ -751,9 +963,12 @@ Push your new repository to its new home (note that refs/remotes/origin/* will h
 .sp -1
 .IP \(bu 2.3
 .\}
-People who cloned from the original repo will have old history\&. When they fetch the new history you force pushed up, unless they do a
-\fBgit reset \-\-hard @{u}\fR
-on their branches or rebase their local work, git will think they have hundreds or thousands of commits with very similar commit messages as what exist upstream (but which include files you wanted excised from history), and allow the user to merge the two histories, resulting in what looks like two copies of each commit\&. If they then push this history back up, then everyone now has history with two copies of each commit and the bad files have returned\&. You\(cqre more likely to succeed in forcing people to get rid of the old history if they have to clone a new URL\&.
+Even after you rewrite history and push it back, other people who previously cloned from the original repo will have the old history\&. If they simply run
+\fBgit\fR
+\fBpull\fR
+&&
+\fBgit\fR
+\fBpush\fR, it will merge the unrewritten history with the new, resulting in what looks like two copies of each commit involved in your rewrite \(em a new copy of each commit which has the cleanups you made, and an old copy of each commit that has not been cleaned up \(em being merged together\&. That means everything you carefully worked to remove from the repository has been pushed back\&. You\(cqre more likely to succeed in making sure they don\(cqt re\-push the unclean data if you just give them a new repository URL and tell them to reclone\&.
 .RE
 .sp
 .RS 4
@@ -764,8 +979,18 @@ on their branches or rebase their local work, git will think they have hundreds 
 .sp -1
 .IP \(bu 2.3
 .\}
-Rewriting history will rewrite tags; those who have already downloaded tags will not get the updated tags by default (see the "On Re\-tagging" section of
-\fBgit-tag\fR(1))\&. Every user trying to use an existing clone will have to forcibly delete all tags and re\-fetch them; it may be easier for them to just re\-clone, which they are more likely to do with a new clone URL\&.
+Rewriting history will rewrite tags; those who have already downloaded tags will not get the updated tags even if they specify
+\fB\-\-tags\fR
+to
+\fBgit\fR
+\fBfetch\fR
+or
+\fBgit\fR
+\fBpull\fR
+(see the "On Re\-tagging" section of
+\fBgit-tag\fR(1))\&. Every user trying to use an existing clone will have to forcibly delete all tags they already downloaded
+\fIbefore\fR
+re\-fetching them; it may be easier for them to just re\-clone, which they are more likely to do with a new clone URL\&.
 .RE
 .sp
 .RS 4
@@ -793,8 +1018,21 @@ option as well\&. Simply re\-cloning from a new URL is easier\&.
 .sp -1
 .IP \(bu 2.3
 .\}
-The server may not allow you to force push over some refs\&. For example, code review systems may have special ref namespaces (e\&.g\&. refs/changes/, refs/pull/, refs/merge\-requests/) that they have locked down\&.
+The server may not allow you to force push over some refs\&. For example, code review systems may have special ref namespaces (e\&.g\&. refs/changes/, refs/pull/, refs/merge\-requests/) that they have locked down, and you\(cqll need to somehow prevent users from merging those locked\-down (and thus not cleaned up) histories with your cleaned\-up history\&. Every software code review system handles this differently (see the sensitive data removal section for some links)\&.
 .RE
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 4.\h'+01'\c
+.\}
+.el \{\
+.sp -1
+.IP "  4." 4.2
+.\}
+Run filter\-repo with your desired filtering options\&. Many examples are given in the
+the section called \(lqEXAMPLES\(rq
+section\&. For more complex cases, note that doing the filtering in multiple steps (by running multiple filter\-repo invocations in a sequence) is supported\&. If anything goes wrong here, simply delete your clone and restart\&.
 .RE
 .sp
 .RS 4
@@ -805,47 +1043,7 @@ The server may not allow you to force push over some refs\&. For example, code r
 .sp -1
 .IP "  5." 4.2
 .\}
-If you still want to push your rewritten history back to the original url despite my warnings above, you\(cqll have to manage it very carefully:
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-git\-filter\-repo deletes the "origin" remote to help avoid people accidentally repushing to the same repository, so you\(cqll need to remind git what origin\(cqs url was\&. You\(cqll have to look up the command for that\&.
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-You\(cqll need to carefully synchronize with
-\fBeveryone\fR
-who has cloned the repository, and will also need to carefully synchronize with
-\fBeverything\fR
-(e\&.g\&. CI systems) that has cloned it\&. Every single clone will either need to be thrown away and re\-cloned, or need to take all the steps outlined in item 4 as well as follow the necessary steps from "RECOVERING FROM UPSTREAM REBASE" section of
-\fBgit-rebase\fR(1)\&. If you miss fixing any clones, you\(cqll risk mixing old and new history and end up with an even worse mess to clean up\&.
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-Finally, you\(cqll need to consult any documentation from your hosting provider about how to remove any server\-side references to the old commits (example:
-\m[blue]\fBGitLab\(cqs excellent docs on reducing repository size\fR\m[]\&\s-2\u[1]\d\s+2, or
-\m[blue]\fBthe first and second steps under "Fully removing the data from GitHub"\fR\m[]\&\s-2\u[2]\d\s+2)\&.
-.RE
+Push your new repository to its new home (note that refs/remotes/origin/* will have been moved to refs/heads/* as the first part of filter\-repo, so you can just deal with normal branches instead of remote tracking branches)\&.
 .RE
 .sp
 .RS 4
@@ -868,7 +1066,33 @@ Finally, you\(cqll need to consult any documentation from your hosting provider 
 .\}
 filter\-repo has a \-\-replace\-refs option to allow creating replace refs (see
 \fBgit-replace\fR(1)) for each rewritten commit ID, allowing you to use old (unabbreviated) commit hashes in the git command line to refer to the newly rewritten commits\&. If you want to use these replace refs, manually push them to the relevant clone URL and tell users to manually fetch them (e\&.g\&. by adjusting their fetch refspec,
-\fBgit config \-\-add remote\&.origin\&.fetch +refs/replace/*:refs/replace/*\fR)\&. Sadly, replace refs are not yet widely understood; projects like jgit and libgit2 do not support them and existing repository managers (e\&.g\&. Gerrit, GitHub, GitLab) do not yet understand replace refs\&. Thus one can\(cqt use old commit hashes within the UI of these other systems\&. This may change in the future, but replace refs at least help users locally within the git command line interface\&. Also, be aware that commit\-graphs are excessively cautious around replace refs and just turn off entirely if any are present, so after enough time has passed that old commit IDs become less relevant, users may want to locally delete the replace refs to regain the speedups from commit\-graphs\&.
+\fBgit\fR
+\fBconfig\fR
+\fB\-\-add\fR
+\fBremote\&.origin\&.fetch\fR
+\fB+refs/replace/\fR*:refs/replace/*)\&. Sadly, replace refs are not yet widely understood; projects like jgit and libgit2 do not support them and existing repository managers (e\&.g\&. Gerrit, GitHub, GitLab) do not yet understand replace refs\&. Thus one can\(cqt use old commit hashes within the UI of these other systems\&. This may change in the future, but replace refs at least help users locally within the git command line interface\&. Also, be aware that commit\-graphs are excessively cautious around replace refs and just turn off entirely if any are present, so after enough time has passed that old commit IDs become less relevant, users may want to locally delete the replace refs to regain the speedups from commit\-graphs\&.
+.RE
+.RE
+.SS "Why is my origin removed?"
+.sp
+When you rewrite history, all commit IDs (starting with the first one where changes are made) are modified\&. Even if you think you didn\(cqt change an intermediate commit, the fact that you changed any of its ancestors is also a change that counts and will cause a commit\(cqs ID to change as well\&. It is unfortunately all\-too\-easy for yourself or someone else to accidentally merge the old ugly history you were trying to rewrite with the new history, resulting in not only the old ugly history returning but getting you "two copies" of each commit (both an original commit and a cleaned\-up alternative), and thus doubling the number of commits in your repository\&. In short, you end up with an even bigger mess to clean up than you started with\&.
+.sp
+This happens frequently to people using \fBgit\fR \fBfilter\-branch\fR or \fBBFG\fR \fBrepo\fR \fBcleaner\fR, and can happen to folks using \fBgit\fR \fBfilter\-repo\fR if they insist on pushing back to the original repo\&. Example ways you can get such an even uglier history include:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+at the command line (of another clone of the same repo from before the cleanup):
+\fBgit\fR
+\fBpull\fR
+&&
+\fBgit\fR
+\fBpush\fR
 .RE
 .sp
 .RS 4
@@ -879,8 +1103,439 @@ filter\-repo has a \-\-replace\-refs option to allow creating replace refs (see
 .sp -1
 .IP \(bu 2.3
 .\}
-If you have a central repo, you may want to prevent people from pushing old commit IDs, in order to avoid mixing old and new history\&. Every repository manager does this differently, some provide specialized commands (e\&.g\&.
-\m[blue]\fBhttps://gerrit\-review\&.googlesource\&.com/Documentation/cmd\-ban\-commit\&.html\fR\m[]), others require you to write hooks\&.
+in a software forge: "reopen old Pull\-Request/Merge\-Request/Code\-Review and hit the merge/submit button"
+.RE
+.sp
+Removing the \fBorigin\fR remote and suggesting people push to a new repo (and ensuring they tell others to clone the new repo) is usually a good forcing function to avoid these problems\&. But, if people really want to push to the original repository despite these warnings, it is trivial to do so; simply run:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBgit\fR
+\fBremote\fR
+\fBadd\fR
+\fBorigin\fR
+\fB$ORIGINAL_CLONE_URL\fR
+.RE
+.sp
+and then you can push (e\&.g\&. \fBgit\fR \fBpush\fR \fB\-\-force\fR \fB\-\-branches\fR \fB\-\-tags\fR \fB\-\-prune\fR)\&. Since removing the origin url is such a cheap way to potentially prevent big messes, and it\(cqs so easy to work around for those that really do want to push back over the original history, removing the origin url is a great safety measure that I employ\&.
+.sp
+One final warning if you really want to push back to the original repo: see the next section on sensitive data removals\&. Those are the steps needed when pushing back to the original repo; they are so involved that I assume they are only worth it when sensitive data is involved, but you can choose to follow them for other kinds of rewrites too\&.
+.SS "Sensitive Data Removals"
+.sp
+Sensitive data removals are a specialized type of history rewrite\&. While it is always very problematic to mix the cleaned\-up history with the non\-cleaned\-up history, for sensitive data removals it is also bad to allow others to continue to view/clone/fetch the non\-cleaned\-up history at all; users often need to try to expunge the old history as well\&.
+.sp
+Note that if the sensitive data under consideration is a token/password/credential/secret (as is often the case), then it is important that you revoke and rotate that credential first\&. Once the credential is revoked or rotated, it can no longer be used for access\&. Revoking/rotating may resolve your problem without resorting to the heavy\-handed action of rewriting and purging history\&.
+.sp
+For sensitive data removal history rewrites, there are three high\-level steps:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Rewrite the repository locally, using git\-filter\-repo
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Make sure other copies are cleaned up, including:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+the server you cloned from
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+other clones that exist, such as ones your colleagues made
+.RE
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Prevent repeats and avoid future sensitive data spills
+.RE
+.sp
+Each will be discussed in greater detail below\&.
+.sp
+One important thing to note, though, is that others working on the same repository should be instructed to stop while you do the cleanup; if they continue development during your cleanup, you\(cqll likely be forced to either discard their changes or start over on your cleanup\&.
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBRewrite the repository locally, using git-filter-repo\fR
+.RS 4
+.sp
+The first step is to rewrite a copy of your repository locally using git\-filter\-repo\&. The exact commands to run will differ based on where in your repository the sensitive data is found, but some general tips:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Use the \-\-sensitive\-data\-removal flag\&. It will provide additional information useful for the other steps\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If the sensitive data is the entirety of one or more files, and no version of those files from history needs to be kept in your repository, the \-\-invert\-paths flag together with one or more \-\-path arguments may come in handy\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If the sensitive data is just a string found within one or more files and you want to replace that sensitive string with something else while leaving the rest of the file(s) intact, the \-\-replace\-text option may come in handy\&.
+.RE
+.sp
+After rewriting the history locally, make sure to inspect it to ensure the sensitive data has been removed\&. Some commands that might be handy for checking are:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git log \-\-all \-\-name\-status \-\- ${PROBLEMATIC_FILE1} ${PROBLEMATIC_FILE2}
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+or
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git log \-S"${PROBLEMATIC_STRING}" \-\-all \-p \-\-
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+If either of these commands turn up more sensitive data, then run additional git\-filter\-repo commands to clean up the necessary data before proceeding\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBMake sure other copies are cleaned up: primary server\fR
+.RS 4
+.sp
+Cleaning up the repository you cloned from requires force pushing your rewritten history over the original\&. You need to force push all refs, not just your current branch\&. You can use the following command to do so (read the bulleted list right after this command before running it):
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git push \-\-force \-\-mirror origin
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Several comments on this command:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If any of your colleagues have pushed any changes since you started, this force push command will discard their changes\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+This force push is likely to fail to push some refs, since most forges (Gerrit, GitHub, GitLab, etc\&.) prevent you from updating some refs (e\&.g\&.
+\fBrefs/changes/\fR*,
+\fBrefs/pull/\fR*,
+\fBrefs/merge\-requests/\fR*)\&. You will need to follow the directions from those forges to get the remaining refs updated or deleted, and a garbage collection to be triggered on their end\&. Some examples: (\m[blue]\fBGitLab\(cqs docs on reducing repository size\fR\m[]\&\s-2\u[1]\d\s+2, or
+\m[blue]\fBthe "Fully removing the data from GitHub" section of GitHub\(cqs docs\fR\m[]\&\s-2\u[2]\d\s+2)\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If you passed the
+\fB\-\-no\-fetch\fR
+option to git\-filter\-repo (or implied it with another option), you will either need to (1) drop the
+\fB\-\-mirror\fR
+option and figure out which refs or refspecs to push on your own, or (2) use the
+\fB\-\-mirror\fR
+option and risk deleting any refs you didn\(cqt fetch\&. Further, if you lacked some refs the server had which included the sensitive data in their history, then your only options at this point to actually clean up the sensitive data from the server are to either redo your rewrite from scratch (and make sure to get the relevant refs included this time) or delete those refs on the server\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Yes, I know that \-\-mirror implies \-\-force and is unnecessary\&. I included \-\-force anyway as a visual reminder to readers that this is going to overwrite changes on the server\&.
+.RE
+.sp
+Also, if any LFS objects were orphaned by your rewrite, those objects likely contain sensitive data and need to be deleted/purged from the LFS server\&. You\(cqll have to ask the maintainer of the LFS server you are using for how to delete/purge those on the server\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBMake sure other copies are cleaned up: clones of colleagues\fR
+.RS 4
+.sp
+After you have cleaned up the server, the easiest way to clean up other clones is to make everyone delete their existing clones and reclone\&.
+.sp
+If that isn\(cqt an option, then you will need to proceed carefully because a simple \fBgit\fR \fBpull\fR && \fBgit\fR \fBpush\fR from any other clone will recontaminate the main repository and make the mess even harder to clean up\&. To avoid this, before pushing from any other clone, you\(cqll need to have them clean up their copy, as detailed below\&.
+.sp
+First, though, let me note that you should \fBnot\fR have other developers try to cleanup their clone by running the same \fBgit\-filter\-repo\fR commands that you ran\&. While that sometimes may happen to work, it is not reliable in general\&. Running the same \fBgit\-filter\-repo\fR commands, even if identical, can result in them getting new hashes for commits that are different than your new hashes, and you\(cqll end up with a mess involving two or more copies of every commit\&.
+.sp
+Instead developers with other clones of the repository should run through the following steps to clean up their copy if they are unwilling to discard their copy and reclone:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+delete all tags and run
+\fBgit\fR
+\fBfetch\fR
+\fB\-\-prune\fR
+\fB\-\-tags\fR\&. Running the fetch command without deleting tags first will result in the old tags being kept, which will keep the sensitive data\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+rebase any changes they have on any branch (or other ref) on top of the new history\&. See the "RECOVERING FROM UPSTREAM REBASE" section of
+\fBgit-rebase\fR(1)
+(and in particular, "The hard case") for instructions\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+run a few steps to clean out the pre\-rebase history (note that the first step drops all reflogs including all stash entries\&. That\(cqs a high cost, but needed to clean up the sensitive data):
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+git reflog expire \-\-expire=now \-\-all
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+git gc \-\-prune=now
+.RE
+.RE
+.sp
+Once these steps are complete, you also need to verify that the clone no longer contains any sensitive data (it is really easy to miss something, which puts you at risk of recontaminating other repositories with the sensitive data)\&. You can do so by running:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git cat\-file \-t ${HASH_OF_FIRST_CHANGED_COMMIT}
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Where \fB$\fR{HASH_OF_FIRST_CHANGED_COMMIT} was printed by git\-filter\-repo at the end of its run (if there was more than one "first changed commit", run this command multiple times, with each commit hash)\&. If this command returns a fatal error, then the commit has correctly been removed from this repository\&. If it responds with "commit", then the object still exists and you need to re\-delete tags, re\-rebase all necessary branches/refs, and re\-expire reflogs and redo the gc\&. If you are curious about which branches or refs were the problematic ones holding on to \fB$\fR{HASH_OF_FIRST_CHANGED_COMMIT}, then presuming you did the reflog expire and gc jobs above, the following command should help you find the problematic branches/refs:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git for\-each\-ref \-\-contains ${HASH_OF_FIRST_CHANGED_COMMIT}
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Also, remember, the cat\-file command needs to come back with a fatal error for every \fB$\fR{HASH_OF_FIRST_CHANGED_COMMIT} involved if you have more than one\&.
+.sp
+After this is all done, then if any LFS objects were orphaned by the rewrite (which again, you will be told if you use the \-\-sensitive\-data\-removal option when you run git\-filter\-repo), then you also need to remove those LFS objects\&. Look for them a couple directories under \&.git/lfs/objects/, and delete them\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBPrevent repeats and avoid future sensitive data spills\fR
+.RS 4
+.sp
+There are several measures you can take to help avoid repeat problems\&. Not all may be applicable for your case, but the more that are, the more likely you can avoid problems\&.
+.sp
+For dealing with the existing sensitive data spill:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Since it is so easy to re\-contaminate the repository you cloned from (it merely takes a colleague to run
+\fBgit\fR
+\fBpull\fR
+&&
+\fBgit\fR
+\fBpush\fR
+from their clone that was created before your cleanup), take extra vigilance in performing the clean ups steps above for other clones to ensure they have all been cleaned up\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If you have a central repository everyone pushes to, look into methods to ban the First Changed Commit(s) from being (re\-)pushed to your repository\&. Sadly, few repository managers currently have such a built\-in capability (see Gerrit\(cqs ban\-commit ability for one such example at
+\m[blue]\fBhttps://gerrit\-review\&.googlesource\&.com/Documentation/cmd\-ban\-commit\&.html\fR\m[]), but a few may allow you to write your own pre\-receive hooks that reject pushes containing these bad commits\&. (Pro\-tip for writing such a pre\-receive hook: use
+\fBgit\fR
+\fBcat\-file\fR
+\fB\-t\fR
+\fB$\fR{BAD_COMMIT} as a cheap check before checking if any revision range between
+\fI<old\-oid>\fR
+and
+\fI<new\-oid>\fR
+contains
+\fB$\fR{BAD_COMMIT})
+.RE
+.sp
+Steps to help avoid other future sensitive data spills:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+If sensitive data is likely to appear within certain filenames that should not be tracked in git at all, then add those filenames to \&.gitignore to reduce the risk that others accidentally add them\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Avoid hardcoding secrets in code\&. Use environment variables, configuration management tools, or secrets management services like Azure Key Vault, AWS Secrets Manager, or HashiCorp Vault to manage and inject secrets at runtime\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Create a pre\-commit hook to check for sensitive data before it is committed or pushed anywhere, or use a well\-known tool in a pre\-commit hook like git\-secrets or gitleaks\&.
 .RE
 .RE
 .SH "EXAMPLES"
@@ -926,7 +1581,7 @@ git filter\-repo \-\-path\-glob \*(Aqsrc/*/data\*(Aq \-\-invert\-paths
 .\}
 .sp
 .sp
-Note that the asterisk (\fB*\fR) will match across multiple directories, so the second command would remove e\&.g\&. src/main/org/whatever/data\&. Also, the second command by itself would also remove e\&.g\&. src/not\-main/foo/data, but since src/not\-main/ was removed by the first command, that\(cqs not an issue\&. Also, the use of quotes around the asterisk is sometimes important to avoid glob expansion by the shell\&.
+Note that the asterisk (*) will match across multiple directories, so the second command would remove e\&.g\&. src/main/org/whatever/data\&. Also, the second command by itself would also remove e\&.g\&. src/not\-main/foo/data, but since src/not\-main/ was removed by the first command, that\(cqs not an issue\&. Also, the use of quotes around the asterisk is sometimes important to avoid glob expansion by the shell\&.
 .sp
 You can also select paths by regular expression (see \m[blue]\fBhttps://docs\&.python\&.org/3/library/re\&.html#regular\-expression\-syntax\fR\m[])\&. For example, to only include files from the repo whose name is in the format YYYY\-MM\-DD\&.txt and is found at least two subdirectories deep:
 .sp
@@ -1051,7 +1706,7 @@ git filter\-repo \-\-invert\-paths \-\-path\-glob \*(Aq*/\&.DS_Store\*(Aq \-\-pa
 .\}
 .sp
 .sp
-(the \fB\-\-path\-glob\fR isn\(cqt sufficient by itself as it might miss a toplevel \&.DS_Store file; further while something like \fB\-\-path\-glob \*(Aq*\&.DS_Store\*(Aq\fR would workaround that problem it would also grab files named \fBfoo\&.DS_Store\fR or \fBbar/baz\&.DS_Store\fR)
+(the \fB\-\-path\-glob\fR isn\(cqt sufficient by itself as it might miss a toplevel \&.DS_Store file; further while something like \fB\-\-path\-glob\fR \*(Aq*\&.DS_Store\*(Aq would workaround that problem it would also grab files named \fBfoo\&.DS_Store\fR or \fBbar/baz\&.DS_Store\fR)
 .sp
 Finally, see also the \fB\-\-filename\-callback\fR from the section called \(lqCALLBACKS\(rq\&.
 .SS "Filtering based on many paths"
@@ -1098,9 +1753,9 @@ git filter\-repo \-\-paths\-from\-file stuff\-i\-want\&.txt
 .\}
 .sp
 .sp
-to get a repo containing only the toplevel README\&.md file, the guides/ and tools/releases/ directories, all python files, files whose name was of the form YYYY\-MM\-DD\&.txt at least two subdirectories deep, and would rename tools/ to scripts/ and rename files like foo/bar/baz\&.text to bar/foo/baz\&.txt\&. Note the special line prefixes of \fBglob:\fR and \fBregex:\fR and the special string \fB==>\fR denoting renames\&.
+to get a repo containing only the toplevel README\&.md file, the guides/ and tools/releases/ directories, all python files, files whose name was of the form YYYY\-MM\-DD\&.txt at least two subdirectories deep, and would rename tools/ to scripts/ and rename files like foo/bar/baz\&.text to bar/foo/baz\&.txt\&. Note the special line prefixes of \fBglob:\fR and \fBregex:\fR and the special string \fB==\fR> denoting renames\&.
 .sp
-Sometimes you have a way of easily generating all the files you want\&. For example, if you know that none of the currently tracked files have any newlines or special characters in them (see core\&.quotePath from \fBgit config \-\-help\fR) so that \fBgit ls\-files\fR would print all files literally one per line, and you knew that you wanted to keep only the files that are currently tracked (thus deleting from all commits in history any files that only appear on other branches or that only appear in older commits), then you could use a pair of commands such as
+Sometimes you have a way of easily generating all the files you want\&. For example, if you know that none of the currently tracked files have any newlines or special characters in them (see core\&.quotePath from \fBgit\fR \fBconfig\fR \fB\-\-help\fR) so that \fBgit\fR \fBls\-files\fR would print all files literally one per line, and you knew that you wanted to keep only the files that are currently tracked (thus deleting from all commits in history any files that only appear on other branches or that only appear in older commits), then you could use a pair of commands such as
 .sp
 .if n \{\
 .RS 4
@@ -1114,7 +1769,7 @@ git filter\-repo \-\-paths\-from\-file \&.\&./paths\-i\-want\&.txt
 .\}
 .sp
 .sp
-Similarly, you could use \-\-paths\-from\-file to delete many files\&. For example, you could run \fBgit filter\-repo \-\-analyze\fR to get reports, look in one such as \&.git/filter\-repo/analysis/path\-deleted\-sizes\&.txt and copy all the filenames into a file such as /tmp/files\-i\-dont\-want\-anymore\&.txt and then run
+Similarly, you could use \-\-paths\-from\-file to delete many files\&. For example, you could run \fBgit\fR \fBfilter\-repo\fR \fB\-\-analyze\fR to get reports, look in one such as \&.git/filter\-repo/analysis/path\-deleted\-sizes\&.txt and copy all the filenames into a file such as /tmp/files\-i\-dont\-want\-anymore\&.txt and then run
 .sp
 .if n \{\
 .RS 4
@@ -1264,7 +1919,7 @@ git filter\-repo \-\-replace\-text expressions\&.txt
 .\}
 .sp
 .sp
-will go through and replace \fBp455w0rd\fR with \fB***REMOVED***\fR, \fBfoo\fR with \fBbar\fR, any line containing \fB666\fR with a blank line, the word \fBdriver\fR with \fBpilot\fR (but not if it has letters before or after; e\&.g\&. \fBdrivers\fR will be unmodified), replace the exact text \fBMM/DD/YYYY\fR with \fBYYYY\-MM\-DD\fR and replace date strings of the form MM/DD/YYYY with ones of the form YYYY\-MM\-DD\&. In the expressions file, there are a few things to note:
+will go through and replace \fBp455w0rd\fR with ***REMOVED***, \fBfoo\fR with \fBbar\fR, any line containing \fB666\fR with a blank line, the word \fBdriver\fR with \fBpilot\fR (but not if it has letters before or after; e\&.g\&. \fBdrivers\fR will be unmodified), replace the exact text \fBMM/DD/YYYY\fR with \fBYYYY\-MM\-DD\fR and replace date strings of the form MM/DD/YYYY with ones of the form YYYY\-MM\-DD\&. In the expressions file, there are a few things to note:
 .sp
 .RS 4
 .ie n \{\
@@ -1275,10 +1930,8 @@ will go through and replace \fBp455w0rd\fR with \fB***REMOVED***\fR, \fBfoo\fR w
 .IP \(bu 2.3
 .\}
 Every line has a replacement, given by whatever is on the right of
-\fB==>\fR\&. If
-\fB==>\fR
-does not appear on the line, the default replacement is
-\fB***REMOVED***\fR\&.
+\fB==\fR>\&. If
+\fB==\fR> does not appear on the line, the default replacement is ***REMOVED***\&.
 .RE
 .sp
 .RS 4
@@ -1319,9 +1972,7 @@ If multiple matches are found, all are replaced\&.
 .sp -1
 .IP \(bu 2.3
 .\}
-globs and regexes are applied to the entire file, but without any special flags turned on\&. Some folks may be interested in adding
-\fB(?m)\fR
-to the regex to turn on MULTILINE mode, so that
+globs and regexes are applied to the entire file, but without any special flags turned on\&. Some folks may be interested in adding (?m) to the regex to turn on MULTILINE mode, so that
 \fB^\fR
 and
 \fB$\fR
@@ -1434,7 +2085,7 @@ To replace $commit_A with $commit_B (e\&.g\&. make all commits which had $commit
 .\}
 .nf
 git replace $commit_A $commit_B
-git filter\-repo \-\-force
+git filter\-repo \-\-proceed
 .fi
 .if n \{\
 .RE
@@ -1448,14 +2099,14 @@ To create a new commit with the same contents as $commit_A except with different
 .\}
 .nf
 git replace \-\-graft $commit_A $new_parent_or_parents
-git filter\-repo \-\-force
+git filter\-repo \-\-proceed
 .fi
 .if n \{\
 .RE
 .\}
 .sp
 .sp
-The reason to specify \-\-force is two\-fold: filter\-repo will error out if no arguments are specified, and the new graft commit would otherwise trigger the not\-a\-fresh\-clone check\&.
+The \fB\-\-proceed\fR option is needed to avoid failing the "no arguments specified" check\&. Note that older versions of git\-filter\-repo required \fB\-\-force\fR to be passed after creating a graft to avoid triggering the not\-a\-fresh\-clone check; that check has been modified to remove this overuse of \fB\-\-force\fR\&.
 .SS "Partial history rewrites"
 .sp
 To rewrite the history on just one branch (which may cause it to no longer share any common history with other branches), use \fB\-\-refs\fR\&. For example, to remove a file named \fIextraneous\&.txt\fR from the \fImaster\fR branch:
@@ -1487,7 +2138,7 @@ git filter\-repo \-\-invert\-paths \-\-path extraneous\&.txt \-\-refs master~3\&
 .sp
 For flexibility, filter\-repo allows you to specify functions on the command line to further filter all changes\&. Please note that there are some API compatibility caveats associated with these callbacks that you should be aware of before using them; see the "API BACKWARD COMPATIBILITY CAVEAT" comment near the top of git\-filter\-repo source code\&.
 .sp
-All callback functions are of the same general format\&. For a command line argument like
+Most callback functions are of the same general format (\-\-file\-info\-callback is an exception which will be noted later)\&. For a command line argument like
 .sp
 .if n \{\
 .RS 4
@@ -1543,6 +2194,7 @@ We\(cqll come back to these later because it is often the case that the other ca
 \-\-name\-callback
 \-\-email\-callback
 \-\-refname\-callback
+\-\-file\-info\-callback
 .fi
 .if n \{\
 .RE
@@ -1645,7 +2297,88 @@ git\-filter\-repo \-\-filename\-callback \*(Aq
 .\}
 .sp
 .sp
-In contrast, the blob, reset, tag, and commit callbacks are not expected to return a value, but are instead expected to modify the object passed in\&. Major fields for these objects are (subject to API backward compatibility caveats mentioned previously):
+The file\-info callback is more involved\&. It is designed to be used in cases where filtering depends on both filename and contents (and maybe mode)\&. It is called for file changes other than deletions (since deletions have no file contents to operate on)\&. The file info callback takes four parameters (filename, mode, blob_id, and value), and expects three to be returned (filename, mode, blob_id)\&. The filename is handled similar to the filename callback; it can be used to rename the file (or set to None to drop the change)\&. The mode is a simple bytestring (b"100644" for regular non\-executable files, b"100755" for executable files/scripts, b"120000" for symlinks, and b"160000" for submodules)\&. The blob_id is most useful in conjunction with the value parameter\&. The value parameter is an instance of a class that has the following functions value\&.get_contents_by_identifier(blob_id) \(-> contents (bytestring) value\&.get_size_by_identifier(blob_id) \(-> size_of_blob (int) value\&.insert_file_with_contents(contents) \(-> blob_id value\&.is_binary(contents) \(-> bool value\&.apply_replace_text(contents) \(-> new_contents (bytestring) and has the following member data you can write to value\&.data (dict) These functions allow you to get the contents of the file, or its size, create a new file in the stream whose blob_id you can return, check whether some given contents are binary (using the heuristic from the grep(1) command), and apply the replacement rules from \-\-replace\-text (note that \-\-file\-info\-callback makes the changes from \-\-replace\-text not auto\-apply)\&. You could use this for example to only apply the changes from \-\-replace\-text to certain file types and simultaneously rename the files it applies the changes to:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-file\-info\-callback \*(Aq
+  if not filename\&.endswith(b"\&.config"):
+    # Make no changes to the file; return as\-is
+    return (filename, mode, blob_id)
+
+  new_filename = filename[0:\-7] + b"\&.cfg"
+
+  contents = value\&.get_contents_by_identifier(blob_id)
+  new_contents = value\&.apply_replace_text(contents)
+  new_blob_id = value\&.insert_file_with_contents(new_contents)
+
+  return (new_filename, mode, new_blob_id)
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+Note that if history has multiple revisions with the same file (e\&.g\&. it was cherry\-picked to multiple branches or there were a number of reverts), then the \-\-file\-info\-callback will be called multiple times\&. If you want to avoid processing the same file multiple times, then you can stash transformation results in the value\&.data dict\&. For, example, we could modify the above example to make it only apply transformations on blob_ids we have not seen before:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-file\-info\-callback \*(Aq
+  if not filename\&.endswith(b"\&.config"):
+    # Make no changes to the file; return as\-is
+    return (filename, mode, blob_id)
+
+  new_filename = filename[0:\-7] + b"\&.cfg"
+
+  if blob_id in value\&.data:
+    return (new_filename, mode, value\&.data[blob_id])
+
+  contents = value\&.get_contents_by_identifier(blob_id)
+  new_contents = value\&.apply_replace_text(contents)
+  new_blob_id = value\&.insert_file_with_contents(new_contents)
+  value\&.data[blob_id] = new_blob_id
+
+  return (new_filename, mode, new_blob_id)
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+An alternative example for the \-\-file\-info\-callback is to make all \&.sh files executable and add an extra trailing newline to the \&.sh files:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+git\-filter\-repo \-\-file\-info\-callback \*(Aq
+  if not filename\&.endswith(b"\&.sh"):
+    # Make no changes to the file; return as\-is
+    return (filename, mode, blob_id)
+
+  # There are only 4 valid modes in git:
+  #   \- 100644, for regular non\-executable files
+  #   \- 100755, for executable files/scripts
+  #   \- 120000, for symlinks
+  #   \- 160000, for submodules
+  new_mode = b"100755"
+
+  contents = value\&.get_contents_by_identifier(blob_id)
+  new_contents = contents + b"\en"
+  new_blob_id = value\&.insert_file_with_contents(new_contents)
+
+  return (filename, new_mode, new_blob_id)
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.sp
+In contrast to the previous callback types, the blob, reset, tag, and commit callbacks are not expected to return a value, but are instead expected to modify the object passed in\&. Major fields for these objects are (subject to API backward compatibility caveats mentioned previously):
 .sp
 .RS 4
 .ie n \{\
@@ -1838,7 +2571,11 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  2." 4.2
 .\}
-\fBgit fetch \-u \&. refs/remotes/origin/*:refs/heads/*\fR
+\fBgit\fR
+\fBfetch\fR
+\fB\-u\fR
+\&.
+\fBrefs/remotes/origin/\fR*:refs/heads/*
 .RE
 .sp
 .RS 4
@@ -1849,7 +2586,10 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  3." 4.2
 .\}
-\fBgit remote rm origin\fR
+\fBgit\fR
+\fBremote\fR
+\fBrm\fR
+\fBorigin\fR
 .RE
 .sp
 .RS 4
@@ -1860,7 +2600,28 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  4." 4.2
 .\}
-\fBgit fast\-export \-\-show\-original\-ids \-\-reference\-excluded\-parents \-\-fake\-missing\-tagger \-\-signed\-tags=strip \-\-tag\-of\-filtered\-object=rewrite \-\-use\-done\-feature \-\-no\-data \-\-reencode=yes \-\-mark\-tags \-\-all | filter | git \-c core\&.ignorecase=false fast\-import \-\-date\-format=raw\-permissive \-\-force \-\-quiet\fR
+\fBgit\fR
+\fBfast\-export\fR
+\fB\-\-show\-original\-ids\fR
+\fB\-\-reference\-excluded\-parents\fR
+\fB\-\-fake\-missing\-tagger\fR
+\fB\-\-signed\-tags=strip\fR
+\fB\-\-tag\-of\-filtered\-object=rewrite\fR
+\fB\-\-use\-done\-feature\fR
+\fB\-\-no\-data\fR
+\fB\-\-reencode=yes\fR
+\fB\-\-mark\-tags\fR
+\fB\-\-all\fR
+|
+\fBfilter\fR
+|
+\fBgit\fR
+\fB\-c\fR
+\fBcore\&.ignorecase=false\fR
+\fBfast\-import\fR
+\fB\-\-date\-format=raw\-permissive\fR
+\fB\-\-force\fR
+\fB\-\-quiet\fR
 .RE
 .sp
 .RS 4
@@ -1871,7 +2632,10 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  5." 4.2
 .\}
-\fBgit update\-ref \-\-no\-deref \-\-stdin\fR, fed with a list of refs to nuke, and a list of replace refs to delete, create, or update\&.
+\fBgit\fR
+\fBupdate\-ref\fR
+\fB\-\-no\-deref\fR
+\fB\-\-stdin\fR, fed with a list of refs to nuke, and a list of replace refs to delete, create, or update\&.
 .RE
 .sp
 .RS 4
@@ -1882,7 +2646,9 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  6." 4.2
 .\}
-\fBgit reset \-\-hard\fR
+\fBgit\fR
+\fBreset\fR
+\fB\-\-hard\fR
 .RE
 .sp
 .RS 4
@@ -1893,7 +2659,11 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  7." 4.2
 .\}
-\fBgit reflog expire \-\-expire=now \-\-all\fR
+\fBgit\fR
+\fBreflog\fR
+\fBexpire\fR
+\fB\-\-expire=now\fR
+\fB\-\-all\fR
 .RE
 .sp
 .RS 4
@@ -1904,7 +2674,9 @@ Verify we\(cqre in a fresh clone
 .sp -1
 .IP "  8." 4.2
 .\}
-\fBgit gc \-\-prune=now\fR
+\fBgit\fR
+\fBgc\fR
+\fB\-\-prune=now\fR
 .RE
 .sp
 Some notes or exceptions on each of the above:
@@ -1931,7 +2703,8 @@ overrides this check, and it\(cqs also off if you\(cqve already ran filter\-repo
 .IP "  2." 4.2
 .\}
 Technically, we actually use a
-\fBgit update\-ref\fR
+\fBgit\fR
+\fBupdate\-ref\fR
 command fed with a lot of input due to the fact that users can use
 \fB\-\-force\fR
 when local branches might not match remote branches\&. But this fetch command catches the intent rather succinctly\&.
@@ -2301,7 +3074,7 @@ options will continue to be supported since there are people with usecases for t
 \fBComments on reversibility\fR
 .RS 4
 .sp
-Some people are interested in reversibility of a rewrite; e\&.g\&. rewrite history, possibly add some commits, then unrewrite and get the original history back plus a few new "unrewritten" commits\&. Obviously this is impossible if your rewrite involves throwing away information (e\&.g\&. filtering out files or replacing several different strings with \fB***REMOVED***\fR), but may be possible with some rewrites\&. filter\-repo is likely to be a poor fit for this type of workflow for a few reasons:
+Some people are interested in reversibility of a rewrite; e\&.g\&. rewrite history, possibly add some commits, then unrewrite and get the original history back plus a few new "unrewritten" commits\&. Obviously this is impossible if your rewrite involves throwing away information (e\&.g\&. filtering out files or replacing several different strings with ***REMOVED***), but may be possible with some rewrites\&. filter\-repo is likely to be a poor fit for this type of workflow for a few reasons:
 .sp
 .RS 4
 .ie n \{\
@@ -2366,12 +3139,12 @@ I assume that people use filter\-repo for one\-shot conversions, not ongoing dat
 Part of the \fBgit\fR(1) suite
 .SH "NOTES"
 .IP " 1." 4
-GitLab\(cqs excellent docs on reducing repository size
+GitLab\(cqs docs on reducing repository size
 .RS 4
 \%https://docs.gitlab.com/ee/user/project/repository/reducing_the_repo_size_using_git.html
 .RE
 .IP " 2." 4
-the first and second steps under "Fully removing the data from GitHub"
+the "Fully removing the data from GitHub" section of GitHub\(cqs docs
 .RS 4
 \%https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository#fully-removing-the-data-from-github
 .RE

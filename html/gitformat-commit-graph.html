@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>gitformat-commit-graph(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -946,7 +946,7 @@ This list of 8-byte values stores the corrected commit date offsets
 <li>
 <p>
 Generation Data Overflow chunk is present only when Generation Data
-      chunk is present and atleast one corrected commit date offset cannot
+      chunk is present and at least one corrected commit date offset cannot
       be stored within 31 bits.
 </p>
 </li>
@@ -992,13 +992,16 @@ It starts with header consisting of three unsigned 32-bit integers:
 <div class="ulist"><ul>
 <li>
 <p>
-Version of the hash algorithm being used. We currently only support
-        value 1 which corresponds to the 32-bit version of the murmur3 hash
+Version of the hash algorithm being used. We currently support
+        value 2 which corresponds to the 32-bit version of the murmur3 hash
         implemented exactly as described in
         <a href="https://en.wikipedia.org/wiki/MurmurHash#Algorithm">https://en.wikipedia.org/wiki/MurmurHash#Algorithm</a> and the double
         hashing technique using seed values 0x293ae76f and 0x7e646e2 as
         described in <a href="https://doi.org/10.1007/978-3-540-30494-4_26">https://doi.org/10.1007/978-3-540-30494-4_26</a> "Bloom Filters
-        in Probabilistic Verification"
+        in Probabilistic Verification". Version 1 Bloom filters have a bug that appears
+        when char is signed and the repository has path names that have characters &gt;=
+        0x80; Git supports reading and writing them, but this ability will be removed
+        in a future version of Git.
 </p>
 </li>
 <li>
@@ -1076,7 +1079,7 @@ chunks and write the new information without trusting the incorrect data.</p></d
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

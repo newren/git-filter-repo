@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-stash(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -771,23 +771,23 @@ git-stash(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Use <code>git stash</code> when you want to record the current state of the
+<div class="paragraph"><p>Use <code>git</code> <code>stash</code> when you want to record the current state of the
 working directory and the index, but want to go back to a clean
 working directory.  The command saves your local modifications away
 and reverts the working directory to match the <code>HEAD</code> commit.</p></div>
 <div class="paragraph"><p>The modifications stashed away by this command can be listed with
-<code>git stash list</code>, inspected with <code>git stash show</code>, and restored
-(potentially on top of a different commit) with <code>git stash apply</code>.
-Calling <code>git stash</code> without any arguments is equivalent to <code>git stash push</code>.
+<code>git</code> <code>stash</code> <code>list</code>, inspected with <code>git</code> <code>stash</code> <code>show</code>, and restored
+(potentially on top of a different commit) with <code>git</code> <code>stash</code> <code>apply</code>.
+Calling <code>git</code> <code>stash</code> without any arguments is equivalent to <code>git</code> <code>stash</code> <code>push</code>.
 A stash is by default listed as "WIP on <em>branchname</em> &#8230;", but
 you can give a more descriptive message on the command line when
 you create one.</p></div>
 <div class="paragraph"><p>The latest stash you created is stored in <code>refs/stash</code>; older
 stashes are found in the reflog of this reference and can be named using
-the usual reflog syntax (e.g. <code>stash@{0}</code> is the most recently
-created stash, <code>stash@{1}</code> is the one before it, <code>stash@{2.hours.ago}</code>
+the usual reflog syntax (e.g. <code>stash@</code>{0} is the most recently
+created stash, <code>stash@</code>{1} is the one before it, <code>stash@</code>{2.hours.ago}
 is also possible). Stashes may also be referenced by specifying just the
-stash index (e.g. the integer <code>n</code> is equivalent to <code>stash@{n}</code>).</p></div>
+stash index (e.g. the integer <code>n</code> is equivalent to <code>stash@</code>{n}).</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -807,7 +807,7 @@ push [-p|--patch] [-S|--staged] [-k|--[no-]keep-index] [-u|--include-untracked] 
 <div class="paragraph"><p>For quickly making a snapshot, you can omit "push".  In this mode,
 non-option arguments are not allowed to prevent a misspelled
 subcommand from making an unwanted stash entry.  The two exceptions to this
-are <code>stash -p</code> which acts as alias for <code>stash push -p</code> and pathspec elements,
+are <code>stash</code> <code>-p</code> which acts as alias for <code>stash</code> <code>push</code> <code>-p</code> and pathspec elements,
 which are allowed after a double hyphen <code>--</code> for disambiguation.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -827,7 +827,7 @@ list [&lt;log-options&gt;]
 <dd>
 <p>
         List the stash entries that you currently have.  Each <em>stash entry</em> is
-        listed with its name (e.g. <code>stash@{0}</code> is the latest entry, <code>stash@{1}</code> is
+        listed with its name (e.g. <code>stash@</code>{0} is the latest entry, <code>stash@</code>{1} is
         the one before, etc.), the name of the branch that was current when the
         entry was made, and a short description of the commit the entry was
         based on.
@@ -849,9 +849,9 @@ show [-u|--include-untracked|--only-untracked] [&lt;diff-options&gt;] [&lt;stash
         stashed contents and the commit back when the stash entry was first
         created.
         By default, the command shows the diffstat, but it will accept any
-        format known to <em>git diff</em> (e.g., <code>git stash show -p stash@{1}</code>
+        format known to <em>git diff</em> (e.g., <code>git</code> <code>stash</code> <code>show</code> <code>-p</code> <code>stash@</code>{1}
         to view the second most recent entry in patch form).
-        If no <code>&lt;diff-option&gt;</code> is provided, the default behavior will be given
+        If no <em>&lt;diff-option&gt;</em> is provided, the default behavior will be given
         by the <code>stash.showStat</code>, and <code>stash.showPatch</code> config variables. You
         can also use <code>stash.showIncludeUntracked</code> to set whether
         <code>--include-untracked</code> is enabled by default.
@@ -864,12 +864,12 @@ pop [--index] [-q|--quiet] [&lt;stash&gt;]
 <p>
         Remove a single stashed state from the stash list and apply it
         on top of the current working tree state, i.e., do the inverse
-        operation of <code>git stash push</code>. The working directory must
+        operation of <code>git</code> <code>stash</code> <code>push</code>. The working directory must
         match the index.
 </p>
 <div class="paragraph"><p>Applying the state can fail with conflicts; in this case, it is not
 removed from the stash list. You need to resolve the conflicts by hand
-and call <code>git stash drop</code> manually afterwards.</p></div>
+and call <code>git</code> <code>stash</code> <code>drop</code> manually afterwards.</p></div>
 </dd>
 <dt class="hdlist1">
 apply [--index] [-q|--quiet] [&lt;stash&gt;]
@@ -877,8 +877,8 @@ apply [--index] [-q|--quiet] [&lt;stash&gt;]
 <dd>
 <p>
         Like <code>pop</code>, but do not remove the state from the stash list. Unlike <code>pop</code>,
-        <code>&lt;stash&gt;</code> may be any commit that looks like a commit created by
-        <code>stash push</code> or <code>stash create</code>.
+        <em>&lt;stash&gt;</em> may be any commit that looks like a commit created by
+        <code>stash</code> <code>push</code> or <code>stash</code> <code>create</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -886,16 +886,16 @@ branch &lt;branchname&gt; [&lt;stash&gt;]
 </dt>
 <dd>
 <p>
-        Creates and checks out a new branch named <code>&lt;branchname&gt;</code> starting from
-        the commit at which the <code>&lt;stash&gt;</code> was originally created, applies the
-        changes recorded in <code>&lt;stash&gt;</code> to the new working tree and index.
-        If that succeeds, and <code>&lt;stash&gt;</code> is a reference of the form
-        <code>stash@{&lt;revision&gt;}</code>, it then drops the <code>&lt;stash&gt;</code>.
+        Creates and checks out a new branch named <em>&lt;branchname&gt;</em> starting from
+        the commit at which the <em>&lt;stash&gt;</em> was originally created, applies the
+        changes recorded in <em>&lt;stash&gt;</em> to the new working tree and index.
+        If that succeeds, and <em>&lt;stash&gt;</em> is a reference of the form
+        <code>stash@</code>{<em>&lt;revision&gt;</em>}, it then drops the <em>&lt;stash&gt;</em>.
 </p>
-<div class="paragraph"><p>This is useful if the branch on which you ran <code>git stash push</code> has
-changed enough that <code>git stash apply</code> fails due to conflicts. Since
+<div class="paragraph"><p>This is useful if the branch on which you ran <code>git</code> <code>stash</code> <code>push</code> has
+changed enough that <code>git</code> <code>stash</code> <code>apply</code> fails due to conflicts. Since
 the stash entry is applied on top of the commit that was HEAD at the
-time <code>git stash</code> was run, it restores the originally stashed state
+time <code>git</code> <code>stash</code> was run, it restores the originally stashed state
 with no conflicts.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -957,7 +957,7 @@ store
         This option is only valid for <code>push</code> and <code>save</code> commands.
 </p>
 <div class="paragraph"><p>All ignored and untracked files are also stashed and then cleaned
-up with <code>git clean</code>.</p></div>
+up with <code>git</code> <code>clean</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 -u
@@ -972,7 +972,7 @@ up with <code>git clean</code>.</p></div>
 <p>
         When used with the <code>push</code> and <code>save</code> commands,
         all untracked files are also stashed and then cleaned up with
-        <code>git clean</code>.
+        <code>git</code> <code>clean</code>.
 </p>
 <div class="paragraph"><p>When used with the <code>show</code> command, show the untracked files in the stash
 entry as part of the diff.</p></div>
@@ -1044,7 +1044,7 @@ to learn how to operate the <code>--patch</code> mode.</p></div>
         This option is only valid for <code>push</code> and <code>save</code> commands.
 </p>
 <div class="paragraph"><p>Stash only the changes that are currently staged. This is similar to
-basic <code>git commit</code> except the state is committed to the stash instead
+basic <code>git</code> <code>commit</code> except the state is committed to the stash instead
 of current branch.</p></div>
 <div class="paragraph"><p>The <code>--patch</code> option has priority over this one.</p></div>
 </dd>
@@ -1055,8 +1055,8 @@ of current branch.</p></div>
 <p>
         This option is only valid for <code>push</code> command.
 </p>
-<div class="paragraph"><p>Pathspec is passed in <code>&lt;file&gt;</code> instead of commandline args. If
-<code>&lt;file&gt;</code> is exactly <code>-</code> then standard input is used. Pathspec
+<div class="paragraph"><p>Pathspec is passed in <em>&lt;file&gt;</em> instead of commandline args. If
+<em>&lt;file&gt;</em> is exactly <code>-</code> then standard input is used. Pathspec
 elements are separated by LF or CR/LF. Pathspec elements can be
 quoted as explained for the configuration variable <code>core.quotePath</code>
 (see <a href="git-config.html">git-config(1)</a>). See also <code>--pathspec-file-nul</code> and
@@ -1116,8 +1116,8 @@ too, leaving files that do not match the pathspec intact.</p></div>
         This option is only valid for <code>apply</code>, <code>branch</code>, <code>drop</code>, <code>pop</code>,
         <code>show</code> commands.
 </p>
-<div class="paragraph"><p>A reference of the form <code>stash@{&lt;revision&gt;}</code>. When no <code>&lt;stash&gt;</code> is
-given, the latest stash is assumed (that is, <code>stash@{0}</code>).</p></div>
+<div class="paragraph"><p>A reference of the form <code>stash@</code>{<em>&lt;revision&gt;</em>}. When no <em>&lt;stash&gt;</em> is
+given, the latest stash is assumed (that is, <code>stash@</code>{0}).</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1153,10 +1153,10 @@ Pulling into a dirty tree
 When you are in the middle of something, you learn that there are
 upstream changes that are possibly relevant to what you are
 doing.  When your local changes do not conflict with the changes in
-the upstream, a simple <code>git pull</code> will let you move forward.
+the upstream, a simple <code>git</code> <code>pull</code> will let you move forward.
 </p>
 <div class="paragraph"><p>However, there are cases in which your local changes do conflict with
-the upstream changes, and <code>git pull</code> refuses to overwrite your
+the upstream changes, and <code>git</code> <code>pull</code> refuses to overwrite your
 changes.  In such a case, you can stash your changes away,
 perform a pull, and then unstash, like this:</p></div>
 <div class="listingblock">
@@ -1207,7 +1207,7 @@ Testing partial commits
 </dt>
 <dd>
 <p>
-You can use <code>git stash push --keep-index</code> when you want to make two or
+You can use <code>git</code> <code>stash</code> <code>push</code> <code>--keep-index</code> when you want to make two or
 more commits out of the changes in the work tree, and you want to test
 each change before committing:
 </p>
@@ -1231,7 +1231,7 @@ Saving unrelated changes for future use
 <p>
 When you are in the middle of massive changes and you find some
 unrelated issue that you don&#8217;t want to forget to fix, you can do the
-change(s), stage them, and use <code>git stash push --staged</code> to stash them
+change(s), stage them, and use <code>git</code> <code>stash</code> <code>push</code> <code>--staged</code> to stash them
 out for future use. This is similar to committing the staged changes,
 only the commit ends-up being in the stash and not on the current branch.
 </p>
@@ -1278,7 +1278,7 @@ stash.showIncludeUntracked
 </dt>
 <dd>
 <p>
-        If this is set to true, the <code>git stash show</code> command will show
+        If this is set to true, the <code>git</code> <code>stash</code> <code>show</code> command will show
         the untracked files of a stash entry.  Defaults to false. See
         the description of the <em>show</em> command in <a href="git-stash.html">git-stash(1)</a>.
 </p>
@@ -1288,7 +1288,7 @@ stash.showPatch
 </dt>
 <dd>
 <p>
-        If this is set to true, the <code>git stash show</code> command without an
+        If this is set to true, the <code>git</code> <code>stash</code> <code>show</code> command without an
         option will show the stash entry in patch form.  Defaults to false.
         See the description of the <em>show</em> command in <a href="git-stash.html">git-stash(1)</a>.
 </p>
@@ -1298,7 +1298,7 @@ stash.showStat
 </dt>
 <dd>
 <p>
-        If this is set to true, the <code>git stash show</code> command without an
+        If this is set to true, the <code>git</code> <code>stash</code> <code>show</code> command without an
         option will show a diffstat of the stash entry.  Defaults to true.
         See the description of the <em>show</em> command in <a href="git-stash.html">git-stash(1)</a>.
 </p>
@@ -1327,7 +1327,7 @@ stash.showStat
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

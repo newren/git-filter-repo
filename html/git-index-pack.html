@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-index-pack(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -823,7 +823,7 @@ the objects/pack/ directory of a Git repository.</p></div>
 </dt>
 <dd>
 <p>
-        Fix a "thin" pack produced by <code>git pack-objects --thin</code> (see
+        Fix a "thin" pack produced by <code>git</code> <code>pack-objects</code> <code>--thin</code> (see
         <a href="git-pack-objects.html">git-pack-objects(1)</a> for details) by adding the
         excluded objects the deltified objects are based on to the
         pack. This option only makes sense in conjunction with --stdin.
@@ -870,11 +870,11 @@ the objects/pack/ directory of a Git repository.</p></div>
 <dd>
 <p>
         Die, if the pack contains broken objects or links. An optional
-        comma-separated list of <code>&lt;msg-id&gt;=&lt;severity&gt;</code> can be passed to change
+        comma-separated list of <em>&lt;msg-id&gt;</em><code>=</code><em>&lt;severity&gt;</em> can be passed to change
         the severity of some possible issues, e.g.,
-         <code>--strict="missingEmail=ignore,badTagName=error"</code>. See the entry for the
-        <code>fsck.&lt;msg-id&gt;</code> configuration options in <a href="git-fsck.html">git-fsck(1)</a> for more
-        information on the possible values of <code>&lt;msg-id&gt;</code> and <code>&lt;severity&gt;</code>.
+         <code>--strict=</code>"missingEmail=ignore,badTagName=error". See the entry for the
+        <code>fsck.</code><em>&lt;msg-id&gt;</em> configuration options in <a href="git-fsck.html">git-fsck(1)</a> for more
+        information on the possible values of <em>&lt;msg-id&gt;</em> and <em>&lt;severity&gt;</em>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -906,11 +906,11 @@ default and "Indexing objects" when <code>--stdin</code> is specified.</p></div>
         (for the caller to check) after the hash that goes into the name of the
         pack/idx file (see "Notes").
 </p>
-<div class="paragraph"><p>An optional comma-separated list of <code>&lt;msg-id&gt;=&lt;severity&gt;</code> can be passed to
+<div class="paragraph"><p>An optional comma-separated list of <em>&lt;msg-id&gt;</em><code>=</code><em>&lt;severity&gt;</em> can be passed to
 change the severity of some possible issues, e.g.,
-<code>--fsck-objects="missingEmail=ignore,badTagName=ignore"</code>. See the entry for the
-<code>fsck.&lt;msg-id&gt;</code> configuration options in <a href="git-fsck.html">git-fsck(1)</a> for more
-information on the possible values of <code>&lt;msg-id&gt;</code> and <code>&lt;severity&gt;</code>.</p></div>
+<code>--fsck-objects=</code>"missingEmail=ignore,badTagName=ignore". See the entry for the
+<code>fsck.</code><em>&lt;msg-id&gt;</em> configuration options in <a href="git-fsck.html">git-fsck(1)</a> for more
+information on the possible values of <em>&lt;msg-id&gt;</em> and <em>&lt;severity&gt;</em>.</p></div>
 </dd>
 <dt class="hdlist1">
 --threads=&lt;n&gt;
@@ -965,10 +965,14 @@ without data loss.</p></div>
         Before committing the pack-index, create a .promisor file for this
         pack. Particularly helpful when writing a promisor pack with --fix-thin
         since the name of the pack is not final until the pack has been fully
-        written. If a <code>&lt;message&gt;</code> is provided, then that content will be
+        written. If a <em>&lt;message&gt;</em> is provided, then that content will be
         written to the .promisor file for future reference. See
         <a href="technical/partial-clone.html">partial clone</a> for more information.
 </p>
+<div class="paragraph"><p>Also, if there are objects in the given pack that references non-promisor
+objects (in the repo), repacks those non-promisor objects into a promisor
+pack. This avoids a situation in which a repo has non-promisor objects that are
+accessible through promisor objects.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -995,7 +999,7 @@ mentioned above.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-11-23 21:00:21 PST
 </div>
 </div>
 </body>

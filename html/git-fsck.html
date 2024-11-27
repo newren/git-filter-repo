@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-fsck(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -904,7 +904,7 @@ care about this output and want to speed it up further.</p></div>
         When displaying names of reachable objects, in addition to the
         SHA-1 also display a name that describes <strong>how</strong> they are reachable,
         compatible with <a href="git-rev-parse.html">git-rev-parse(1)</a>, e.g.
-        <code>HEAD@{1234567890}~25^2:src/</code>.
+        <code>HEAD@</code>{1234567890}~25^2:src/.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -940,33 +940,33 @@ fsck.&lt;msg-id&gt;
         set. This feature is intended to support working with legacy
         repositories containing such data.
 </p>
-<div class="paragraph"><p>Setting <code>fsck.&lt;msg-id&gt;</code> will be picked up by <a href="git-fsck.html">git-fsck(1)</a>, but
-to accept pushes of such data set <code>receive.fsck.&lt;msg-id&gt;</code> instead, or
-to clone or fetch it set <code>fetch.fsck.&lt;msg-id&gt;</code>.</p></div>
-<div class="paragraph"><p>The rest of the documentation discusses <code>fsck.*</code> for brevity, but the
-same applies for the corresponding <code>receive.fsck.*</code> and
-<code>fetch.fsck.*</code>. variables.</p></div>
+<div class="paragraph"><p>Setting <code>fsck.</code><em>&lt;msg-id&gt;</em> will be picked up by <a href="git-fsck.html">git-fsck(1)</a>, but
+to accept pushes of such data set <code>receive.fsck.</code><em>&lt;msg-id&gt;</em> instead, or
+to clone or fetch it set <code>fetch.fsck.</code><em>&lt;msg-id&gt;</em>.</p></div>
+<div class="paragraph"><p>The rest of the documentation discusses <code>fsck.</code>* for brevity, but the
+same applies for the corresponding <code>receive.fsck.</code>* and
+<code>fetch.fsck.</code>*. variables.</p></div>
 <div class="paragraph"><p>Unlike variables like <code>color.ui</code> and <code>core.editor</code>, the
-<code>receive.fsck.&lt;msg-id&gt;</code> and <code>fetch.fsck.&lt;msg-id&gt;</code> variables will not
-fall back on the <code>fsck.&lt;msg-id&gt;</code> configuration if they aren&#8217;t set. To
+<code>receive.fsck.</code><em>&lt;msg-id&gt;</em> and <code>fetch.fsck.</code><em>&lt;msg-id&gt;</em> variables will not
+fall back on the <code>fsck.</code><em>&lt;msg-id&gt;</em> configuration if they aren&#8217;t set. To
 uniformly configure the same fsck settings in different circumstances,
 all three of them must be set to the same values.</p></div>
-<div class="paragraph"><p>When <code>fsck.&lt;msg-id&gt;</code> is set, errors can be switched to warnings and
-vice versa by configuring the <code>fsck.&lt;msg-id&gt;</code> setting where the
-<code>&lt;msg-id&gt;</code> is the fsck message ID and the value is one of <code>error</code>,
+<div class="paragraph"><p>When <code>fsck.</code><em>&lt;msg-id&gt;</em> is set, errors can be switched to warnings and
+vice versa by configuring the <code>fsck.</code><em>&lt;msg-id&gt;</em> setting where the
+<em>&lt;msg-id&gt;</em> is the fsck message ID and the value is one of <code>error</code>,
 <code>warn</code> or <code>ignore</code>. For convenience, fsck prefixes the error/warning
 with the message ID, e.g. "missingEmail: invalid author/committer
-line - missing email" means that setting <code>fsck.missingEmail = ignore</code>
+line - missing email" means that setting <code>fsck.missingEmail</code> <code>=</code> <code>ignore</code>
 will hide that issue.</p></div>
 <div class="paragraph"><p>In general, it is better to enumerate existing objects with problems
 with <code>fsck.skipList</code>, instead of listing the kind of breakages these
 problematic objects share to be ignored, as doing the latter will
 allow new instances of the same breakages go unnoticed.</p></div>
-<div class="paragraph"><p>Setting an unknown <code>fsck.&lt;msg-id&gt;</code> value will cause fsck to die, but
-doing the same for <code>receive.fsck.&lt;msg-id&gt;</code> and <code>fetch.fsck.&lt;msg-id&gt;</code>
+<div class="paragraph"><p>Setting an unknown <code>fsck.</code><em>&lt;msg-id&gt;</em> value will cause fsck to die, but
+doing the same for <code>receive.fsck.</code><em>&lt;msg-id&gt;</em> and <code>fetch.fsck.</code><em>&lt;msg-id&gt;</em>
 will only cause git to warn.</p></div>
-<div class="paragraph"><p>See the <code>Fsck Messages</code> section of <a href="git-fsck.html">git-fsck(1)</a> for supported
-values of <code>&lt;msg-id&gt;</code>.</p></div>
+<div class="paragraph"><p>See the <code>Fsck</code> <code>Messages</code> section of <a href="git-fsck.html">git-fsck(1)</a> for supported
+values of <em>&lt;msg-id&gt;</em>.</p></div>
 </dd>
 <dt class="hdlist1">
 fsck.skipList
@@ -983,7 +983,7 @@ fsck.skipList
 despite early commits containing errors that can be safely ignored,
 such as invalid committer email addresses.  Note: corrupt objects
 cannot be skipped with this setting.</p></div>
-<div class="paragraph"><p>Like <code>fsck.&lt;msg-id&gt;</code> this variable has corresponding
+<div class="paragraph"><p>Like <code>fsck.</code><em>&lt;msg-id&gt;</em> this variable has corresponding
 <code>receive.fsck.skipList</code> and <code>fetch.fsck.skipList</code> variants.</p></div>
 <div class="paragraph"><p>Unlike variables like <code>color.ui</code> and <code>core.editor</code> the
 <code>receive.fsck.skipList</code> and <code>fetch.fsck.skipList</code> variables will not
@@ -1069,10 +1069,10 @@ hash mismatch &lt;object&gt;
 <div class="sect1">
 <h2 id="_fsck_messages">FSCK MESSAGES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The following lists the types of errors <code>git fsck</code> detects and what
+<div class="paragraph"><p>The following lists the types of errors <code>git</code> <code>fsck</code> detects and what
 each error means, with their default severity.  The severity of the
 error, other than those that are marked as "(FATAL)", can be tweaked
-by setting the corresponding <code>fsck.&lt;msg-id&gt;</code> configuration variable.</p></div>
+by setting the corresponding <code>fsck.</code><em>&lt;msg-id&gt;</em> configuration variable.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 <code>badDate</code>
@@ -1128,6 +1128,22 @@ by setting the corresponding <code>fsck.&lt;msg-id&gt;</code> configuration vari
 <dd>
 <p>
         (ERROR) A commit object has a bad parent sha1.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badRefFiletype</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A ref has a bad file type.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>badRefName</code>
+</dt>
+<dd>
+<p>
+        (ERROR) A ref has an invalid format.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1331,7 +1347,7 @@ by setting the corresponding <code>fsck.&lt;msg-id&gt;</code> configuration vari
 </dt>
 <dd>
 <p>
-        (WARN) A tree contains an entry named <code>.</code>.
+        (WARN) A tree contains an entry named ..
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1339,7 +1355,7 @@ by setting the corresponding <code>fsck.&lt;msg-id&gt;</code> configuration vari
 </dt>
 <dd>
 <p>
-        (WARN) A tree contains an entry named <code>..</code>.
+        (WARN) A tree contains an entry named ...
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1591,7 +1607,7 @@ GIT_ALTERNATE_OBJECT_DIRECTORIES
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

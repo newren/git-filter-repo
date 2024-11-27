@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>gitformat-chunk(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -780,16 +780,16 @@ where C is the number of chunks. Consider the following table:</p></div>
 </div></div>
 <div class="paragraph"><p>Each row consists of a 4-byte chunk identifier (ID) and an 8-byte offset.
 Each integer is stored in network-byte order.</p></div>
-<div class="paragraph"><p>The chunk identifier <code>ID[i]</code> is a label for the data stored within this
-file from <code>OFFSET[i]</code> (inclusive) to <code>OFFSET[i+1]</code> (exclusive). Thus, the
-size of the <code>i`th chunk is equal to the difference between `OFFSET[i+1]</code>
-and <code>OFFSET[i]</code>. This requires that the chunk data appears contiguously
+<div class="paragraph"><p>The chunk identifier <code>ID</code>[<code>i</code>] is a label for the data stored within this
+file from <code>OFFSET</code>[<code>i</code>] (inclusive) to <code>OFFSET</code>[<code>i+1</code>] (exclusive). Thus, the
+size of the <code>i</code>`th <code>chunk</code> <code>is</code> <code>equal</code> <code>to</code> <code>the</code> <code>difference</code> <code>between</code> `OFFSET[<code>i+1</code>]
+and <code>OFFSET</code>[<code>i</code>]. This requires that the chunk data appears contiguously
 in the same order as the table of contents.</p></div>
 <div class="paragraph"><p>The final entry in the table of contents must be four zero bytes. This
 confirms that the table of contents is ending and provides the offset for
 the end of the chunk-based data.</p></div>
 <div class="paragraph"><p>Note: The chunk-based format expects that the file contains <em>at least</em> a
-trailing hash after <code>OFFSET[C+1]</code>.</p></div>
+trailing hash after <code>OFFSET</code>[<code>C+1</code>].</p></div>
 <div class="paragraph"><p>Functions for working with chunk-based file formats are declared in
 <code>chunk-format.h</code>. Using these methods provide extra checks that assist
 developers when creating new file formats.</p></div>
@@ -798,19 +798,19 @@ developers when creating new file formats.</p></div>
 <div class="sect1">
 <h2 id="_writing_chunk_based_file_formats">Writing chunk-based file formats</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>To write a chunk-based file format, create a <code>struct chunkfile</code> by
-calling <code>init_chunkfile()</code> and pass a <code>struct hashfile</code> pointer. The
+<div class="paragraph"><p>To write a chunk-based file format, create a <code>struct</code> <code>chunkfile</code> by
+calling <code>init_chunkfile</code>() and pass a <code>struct</code> <code>hashfile</code> pointer. The
 caller is responsible for opening the <code>hashfile</code> and writing header
 information so the file format is identifiable before the chunk-based
 format begins.</p></div>
-<div class="paragraph"><p>Then, call <code>add_chunk()</code> for each chunk that is intended for writing. This
+<div class="paragraph"><p>Then, call <code>add_chunk</code>() for each chunk that is intended for writing. This
 populates the <code>chunkfile</code> with information about the order and size of
 each chunk to write. Provide a <code>chunk_write_fn</code> function pointer to
 perform the write of the chunk data upon request.</p></div>
-<div class="paragraph"><p>Call <code>write_chunkfile()</code> to write the table of contents to the <code>hashfile</code>
+<div class="paragraph"><p>Call <code>write_chunkfile</code>() to write the table of contents to the <code>hashfile</code>
 followed by each of the chunks. This will verify that each chunk wrote
 the expected amount of data so the table of contents is correct.</p></div>
-<div class="paragraph"><p>Finally, call <code>free_chunkfile()</code> to clear the <code>struct chunkfile</code> data. The
+<div class="paragraph"><p>Finally, call <code>free_chunkfile</code>() to clear the <code>struct</code> <code>chunkfile</code> data. The
 caller is responsible for finalizing the <code>hashfile</code> by writing the trailing
 hash and closing the file.</p></div>
 </div>
@@ -821,24 +821,24 @@ hash and closing the file.</p></div>
 <div class="paragraph"><p>To read a chunk-based file format, the file must be opened as a
 memory-mapped region. The chunk-format API expects that the entire file
 is mapped as a contiguous memory region.</p></div>
-<div class="paragraph"><p>Initialize a <code>struct chunkfile</code> pointer with <code>init_chunkfile(NULL)</code>.</p></div>
+<div class="paragraph"><p>Initialize a <code>struct</code> <code>chunkfile</code> pointer with <code>init_chunkfile</code>(<code>NULL</code>).</p></div>
 <div class="paragraph"><p>After reading the header information from the beginning of the file,
-including the chunk count, call <code>read_table_of_contents()</code> to populate
-the <code>struct chunkfile</code> with the list of chunks, their offsets, and their
+including the chunk count, call <code>read_table_of_contents</code>() to populate
+the <code>struct</code> <code>chunkfile</code> with the list of chunks, their offsets, and their
 sizes.</p></div>
-<div class="paragraph"><p>Extract the data information for each chunk using <code>pair_chunk()</code> or
-<code>read_chunk()</code>:</p></div>
+<div class="paragraph"><p>Extract the data information for each chunk using <code>pair_chunk</code>() or
+<code>read_chunk</code>():</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>pair_chunk()</code> assigns a given pointer with the location inside the
+<code>pair_chunk</code>() assigns a given pointer with the location inside the
   memory-mapped file corresponding to that chunk&#8217;s offset. If the chunk
   does not exist, then the pointer is not modified.
 </p>
 </li>
 <li>
 <p>
-<code>read_chunk()</code> takes a <code>chunk_read_fn</code> function pointer and calls it
+<code>read_chunk</code>() takes a <code>chunk_read_fn</code> function pointer and calls it
   with the appropriate initial pointer and size information. The function
   is not called if the chunk does not exist. Use this method to read chunks
   if you need to perform immediate parsing or if you need to execute logic
@@ -846,8 +846,8 @@ sizes.</p></div>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>After calling these methods, call <code>free_chunkfile()</code> to clear the
-<code>struct chunkfile</code> data. This will not close the memory-mapped region.
+<div class="paragraph"><p>After calling these methods, call <code>free_chunkfile</code>() to clear the
+<code>struct</code> <code>chunkfile</code> data. This will not close the memory-mapped region.
 Callers are expected to own that data for the timeframe the pointers into
 the region are needed.</p></div>
 </div>
@@ -860,7 +860,7 @@ for future formats:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<strong>commit-graph:</strong> see <code>write_commit_graph_file()</code> and <code>parse_commit_graph()</code>
+<strong>commit-graph:</strong> see <code>write_commit_graph_file</code>() and <code>parse_commit_graph</code>()
   in <code>commit-graph.c</code> for how the chunk-format API is used to write and
   parse the commit-graph file format documented in
   the commit-graph file format in <a href="gitformat-commit-graph.html">gitformat-commit-graph(5)</a>.
@@ -868,7 +868,7 @@ for future formats:</p></div>
 </li>
 <li>
 <p>
-<strong>multi-pack-index:</strong> see <code>write_midx_internal()</code> and <code>load_multi_pack_index()</code>
+<strong>multi-pack-index:</strong> see <code>write_midx_internal</code>() and <code>load_multi_pack_index</code>()
   in <code>midx.c</code> for how the chunk-format API is used to write and
   parse the multi-pack-index file format documented in
   the multi-pack-index file format section of <a href="gitformat-pack.html">gitformat-pack(5)</a>.
@@ -888,7 +888,7 @@ for future formats:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>gitglossary(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -1006,11 +1006,11 @@ commands or protocols is implicitly recursive.</p></div>
         "detached".
 </p>
 <div class="paragraph"><p>Note that commands that operate on the history of the current branch
-(e.g. <code>git commit</code> to build a new history on top of it) still work
+(e.g. <code>git</code> <code>commit</code> to build a new history on top of it) still work
 while the HEAD is detached. They update the HEAD to point at the tip
 of the updated history without affecting any branch.  Commands that
-update or inquire information <em>about</em> the current branch (e.g. <code>git
-branch --set-upstream-to</code> that sets what remote-tracking branch the
+update or inquire information <em>about</em> the current branch (e.g. <code>git</code>
+<code>branch</code> <code>--set-upstream-to</code> that sets what remote-tracking branch the
 current branch integrates with) obviously do not work, as there is no
 (real) current branch to ask about in this state.</p></div>
 </dd>
@@ -1304,7 +1304,7 @@ This commit is referred to as a "merge commit", or sometimes just a
         <em>origin</em> is used for that purpose. New upstream updates
         will be fetched into <a href="#def_remote_tracking_branch">remote-tracking branches</a> named
         origin/name-of-upstream-branch, which you can see using
-        <code>git branch -r</code>.
+        <code>git</code> <code>branch</code> <code>-r</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1392,8 +1392,8 @@ The optional colon that terminates the "magic signature" can be
 omitted if the pattern begins with a character that does not belong to
 "magic signature" symbol set and is not a colon.</p></div>
 <div class="paragraph"><p>In the long form, the leading colon <code>:</code> is followed by an open
-parenthesis <code>(</code>, a comma-separated list of zero or more "magic words",
-and a close parentheses <code>)</code>, and the remainder is the pattern to match
+parenthesis (, a comma-separated list of zero or more "magic words",
+and a close parentheses ), and the remainder is the pattern to match
 against the path.</p></div>
 <div class="paragraph"><p>A pathspec with only a colon means "there is no pathspec". This form
 should not be combined with other pathspec.</p></div>
@@ -1415,7 +1415,7 @@ literal
 </dt>
 <dd>
 <p>
-        Wildcards in the pattern such as <code>*</code> or <code>?</code> are treated
+        Wildcards in the pattern such as * or ? are treated
         as literal characters.
 </p>
 </dd>
@@ -1439,29 +1439,29 @@ glob
         "Documentation/git.html" but not "Documentation/ppc/ppc.html"
         or "tools/perf/Documentation/perf.html".
 </p>
-<div class="paragraph"><p>Two consecutive asterisks ("<code>**</code>") in patterns matched against
+<div class="paragraph"><p>Two consecutive asterisks ("**") in patterns matched against
 full pathname may have special meaning:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-A leading "<code>**</code>" followed by a slash means match in all
-   directories. For example, "<code>**/foo</code>" matches file or directory
-   "<code>foo</code>" anywhere, the same as pattern "<code>foo</code>". "<code>**/foo/bar</code>"
+A leading "**" followed by a slash means match in all
+   directories. For example, "**/foo" matches file or directory
+   "<code>foo</code>" anywhere, the same as pattern "<code>foo</code>". "**/foo/bar"
    matches file or directory "<code>bar</code>" anywhere that is directly
    under directory "<code>foo</code>".
 </p>
 </li>
 <li>
 <p>
-A trailing "<code>/**</code>" matches everything inside. For example,
-   "<code>abc/**</code>" matches all files inside directory "abc", relative
+A trailing "<code>/</code>**" matches everything inside. For example,
+   "<code>abc/</code>**" matches all files inside directory "abc", relative
    to the location of the <code>.gitignore</code> file, with infinite depth.
 </p>
 </li>
 <li>
 <p>
 A slash followed by two consecutive asterisks then a slash
-   matches zero or more directories. For example, "<code>a/**/b</code>"
+   matches zero or more directories. For example, "<code>a/</code>**/b"
    matches "<code>a/b</code>", "<code>a/x/b</code>", "<code>a/x/y/b</code>" and so on.
 </p>
 </li>
@@ -1505,7 +1505,7 @@ these forms:</p></div>
 </li>
 <li>
 <p>
-"<code>!ATTR</code>" requires that the attribute <code>ATTR</code> be
+"!ATTR" requires that the attribute <code>ATTR</code> be
   unspecified.
 </p>
 <div class="paragraph"><p>Note that when matching against a tree object, attributes are still
@@ -1519,7 +1519,7 @@ exclude
 <dd>
 <p>
         After a path matches any non-exclude pathspec, it will be run
-        through all exclude pathspecs (magic signature: <code>!</code> or its
+        through all exclude pathspecs (magic signature: ! or its
         synonym <code>^</code>). If it matches, the path is ignored.  When there
         is no non-exclude pathspec, the exclusion is applied to the
         result set as if invoked without any pathspec.
@@ -1594,21 +1594,26 @@ exclude
 </dt>
 <dd>
 <p>
-        Pseudorefs are a class of files under <code>$GIT_DIR</code> which behave
-        like refs for the purposes of rev-parse, but which are treated
-        specially by git.  Pseudorefs both have names that are all-caps,
-        and always start with a line consisting of a
-        <a href="#def_SHA1">SHA-1</a> followed by whitespace.  So, HEAD is not a
-        pseudoref, because it is sometimes a symbolic ref.  They might
-        optionally contain some additional data.  <code>MERGE_HEAD</code> and
-        <code>CHERRY_PICK_HEAD</code> are examples.  Unlike
-        <a href="#def_per_worktree_ref">per-worktree refs</a>, these files cannot
-        be symbolic refs, and never have reflogs.  They also cannot be
-        updated through the normal ref update machinery.  Instead,
-        they are updated by directly writing to the files.  However,
-        they can be read as if they were refs, so <code>git rev-parse
-        MERGE_HEAD</code> will work.
+        A ref that has different semantics than normal refs. These refs can be
+        read via normal Git commands, but cannot be written to by commands like
+        <a href="git-update-ref.html">git-update-ref(1)</a>.
 </p>
+<div class="paragraph"><p>The following pseudorefs are known to Git:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<code>FETCH_HEAD</code> is written by <a href="git-fetch.html">git-fetch(1)</a> or <a href="git-pull.html">git-pull(1)</a>. It
+   may refer to multiple object IDs. Each object ID is annotated with metadata
+   indicating where it was fetched from and its fetch status.
+</p>
+</li>
+<li>
+<p>
+<code>MERGE_HEAD</code> is written by <a href="git-merge.html">git-merge(1)</a> when resolving merge
+   conflicts. It contains all commit IDs which are being merged.
+</p>
+</li>
+</ul></div>
 </dd>
 <dt class="hdlist1">
 <a id="def_pull"></a>pull
@@ -1679,19 +1684,59 @@ exclude
 </dt>
 <dd>
 <p>
-        A name that begins with <code>refs/</code> (e.g. <code>refs/heads/master</code>)
-        that points to an <a href="#def_object_name">object name</a> or another
-        ref (the latter is called a <a href="#def_symref">symbolic ref</a>).
+        A name that points to an <a href="#def_object_name">object name</a> or
+        another ref (the latter is called a <a href="#def_symref">symbolic ref</a>).
         For convenience, a ref can sometimes be abbreviated when used
         as an argument to a Git command; see <a href="gitrevisions.html">gitrevisions(7)</a>
         for details.
         Refs are stored in the <a href="#def_repository">repository</a>.
 </p>
 <div class="paragraph"><p>The ref namespace is hierarchical.
-Different subhierarchies are used for different purposes (e.g. the
-<code>refs/heads/</code> hierarchy is used to represent local branches).</p></div>
-<div class="paragraph"><p>There are a few special-purpose refs that do not begin with <code>refs/</code>.
-The most notable example is <code>HEAD</code>.</p></div>
+Ref names must either start with <code>refs/</code> or be located in the root of
+the hierarchy. For the latter, their name must follow these rules:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The name consists of only upper-case characters or underscores.
+</p>
+</li>
+<li>
+<p>
+The name ends with "<code>_HEAD</code>" or is equal to "<code>HEAD</code>".
+</p>
+<div class="paragraph"><p>There are some irregular refs in the root of the hierarchy that do not
+match these rules. The following list is exhaustive and shall not be
+extended in the future:</p></div>
+</li>
+<li>
+<p>
+<code>AUTO_MERGE</code>
+</p>
+</li>
+<li>
+<p>
+<code>BISECT_EXPECTED_REV</code>
+</p>
+</li>
+<li>
+<p>
+<code>NOTES_MERGE_PARTIAL</code>
+</p>
+</li>
+<li>
+<p>
+<code>NOTES_MERGE_REF</code>
+</p>
+</li>
+<li>
+<p>
+<code>MERGE_AUTOSTASH</code>
+</p>
+<div class="paragraph"><p>Different subhierarchies are used for different purposes. For example,
+the <code>refs/heads/</code> hierarchy is used to represent local branches whereas
+the <code>refs/tags/</code> hierarchy is used to represent local tags..</p></div>
+</li>
+</ul></div>
 </dd>
 <dt class="hdlist1">
 <a id="def_reflog"></a>reflog
@@ -1711,7 +1756,8 @@ The most notable example is <code>HEAD</code>.</p></div>
 <p>
         A "refspec" is used by <a href="#def_fetch">fetch</a> and
         <a href="#def_push">push</a> to describe the mapping between remote
-        <a href="#def_ref">ref</a> and local ref.
+        <a href="#def_ref">ref</a> and local ref. See <a href="git-fetch.html">git-fetch(1)</a> or
+        <a href="git-push.html">git-push(1)</a> for details.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1801,7 +1847,7 @@ The most notable example is <code>HEAD</code>.</p></div>
 <p>
         Mostly a synonym to <a href="#def_shallow_repository">shallow repository</a>
         but the phrase makes it more explicit that it was created by
-        running <code>git clone --depth=...</code> command.
+        running <code>git</code> <code>clone</code> <code>--depth=.</code>.. command.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1827,32 +1873,6 @@ The most notable example is <code>HEAD</code>.</p></div>
         An <a href="#def_object">object</a> used to temporarily store the contents of a
         <a href="#def_dirty">dirty</a> working directory and the index for future reuse.
 </p>
-</dd>
-<dt class="hdlist1">
-<a id="def_special_ref"></a>special ref
-</dt>
-<dd>
-<p>
-        A ref that has different semantics than normal refs. These refs can be
-        accessed via normal Git commands but may not behave the same as a
-        normal ref in some cases.
-</p>
-<div class="paragraph"><p>The following special refs are known to Git:</p></div>
-<div class="ulist"><ul>
-<li>
-<p>
-"<code>FETCH_HEAD</code>" is written by <a href="git-fetch.html">git-fetch(1)</a> or <a href="git-pull.html">git-pull(1)</a>. It
-   may refer to multiple object IDs. Each object ID is annotated with metadata
-   indicating where it was fetched from and its fetch status.
-</p>
-</li>
-<li>
-<p>
-"<code>MERGE_HEAD</code>" is written by <a href="git-merge.html">git-merge(1)</a> when resolving merge
-   conflicts. It contains all commit IDs which are being merged.
-</p>
-</li>
-</ul></div>
 </dd>
 <dt class="hdlist1">
 <a id="def_submodule"></a>submodule
@@ -2056,7 +2076,7 @@ The most notable example is <code>HEAD</code>.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2023-12-23 14:47:14 PST
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

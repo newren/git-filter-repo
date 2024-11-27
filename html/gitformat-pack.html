@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>gitformat-pack(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -1417,14 +1417,14 @@ the fly can be expensive. Since we already have an on-disk format for
 pack-based reverse indexes, let&#8217;s reuse it for the MIDX&#8217;s pseudo-pack,
 too.</p></div>
 <div class="paragraph"><p>Objects from the MIDX are ordered as follows to string together the
-pseudo-pack. Let <code>pack(o)</code> return the pack from which <code>o</code> was selected
+pseudo-pack. Let <code>pack</code>(<code>o</code>) return the pack from which <code>o</code> was selected
 by the MIDX, and define an ordering of packs based on their numeric ID
-(as stored by the MIDX). Let <code>offset(o)</code> return the object offset of <code>o</code>
-within <code>pack(o)</code>. Then, compare <code>o1</code> and <code>o2</code> as follows:</p></div>
+(as stored by the MIDX). Let <code>offset</code>(<code>o</code>) return the object offset of <code>o</code>
+within <code>pack</code>(<code>o</code>). Then, compare <code>o1</code> and <code>o2</code> as follows:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-If one of <code>pack(o1)</code> and <code>pack(o2)</code> is preferred and the other
+If one of <code>pack</code>(<code>o1</code>) and <code>pack</code>(<code>o2</code>) is preferred and the other
     is not, then the preferred one sorts first.
 </p>
 <div class="paragraph"><p>(This is a detail that allows the MIDX bitmap to determine which
@@ -1433,15 +1433,15 @@ the MIDX for the pack containing the object at bit position 0).</p></div>
 </li>
 <li>
 <p>
-If <code>pack(o1) ≠ pack(o2)</code>, then sort the two objects in descending
+If <code>pack</code>(<code>o1</code>) ≠ <code>pack</code>(<code>o2</code>), then sort the two objects in descending
     order based on the pack ID.
 </p>
 </li>
 <li>
 <p>
-Otherwise, <code>pack(o1) = pack(o2)</code>, and the objects are sorted in
-    pack-order (i.e., <code>o1</code> sorts ahead of <code>o2</code> exactly when <code>offset(o1)
-    &lt; offset(o2)</code>).
+Otherwise, <code>pack</code>(<code>o1</code>) <code>=</code> <code>pack</code>(<code>o2</code>), and the objects are sorted in
+    pack-order (i.e., <code>o1</code> sorts ahead of <code>o2</code> exactly when <code>offset</code>(<code>o1</code>)
+    &lt; <code>offset</code>(<code>o2</code>)).
 </p>
 </li>
 </ul></div>
@@ -1561,7 +1561,7 @@ pruning mechanism, and how a cruft pack can be used instead to accomplish the
 same.</p></div>
 <div class="sect2">
 <h3 id="_background">Background</h3>
-<div class="paragraph"><p>To remove unreachable objects from your repository, Git offers <code>git repack -Ad</code>
+<div class="paragraph"><p>To remove unreachable objects from your repository, Git offers <code>git</code> <code>repack</code> <code>-Ad</code>
 (see <a href="git-repack.html">git-repack(1)</a>). Quoting from the documentation:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1596,11 +1596,11 @@ chains.</p></div>
 <div class="paragraph"><p>A cruft pack eliminates the need for storing unreachable objects in a loose
 state by including the per-object mtimes in a separate file alongside a single
 pack containing all loose objects.</p></div>
-<div class="paragraph"><p>A cruft pack is written by <code>git repack --cruft</code> when generating a new pack.
-<a href="git-pack-objects.html">git-pack-objects(1)</a>'s <code>--cruft</code> option. Note that <code>git repack --cruft</code>
+<div class="paragraph"><p>A cruft pack is written by <code>git</code> <code>repack</code> <code>--cruft</code> when generating a new pack.
+<a href="git-pack-objects.html">git-pack-objects(1)</a>'s <code>--cruft</code> option. Note that <code>git</code> <code>repack</code> <code>--cruft</code>
 is a classic all-into-one repack, meaning that everything in the resulting pack is
 reachable, and everything else is unreachable. Once written, the <code>--cruft</code>
-option instructs <code>git repack</code> to generate another pack containing only objects
+option instructs <code>git</code> <code>repack</code> to generate another pack containing only objects
 not packed in the previous step (which equates to packing all unreachable
 objects together). This progresses as follows:</p></div>
 <div class="olist arabic"><ol class="arabic">
@@ -1628,8 +1628,8 @@ Write the pack out, along with a <code>.mtimes</code> file that records the per-
 write a cruft pack. Crucially, the set of in-core kept packs is exactly the set
 of packs which will not be deleted by the repack; in other words, they contain
 all of the repository&#8217;s reachable objects.</p></div>
-<div class="paragraph"><p>When a repository already has a cruft pack, <code>git repack --cruft</code> typically only
-adds objects to it. An exception to this is when <code>git repack</code> is given the
+<div class="paragraph"><p>When a repository already has a cruft pack, <code>git</code> <code>repack</code> <code>--cruft</code> typically only
+adds objects to it. An exception to this is when <code>git</code> <code>repack</code> is given the
 <code>--cruft-expiration</code> option, which allows the generated cruft pack to omit
 expired objects instead of waiting for <a href="git-gc.html">git-gc(1)</a> to expire those objects
 later on.</p></div>
@@ -1664,7 +1664,7 @@ support for optional chunks of data, it may make sense to consolidate the
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

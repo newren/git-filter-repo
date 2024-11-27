@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-merge-tree(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -858,6 +858,18 @@ etc.
 <div class="paragraph"><p>As the merge-base is provided directly, &lt;branch1&gt; and &lt;branch2&gt; do not need
 to specify commits; trees are enough.</p></div>
 </dd>
+<dt class="hdlist1">
+-X&lt;option&gt;
+</dt>
+<dt class="hdlist1">
+--strategy-option=&lt;option&gt;
+</dt>
+<dd>
+<p>
+        Pass the merge strategy-specific option through to the merge strategy.
+        See <a href="git-merge.html">git-merge(1)</a> for details.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -907,7 +919,7 @@ NUL</code></pre>
 <div class="sect2">
 <h3 id="OIDTLT">OID of toplevel tree</h3>
 <div class="paragraph"><p>This is a tree object that represents what would be checked out in the
-working tree at the end of <code>git merge</code>.  If there were conflicts, then
+working tree at the end of <code>git</code> <code>merge</code>.  If there were conflicts, then
 files within this tree may have embedded conflict markers.  This section
 is always followed by a newline (or NUL if <code>-z</code> is passed).</p></div>
 </div>
@@ -1026,9 +1038,15 @@ all the requested merges.</p></div>
 used as a part of a series of steps such as:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>NEWTREE=$(git merge-tree --write-tree $BRANCH1 $BRANCH2)
-test $? -eq 0 || die "There were conflicts..."
-NEWCOMMIT=$(git commit-tree $NEWTREE -p $BRANCH1 -p $BRANCH2)
+<pre><code>vi message.txt
+BRANCH1=refs/heads/test
+BRANCH2=main
+NEWTREE=$(git merge-tree --write-tree $BRANCH1 $BRANCH2) || {
+    echo "There were conflicts..." 1&gt;&amp;2
+    exit 1
+}
+NEWCOMMIT=$(git commit-tree $NEWTREE -F message.txt \
+    -p $BRANCH1 -p $BRANCH2)
 git update-ref $BRANCH1 $NEWCOMMIT</code></pre>
 </div></div>
 <div class="paragraph"><p>Note that when the exit status is non-zero, <code>NEWTREE</code> in this sequence
@@ -1154,7 +1172,7 @@ large repositories).</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-07-17 14:55:26 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

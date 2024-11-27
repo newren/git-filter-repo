@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-ls-remote(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -749,7 +749,7 @@ git-ls-remote(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git ls-remote</em> [--heads] [--tags] [--refs] [--upload-pack=&lt;exec&gt;]
+<pre class="content"><em>git ls-remote</em> [--branches] [--tags] [--refs] [--upload-pack=&lt;exec&gt;]
               [-q | --quiet] [--exit-code] [--get-url] [--sort=&lt;key&gt;]
               [--symref] [&lt;repository&gt; [&lt;patterns&gt;&#8230;]]</pre>
 <div class="attribution">
@@ -768,10 +768,10 @@ commit IDs.</p></div>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
--h
+-b
 </dt>
 <dt class="hdlist1">
---heads
+--branches
 </dt>
 <dt class="hdlist1">
 -t
@@ -781,10 +781,12 @@ commit IDs.</p></div>
 </dt>
 <dd>
 <p>
-        Limit to only refs/heads and refs/tags, respectively.
+        Limit to only local branches and local tags, respectively.
         These options are <em>not</em> mutually exclusive; when given
         both, references stored in refs/heads and refs/tags are
-        displayed.  Note that <code>git ls-remote -h</code> used without
+        displayed.  Note that <code>--heads</code> and <code>-h</code> are deprecated
+        synonyms for <code>--branches</code> and <code>-b</code> and may be removed in
+        the future.  Also note that <code>git</code> <code>ls-remote</code> <code>-h</code> used without
         anything else on the command line gives help, consistent
         with other git subcommands.
 </p>
@@ -863,7 +865,7 @@ commit IDs.</p></div>
         See <a href="git-for-each-ref.html">git-for-each-ref(1)</a> for more sort options, but be aware
         keys like <code>committerdate</code> that require access to the objects
         themselves will not work for refs whose objects have not yet been
-        fetched from the remote, and will give a <code>missing object</code> error.
+        fetched from the remote, and will give a <code>missing</code> <code>object</code> error.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -877,8 +879,11 @@ commit IDs.</p></div>
         Transmit the given string to the server when communicating using
         protocol version 2.  The given string must not contain a NUL or LF
         character.
-        When multiple <code>--server-option=&lt;option&gt;</code> are given, they are all
+        When multiple <code>--server-option=</code><em>&lt;option&gt;</em> are given, they are all
         sent to the other side in the order listed on the command line.
+        When no <code>--server-option=</code><em>&lt;option&gt;</em> is given from the command line,
+        the values of configuration variable <code>remote.</code><em>&lt;name&gt;</em><code>.serverOption</code>
+        are used instead.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -919,8 +924,8 @@ commit IDs.</p></div>
 <pre><code>&lt;oid&gt; TAB &lt;ref&gt; LF</code></pre>
 </div></div>
 <div class="paragraph"><p>When showing an annotated tag, unless <code>--refs</code> is given, two such
-lines are shown: one with the refname for the tag itself as <code>&lt;ref&gt;</code>,
-and another with <code>&lt;ref&gt;</code> followed by <code>^{}</code>. The <code>&lt;oid&gt;</code> on the latter
+lines are shown: one with the refname for the tag itself as <em>&lt;ref&gt;</em>,
+and another with <em>&lt;ref&gt;</em> followed by <code>^</code>{}. The <em>&lt;oid&gt;</em> on the latter
 line shows the name of the object the tag points at.</p></div>
 </div>
 </div>
@@ -987,7 +992,7 @@ d4ca2e3147b409459955613c152220f4db848ee1        refs/tags/v2.40.0
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-07-05 13:02:13 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

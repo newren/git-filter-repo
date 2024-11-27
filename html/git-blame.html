@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-blame(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -829,8 +829,8 @@ ea4c7f9bf69e781dd0cd88d2bccb2bf5cc15c9a7 git-blame: Make the output</code></pre>
         or by the function name regex <em>&lt;funcname&gt;</em>.
         May be specified multiple times. Overlapping ranges are allowed.
 </p>
-<div class="paragraph"><p><em>&lt;start&gt;</em> and <em>&lt;end&gt;</em> are optional. <code>-L &lt;start&gt;</code> or <code>-L &lt;start&gt;,</code> spans from
-<em>&lt;start&gt;</em> to end of file. <code>-L ,&lt;end&gt;</code> spans from start of file to <em>&lt;end&gt;</em>.</p></div>
+<div class="paragraph"><p><em>&lt;start&gt;</em> and <em>&lt;end&gt;</em> are optional. <code>-L</code> <em>&lt;start&gt;</em> or <code>-L</code> <em>&lt;start&gt;</em><code>,</code> spans from
+<em>&lt;start&gt;</em> to end of file. <code>-L</code> <code>,</code><em>&lt;end&gt;</em> spans from start of file to <em>&lt;end&gt;</em>.</p></div>
 <div class="paragraph"><p><em>&lt;start&gt;</em> and <em>&lt;end&gt;</em> can take one of these forms:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -859,12 +859,12 @@ starting at the line given by <em>&lt;start&gt;</em>.</p></div>
 of lines before or after the line given by <em>&lt;start&gt;</em>.</p></div>
 </li>
 </ul></div>
-<div class="paragraph"><p>If <code>:&lt;funcname&gt;</code> is given in place of <em>&lt;start&gt;</em> and <em>&lt;end&gt;</em>, it is a
+<div class="paragraph"><p>If <code>:</code><em>&lt;funcname&gt;</em> is given in place of <em>&lt;start&gt;</em> and <em>&lt;end&gt;</em>, it is a
 regular expression that denotes the range from the first funcname line
-that matches <em>&lt;funcname&gt;</em>, up to the next funcname line. <code>:&lt;funcname&gt;</code>
+that matches <em>&lt;funcname&gt;</em>, up to the next funcname line. <code>:</code><em>&lt;funcname&gt;</em>
 searches from the end of the previous <code>-L</code> range, if any, otherwise
-from the start of file. <code>^:&lt;funcname&gt;</code> searches from the start of
-file. The function names are determined in the same way as <code>git diff</code>
+from the start of file. <code>^:</code><em>&lt;funcname&gt;</em> searches from the start of
+file. The function names are determined in the same way as <code>git</code> <code>diff</code>
 works out patch hunk headers (see <em>Defining a custom hunk-header</em>
 in <a href="gitattributes.html">gitattributes(5)</a>).</p></div>
 </dd>
@@ -901,8 +901,8 @@ in <a href="gitattributes.html">gitattributes(5)</a>).</p></div>
         the revision in which a line appeared, this shows the last
         revision in which a line has existed. This requires a range of
         revision like START..END where the path to blame exists in
-        START.  <code>git blame --reverse START</code> is taken as <code>git blame
-        --reverse START..HEAD</code> for convenience.
+        START.  <code>git</code> <code>blame</code> <code>--reverse</code> <code>START</code> is taken as <code>git</code> <code>blame</code>
+        <code>--reverse</code> <code>START</code><code>..</code><code>HEAD</code> for convenience.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1044,7 +1044,7 @@ take effect.</p></div>
         nearby lines.  This option may be specified multiple times to ignore
         more than one revision.  If the <code>blame.markIgnoredLines</code> config option
         is set, then lines that were changed by an ignored commit and attributed to
-        another commit will be marked with a <code>?</code> in the blame output.  If the
+        another commit will be marked with a ? in the blame output.  If the
         <code>blame.markUnblamableLines</code> config option is set, then those lines touched
         by an ignored commit that we could not attribute to another revision are
         marked with a <em>*</em>.
@@ -1058,7 +1058,7 @@ take effect.</p></div>
         Ignore revisions listed in <code>file</code>, which must be in the same format as an
         <code>fsck.skipList</code>.  This option may be repeated, and these files will be
         processed after any files specified with the <code>blame.ignoreRevsFile</code> config
-        option.  An empty file name, <code>""</code>, will clear the list of revs from
+        option.  An empty file name, "", will clear the list of revs from
         previously processed files.
 </p>
 </dd>
@@ -1186,7 +1186,7 @@ take effect.</p></div>
 <h2 id="_the_default_format">THE DEFAULT FORMAT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>When neither <code>--porcelain</code> nor <code>--incremental</code> option is specified,
-<code>git blame</code> will output annotation for each line with:</p></div>
+<code>git</code> <code>blame</code> will output annotation for each line with:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1322,7 +1322,7 @@ introduced the file with:</p></div>
 <pre><code>git log --diff-filter=A --pretty=short -- foo</code></pre>
 </div></div>
 <div class="paragraph"><p>and then annotate the change between the commit and its
-parents, using <code>commit^!</code> notation:</p></div>
+parents, using <code>commit^</code>! notation:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>git blame -C -C -f $commit^! -- foo</code></pre>
@@ -1454,7 +1454,7 @@ blame.ignoreRevsFile
 <p>
         Ignore revisions listed in the file, one unabbreviated object name per
         line, in <a href="git-blame.html">git-blame(1)</a>.  Whitespace and comments beginning with
-        <code>#</code> are ignored.  This option may be repeated multiple times.  Empty
+        # are ignored.  This option may be repeated multiple times.  Empty
         file names will reset the list of ignored revisions.  This option will
         be handled before the command line option <code>--ignore-revs-file</code>.
 </p>
@@ -1498,7 +1498,7 @@ blame.markIgnoredLines
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

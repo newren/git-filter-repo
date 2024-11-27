@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-bundle(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -860,7 +860,7 @@ unbundle &lt;file&gt;
         A list of arguments, acceptable to <em>git rev-parse</em> and
         <em>git rev-list</em> (and containing a named ref, see SPECIFYING REFERENCES
         below), that specifies the specific objects and references
-        to transport.  For example, <code>master~10..master</code> causes the
+        to transport.  For example, <code>master~10</code><code>..</code><code>master</code> causes the
         current master reference to be packaged along with all objects
         added since its 10th ancestor commit.  There is no explicit
         limit to the number of references and objects that may be
@@ -925,9 +925,9 @@ bundle.</p></div>
 be specified.  The objects packaged are those not contained in the
 union of the prerequisites.</p></div>
 <div class="paragraph"><p>The <em>git bundle create</em> command resolves the reference names for you
-using the same rules as <code>git rev-parse --abbrev-ref=loose</code>. Each
+using the same rules as <code>git</code> <code>rev-parse</code> <code>--abbrev-ref=loose</code>. Each
 prerequisite can be specified explicitly (e.g. <code>^master~10</code>), or implicitly
-(e.g. <code>master~10..master</code>, <code>--since=10.days.ago master</code>).</p></div>
+(e.g. <code>master~10</code><code>..</code><code>master</code>, <code>--since=10.days.ago</code> <code>master</code>).</p></div>
 <div class="paragraph"><p>All of these simple cases are OK (assuming we have a "master" and
 "next" branch):</p></div>
 <div class="listingblock">
@@ -961,7 +961,7 @@ fatal: Refusing to create empty bundle.</code></pre>
 that can be unbundled in a repository with no common history, as well
 as providing negative revisions to exclude objects needed in the
 earlier parts of the history.</p></div>
-<div class="paragraph"><p>Feeding a revision such as <code>new</code> to <code>git bundle create</code> will create a
+<div class="paragraph"><p>Feeding a revision such as <code>new</code> to <code>git</code> <code>bundle</code> <code>create</code> will create a
 bundle file that contains all the objects reachable from the revision
 <code>new</code>. That bundle can be unbundled in any repository to obtain a full
 history that leads to the revision <code>new</code>:</p></div>
@@ -969,7 +969,7 @@ history that leads to the revision <code>new</code>:</p></div>
 <div class="content">
 <pre><code>$ git bundle create full.bundle new</code></pre>
 </div></div>
-<div class="paragraph"><p>A revision range such as <code>old..new</code> will produce a bundle file that
+<div class="paragraph"><p>A revision range such as <code>old</code><code>..</code><code>new</code> will produce a bundle file that
 will require the revision <code>old</code> (and any objects reachable from it)
 to exist for the bundle to be "unbundle"-able:</p></div>
 <div class="listingblock">
@@ -978,15 +978,15 @@ to exist for the bundle to be "unbundle"-able:</p></div>
 </div></div>
 <div class="paragraph"><p>A self-contained bundle without any prerequisites can be extracted
 into anywhere, even into an empty repository, or be cloned from
-(i.e., <code>new</code>, but not <code>old..new</code>).</p></div>
+(i.e., <code>new</code>, but not <code>old</code><code>..</code><code>new</code>).</p></div>
 <div class="paragraph"><p>It is okay to err on the side of caution, causing the bundle file
 to contain objects already in the destination, as these are ignored
 when unpacking at the destination.</p></div>
-<div class="paragraph"><p>If you want to match <code>git clone --mirror</code>, which would include your
-refs such as <code>refs/remotes/*</code>, use <code>--all</code>.
+<div class="paragraph"><p>If you want to match <code>git</code> <code>clone</code> <code>--mirror</code>, which would include your
+refs such as <code>refs/remotes/</code>*, use <code>--all</code>.
 If you want to provide the same set of refs that a clone directly
-from the source repository would get, use <code>--branches --tags</code> for
-the <code>&lt;git-rev-list-args&gt;</code>.</p></div>
+from the source repository would get, use <code>--branches</code> <code>--tags</code> for
+the <em>&lt;git-rev-list-args&gt;</em>.</p></div>
 <div class="paragraph"><p>The <em>git bundle verify</em> command can be used to check whether your
 recipient repository has the required prerequisite commits for a
 bundle.</p></div>
@@ -1065,7 +1065,7 @@ the <a href="git-log.html">git-log(1)</a> command. Here are more examples:</p></
 <div class="content">
 <pre><code>$ git bundle create mybundle -10 master</code></pre>
 </div></div>
-<div class="paragraph"><p>You can run <code>git-bundle verify</code> to see if you can extract from a bundle
+<div class="paragraph"><p>You can run <code>git-bundle</code> <code>verify</code> to see if you can extract from a bundle
 that was created with a prerequisite:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1104,7 +1104,7 @@ references when fetching:</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

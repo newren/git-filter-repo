@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-show-ref(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -750,8 +750,8 @@ git-show-ref(1) Manual Page
 <div class="sectionbody">
 <div class="verseblock">
 <pre class="content"><em>git show-ref</em> [--head] [-d | --dereference]
-             [-s | --hash[=&lt;n&gt;]] [--abbrev[=&lt;n&gt;]] [--tags]
-             [--heads] [--] [&lt;pattern&gt;&#8230;]
+             [-s | --hash[=&lt;n&gt;]] [--abbrev[=&lt;n&gt;]] [--branches] [--tags]
+             [--] [&lt;pattern&gt;&#8230;]
 <em>git show-ref</em> --verify [-q | --quiet] [-d | --dereference]
              [-s | --hash[=&lt;n&gt;]] [--abbrev[=&lt;n&gt;]]
              [--] [&lt;ref&gt;&#8230;]
@@ -792,16 +792,18 @@ the <code>.git</code> directory.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
---heads
+--branches
 </dt>
 <dt class="hdlist1">
 --tags
 </dt>
 <dd>
 <p>
-        Limit to "refs/heads" and "refs/tags", respectively.  These options
+        Limit to local branches and local tags, respectively.  These options
         are not mutually exclusive; when given both, references stored in
-        "refs/heads" and "refs/tags" are displayed.
+        "refs/heads" and "refs/tags" are displayed.  Note that <code>--heads</code>
+        is a deprecated synonym for <code>--branches</code> and may be removed
+        in the future.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -812,7 +814,7 @@ the <code>.git</code> directory.</p></div>
 </dt>
 <dd>
 <p>
-        Dereference tags into object IDs as well. They will be shown with <code>^{}</code>
+        Dereference tags into object IDs as well. They will be shown with <code>^</code>{}
         appended.
 </p>
 </dd>
@@ -854,7 +856,7 @@ the <code>.git</code> directory.</p></div>
 <dd>
 <p>
         Abbreviate the object name.  When using <code>--hash</code>, you do
-        not have to say <code>--hash --abbrev</code>; <code>--hash=n</code> would do.
+        not have to say <code>--hash</code> <code>--abbrev</code>; <code>--hash=n</code> would do.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -874,10 +876,10 @@ the <code>.git</code> directory.</p></div>
 </dt>
 <dd>
 <p>
-        Make <code>git show-ref</code> act as a filter that reads refs from stdin of the
-        form <code>^(?:&lt;anything&gt;\s)?&lt;refname&gt;(?:\^{})?$</code>
+        Make <code>git</code> <code>show-ref</code> act as a filter that reads refs from stdin of the
+        form <code>^</code>(?:<em>&lt;anything&gt;</em>\s)?<em>&lt;refname&gt;</em>(?:\^{})?$
         and performs the following actions on each:
-        (1) strip <code>^{}</code> at the end of line if any;
+        (1) strip <code>^</code>{} at the end of line if any;
         (2) ignore if pattern is provided and does not head-match refname;
         (3) warn if refname is not a well-formed refname and skip;
         (4) ignore if refname is a ref that exists in the local repository;
@@ -928,7 +930,7 @@ the <code>.git</code> directory.</p></div>
 <div class="paragraph"><p>For example,</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ git show-ref --heads --hash
+<pre><code>$ git show-ref --branches --hash
 2e3ba0114a1f52b47df29743d6915d056be13278
 185008ae97960c8d551adcd9e23565194651b5d1
 03adf42c988195b50e1a1935ba5fcbc39b2b029b
@@ -954,7 +956,7 @@ if such references exist.</p></div>
 <pre><code>        git show-ref --verify refs/heads/master</code></pre>
 </div></div>
 <div class="paragraph"><p>will only match the exact branch called "master".</p></div>
-<div class="paragraph"><p>If nothing matches, <code>git show-ref</code> will return an error code of 1,
+<div class="paragraph"><p>If nothing matches, <code>git</code> <code>show-ref</code> will return an error code of 1,
 and in the case of verification, it will show an error message.</p></div>
 <div class="paragraph"><p>For scripting, you can ask it to be quiet with the <code>--quiet</code> flag, which
 allows you to do things like</p></div>
@@ -966,8 +968,8 @@ allows you to do things like</p></div>
 <div class="paragraph"><p>to check whether a particular branch exists or not (notice how we don&#8217;t
 actually want to show any results, and we want to use the full refname for it
 in order to not trigger the problem with ambiguous partial matches).</p></div>
-<div class="paragraph"><p>To show only tags, or only proper branch heads, use <code>--tags</code> and/or <code>--heads</code>
-respectively (using both means that it shows tags and heads, but not other
+<div class="paragraph"><p>To show only tags, or only proper branch heads, use <code>--tags</code> and/or <code>--branches</code>
+respectively (using both means that it shows tags and branches, but not other
 random references under the refs/ subdirectory).</p></div>
 <div class="paragraph"><p>To do automatic tag object dereferencing, use the <code>-d</code> or <code>--dereference</code>
 flag, so you can do</p></div>
@@ -981,7 +983,7 @@ flag, so you can do</p></div>
 <div class="sect1">
 <h2 id="_files">FILES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><code>.git/refs/*</code>, <code>.git/packed-refs</code></p></div>
+<div class="paragraph"><p><code>.git/refs/</code>*, <code>.git/packed-refs</code></p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1004,7 +1006,7 @@ flag, so you can do</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-07-05 13:02:13 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

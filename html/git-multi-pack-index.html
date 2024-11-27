@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-multi-pack-index(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -770,10 +770,10 @@ git-multi-pack-index(1) Manual Page
 <dd>
 <p>
         Use given directory for the location of Git objects. We check
-        <code>&lt;dir&gt;/packs/multi-pack-index</code> for the current MIDX file, and
-        <code>&lt;dir&gt;/packs</code> for the pack-files to index.
+        <em>&lt;dir&gt;</em><code>/packs/multi-pack-index</code> for the current MIDX file, and
+        <em>&lt;dir&gt;</em><code>/packs</code> for the pack-files to index.
 </p>
-<div class="paragraph"><p><code>&lt;dir&gt;</code> must be an alternate of the current repository.</p></div>
+<div class="paragraph"><p><em>&lt;dir&gt;</em> must be an alternate of the current repository.</p></div>
 </dd>
 <dt class="hdlist1">
 --[no-]progress
@@ -805,7 +805,7 @@ write
 <dd>
 <p>
                 Optionally specify the tie-breaking pack used when
-                multiple packs contain the same object. <code>&lt;pack&gt;</code> must
+                multiple packs contain the same object. <em>&lt;pack&gt;</em> must
                 contain at least one object. If not given, ties are
                 broken in favor of the pack with the lowest mtime.
 </p>
@@ -836,14 +836,25 @@ write
                 contains a "refs snapshot" taken prior to repacking.
 </p>
 <div class="paragraph"><p>A reference snapshot is composed of line-delimited OIDs corresponding to
-the reference tips, usually taken by <code>git repack</code> prior to generating a
+the reference tips, usually taken by <code>git</code> <code>repack</code> prior to generating a
 new pack. A line may optionally start with a <code>+</code> character to indicate
 that the reference which corresponds to that OID is "preferred" (see
 <a href="git-config.html">git-config(1)</a>'s <code>pack.preferBitmapTips</code>.)</p></div>
-<div class="paragraph"><p>The file given at <code>&lt;path&gt;</code> is expected to be readable, and can contain
+<div class="paragraph"><p>The file given at <em>&lt;path&gt;</em> is expected to be readable, and can contain
 duplicates. (If a given OID is given more than once, it is marked as
 preferred if at least one instance of it begins with the special <code>+</code>
 marker).</p></div>
+</dd>
+<dt class="hdlist1">
+--incremental
+</dt>
+<dd>
+<p>
+                Write an incremental MIDX file containing only objects
+                and packs not present in an existing MIDX layer.
+                Migrates non-incremental MIDXs to incremental ones when
+                necessary. Incompatible with <code>--bitmap</code>.
+</p>
 </dd>
 </dl></div>
 </div></div>
@@ -866,6 +877,14 @@ expire
         <code>.keep</code> packs and cruft packs). Rewrite the MIDX file afterward
         to remove all references to these pack-files.
 </p>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">this mode is incompatible with incremental MIDX files.</td>
+</tr></table>
+</div>
 </dd>
 <dt class="hdlist1">
 repack
@@ -874,7 +893,7 @@ repack
 <p>
         Create a new pack-file containing objects in small pack-files
         referenced by the multi-pack-index. If the size given by the
-        <code>--batch-size=&lt;size&gt;</code> argument is zero, then create a pack
+        <code>--batch-size=</code><em>&lt;size&gt;</em> argument is zero, then create a pack
         containing all objects referenced by the multi-pack-index. For
         a non-zero batch size, Select the pack-files by examining packs
         from oldest-to-newest, computing the "expected size" by counting
@@ -891,6 +910,14 @@ repack
 </p>
 <div class="paragraph"><p>If <code>repack.packKeptObjects</code> is <code>false</code>, then any pack-files with an
 associated <code>.keep</code> file will not be selected for the batch to repack.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">this mode is incompatible with incremental MIDX files.</td>
+</tr></table>
+</div>
 </dd>
 </dl></div>
 </div>
@@ -958,7 +985,7 @@ multi-pack-index feature and its file format.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

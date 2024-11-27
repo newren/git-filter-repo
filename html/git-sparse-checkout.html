@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>git-sparse-checkout(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -767,7 +767,7 @@ cone mode (the default), or by providing a list of patterns in
 non-cone mode.</p></div>
 <div class="paragraph"><p>When in a sparse-checkout, other Git commands behave a bit differently.
 For example, switching branches will not update paths outside the
-sparse-checkout directories/patterns, and <code>git commit -a</code> will not record
+sparse-checkout directories/patterns, and <code>git</code> <code>commit</code> <code>-a</code> will not record
 paths outside the sparse-checkout directories/patterns as deleted.</p></div>
 <div class="paragraph"><p>THIS COMMAND IS EXPERIMENTAL. ITS BEHAVIOR, AND THE BEHAVIOR OF OTHER
 COMMANDS IN THE PRESENCE OF SPARSE-CHECKOUTS, WILL LIKELY CHANGE IN
@@ -809,7 +809,7 @@ file. See <a href="git-worktree.html">git-worktree(1)</a> and the documentation 
 read from standard in as a newline-delimited list instead of from the
 arguments.</p></div>
 <div class="paragraph"><p>By default, the input list is considered a list of directories, matching
-the output of <code>git ls-tree -d --name-only</code>.  This includes interpreting
+the output of <code>git</code> <code>ls-tree</code> <code>-d</code> <code>--name-only</code>.  This includes interpreting
 pathnames that begin with a double quote (") as C-style quoted strings.
 Note that all files under the specified directories (at any depth) will
 be included in the sparse checkout, as well as files that are siblings
@@ -821,16 +821,16 @@ to be enabled.</p></div>
 patterns.  This mode has a number of drawbacks, including not working
 with some options like <code>--sparse-index</code>.  As explained in the
 "Non-cone Problems" section below, we do not recommend using it.</p></div>
-<div class="paragraph"><p>Use the <code>--[no-]sparse-index</code> option to use a sparse index (the
+<div class="paragraph"><p>Use the <code>--</code>[<code>no-</code>]<code>sparse-index</code> option to use a sparse index (the
 default is to not use it).  A sparse index reduces the size of the
 index to be more closely aligned with your sparse-checkout
 definition. This can have significant performance advantages for
-commands such as <code>git status</code> or <code>git add</code>.  This feature is still
+commands such as <code>git</code> <code>status</code> or <code>git</code> <code>add</code>.  This feature is still
 experimental. Some commands might be slower with a sparse index until
 they are properly integrated with the feature.</p></div>
 <div class="paragraph"><p><strong>WARNING:</strong> Using a sparse index requires modifying the index in a way
 that is not completely understood by external tools. If you have trouble
-with this compatibility, then run <code>git sparse-checkout init --no-sparse-index</code>
+with this compatibility, then run <code>git</code> <code>sparse-checkout</code> <code>init</code> <code>--no-sparse-index</code>
 to rewrite your index to not be sparse. Older versions of Git will not
 understand the sparse directory entries index extension and may fail to
 interact with your repository until it is disabled.</p></div>
@@ -856,11 +856,11 @@ interact with your repository until it is disabled.</p></div>
         work (e.g. in order to show you a conflict), and other
         sparse-checkout commands might fail to sparsify an individual file
         (e.g. because it has unstaged changes or conflicts).  In such
-        cases, it can make sense to run <code>git sparse-checkout reapply</code> later
+        cases, it can make sense to run <code>git</code> <code>sparse-checkout</code> <code>reapply</code> later
         after cleaning up affected paths (e.g. resolving conflicts, undoing
         or committing changes, etc.).
 </p>
-<div class="paragraph"><p>The <code>reapply</code> command can also take <code>--[no-]cone</code> and <code>--[no-]sparse-index</code>
+<div class="paragraph"><p>The <code>reapply</code> command can also take <code>--</code>[<code>no-</code>]<code>cone</code> and <code>--</code>[<code>no-</code>]<code>sparse-index</code>
 flags, with the same meaning as the flags from the <code>set</code> command, in order
 to change which sparsity mode you are using without needing to also respecify
 all sparsity paths.</p></div>
@@ -906,13 +906,13 @@ decreased in utility.</p></div>
 </p>
 <div class="paragraph"><p>By default <code>check-rules</code> reads a list of paths from stdin and outputs only
 the ones that match the current sparsity rules. The input is expected to consist
-of one path per line, matching the output of <code>git ls-tree --name-only</code> including
+of one path per line, matching the output of <code>git</code> <code>ls-tree</code> <code>--name-only</code> including
 that pathnames that begin with a double quote (") are interpreted as C-style
 quoted strings.</p></div>
-<div class="paragraph"><p>When called with the <code>--rules-file &lt;file&gt;</code> flag the input files are matched
-against the sparse checkout rules found in <code>&lt;file&gt;</code> instead of the current ones.
-The rules in the files are expected to be in the same form as accepted by <code>git
-sparse-checkout set --stdin</code> (in particular, they must be newline-delimited).</p></div>
+<div class="paragraph"><p>When called with the <code>--rules-file</code> <em>&lt;file&gt;</em> flag the input files are matched
+against the sparse checkout rules found in <em>&lt;file&gt;</em> instead of the current ones.
+The rules in the files are expected to be in the same form as accepted by <code>git</code>
+<code>sparse-checkout</code> <code>set</code> <code>--stdin</code> (in particular, they must be newline-delimited).</p></div>
 <div class="paragraph"><p>By default, the rules passed to the <code>--rules-file</code> option are interpreted as
 cone mode directories. To pass non-cone mode patterns with <code>--rules-file</code>,
 combine the option with the <code>--no-cone</code> option.</p></div>
@@ -928,7 +928,7 @@ apply to the format of the rules passed with the <code>--rules-file</code> optio
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<code>git sparse-checkout set MY/DIR1 SUB/DIR2</code>
+<code>git</code> <code>sparse-checkout</code> <code>set</code> <code>MY/DIR1</code> <code>SUB/DIR2</code>
 </dt>
 <dd>
 <p>
@@ -943,7 +943,7 @@ apply to the format of the rules passed with the <code>--rules-file</code> optio
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git sparse-checkout disable</code>
+<code>git</code> <code>sparse-checkout</code> <code>disable</code>
 </dt>
 <dd>
 <p>
@@ -952,7 +952,7 @@ apply to the format of the rules passed with the <code>--rules-file</code> optio
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git sparse-checkout add SOME/DIR/ECTORY</code>
+<code>git</code> <code>sparse-checkout</code> <code>add</code> <code>SOME/DIR/ECTORY</code>
 </dt>
 <dd>
 <p>
@@ -963,7 +963,7 @@ apply to the format of the rules passed with the <code>--rules-file</code> optio
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git sparse-checkout reapply</code>
+<code>git</code> <code>sparse-checkout</code> <code>reapply</code>
 </dt>
 <dd>
 <p>
@@ -1156,7 +1156,7 @@ contains any untracked files. If all of those files are ignored due to the
 untracked files within that directory is not ignored, then no deletions will
 occur within that directory and a warning message will appear. If these files
 are important, then reset your sparse-checkout definition so they are included,
-use <code>git add</code> and <code>git commit</code> to store them, then remove any remaining files
+use <code>git</code> <code>add</code> and <code>git</code> <code>commit</code> to store them, then remove any remaining files
 manually to ensure Git can behave optimally.</p></div>
 <div class="paragraph"><p>See also the "Internals&#8201;&#8212;&#8201;Cone Pattern Set" section to learn how the
 directories are transformed under the hood into a subset of the
@@ -1216,7 +1216,7 @@ to the particular patterns used in those mode as being of one of two types:</p><
 </li>
 </ol></div>
 <div class="paragraph"><p>Since cone mode always includes files at the toplevel, when running
-<code>git sparse-checkout set</code> with no directories specified, the toplevel
+<code>git</code> <code>sparse-checkout</code> <code>set</code> with no directories specified, the toplevel
 directory is added as a parent pattern.  At this point, the
 sparse-checkout file contains the following patterns:</p></div>
 <div class="listingblock">
@@ -1226,8 +1226,8 @@ sparse-checkout file contains the following patterns:</p></div>
 </div></div>
 <div class="paragraph"><p>This says "include everything immediately under the toplevel
 directory, but nothing at any level below that."</p></div>
-<div class="paragraph"><p>When in cone mode, the <code>git sparse-checkout set</code> subcommand takes a
-list of directories.  The command <code>git sparse-checkout set A/B/C</code> sets
+<div class="paragraph"><p>When in cone mode, the <code>git</code> <code>sparse-checkout</code> <code>set</code> subcommand takes a
+list of directories.  The command <code>git</code> <code>sparse-checkout</code> <code>set</code> <code>A/B/C</code> sets
 the directory <code>A/B/C</code> as a recursive pattern, the directories <code>A</code> and
 <code>A/B</code> are added as parent patterns. The resulting sparse-checkout file
 is now</p></div>
@@ -1250,8 +1250,8 @@ format, then Git will use faster hash-based algorithms to compute inclusion
 in the sparse-checkout.  If they do not match, git will behave as though
 <code>core.sparseCheckoutCone</code> was false, regardless of its setting.</p></div>
 <div class="paragraph"><p>In the cone mode case, despite the fact that full patterns are written
-to the $GIT_DIR/info/sparse-checkout file, the <code>git sparse-checkout
-list</code> subcommand will list the directories that define the recursive
+to the $GIT_DIR/info/sparse-checkout file, the <code>git</code> <code>sparse-checkout</code>
+<code>list</code> subcommand will list the directories that define the recursive
 patterns. For the example sparse-checkout file above, the output is as
 follows:</p></div>
 <div class="listingblock">
@@ -1269,10 +1269,10 @@ directory.</p></div>
 <h2 id="_internals_8201_8212_8201_submodules">INTERNALS&#8201;&#8212;&#8201;SUBMODULES</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>If your repository contains one or more submodules, then submodules
-are populated based on interactions with the <code>git submodule</code> command.
-Specifically, <code>git submodule init -- &lt;path&gt;</code> will ensure the submodule
-at <code>&lt;path&gt;</code> is present, while <code>git submodule deinit [-f] -- &lt;path&gt;</code>
-will remove the files for the submodule at <code>&lt;path&gt;</code> (including any
+are populated based on interactions with the <code>git</code> <code>submodule</code> command.
+Specifically, <code>git</code> <code>submodule</code> <code>init</code> <code>--</code> <em>&lt;path&gt;</em> will ensure the submodule
+at <em>&lt;path&gt;</em> is present, while <code>git</code> <code>submodule</code> <code>deinit</code> [<code>-f</code>] <code>--</code> <em>&lt;path&gt;</em>
+will remove the files for the submodule at <em>&lt;path&gt;</em> (including any
 untracked files, uncommitted changes, and unpushed history).  Similar
 to how sparse-checkout removes files from the working tree but still
 leaves entries in the index, deinitialized submodules are removed from
@@ -1289,7 +1289,7 @@ deinitialized or initialized either.</p></div>
 <div class="paragraph"><p>Further, the above facts mean that there are multiple reasons that
 "tracked" files might not be present in the working copy: sparsity
 pattern application from sparse-checkout, and submodule initialization
-state.  Thus, commands like <code>git grep</code> that work on tracked files in
+state.  Thus, commands like <code>git</code> <code>grep</code> that work on tracked files in
 the working copy may return results that are limited by either or both
 of these restrictions.</p></div>
 </div>
@@ -1312,7 +1312,7 @@ of these restrictions.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

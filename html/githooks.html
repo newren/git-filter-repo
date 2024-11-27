@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>githooks(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -779,7 +779,7 @@ foreign_desc=$(unset $(git rev-parse --local-env-vars); git -C ../foreign-repo d
 <div class="paragraph"><p>Hooks can get their arguments via the environment, command-line
 arguments, and stdin. See the documentation for each hook below for
 details.</p></div>
-<div class="paragraph"><p><code>git init</code> may copy hooks to the new repository, depending on its
+<div class="paragraph"><p><code>git</code> <code>init</code> may copy hooks to the new repository, depending on its
 configuration. See the "TEMPLATE DIRECTORY" section in
 <a href="git-init.html">git-init(1)</a> for details. When the rest of this document refers
 to "default hooks" it&#8217;s talking about the default template shipped
@@ -794,7 +794,7 @@ with Git.</p></div>
 <h3 id="_applypatch_msg">applypatch-msg</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-am.html">git-am(1)</a>.  It takes a single
 parameter, the name of the file that holds the proposed commit
-log message.  Exiting with a non-zero status causes <code>git am</code> to abort
+log message.  Exiting with a non-zero status causes <code>git</code> <code>am</code> to abort
 before applying the patch.</p></div>
 <div class="paragraph"><p>The hook is allowed to edit the message file in place, and can
 be used to normalize the message into some project standard
@@ -819,7 +819,7 @@ make a commit if it does not pass certain tests.</p></div>
 <div class="paragraph"><p>This hook is invoked by <a href="git-am.html">git-am(1)</a>.  It takes no parameter,
 and is invoked after the patch is applied and a commit is made.</p></div>
 <div class="paragraph"><p>This hook is meant primarily for notification, and cannot affect
-the outcome of <code>git am</code>.</p></div>
+the outcome of <code>git</code> <code>am</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_pre_commit">pre-commit</h3>
@@ -827,11 +827,11 @@ the outcome of <code>git am</code>.</p></div>
 with the <code>--no-verify</code> option.  It takes no parameters, and is
 invoked before obtaining the proposed commit log message and
 making a commit.  Exiting with a non-zero status from this script
-causes the <code>git commit</code> command to abort before creating a commit.</p></div>
+causes the <code>git</code> <code>commit</code> command to abort before creating a commit.</p></div>
 <div class="paragraph"><p>The default <em>pre-commit</em> hook, when enabled, catches introduction
 of lines with trailing whitespaces and aborts the commit when
 such a line is found.</p></div>
-<div class="paragraph"><p>All the <code>git commit</code> hooks are invoked with the environment
+<div class="paragraph"><p>All the <code>git</code> <code>commit</code> hooks are invoked with the environment
 variable <code>GIT_EDITOR=:</code> if the command will not bring up an editor
 to modify the commit message.</p></div>
 <div class="paragraph"><p>The default <em>pre-commit</em> hook, when enabled&#8212;and with the
@@ -845,7 +845,7 @@ with the <code>--no-verify</code> option.  It takes no parameters, and is
 invoked after the merge has been carried out successfully and before
 obtaining the proposed commit log message to
 make a commit.  Exiting with a non-zero status from this script
-causes the <code>git merge</code> command to abort before creating a commit.</p></div>
+causes the <code>git</code> <code>merge</code> command to abort before creating a commit.</p></div>
 <div class="paragraph"><p>The default <em>pre-merge-commit</em> hook, when enabled, runs the
 <em>pre-commit</em> hook, if the latter is enabled.</p></div>
 <div class="paragraph"><p>This hook is invoked with the environment variable
@@ -868,7 +868,7 @@ configuration option <code>commit.template</code> is set); <code>merge</code> (i
 commit is a merge or a <code>.git/MERGE_MSG</code> file exists); <code>squash</code>
 (if a <code>.git/SQUASH_MSG</code> file exists); or <code>commit</code>, followed by
 a commit object name (if a <code>-c</code>, <code>-C</code> or <code>--amend</code> option was given).</p></div>
-<div class="paragraph"><p>If the exit status is non-zero, <code>git commit</code> will abort.</p></div>
+<div class="paragraph"><p>If the exit status is non-zero, <code>git</code> <code>commit</code> will abort.</p></div>
 <div class="paragraph"><p>The purpose of the hook is to edit the message file in place, and
 it is not suppressed by the <code>--no-verify</code> option.  A non-zero exit
 means a failure of the hook and aborts the commit.  It should not
@@ -894,7 +894,7 @@ file.</p></div>
 <div class="paragraph"><p>This hook is invoked by <a href="git-commit.html">git-commit(1)</a>. It takes no parameters, and is
 invoked after a commit is made.</p></div>
 <div class="paragraph"><p>This hook is meant primarily for notification, and cannot affect
-the outcome of <code>git commit</code>.</p></div>
+the outcome of <code>git</code> <code>commit</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_pre_rebase">pre-rebase</h3>
@@ -912,12 +912,12 @@ worktree.  The hook is given three parameters: the ref of the previous HEAD,
 the ref of the new HEAD (which may or may not have changed), and a flag
 indicating whether the checkout was a branch checkout (changing branches,
 flag=1) or a file checkout (retrieving a file from the index, flag=0).
-This hook cannot affect the outcome of <code>git switch</code> or <code>git checkout</code>,
+This hook cannot affect the outcome of <code>git</code> <code>switch</code> or <code>git</code> <code>checkout</code>,
 other than that the hook&#8217;s exit status becomes the exit status of
 these two commands.</p></div>
 <div class="paragraph"><p>It is also run after <a href="git-clone.html">git-clone(1)</a>, unless the <code>--no-checkout</code> (<code>-n</code>) option is
 used. The first parameter given to the hook is the null-ref, the second the
-ref of the new HEAD and the flag is always 1. Likewise for <code>git worktree add</code>
+ref of the new HEAD and the flag is always 1. Likewise for <code>git</code> <code>worktree</code> <code>add</code>
 unless <code>--no-checkout</code> is used.</p></div>
 <div class="paragraph"><p>This hook can be used to perform repository validity checks, auto-display
 differences from the previous HEAD if different, or set working dir metadata
@@ -925,10 +925,10 @@ properties.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_post_merge">post-merge</h3>
-<div class="paragraph"><p>This hook is invoked by <a href="git-merge.html">git-merge(1)</a>, which happens when a <code>git pull</code>
+<div class="paragraph"><p>This hook is invoked by <a href="git-merge.html">git-merge(1)</a>, which happens when a <code>git</code> <code>pull</code>
 is done on a local repository.  The hook takes a single parameter, a status
 flag specifying whether or not the merge being done was a squash merge.
-This hook cannot affect the outcome of <code>git merge</code> and is not executed,
+This hook cannot affect the outcome of <code>git</code> <code>merge</code> and is not executed,
 if the merge failed due to conflicts.</p></div>
 <div class="paragraph"><p>This hook can be used in conjunction with a corresponding pre-commit hook to
 save and restore any form of metadata associated with the working tree
@@ -954,19 +954,19 @@ hook would receive a line like the following:</p></div>
 <pre><code>refs/heads/master 67890 refs/heads/foreign 12345</code></pre>
 </div></div>
 <div class="paragraph"><p>although the full object name would be supplied.  If the foreign ref does not
-yet exist the <code>&lt;remote-object-name&gt;</code> will be the all-zeroes object name.  If a
-ref is to be deleted, the <code>&lt;local-ref&gt;</code> will be supplied as <code>(delete)</code> and the
-<code>&lt;local-object-name&gt;</code> will be the all-zeroes object name.  If the local commit
+yet exist the <em>&lt;remote-object-name&gt;</em> will be the all-zeroes object name.  If a
+ref is to be deleted, the <em>&lt;local-ref&gt;</em> will be supplied as (<code>delete</code>) and the
+<em>&lt;local-object-name&gt;</em> will be the all-zeroes object name.  If the local commit
 was specified by something other than a name which could be expanded (such as
 <code>HEAD~</code>, or an object name) it will be supplied as it was originally given.</p></div>
-<div class="paragraph"><p>If this hook exits with a non-zero status, <code>git push</code> will abort without
+<div class="paragraph"><p>If this hook exits with a non-zero status, <code>git</code> <code>push</code> will abort without
 pushing anything.  Information about why the push is rejected may be sent
 to the user by writing to standard error.</p></div>
 </div>
 <div class="sect2">
 <h3 id="pre-receive">pre-receive</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
-<code>git push</code> and updates reference(s) in its repository.
+<code>git</code> <code>push</code> and updates reference(s) in its repository.
 Just before starting to update refs on the remote repository, the
 pre-receive hook is invoked.  Its exit status determines the success
 or failure of the update.</p></div>
@@ -977,18 +977,18 @@ input a line of the format:</p></div>
 <div class="content">
 <pre><code>&lt;old-oid&gt; SP &lt;new-oid&gt; SP &lt;ref-name&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>where <code>&lt;old-oid&gt;</code> is the old object name stored in the ref,
-<code>&lt;new-oid&gt;</code> is the new object name to be stored in the ref and
-<code>&lt;ref-name&gt;</code> is the full name of the ref.
-When creating a new ref, <code>&lt;old-oid&gt;</code> is the all-zeroes object name.</p></div>
+<div class="paragraph"><p>where <em>&lt;old-oid&gt;</em> is the old object name stored in the ref,
+<em>&lt;new-oid&gt;</em> is the new object name to be stored in the ref and
+<em>&lt;ref-name&gt;</em> is the full name of the ref.
+When creating a new ref, <em>&lt;old-oid&gt;</em> is the all-zeroes object name.</p></div>
 <div class="paragraph"><p>If the hook exits with non-zero status, none of the refs will be
 updated. If the hook exits with zero, updating of individual refs can
 still be prevented by the <a href="#update"><em>update</em></a> hook.</p></div>
 <div class="paragraph"><p>Both standard output and standard error output are forwarded to
-<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+<code>git</code> <code>send-pack</code> on the other end, so you can simply <code>echo</code> messages
 for the user.</p></div>
 <div class="paragraph"><p>The number of push options given on the command line of
-<code>git push --push-option=...</code> can be read from the environment
+<code>git</code> <code>push</code> <code>--push-option=.</code>.. can be read from the environment
 variable <code>GIT_PUSH_OPTION_COUNT</code>, and the options themselves are
 found in <code>GIT_PUSH_OPTION_0</code>, <code>GIT_PUSH_OPTION_1</code>,&#8230;
 If it is negotiated to not use the push options phase, the
@@ -1001,7 +1001,7 @@ will be set to zero, <code>GIT_PUSH_OPTION_COUNT=0</code>.</p></div>
 <div class="sect2">
 <h3 id="update">update</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
-<code>git push</code> and updates reference(s) in its repository.
+<code>git</code> <code>push</code> and updates reference(s) in its repository.
 Just before updating the ref on the remote repository, the update hook
 is invoked.  Its exit status determines the success or failure of
 the ref update.</p></div>
@@ -1025,7 +1025,7 @@ and the new object name to be stored in the ref.
 </li>
 </ul></div>
 <div class="paragraph"><p>A zero exit from the update hook allows the ref to be updated.
-Exiting with a non-zero status prevents <code>git receive-pack</code>
+Exiting with a non-zero status prevents <code>git</code> <code>receive-pack</code>
 from updating that ref.</p></div>
 <div class="paragraph"><p>This hook can be used to prevent <em>forced</em> update on certain refs by
 making sure that the object name is a commit object that is a
@@ -1041,7 +1041,7 @@ control without relying on filesystem ownership and group
 membership. See <a href="git-shell.html">git-shell(1)</a> for how you might use the login
 shell to restrict the user&#8217;s access to only git commands.</p></div>
 <div class="paragraph"><p>Both standard output and standard error output are forwarded to
-<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+<code>git</code> <code>send-pack</code> on the other end, so you can simply <code>echo</code> messages
 for the user.</p></div>
 <div class="paragraph"><p>The default <em>update</em> hook, when enabled&#8212;and with
 <code>hooks.allowunannotated</code> config option unset or set to false&#8212;prevents
@@ -1053,7 +1053,7 @@ unannotated tags from being pushed.</p></div>
 set the multi-valued config variable <code>receive.procReceiveRefs</code>, and the
 commands sent to <em>receive-pack</em> have matching reference names, these
 commands will be executed by this hook, instead of by the internal
-<code>execute_commands()</code> function.  This hook is responsible for updating
+<code>execute_commands</code>() function.  This hook is responsible for updating
 the relevant references and reporting the results back to <em>receive-pack</em>.</p></div>
 <div class="paragraph"><p>This hook executes once for the receive operation.  It takes no
 arguments, but uses a pkt-line format protocol to communicate with
@@ -1113,44 +1113,46 @@ atomic push is in use.</p></div>
 <div class="sect2">
 <h3 id="post-receive">post-receive</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
-<code>git push</code> and updates reference(s) in its repository.
-It executes on the remote repository once after all the refs have
-been updated.</p></div>
-<div class="paragraph"><p>This hook executes once for the receive operation.  It takes no
-arguments, but gets the same information as the
-<a href="#pre-receive"><em>pre-receive</em></a>
-hook does on its standard input.</p></div>
-<div class="paragraph"><p>This hook does not affect the outcome of <code>git receive-pack</code>, as it
+<code>git</code> <code>push</code> and updates reference(s) in its repository.
+The hook executes on the remote repository once after all the proposed
+ref updates are processed and if at least one ref is updated as the
+result.</p></div>
+<div class="paragraph"><p>The hook takes no arguments.  It receives one line on standard input for
+each ref that is successfully updated following the same format as the
+<a href="#pre-receive"><em>pre-receive</em></a> hook.</p></div>
+<div class="paragraph"><p>This hook does not affect the outcome of <code>git</code> <code>receive-pack</code>, as it
 is called after the real work is done.</p></div>
 <div class="paragraph"><p>This supersedes the <a href="#post-update"><em>post-update</em></a> hook in that it gets
 both old and new values of all the refs in addition to their
 names.</p></div>
 <div class="paragraph"><p>Both standard output and standard error output are forwarded to
-<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+<code>git</code> <code>send-pack</code> on the other end, so you can simply <code>echo</code> messages
 for the user.</p></div>
 <div class="paragraph"><p>The default <em>post-receive</em> hook is empty, but there is
 a sample script <code>post-receive-email</code> provided in the <code>contrib/hooks</code>
 directory in Git distribution, which implements sending commit
 emails.</p></div>
 <div class="paragraph"><p>The number of push options given on the command line of
-<code>git push --push-option=...</code> can be read from the environment
+<code>git</code> <code>push</code> <code>--push-option=.</code>.. can be read from the environment
 variable <code>GIT_PUSH_OPTION_COUNT</code>, and the options themselves are
 found in <code>GIT_PUSH_OPTION_0</code>, <code>GIT_PUSH_OPTION_1</code>,&#8230;
 If it is negotiated to not use the push options phase, the
 environment variables will not be set. If the client selects
 to use push options, but doesn&#8217;t transmit any, the count variable
 will be set to zero, <code>GIT_PUSH_OPTION_COUNT=0</code>.</p></div>
+<div class="paragraph"><p>See the "post-receive" section in <a href="git-receive-pack.html">git-receive-pack(1)</a> for
+additional details.</p></div>
 </div>
 <div class="sect2">
 <h3 id="post-update">post-update</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
-<code>git push</code> and updates reference(s) in its repository.
+<code>git</code> <code>push</code> and updates reference(s) in its repository.
 It executes on the remote repository once after all the refs have
 been updated.</p></div>
 <div class="paragraph"><p>It takes a variable number of parameters, each of which is the
 name of ref that was actually updated.</p></div>
 <div class="paragraph"><p>This hook is meant primarily for notification, and cannot affect
-the outcome of <code>git receive-pack</code>.</p></div>
+the outcome of <code>git</code> <code>receive-pack</code>.</p></div>
 <div class="paragraph"><p>The <em>post-update</em> hook can tell what are the heads that were pushed,
 but it does not know what their original and updated values are,
 so it is a poor place to do log old..new. The
@@ -1158,12 +1160,12 @@ so it is a poor place to do log old..new. The
 updated values of the refs. You might consider it instead if you need
 them.</p></div>
 <div class="paragraph"><p>When enabled, the default <em>post-update</em> hook runs
-<code>git update-server-info</code> to keep the information used by dumb
+<code>git</code> <code>update-server-info</code> to keep the information used by dumb
 transports (e.g., HTTP) up to date.  If you are publishing
 a Git repository that is accessible via HTTP, you should
 probably enable this hook.</p></div>
 <div class="paragraph"><p>Both standard output and standard error output are forwarded to
-<code>git send-pack</code> on the other end, so you can simply <code>echo</code> messages
+<code>git</code> <code>send-pack</code> on the other end, so you can simply <code>echo</code> messages
 for the user.</p></div>
 </div>
 <div class="sect2">
@@ -1171,7 +1173,7 @@ for the user.</p></div>
 <div class="paragraph"><p>This hook is invoked by any Git command that performs reference
 updates. It executes whenever a reference transaction is prepared,
 committed or aborted and may thus get called multiple times. The hook
-does not cover symbolic references (but that may change in the future).</p></div>
+also supports symbolic reference updates.</p></div>
 <div class="paragraph"><p>The hook takes exactly one argument, which is the current state the
 given reference transaction is in:</p></div>
 <div class="ulist"><ul>
@@ -1198,15 +1200,18 @@ given reference transaction is in:</p></div>
 receives on standard input a line of the format:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><code>&lt;old-oid&gt; SP &lt;new-oid&gt; SP &lt;ref-name&gt; LF</code></pre>
+<pre><code>&lt;old-value&gt; SP &lt;new-value&gt; SP &lt;ref-name&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>where <code>&lt;old-oid&gt;</code> is the old object name passed into the reference
-transaction, <code>&lt;new-oid&gt;</code> is the new object name to be stored in the
-ref and <code>&lt;ref-name&gt;</code> is the full name of the ref. When force updating
+<div class="paragraph"><p>where <em>&lt;old-value&gt;</em> is the old object name passed into the reference
+transaction, <em>&lt;new-value&gt;</em> is the new object name to be stored in the
+ref and <em>&lt;ref-name&gt;</em> is the full name of the ref. When force updating
 the reference regardless of its current value or when the reference is
-to be created anew, <code>&lt;old-oid&gt;</code> is the all-zeroes object name. To
+to be created anew, <em>&lt;old-value&gt;</em> is the all-zeroes object name. To
 distinguish these cases, you can inspect the current value of
-<code>&lt;ref-name&gt;</code> via <code>git rev-parse</code>.</p></div>
+<em>&lt;ref-name&gt;</em> via <code>git</code> <code>rev-parse</code>.</p></div>
+<div class="paragraph"><p>For symbolic reference updates the &lt;old_value&gt; and <em>&lt;new-value&gt;</em>
+fields could denote references instead of objects. A reference will be
+denoted with a <em>ref:</em> prefix, like <code>ref:</code><em>&lt;ref-target&gt;</em>.</p></div>
 <div class="paragraph"><p>The exit status of the hook is ignored for any state except for the
 "prepared" state. In the "prepared" state, a non-zero exit status will
 cause the transaction to be aborted. The hook will not be called with
@@ -1215,7 +1220,7 @@ cause the transaction to be aborted. The hook will not be called with
 <div class="sect2">
 <h3 id="_push_to_checkout">push-to-checkout</h3>
 <div class="paragraph"><p>This hook is invoked by <a href="git-receive-pack.html">git-receive-pack(1)</a> when it reacts to
-<code>git push</code> and updates reference(s) in its repository, and when
+<code>git</code> <code>push</code> and updates reference(s) in its repository, and when
 the push tries to update the branch that is currently checked out
 and the <code>receive.denyCurrentBranch</code> configuration variable is set to
 <code>updateInstead</code>.  Such a push by default is refused if the working
@@ -1231,19 +1236,19 @@ the working tree).  Or it can make any necessary changes to the
 working tree and to the index to bring them to the desired state
 when the tip of the current branch is updated to the new commit, and
 exit with a zero status.</p></div>
-<div class="paragraph"><p>For example, the hook can simply run <code>git read-tree -u -m HEAD "$1"</code>
-in order to emulate <code>git fetch</code> that is run in the reverse direction
-with <code>git push</code>, as the two-tree form of <code>git read-tree -u -m</code> is
-essentially the same as <code>git switch</code> or <code>git checkout</code>
+<div class="paragraph"><p>For example, the hook can simply run <code>git</code> <code>read-tree</code> <code>-u</code> <code>-m</code> <code>HEAD</code> "$1"
+in order to emulate <code>git</code> <code>fetch</code> that is run in the reverse direction
+with <code>git</code> <code>push</code>, as the two-tree form of <code>git</code> <code>read-tree</code> <code>-u</code> <code>-m</code> is
+essentially the same as <code>git</code> <code>switch</code> or <code>git</code> <code>checkout</code>
 that switches branches while
 keeping the local changes in the working tree that do not interfere
 with the difference between the branches.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_pre_auto_gc">pre-auto-gc</h3>
-<div class="paragraph"><p>This hook is invoked by <code>git gc --auto</code> (see <a href="git-gc.html">git-gc(1)</a>). It
+<div class="paragraph"><p>This hook is invoked by <code>git</code> <code>gc</code> <code>--auto</code> (see <a href="git-gc.html">git-gc(1)</a>). It
 takes no parameter, and exiting with non-zero status from this script
-causes the <code>git gc --auto</code> to abort.</p></div>
+causes the <code>git</code> <code>gc</code> <code>--auto</code> to abort.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_post_rewrite">post-rewrite</h3>
@@ -1305,7 +1310,7 @@ Cc: cc@example.com,
         two@example.com
 Subject: PATCH-STRING</code></pre>
 </div></div>
-<div class="paragraph"><p>Exiting with a non-zero status causes <code>git send-email</code> to abort
+<div class="paragraph"><p>Exiting with a non-zero status causes <code>git</code> <code>send-email</code> to abort
 before sending any e-mails.</p></div>
 <div class="paragraph"><p>The following environment variables are set when executing the hook.</p></div>
 <div class="dlist"><dl>
@@ -1369,7 +1374,7 @@ all files and folders.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_p4_changelist">p4-changelist</h3>
-<div class="paragraph"><p>This hook is invoked by <code>git-p4 submit</code>.</p></div>
+<div class="paragraph"><p>This hook is invoked by <code>git-p4</code> <code>submit</code>.</p></div>
 <div class="paragraph"><p>The <code>p4-changelist</code> hook is executed after the changelist
 message has been edited by the user. It can be bypassed with the
 <code>--no-verify</code> option. It takes a single parameter, the name
@@ -1378,11 +1383,11 @@ with a non-zero status causes the command to abort.</p></div>
 <div class="paragraph"><p>The hook is allowed to edit the changelist file and can be used
 to normalize the text into some project standard format. It can
 also be used to refuse the Submit after inspect the message file.</p></div>
-<div class="paragraph"><p>Run <code>git-p4 submit --help</code> for details.</p></div>
+<div class="paragraph"><p>Run <code>git-p4</code> <code>submit</code> <code>--help</code> for details.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_p4_prepare_changelist">p4-prepare-changelist</h3>
-<div class="paragraph"><p>This hook is invoked by <code>git-p4 submit</code>.</p></div>
+<div class="paragraph"><p>This hook is invoked by <code>git-p4</code> <code>submit</code>.</p></div>
 <div class="paragraph"><p>The <code>p4-prepare-changelist</code> hook is executed right after preparing
 the default changelist message and before the editor is started.
 It takes one parameter, the name of the file that contains the
@@ -1391,23 +1396,23 @@ will abort the process.</p></div>
 <div class="paragraph"><p>The purpose of the hook is to edit the message file in place,
 and it is not suppressed by the <code>--no-verify</code> option. This hook
 is called even if <code>--prepare-p4-only</code> is set.</p></div>
-<div class="paragraph"><p>Run <code>git-p4 submit --help</code> for details.</p></div>
+<div class="paragraph"><p>Run <code>git-p4</code> <code>submit</code> <code>--help</code> for details.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_p4_post_changelist">p4-post-changelist</h3>
-<div class="paragraph"><p>This hook is invoked by <code>git-p4 submit</code>.</p></div>
+<div class="paragraph"><p>This hook is invoked by <code>git-p4</code> <code>submit</code>.</p></div>
 <div class="paragraph"><p>The <code>p4-post-changelist</code> hook is invoked after the submit has
 successfully occurred in P4. It takes no parameters and is meant
 primarily for notification and cannot affect the outcome of the
 git p4 submit action.</p></div>
-<div class="paragraph"><p>Run <code>git-p4 submit --help</code> for details.</p></div>
+<div class="paragraph"><p>Run <code>git-p4</code> <code>submit</code> <code>--help</code> for details.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_p4_pre_submit">p4-pre-submit</h3>
-<div class="paragraph"><p>This hook is invoked by <code>git-p4 submit</code>. It takes no parameters and nothing
+<div class="paragraph"><p>This hook is invoked by <code>git-p4</code> <code>submit</code>. It takes no parameters and nothing
 from standard input. Exiting with non-zero status from this script prevent
-<code>git-p4 submit</code> from launching. It can be bypassed with the <code>--no-verify</code>
-command line option. Run <code>git-p4 submit --help</code> for details.</p></div>
+<code>git-p4</code> <code>submit</code> from launching. It can be bypassed with the <code>--no-verify</code>
+command line option. Run <code>git-p4</code> <code>submit</code> <code>--help</code> for details.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_post_index_change">post-index-change</h3>
@@ -1442,7 +1447,7 @@ running passing "1", "1" should not be possible.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-07-17 14:55:26 PDT
+ 2024-11-15 09:47:12 PST
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>gitsubmodules(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -774,10 +774,10 @@ the submodule&#8217;s working directory pointing to (i).</p></div>
 and a working directory at <code>path/to/bar/</code>, the superproject tracks the
 submodule via a <code>gitlink</code> entry in the tree at <code>path/to/bar</code> and an entry
 in its <code>.gitmodules</code> file (see <a href="gitmodules.html">gitmodules(5)</a>) of the form
-<code>submodule.foo.path = path/to/bar</code>.</p></div>
+<code>submodule.foo.path</code> <code>=</code> <code>path/to/bar</code>.</p></div>
 <div class="paragraph"><p>The <code>gitlink</code> entry contains the object name of the commit that the
 superproject expects the submodule&#8217;s working directory to be at.</p></div>
-<div class="paragraph"><p>The section <code>submodule.foo.*</code> in the <code>.gitmodules</code> file gives additional
+<div class="paragraph"><p>The section <code>submodule.foo.</code>* in the <code>.gitmodules</code> file gives additional
 hints to Git&#8217;s porcelain layer. For example, the <code>submodule.foo.url</code>
 setting specifies where to obtain the submodule.</p></div>
 <div class="paragraph"><p>Submodules can be used for at least two different use cases:</p></div>
@@ -857,12 +857,12 @@ The configuration inside the submodule. This includes <code>$GIT_DIR/config</cod
    submodule.
 </p>
 <div class="paragraph"><p>For example an effect from the submodule&#8217;s <code>.gitignore</code> file
-would be observed when you run <code>git status --ignore-submodules=none</code> in
+would be observed when you run <code>git</code> <code>status</code> <code>--ignore-submodules=none</code> in
 the superproject. This collects information from the submodule&#8217;s working
 directory by running <code>status</code> in the submodule while paying attention
 to the <code>.gitignore</code> file of the submodule.</p></div>
 <div class="paragraph"><p>The submodule&#8217;s <code>$GIT_DIR/config</code> file would come into play when running
-<code>git push --recurse-submodules=check</code> in the superproject, as this would
+<code>git</code> <code>push</code> <code>--recurse-submodules=check</code> in the superproject, as this would
 check if the submodule has any changes not published to any remote. The
 remotes are configured in the submodule as usual in the <code>$GIT_DIR/config</code>
 file.</p></div>
@@ -914,7 +914,7 @@ using older versions of Git.
 </p>
 <div class="paragraph"><p>It is possible to construct these old form repositories manually.</p></div>
 <div class="paragraph"><p>When deinitialized or deleted (see below), the submodule&#8217;s Git
-directory is automatically moved to <code>$GIT_DIR/modules/&lt;name&gt;/</code>
+directory is automatically moved to <code>$GIT_DIR/modules/</code><em>&lt;name&gt;</em><code>/</code>
 of the superproject.</p></div>
 </li>
 <li>
@@ -924,16 +924,16 @@ but no submodule working directory. The submodule&#8217;s Git directory
 may be there as after deinitializing the Git directory is kept around.
 The directory which is supposed to be the working directory is empty instead.
 </p>
-<div class="paragraph"><p>A submodule can be deinitialized by running <code>git submodule deinit</code>.
+<div class="paragraph"><p>A submodule can be deinitialized by running <code>git</code> <code>submodule</code> <code>deinit</code>.
 Besides emptying the working directory, this command only modifies
 the superproject&#8217;s <code>$GIT_DIR/config</code> file, so the superproject&#8217;s history
-is not affected. This can be undone using <code>git submodule init</code>.</p></div>
+is not affected. This can be undone using <code>git</code> <code>submodule</code> <code>init</code>.</p></div>
 </li>
 <li>
 <p>
 Deleted submodule: A submodule can be deleted by running
-<code>git rm &lt;submodule-path&gt; &amp;&amp; git commit</code>. This can be undone
-using <code>git revert</code>.
+<code>git</code> <code>rm</code> <em>&lt;submodule-path&gt;</em> &amp;&amp; <code>git</code> <code>commit</code>. This can be undone
+using <code>git</code> <code>revert</code>.
 </p>
 <div class="paragraph"><p>The deletion removes the superproject&#8217;s tracking data, which are
 both the <code>gitlink</code> entry and the section in the <code>.gitmodules</code> file.
@@ -942,7 +942,7 @@ system, but the Git directory is kept around as it to make it
 possible to checkout past commits without requiring fetching
 from another repository.</p></div>
 <div class="paragraph"><p>To completely remove a submodule, manually delete
-<code>$GIT_DIR/modules/&lt;name&gt;/</code>.</p></div>
+<code>$GIT_DIR/modules/</code><em>&lt;name&gt;</em><code>/</code>.</p></div>
 </li>
 </ul></div>
 </div>
@@ -954,7 +954,7 @@ from another repository.</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-if <code>submodule.&lt;name&gt;.active</code> is set to <code>true</code>
+if <code>submodule.</code><em>&lt;name&gt;</em><code>.active</code> is set to <code>true</code>
 </p>
 <div class="paragraph"><p>or</p></div>
 </li>
@@ -966,7 +966,7 @@ if the submodule&#8217;s path matches the pathspec in <code>submodule.active</co
 </li>
 <li>
 <p>
-if <code>submodule.&lt;name&gt;.url</code> is set.
+if <code>submodule.</code><em>&lt;name&gt;</em><code>.url</code> is set.
 </p>
 </li>
 </ol></div>
@@ -988,7 +988,7 @@ if <code>submodule.&lt;name&gt;.url</code> is set.
 (1) takes precedence over (3)</p></div>
 <div class="paragraph"><p>Note that (3) is a historical artefact and will be ignored if the
 (1) and (2) specify that the submodule is not active. In other words,
-if we have a <code>submodule.&lt;name&gt;.active</code> set to <code>false</code> or if the
+if we have a <code>submodule.</code><em>&lt;name&gt;</em><code>.active</code> set to <code>false</code> or if the
 submodule&#8217;s path is excluded in the pathspec in <code>submodule.active</code>, the
 url doesn&#8217;t matter whether it is present or not. This is illustrated in
 the example that follows.</p></div>
@@ -1067,7 +1067,7 @@ git ls-files --recurse-submodules</code></pre>
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content"><code>git ls-files</code> also requires its own <code>--recurse-submodules</code> flag.</td>
+<td class="content"><code>git</code> <code>ls-files</code> also requires its own <code>--recurse-submodules</code> flag.</td>
 </tr></table>
 </div>
 <div class="literalblock">
@@ -1089,7 +1089,7 @@ git reset</code></pre>
 <div class="sectionbody">
 <div class="paragraph"><p>When cloning or pulling a repository containing submodules the submodules
 will not be checked out by default; you can instruct <code>clone</code> to recurse
-into submodules. The <code>init</code> and <code>update</code> subcommands of <code>git submodule</code>
+into submodules. The <code>init</code> and <code>update</code> subcommands of <code>git</code> <code>submodule</code>
 will maintain submodules checked out and at an appropriate revision in
 your working tree. Alternatively you can set <code>submodule.recurse</code> to have
 <code>checkout</code> recurse into submodules (note that <code>submodule.recurse</code> also
@@ -1113,7 +1113,7 @@ affects other Git commands, see <a href="git-config.html">git-config(1)</a> for 
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

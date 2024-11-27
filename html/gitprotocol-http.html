@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>gitprotocol-http(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -855,11 +855,11 @@ by both client and server.  This includes (but is not necessarily
 limited to):</p></div>
 <div class="paragraph"><p>If there is no repository at <code>$GIT_URL</code>, or the resource pointed to by a
 location matching <code>$GIT_URL</code> does not exist, the server MUST NOT respond
-with <code>200 OK</code> response.  A server SHOULD respond with
-<code>404 Not Found</code>, <code>410 Gone</code>, or any other suitable HTTP status code
+with <code>200</code> <code>OK</code> response.  A server SHOULD respond with
+<code>404</code> <code>Not</code> <code>Found</code>, <code>410</code> <code>Gone</code>, or any other suitable HTTP status code
 which does not imply the resource exists as requested.</p></div>
 <div class="paragraph"><p>If there is a repository at <code>$GIT_URL</code>, but access is not currently
-permitted, the server MUST respond with the <code>403 Forbidden</code> HTTP
+permitted, the server MUST respond with the <code>403</code> <code>Forbidden</code> HTTP
 status code.</p></div>
 <div class="paragraph"><p>Servers SHOULD support both HTTP 1.0 and HTTP 1.1.
 Servers SHOULD support chunked encoding for both request and response
@@ -870,9 +870,9 @@ bodies.</p></div>
 <div class="paragraph"><p>Servers MAY return ETag and/or Last-Modified headers.</p></div>
 <div class="paragraph"><p>Clients MAY revalidate cached entities by including If-Modified-Since
 and/or If-None-Match request headers.</p></div>
-<div class="paragraph"><p>Servers MAY return <code>304 Not Modified</code> if the relevant headers appear
+<div class="paragraph"><p>Servers MAY return <code>304</code> <code>Not</code> <code>Modified</code> if the relevant headers appear
 in the request and the entity has not changed.  Clients MUST treat
-<code>304 Not Modified</code> identical to <code>200 OK</code> by reusing the cached entity.</p></div>
+<code>304</code> <code>Not</code> <code>Modified</code> identical to <code>200</code> <code>OK</code> by reusing the cached entity.</p></div>
 <div class="paragraph"><p>Clients MAY reuse a cached entity without revalidation if the
 Cache-Control and/or Expires header permits caching.  Clients and
 servers MUST follow RFC 2616 for cache controls.</p></div>
@@ -904,14 +904,14 @@ S: 2cb58b79488a98d2721cea644875a8dd0026b115  refs/tags/v1.0
 S: a3c2e2402b99163d1d59756e5f207ae21cccba4c  refs/tags/v1.0^{}</code></pre>
 </div></div>
 <div class="paragraph"><p>The Content-Type of the returned info/refs entity SHOULD be
-<code>text/plain; charset=utf-8</code>, but MAY be any content type.
+<code>text/plain</code>; <code>charset=utf-8</code>, but MAY be any content type.
 Clients MUST NOT attempt to validate the returned Content-Type.
 Dumb servers MUST NOT return a return type starting with
 <code>application/x-git-</code>.</p></div>
 <div class="paragraph"><p>Cache-Control headers MAY be returned to disable caching of the
 returned entity.</p></div>
 <div class="paragraph"><p>When examining the response clients SHOULD only examine the HTTP
-status code.  Valid responses are <code>200 OK</code>, or <code>304 Not Modified</code>.</p></div>
+status code.  Valid responses are <code>200</code> <code>OK</code>, or <code>304</code> <code>Not</code> <code>Modified</code>.</p></div>
 <div class="paragraph"><p>The returned content is a UNIX formatted text file describing
 each ref and its known value.  The file SHOULD be sorted by name
 according to the C locale ordering.  The file SHOULD NOT include
@@ -981,7 +981,7 @@ description of the dumb server response.</p></div>
 <h4 id="_smart_server_response">Smart Server Response</h4>
 <div class="paragraph"><p>If the server does not recognize the requested service name, or the
 requested service name has been disabled by the server administrator,
-the server MUST respond with the <code>403 Forbidden</code> HTTP status code.</p></div>
+the server MUST respond with the <code>403</code> <code>Forbidden</code> HTTP status code.</p></div>
 <div class="paragraph"><p>Otherwise, smart servers MUST respond with the smart server reply
 format for the requested service name.</p></div>
 <div class="paragraph"><p>Cache-Control headers SHOULD be used to disable caching of the
@@ -992,14 +992,14 @@ type is returned.  When falling back to the dumb protocol clients
 SHOULD NOT make an additional request to <code>$GIT_URL/info/refs</code>, but
 instead SHOULD use the response already in hand.  Clients MUST NOT
 continue if they do not support the dumb protocol.</p></div>
-<div class="paragraph"><p>Clients MUST validate the status code is either <code>200 OK</code> or
-<code>304 Not Modified</code>.</p></div>
+<div class="paragraph"><p>Clients MUST validate the status code is either <code>200</code> <code>OK</code> or
+<code>304</code> <code>Not</code> <code>Modified</code>.</p></div>
 <div class="paragraph"><p>Clients MUST validate the first five bytes of the response entity
-matches the regex <code>^[0-9a-f]{4}#</code>.  If this test fails, clients
+matches the regex <code>^</code>[<code>0-9a-f</code>]{4}#.  If this test fails, clients
 MUST NOT continue.</p></div>
 <div class="paragraph"><p>Clients MUST parse the entire response as a sequence of pkt-line
 records.</p></div>
-<div class="paragraph"><p>Clients MUST verify the first pkt-line is <code># service=$servicename</code>.
+<div class="paragraph"><p>Clients MUST verify the first pkt-line is # <code>service=$servicename</code>.
 Servers MUST set $servicename to be the request parameter value.
 Servers SHOULD include an LF at the end of this line.
 Clients MUST ignore an LF at the end of the line.</p></div>
@@ -1052,7 +1052,7 @@ peeled_ref      =  PKT-LINE(obj-id SP name LF)
 <div class="sectionbody">
 <div class="paragraph"><p>This service reads from the repository pointed to by <code>$GIT_URL</code>.</p></div>
 <div class="paragraph"><p>Clients MUST first perform ref discovery with
-<code>$GIT_URL/info/refs?service=git-upload-pack</code>.</p></div>
+<code>$GIT_URL/info/refs</code>?service=git-upload-pack.</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>C: POST $GIT_URL/git-upload-pack HTTP/1.0
@@ -1207,7 +1207,7 @@ TODO: Document the non-pack response</p></div>
 <div class="sectionbody">
 <div class="paragraph"><p>This service reads from the repository pointed to by <code>$GIT_URL</code>.</p></div>
 <div class="paragraph"><p>Clients MUST first perform ref discovery with
-<code>$GIT_URL/info/refs?service=git-receive-pack</code>.</p></div>
+<code>$GIT_URL/info/refs</code>?service=git-receive-pack.</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>C: POST $GIT_URL/git-receive-pack HTTP/1.0
@@ -1279,7 +1279,7 @@ update          =  old_id SP new_id SP name</code></pre>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>

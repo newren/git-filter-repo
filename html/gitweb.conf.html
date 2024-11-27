@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.0" />
+<meta name="generator" content="AsciiDoc 10.1.2" />
 <title>gitweb.conf(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -756,7 +756,7 @@ gitweb.conf(5) Manual Page
 <div class="sectionbody">
 <div class="paragraph"><p>The gitweb CGI script for viewing Git repositories over the web uses a
 perl script fragment as its configuration file.  You can set variables
-using "<code>our $variable = value</code>"; text from a "#" character until the
+using "<code>our</code> <code>$variable</code> <code>=</code> <code>value</code>"; text from a "#" character until the
 end of a line is ignored.  See <strong>perlsyn</strong>(1) for details.</p></div>
 <div class="paragraph"><p>An example:</p></div>
 <div class="listingblock">
@@ -818,7 +818,7 @@ to a non-empty value.</p></div>
 <div class="paragraph"><p>The syntax of the configuration files is that of Perl, since these files are
 handled by sourcing them as fragments of Perl code (the language that
 gitweb itself is written in). Variables are typically set using the
-<code>our</code> qualifier (as in "<code>our $variable = &lt;value&gt;;</code>") to avoid syntax
+<code>our</code> qualifier (as in "<code>our</code> <code>$variable</code> <code>=</code> <em>&lt;value&gt;</em>;") to avoid syntax
 errors if a new version of gitweb no longer uses a variable and therefore
 stops declaring it.</p></div>
 <div class="paragraph"><p>You can include other configuration file using read_config_file()
@@ -838,7 +838,7 @@ It also handles errors in included file.</p></div>
 perfectly well for some installations.  Still, a configuration file is
 useful for customizing or tweaking the behavior of gitweb in many ways, and
 some optional features will not be present unless explicitly enabled using
-the configurable <code>%features</code> variable (see also "Configuring gitweb
+the configurable %features variable (see also "Configuring gitweb
 features" section below).</p></div>
 </div>
 </div>
@@ -986,7 +986,7 @@ $GIT
 <dd>
 <p>
         Core git executable to use.  By default set to <code>$GIT_BINDIR/git</code>, which
-        in turn is by default set to <code>$(bindir)/git</code>.  If you use Git installed
+        in turn is by default set to <code>$</code>(<code>bindir</code>)<code>/git</code>.  If you use Git installed
         from a binary package, you should usually set this to "/usr/bin/git".
         This can just be "git" if your web server has a sensible PATH; from
         security point of view it is better to use absolute path to git binary.
@@ -1024,11 +1024,11 @@ $highlight_bin
 and that syntax must be supported by "highlight".  The default syntax
 detection is minimal, and there are many supported syntax types with no
 detection by default.  There are three options for adding syntax
-detection.  The first and second priority are <code>%highlight_basename</code> and
-<code>%highlight_ext</code>, which detect based on basename (the full filename, for
+detection.  The first and second priority are %highlight_basename and
+%highlight_ext, which detect based on basename (the full filename, for
 example "Makefile") and extension (for example "sh").  The keys of these
 hashes are the basename and extension, respectively, and the value for a
-given key is the name of the syntax to be passed via <code>--syntax &lt;syntax&gt;</code>
+given key is the name of the syntax to be passed via <code>--syntax</code> <em>&lt;syntax&gt;</em>
 to "highlight".  The last priority is the "highlight" configuration of
 <code>Shebang</code> regular expressions to detect the language based on the first
 line in the file, (for example, matching the line "#!/bin/bash").  See
@@ -1140,7 +1140,7 @@ $home_link_str
         Label for the "home link" at the top of all pages, leading to <code>$home_link</code>
         (usually the main gitweb page, which contains the projects list).  It is
         used as the first component of gitweb&#8217;s "breadcrumb trail":
-        <code>&lt;home-link&gt; / &lt;project&gt; / &lt;action&gt;</code>.  Can be set at build time using
+        <em>&lt;home-link&gt;</em> <code>/</code> <em>&lt;project&gt;</em> <code>/</code> <em>&lt;action&gt;</em>.  Can be set at build time using
         the <code>GITWEB_HOME_LINK_STR</code> variable.  By default it is set to "projects",
         as this link leads to the list of projects.  Another popular choice is to
         set it to the name of site.  Note that it is treated as raw HTML so it
@@ -1335,7 +1335,7 @@ involve file copies ('-C') or criss-cross renames ('-B').</p></div>
 </div>
 <div class="sect2">
 <h3 id="_some_optional_features_and_policies">Some optional features and policies</h3>
-<div class="paragraph"><p>Most of features are configured via <code>%feature</code> hash; however some of extra
+<div class="paragraph"><p>Most of features are configured via %feature hash; however some of extra
 gitweb features can be turned on and configured using variables described
 below.  This list beside configuration variables that control how gitweb
 looks does contain variables configuring administrative side of gitweb
@@ -1517,8 +1517,8 @@ $base_url
 <h2 id="_configuring_gitweb_features">CONFIGURING GITWEB FEATURES</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Many gitweb features can be enabled (or disabled) and configured using the
-<code>%feature</code> hash.  Names of gitweb features are keys of this hash.</p></div>
-<div class="paragraph"><p>Each <code>%feature</code> hash element is a hash reference and has the following
+%feature hash.  Names of gitweb features are keys of this hash.</p></div>
+<div class="paragraph"><p>Each %feature hash element is a hash reference and has the following
 structure:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1529,7 +1529,7 @@ structure:</p></div>
 },</code></pre>
 </div></div>
 <div class="paragraph"><p>Some features cannot be overridden per project.  For those
-features the structure of appropriate <code>%feature</code> hash element has a simpler
+features the structure of appropriate %feature hash element has a simpler
 form:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1553,11 +1553,11 @@ default
 <div class="paragraph"><p>Note that it is currently <strong>always</strong> an array reference, even if
 feature doesn&#8217;t accept any configuration parameters, and 'default'
 is used only to turn it on or off.  In such case you turn feature on
-by setting this element to <code>[1]</code>, and torn it off by setting it to
-<code>[0]</code>.  See also the passage about the "blame" feature in the "Examples"
+by setting this element to [<code>1</code>], and torn it off by setting it to
+[<code>0</code>].  See also the passage about the "blame" feature in the "Examples"
 section.</p></div>
 <div class="paragraph"><p>To disable features that accept parameters (are configurable), you
-need to set this element to empty list i.e. <code>[]</code>.</p></div>
+need to set this element to empty list i.e. [].</p></div>
 </dd>
 <dt class="hdlist1">
 override
@@ -1568,7 +1568,7 @@ override
         overridable, which means that it can be configured
         (or enabled/disabled) on a per-repository basis.
 </p>
-<div class="paragraph"><p>Usually given "&lt;feature&gt;" is configurable via the <code>gitweb.&lt;feature&gt;</code>
+<div class="paragraph"><p>Usually given "&lt;feature&gt;" is configurable via the <code>gitweb.</code><em>&lt;feature&gt;</em>
 config variable in the per-repository Git configuration file.</p></div>
 <div class="paragraph"><p><strong>Note</strong> that no feature is overridable by default.</p></div>
 </dd>
@@ -1585,8 +1585,8 @@ sub
 </dd>
 </dl></div>
 <div class="sect2">
-<h3 id="_features_in_code_feature_code">Features in <code>%feature</code></h3>
-<div class="paragraph"><p>The gitweb features that are configurable via <code>%feature</code> hash are listed
+<h3 id="_features_in_feature">Features in %feature</h3>
+<div class="paragraph"><p>The gitweb features that are configurable via %feature hash are listed
 below.  This should be a complete list, but ultimately the authoritative
 and complete list is in gitweb.cgi source code, with features described
 in the comments.</p></div>
@@ -1614,7 +1614,7 @@ snapshot
         This can potentially generate high traffic if you have large project.
 </p>
 <div class="paragraph"><p>The value of 'default' is a list of names of snapshot formats,
-defined in <code>%known_snapshot_formats</code> hash, that you wish to offer.
+defined in %known_snapshot_formats hash, that you wish to offer.
 Supported formats include "tgz", "tbz2", "txz" (gzip/bzip2/xz
 compressed tar archive) and "zip"; please consult gitweb sources for
 a definitive list.  By default only "tgz" is offered.</p></div>
@@ -1646,7 +1646,7 @@ pickaxe
         still potentially CPU-intensive.  Enabled by default.
 </p>
 <div class="paragraph"><p>The pickaxe search is described in <a href="git-log.html">git-log(1)</a> (the
-description of <code>-S&lt;string&gt;</code> option, which refers to pickaxe entry in
+description of <code>-S</code><em>&lt;string&gt;</em> option, which refers to pickaxe entry in
 <a href="gitdiffcore.html">gitdiffcore(7)</a> for more details).</p></div>
 <div class="paragraph"><p>This feature can be configured on a per-repository basis by setting
 repository&#8217;s <code>gitweb.pickaxe</code> configuration variable (boolean).</p></div>
@@ -1657,7 +1657,7 @@ show-sizes
 <dd>
 <p>
         Enable showing size of blobs (ordinary files) in a "tree" view, in a
-        separate column, similar to what <code>ls -l</code> does; see description of
+        separate column, similar to what <code>ls</code> <code>-l</code> does; see description of
         <code>-l</code> option in <a href="git-ls-tree.html">git-ls-tree(1)</a> manpage.  This costs a bit of
         I/O.  Enabled by default.
 </p>
@@ -1696,7 +1696,7 @@ If an unknown provider is specified, the feature is disabled.
 installed; see <code>gitweb/INSTALL</code> for more details.</p></div>
 <div class="paragraph"><p>This feature can be configured on a per-repository basis via
 repository&#8217;s <code>gitweb.avatar</code> configuration variable.</p></div>
-<div class="paragraph"><p>See also <code>%avatar_size</code> with pixel sizes for icons and avatars
+<div class="paragraph"><p>See also %avatar_size with pixel sizes for icons and avatars
 ("default" is used for one-line like "log" and "shortlog", "double"
 is used for two-line like "commit", "commitdiff" or "tag").  If the
 default font sizes or lineheights are changed (e.g. via adding extra
@@ -1790,9 +1790,9 @@ actions
 </p>
 <div class="paragraph"><p>The "default" value consists of a list of triplets in the form
 &#8216;("&lt;label&gt;", "&lt;link&gt;", "&lt;position&gt;")` where "position" is the label
-after which to insert the link, "link" is a format string where <code>%n</code>
-expands to the project name, <code>%f</code> to the project path within the
-filesystem (i.e. "$projectroot/$project"), <code>%h</code> to the current hash
+after which to insert the link, "link" is a format string where %n
+expands to the project name, %f to the project path within the
+filesystem (i.e. "$projectroot/$project"), %h to the current hash
 ('h&#8217; gitweb parameter) and &#8216;%b` to the current hash base
 ('hb&#8217; gitweb parameter); &#8216;%%` expands to '%&#8217;.</p></div>
 <div class="paragraph"><p>For example, at the time this page was written, the <a href="https://repo.or.cz">https://repo.or.cz</a>
@@ -1804,7 +1804,7 @@ Git hosting site set it to the following to enable graphical log
         [ ('graphiclog', '/git-browser/by-commit.html?r=%n', 'summary')];</code></pre>
 </div></div>
 <div class="paragraph"><p>This adds a link titled "graphiclog" after the "summary" link, leading to
-<code>git-browser</code> script, passing <code>r=&lt;project&gt;</code> as a query parameter.</p></div>
+<code>git-browser</code> script, passing <code>r=</code><em>&lt;project&gt;</em> as a query parameter.</p></div>
 <div class="paragraph"><p>Project specific override is not supported.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1833,7 +1833,7 @@ javascript-timezone
 hasn&#8217;t selected some other time zone and saved it in a cookie), a name of cookie
 where to store selected time zone, and a CSS class used to mark up
 dates for manipulation.  If you want to turn this feature off, set "default"
-to empty list: <code>[]</code>.</p></div>
+to empty list: [].</p></div>
 <div class="paragraph"><p>Typical gitweb config files will only change starting (default) time zone,
 and leave other elements at their default values:</p></div>
 <div class="listingblock">
@@ -2015,7 +2015,7 @@ gitweb_config.perl
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-06-28 10:59:43 PDT
+ 2024-10-31 16:05:06 PDT
 </div>
 </div>
 </body>
