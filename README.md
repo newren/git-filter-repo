@@ -44,9 +44,10 @@ filter-repo requires:
 
 # How do I install it?
 
-`git-filter-repo` is a single-file python script, which was done to make
-installation for basic use on many systems trivial: just place that
-file into your $PATH.
+While the `git-filter-repo` repository has many files, the main logic
+is all contained in a single-file python script named
+`git-filter-repo`, which was done to make installation for basic use
+on many systems trivial: just place that one file into your $PATH.
 
 See [INSTALL.md](INSTALL.md) for things beyond basic usage or special
 cases.  The more involved instructions are only needed if one of the
