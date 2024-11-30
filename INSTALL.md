@@ -148,7 +148,7 @@ Command example for pipx:
 # Installation via Makefile
 
 Installing should be doable by hand, but a Makefile is provided for those
-that prefer it.  However, usage of the Makefile really requires overridding
+that prefer it.  However, usage of the Makefile really requires overriding
 at least a couple of the directories with sane values, e.g.
 
     $ make prefix=/usr pythondir=/usr/lib64/python3.8/site-packages install
