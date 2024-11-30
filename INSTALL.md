@@ -5,6 +5,8 @@
   * [Installation via Package Manager](#installation-via-package-manager)
   * [Detailed installation explanation for
      packagers](#detailed-installation-explanation-for-packagers)
+  * [Installation as Python Package from
+     PyPI](#installation-as-python-package-from-pypi)
   * [Installation via Makefile](#installation-via-makefile)
   * [Notes for Windows Users](#notes-for-windows-users)
 
@@ -132,6 +134,17 @@ So, installation might look something like the following:
 
 or you can use the provided Makefile, as noted below.
 
+# Installation as Python Package from PyPI
+
+`git-filter-repo` is also available as 
+[PyPI-package](https://pypi.org/project/git-filter-repo/). 
+
+Therefore, it can be installed with [pipx](https://pypa.github.io/pipx/) 
+or [uv tool](https://docs.astral.sh/uv/concepts/tools/). 
+Command example for pipx:
+
+`pipx install git-filter-repo`
+
 # Installation via Makefile
 
 Installing should be doable by hand, but a Makefile is provided for those
@@ -145,6 +158,10 @@ git-filter-repo if your python executable is not named "python3";
 you'll still need to do that yourself.
 
 # Notes for Windows Users
+
+git-filter-repo can be installed with multiple tools, such as 
+[pipx](https://pypa.github.io/pipx/) or a Windows-specific package manager
+like Scoop (both of which were covered above).
 
 Sadly, Windows sometimes makes things difficult.  Common and historical issues:
 
