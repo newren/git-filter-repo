@@ -486,16 +486,8 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 	(
 		cd analyze_me &&
 
-		# Detect whether zlib or zlib-ng are in use; they give
-		# slightly different compression
-		echo e80fdf8cd5fb645649c14f41656a076dedc4e12a >expect &&
-		python3 -c "print(\"test\\t\" * 1000, end=\"\")" | git hash-object -w --stdin >actual &&
-		test_cmp expect actual &&
-		compressed_size=$(python3 -c "import os; print(os.path.getsize(\".git/objects/e8/0fdf8cd5fb645649c14f41656a076dedc4e12a\"))") &&
-		zlibng=$((72-${compressed_size})) &&
-		test $zlibng -eq "0" -o $zlibng -eq "2" &&
-
-		# Now do the analysis
+		# Do the analysis, mask compressed size away to avoid different
+		# values with different zlib libraries.
 		git filter-repo --analyze &&
 
 		# It should not work again without a --force
@@ -524,82 +516,89 @@ test_expect_success C_LOCALE_OUTPUT '--analyze' '
 		  Number of file extensions: 2
 
 		  Total unpacked size (bytes): 206
-		  Total packed size (bytes): $((387+${zlibng}))
+		  Total packed size (bytes): XX
 
 		EOF
-		head -n 9 README >actual &&
+		head -n 9 README | sed -E "s@(Total packed size .bytes.: )[0-9]+@\1XX@"  >actual &&
 		test_cmp expect actual &&
 
 		cat >expect <<-EOF &&
 		=== Files by sha and associated pathnames in reverse size ===
 		Format: sha, unpacked size, packed size, filename(s) object stored as
-		  a89c82a2d4b713a125a4323d25adda062cc0013d         44         $((48+${zlibng})) numbers/medium.num
-		  c58ae2ffaf8352bd9860bf4bbb6ea78238dca846         35         41 fickle
-		  ccff62141ec7bae42e01a3dcb7615b38aa9fa5b3         24         40 fickle
-		  f00c965d8307308469e537302baa73048488f162         21         37 numbers/small.num
-		  2aa69a2a708eed00cb390e30f6bcc3eed773f390         20         36 whatever
-		  51b95456de9274c9a95f756742808dfd480b9b35         13         29 [capricious, fickle, mercurial]
-		  732c85a1b3d7ce40ec8f78fd9ffea32e9f45fae0          5         20 [sequence/know, words/know]
-		  34b6a0c9d02cb6ef7f409f248c0c1224ce9dd373          5         20 [sequence/to, words/to]
-		  7ecb56eb3fa3fa6f19dd48bca9f971950b119ede          3         18 words/know
+		  a89c82a2d4b713a125a4323d25adda062cc0013d         44 XX numbers/medium.num
+		  c58ae2ffaf8352bd9860bf4bbb6ea78238dca846         35 XX fickle
+		  ccff62141ec7bae42e01a3dcb7615b38aa9fa5b3         24 XX fickle
+		  f00c965d8307308469e537302baa73048488f162         21 XX numbers/small.num
+		  2aa69a2a708eed00cb390e30f6bcc3eed773f390         20 XX whatever
+		  51b95456de9274c9a95f756742808dfd480b9b35         13 XX [capricious, fickle, mercurial]
+		  732c85a1b3d7ce40ec8f78fd9ffea32e9f45fae0          5 XX [sequence/know, words/know]
+		  34b6a0c9d02cb6ef7f409f248c0c1224ce9dd373          5 XX [sequence/to, words/to]
+		  7ecb56eb3fa3fa6f19dd48bca9f971950b119ede          3 XX words/know
 		EOF
-		test_cmp expect blob-shas-and-paths.txt &&
+		sed -E < blob-shas-and-paths.txt "s@([0-9a-f]+[[:space:]]+[0-9]+)[[:space:]]+[0-9]+@\1 XX@" >actual &&
+		test_cmp expect actual &&
 
 		cat >expect <<-EOF &&
 		=== All directories by reverse size ===
 		Format: unpacked size, packed size, date deleted, directory name
-		         206        $((387+${zlibng})) <present>  <toplevel>
-		          65         $((85+${zlibng})) 2005-04-07 numbers
-		          13         58 <present>  words
-		          10         40 <present>  sequence
+		         206 XX <present>  <toplevel>
+		          65 XX 2005-04-07 numbers
+		          13 XX <present>  words
+		          10 XX <present>  sequence
 		EOF
-		test_cmp expect directories-all-sizes.txt &&
+		sed -E < directories-all-sizes.txt "s@(^[[:space:]]+[0-9]+)([[:space:]]+)[0-9]+@\1 XX@" >actual &&
+		test_cmp expect actual &&
 
 		cat >expect <<-EOF &&
 		=== Deleted directories by reverse size ===
 		Format: unpacked size, packed size, date deleted, directory name
-		          65         $((85+${zlibng})) 2005-04-07 numbers
+		          65 XX 2005-04-07 numbers
 		EOF
-		test_cmp expect directories-deleted-sizes.txt &&
+		sed -E < directories-deleted-sizes.txt "s@(^[[:space:]]+[0-9]+)([[:space:]]+)[0-9]+@\1 XX@" >actual &&
+		test_cmp expect actual &&
 
 		cat >expect <<-EOF &&
 		=== All extensions by reverse size ===
 		Format: unpacked size, packed size, date deleted, extension name
-		         141        302 <present>  <no extension>
-		          65         $((85+${zlibng})) 2005-04-07 .num
+		         141 XX <present>  <no extension>
+		          65 XX 2005-04-07 .num
 		EOF
-		test_cmp expect extensions-all-sizes.txt &&
+		sed -E < extensions-all-sizes.txt "s@(^[[:space:]]+[0-9]+)([[:space:]]+)[0-9]+@\1 XX@" >actual &&
+		test_cmp expect actual &&
 
 		cat >expect <<-EOF &&
 		=== Deleted extensions by reverse size ===
 		Format: unpacked size, packed size, date deleted, extension name
-		          65         $((85+${zlibng})) 2005-04-07 .num
+		          65 XX 2005-04-07 .num
 		EOF
-		test_cmp expect extensions-deleted-sizes.txt &&
+		sed -E < extensions-deleted-sizes.txt "s@(^[[:space:]]+[0-9]+)([[:space:]]+)[0-9]+@\1 XX@" >actual &&
+		test_cmp expect actual &&
 
 		cat >expect <<-EOF &&
 		=== All paths by reverse accumulated size ===
 		Format: unpacked size, packed size, date deleted, path name
-		          72        110 <present>  fickle
-		          44         $((48+${zlibng})) 2005-04-07 numbers/medium.num
-		           8         38 <present>  words/know
-		          21         37 2005-04-07 numbers/small.num
-		          20         36 <present>  whatever
-		          13         29 <present>  mercurial
-		          13         29 <present>  capricious
-		           5         20 <present>  words/to
-		           5         20 <present>  sequence/to
-		           5         20 <present>  sequence/know
+		          72 XX <present>  fickle
+		          44 XX 2005-04-07 numbers/medium.num
+		           8 XX <present>  words/know
+		          21 XX 2005-04-07 numbers/small.num
+		          20 XX <present>  whatever
+		          13 XX <present>  mercurial
+		          13 XX <present>  capricious
+		           5 XX <present>  words/to
+		           5 XX <present>  sequence/to
+		           5 XX <present>  sequence/know
 		EOF
-		test_cmp expect path-all-sizes.txt &&
+		sed -E < path-all-sizes.txt "s@(^[[:space:]]+[0-9]+)([[:space:]]+)[0-9]+@\1 XX@" >actual &&
+		test_cmp expect actual &&
 
 		cat >expect <<-EOF &&
 		=== Deleted paths by reverse accumulated size ===
 		Format: unpacked size, packed size, date deleted, path name(s)
-		          44         $((48+${zlibng})) 2005-04-07 numbers/medium.num
-		          21         37 2005-04-07 numbers/small.num
+		          44 XX 2005-04-07 numbers/medium.num
+		          21 XX 2005-04-07 numbers/small.num
 		EOF
-		test_cmp expect path-deleted-sizes.txt
+		sed -E < path-deleted-sizes.txt "s@(^[[:space:]]+[0-9]+)([[:space:]]+)[0-9]+@\1 XX@" >actual &&
+		test_cmp expect actual
 	)
 '
 
