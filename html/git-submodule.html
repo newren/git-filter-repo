@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-submodule(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -792,7 +792,7 @@ This may be either an absolute URL, or (if it begins with ./
 or ../), the location relative to the superproject&#8217;s default remote
 repository (Please note that to specify a repository <em>foo.git</em>
 which is located right next to a superproject <em>bar.git</em>, you&#8217;ll
-have to use <code>..</code><code>/foo.git</code> instead of <code>./foo.git</code> - as one might expect
+have to use <code>../foo.git</code> instead of <code>./foo.git</code> - as one might expect
 when following the rules for relative URLs - because the evaluation
 of relative URLs in Git is identical to that of relative directories).</p></div>
 <div class="paragraph"><p>The default remote is the remote of the remote-tracking branch
@@ -816,7 +816,7 @@ submodule repositories will be kept together in the same relative
 location, and only the superproject&#8217;s URL needs to be provided.
 git-submodule will correctly locate the submodule using the relative
 URL in <code>.gitmodules</code>.</p></div>
-<div class="paragraph"><p>If <code>--ref-format</code> <em>&lt;format&gt;</em>  is specified, the ref storage format of newly
+<div class="paragraph"><p>If <code>--ref-format &lt;format&gt;</code>  is specified, the ref storage format of newly
 cloned submodules will be set accordingly.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -862,8 +862,8 @@ the <code>.gitmodules</code> file, to <code>.git/config</code>, but (1) this com
 alter existing information in <code>.git/config</code>, and (2) <code>submodule.$name.update</code>
 that is set to a custom command is <strong>not</strong> copied for security reasons.</p></div>
 <div class="paragraph"><p>You can then customize the submodule clone URLs in <code>.git/config</code>
-for your local setup and proceed to <code>git</code> <code>submodule</code> <code>update</code>;
-you can also just use <code>git</code> <code>submodule</code> <code>update</code> <code>--init</code> without
+for your local setup and proceed to <code>git submodule update</code>;
+you can also just use <code>git submodule update --init</code> without
 the explicit <em>init</em> step if you do not intend to customize
 any submodule locations.</p></div>
 <div class="paragraph"><p>See the add subcommand for the definition of default remote.</p></div>
@@ -875,8 +875,8 @@ deinit [-f|--force] (--all|[--] &lt;path&gt;&#8230;)
 <p>
         Unregister the given submodules, i.e. remove the whole
         <code>submodule.$name</code> section from .git/config together with their work
-        tree. Further calls to <code>git</code> <code>submodule</code> <code>update</code>, <code>git</code> <code>submodule</code> <code>foreach</code>
-        and <code>git</code> <code>submodule</code> <code>sync</code> will skip any unregistered submodules until
+        tree. Further calls to <code>git submodule update</code>, <code>git submodule foreach</code>
+        and <code>git submodule sync</code> will skip any unregistered submodules until
         they are initialized again, so use this command if you don&#8217;t want to
         have a local checkout of the submodule in your working tree anymore.
 </p>
@@ -898,13 +898,13 @@ update [--init] [--remote] [-N|--no-fetch] [--[no-]recommend-shallow] [-f|--forc
 expects by cloning missing submodules, fetching missing commits
 in submodules and updating the working tree of
 the submodules. The "updating" can be done in several ways depending
-on command line options and the value of <code>submodule.</code><em>&lt;name&gt;</em><code>.update</code>
+on command line options and the value of <code>submodule.&lt;name&gt;.update</code>
 configuration variable. The command line option takes precedence over
 the configuration variable. If neither is given, a <em>checkout</em> is performed.
 (note: what is in <code>.gitmodules</code> file is irrelevant at this point;
-see <code>git</code> <code>submodule</code> <code>init</code> above for how <code>.gitmodules</code> is used).
+see <code>git submodule init</code> above for how <code>.gitmodules</code> is used).
 The <em>update</em> procedures supported both from the command line as well as
-through the <code>submodule.</code><em>&lt;name&gt;</em><code>.update</code> configuration are:</p></div>
+through the <code>submodule.&lt;name&gt;.update</code> configuration are:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 checkout
@@ -915,7 +915,7 @@ the commit recorded in the superproject will be
             checked out in the submodule on a detached HEAD.
 </p>
 <div class="paragraph"><p>If <code>--force</code> is specified, the submodule will be checked out (using
-<code>git</code> <code>checkout</code> <code>--force</code>), even if the commit specified
+<code>git checkout --force</code>), even if the commit specified
 in the index of the containing repository already matches the commit
 checked out in the submodule.</p></div>
 </dd>
@@ -947,9 +947,9 @@ custom command
 <p>
 mechanism for running arbitrary commands with the
             commit ID as an argument. Specifically, if the
-            <code>submodule.</code><em>&lt;name&gt;</em><code>.update</code> configuration variable is set to
-            !custom <code>command</code>, the object name of the commit recorded in the
-            superproject for the submodule is appended to the <code>custom</code> <code>command</code>
+            <code>submodule.&lt;name&gt;.update</code> configuration variable is set to
+            <code>!custom command</code>, the object name of the commit recorded in the
+            superproject for the submodule is appended to the <code>custom command</code>
             string and executed. Note that this mechanism is not supported in
             the <code>.gitmodules</code> file or on the command line.
 </p>
@@ -969,9 +969,9 @@ setting as stored in <code>.gitmodules</code>, you can automatically initialize 
 submodule with the <code>--init</code> option.</p></div>
 <div class="paragraph"><p>If <code>--recursive</code> is specified, this command will recurse into the
 registered submodules, and update any nested submodules within.</p></div>
-<div class="paragraph"><p>If <code>--ref-format</code> <em>&lt;format&gt;</em>  is specified, the ref storage format of newly
+<div class="paragraph"><p>If <code>--ref-format &lt;format&gt;</code>  is specified, the ref storage format of newly
 cloned submodules will be set accordingly.</p></div>
-<div class="paragraph"><p>If <code>--filter</code> <em>&lt;filter-spec&gt;</em> is specified, the given partial clone filter will be
+<div class="paragraph"><p>If <code>--filter &lt;filter-spec&gt;</code> is specified, the given partial clone filter will be
 applied to the submodule. See <a href="git-rev-list.html">git-rev-list(1)</a> for details on filter
 specifications.</p></div>
 </div></div>
@@ -1062,8 +1062,8 @@ sync [--recursive] [--] [&lt;path&gt;&#8230;]
         submodule URLs change upstream and you need to update your local
         repositories accordingly.
 </p>
-<div class="paragraph"><p><code>git</code> <code>submodule</code> <code>sync</code> synchronizes all submodules while
-<code>git</code> <code>submodule</code> <code>sync</code> <code>--</code> <code>A</code> synchronizes submodule "A" only.</p></div>
+<div class="paragraph"><p><code>git submodule sync</code> synchronizes all submodules while
+<code>git submodule sync -- A</code> synchronizes submodule "A" only.</p></div>
 <div class="paragraph"><p>If <code>--recursive</code> is specified, this command will recurse into the
 registered submodules, and sync any nested submodules within.</p></div>
 </dd>
@@ -1132,8 +1132,8 @@ embedded into the superprojects git directory.</p></div>
 <dd>
 <p>
         Branch of repository to add as submodule.
-        The name of the branch is recorded as <code>submodule.</code><em>&lt;name&gt;</em><code>.branch</code> in
-        <code>.gitmodules</code> for <code>update</code> <code>--remote</code>.  A special value of . is used to
+        The name of the branch is recorded as <code>submodule.&lt;name&gt;.branch</code> in
+        <code>.gitmodules</code> for <code>update --remote</code>.  A special value of <code>.</code> is used to
         indicate that the name of the branch in the submodule should be the
         same name as the current branch in the current repository.  If the
         option is not specified, it defaults to the remote <em>HEAD</em>.
@@ -1202,29 +1202,29 @@ embedded into the superprojects git directory.</p></div>
         This option is only valid for the update command.  Instead of using
         the superproject&#8217;s recorded SHA-1 to update the submodule, use the
         status of the submodule&#8217;s remote-tracking branch.  The remote used
-        is branch&#8217;s remote (<code>branch.</code><em>&lt;name&gt;</em><code>.remote</code>), defaulting to <code>origin</code>.
+        is branch&#8217;s remote (<code>branch.&lt;name&gt;.remote</code>), defaulting to <code>origin</code>.
         The remote branch used defaults to the remote <code>HEAD</code>, but the branch
-        name may be overridden by setting the <code>submodule.</code><em>&lt;name&gt;</em><code>.branch</code>
+        name may be overridden by setting the <code>submodule.&lt;name&gt;.branch</code>
         option in either <code>.gitmodules</code> or <code>.git/config</code> (with <code>.git/config</code>
         taking precedence).
 </p>
 <div class="paragraph"><p>This works for any of the supported update procedures (<code>--checkout</code>,
 <code>--rebase</code>, etc.).  The only change is the source of the target SHA-1.
-For example, <code>submodule</code> <code>update</code> <code>--remote</code> <code>--merge</code> will merge upstream
-submodule changes into the submodules, while <code>submodule</code> <code>update</code>
-<code>--merge</code> will merge superproject gitlink changes into the submodules.</p></div>
-<div class="paragraph"><p>In order to ensure a current tracking branch state, <code>update</code> <code>--remote</code>
+For example, <code>submodule update --remote --merge</code> will merge upstream
+submodule changes into the submodules, while <code>submodule update
+--merge</code> will merge superproject gitlink changes into the submodules.</p></div>
+<div class="paragraph"><p>In order to ensure a current tracking branch state, <code>update --remote</code>
 fetches the submodule&#8217;s remote repository before calculating the
-SHA-1.  If you don&#8217;t want to fetch, you should use <code>submodule</code> <code>update</code>
-<code>--remote</code> <code>--no-fetch</code>.</p></div>
+SHA-1.  If you don&#8217;t want to fetch, you should use <code>submodule update
+--remote --no-fetch</code>.</p></div>
 <div class="paragraph"><p>Use this option to integrate changes from the upstream subproject with
-your submodule&#8217;s current HEAD.  Alternatively, you can run <code>git</code> <code>pull</code>
+your submodule&#8217;s current HEAD.  Alternatively, you can run <code>git pull</code>
 from the submodule, which is equivalent except for the remote branch
-name: <code>update</code> <code>--remote</code> uses the default upstream repository and
-<code>submodule.</code><em>&lt;name&gt;</em><code>.branch</code>, while <code>git</code> <code>pull</code> uses the submodule&#8217;s
-<code>branch.</code><em>&lt;name&gt;</em><code>.merge</code>.  Prefer <code>submodule.</code><em>&lt;name&gt;</em><code>.branch</code> if you want
+name: <code>update --remote</code> uses the default upstream repository and
+<code>submodule.&lt;name&gt;.branch</code>, while <code>git pull</code> uses the submodule&#8217;s
+<code>branch.&lt;name&gt;.merge</code>.  Prefer <code>submodule.&lt;name&gt;.branch</code> if you want
 to distribute the default upstream branch with the superproject and
-<code>branch.</code><em>&lt;name&gt;</em><code>.merge</code> if you want a more native feel while working in
+<code>branch.&lt;name&gt;.merge</code> if you want a more native feel while working in
 the submodule itself.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1354,7 +1354,7 @@ options carefully.</p></div>
 <p>
         This option is only valid for the update command.
         The initial clone of a submodule will use the recommended
-        <code>submodule.</code><em>&lt;name&gt;</em><code>.shallow</code> as provided by the <code>.gitmodules</code> file
+        <code>submodule.&lt;name&gt;.shallow</code> as provided by the <code>.gitmodules</code> file
         by default. To ignore the suggestions use <code>--no-recommend-shallow</code>.
 </p>
 </dd>

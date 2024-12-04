@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-svn(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -907,7 +907,7 @@ Subversion updated from Git by the <em>dcommit</em> command.</p></div>
 meant that SVN-tracking refs were put at "refs/remotes/*", which is
 incompatible with how Git&#8217;s own remote-tracking refs are organized.
 If you still want the old default, you can get it by passing
-<code>--prefix</code> "" on the command line (<code>--prefix=</code>"" may not work if
+<code>--prefix ""</code> on the command line (<code>--prefix=""</code> may not work if
 your Perl&#8217;s Getopt::Long is &lt; v2.37).</td>
 </tr></table>
 </div>
@@ -981,7 +981,7 @@ your Perl&#8217;s Getopt::Long is &lt; v2.37).</td>
 <p>
         Store Git commit times in the local time zone instead of UTC.  This
         makes <em>git log</em> (even without --date=local) show the same times
-        that <code>svn</code> <code>log</code> would in the local time zone.
+        that <code>svn log</code> would in the local time zone.
 </p>
 <div class="paragraph"><p>This doesn&#8217;t interfere with interoperating with the Subversion
 repository you cloned from, but if you wish for your local Git
@@ -1004,7 +1004,7 @@ the same local time zone.</p></div>
 <p>
         Ignore refs for branches or tags matching the Perl regular
         expression. A "negative look-ahead assertion" like
-        <code>^refs/remotes/origin/</code>(?!tags/wanted-tag|<code>wanted-branch</code>).*$
+        <code>^refs/remotes/origin/(?!tags/wanted-tag|wanted-branch).*$</code>
         can be used to allow only certain refs.
 </p>
 <div class="verseblock">
@@ -1134,7 +1134,7 @@ Skip "branches" and "tags" of first level directories
         This fetches revisions from the SVN parent of the current HEAD
         and rebases the current (uncommitted to SVN) work against it.
 </p>
-<div class="paragraph"><p>This works similarly to <code>svn</code> <code>update</code> or <em>git pull</em> except that
+<div class="paragraph"><p>This works similarly to <code>svn update</code> or <em>git pull</em> except that
 it preserves linear history with <em>git rebase</em> instead of
 <em>git merge</em> for ease of dcommitting with <em>git svn</em>.</p></div>
 <div class="paragraph"><p>This accepts all options that <em>git svn fetch</em> and <em>git rebase</em>
@@ -1210,11 +1210,11 @@ discouraged.</p></div>
 <dd>
 <p>
         Add the given merge information during the dcommit
-        (e.g. <code>--mergeinfo=</code>"/branches/foo:1-10"). All svn server versions can
+        (e.g. <code>--mergeinfo="/branches/foo:1-10"</code>). All svn server versions can
         store this information (as a property), and svn clients starting from
         version 1.5 can make use of it. To specify merge information from multiple
         branches, use a single space character between the branches
-        (<code>--mergeinfo=</code>"/branches/foo:1-10 <code>/branches/bar:3,5-6,8</code>")
+        (<code>--mergeinfo="/branches/foo:1-10 /branches/bar:3,5-6,8"</code>)
 </p>
 <div class="verseblock">
 <pre class="content">config key: svn.pushmergeinfo</pre>
@@ -1547,8 +1547,8 @@ environment). This command has the same behaviour.</td>
 <dd>
 <p>
         Commits the diff of two tree-ish arguments from the
-        command-line.  This command does not rely on being inside a <code>git</code> <code>svn</code>
-        <code>init</code>-ed repository.  This command takes three arguments, (a) the
+        command-line.  This command does not rely on being inside a <code>git svn
+        init</code>-ed repository.  This command takes three arguments, (a) the
         original tree to diff against, (b) the new tree result, (c) the
         URL of the target Subversion repository.  The final argument
         (URL) may be omitted if you are working from a <em>git svn</em>-aware
@@ -2123,7 +2123,7 @@ svn-remote.&lt;name&gt;.pushurl
 </dt>
 <dd>
 <p>
-        Similar to Git&#8217;s <code>remote.</code><em>&lt;name&gt;</em><code>.pushurl</code>, this key is designed
+        Similar to Git&#8217;s <code>remote.&lt;name&gt;.pushurl</code>, this key is designed
         to be used in cases where <em>url</em> points to an SVN repository
         via a read-only transport, to provide an alternate read/write
         transport. It is assumed that both keys point to the same
@@ -2262,9 +2262,9 @@ respect to the upstream SVN repository and allow the use of the preferred
 <em>git svn dcommit</em> subcommand to push unintegrated commits back into SVN.</p></div>
 <div class="paragraph"><p>Originally, <em>git svn</em> recommended that developers pulled or merged from
 the <em>git svn</em> branch.  This was because the author favored
-<code>git</code> <code>svn</code> <code>set-tree</code> <code>B</code> to commit a single head rather than the
-<code>git</code> <code>svn</code> <code>set-tree</code> <code>A</code><code>..</code><code>B</code> notation to commit multiple commits. Use of
-<em>git pull</em> or <em>git merge</em> with <code>git</code> <code>svn</code> <code>set-tree</code> <code>A</code><code>..</code><code>B</code> will cause non-linear
+<code>git svn set-tree B</code> to commit a single head rather than the
+<code>git svn set-tree A..B</code> notation to commit multiple commits. Use of
+<em>git pull</em> or <em>git merge</em> with <code>git svn set-tree A..B</code> will cause non-linear
 history to be flattened when committing into SVN and this can lead to merge
 commits unexpectedly reversing previous commits in SVN.</p></div>
 </div>
@@ -2407,7 +2407,7 @@ listed below are allowed:</p></div>
         branches = branches/re*se:refs/remotes/project-a/branches/*
         tags = tags/*/project-a:refs/remotes/project-a/tags/*</code></pre>
 </div></div>
-<div class="paragraph"><p>Keep in mind that the * (asterisk) wildcard of the local ref
+<div class="paragraph"><p>Keep in mind that the <code>*</code> (asterisk) wildcard of the local ref
 (right of the <code>:</code>) <strong>must</strong> be the farthest right path component;
 however the remote wildcard may be anywhere as long as it&#8217;s an
 independent path component (surrounded by <code>/</code> or EOL).   This

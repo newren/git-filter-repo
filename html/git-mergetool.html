@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-mergetool(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -757,7 +757,7 @@ git-mergetool(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Use <code>git</code> <code>mergetool</code> to run one of several merge utilities to resolve
+<div class="paragraph"><p>Use <code>git mergetool</code> to run one of several merge utilities to resolve
 merge conflicts.  It is typically run after <em>git merge</em>.</p></div>
 <div class="paragraph"><p>If one or more &lt;file&gt; parameters are given, the merge tool program will
 be run to resolve differences in each file (skipping those without
@@ -780,7 +780,7 @@ the merge tool program on every file with merge conflicts.</p></div>
 <p>
         Use the merge resolution program specified by &lt;tool&gt;.
         Valid values include emerge, gvimdiff, kdiff3,
-        meld, vimdiff, and tortoisemerge. Run <code>git</code> <code>mergetool</code> <code>--tool-help</code>
+        meld, vimdiff, and tortoisemerge. Run <code>git mergetool --tool-help</code>
         for the list of valid &lt;tool&gt; settings.
 </p>
 <div class="paragraph"><p>If a merge resolution program is not specified, <em>git mergetool</em>
@@ -788,14 +788,14 @@ will use the configuration variable <code>merge.tool</code>.  If the
 configuration variable <code>merge.tool</code> is not set, <em>git mergetool</em>
 will pick a suitable default.</p></div>
 <div class="paragraph"><p>You can explicitly provide a full path to the tool by setting the
-configuration variable <code>mergetool.</code><em>&lt;tool&gt;</em><code>.path</code>. For example, you
+configuration variable <code>mergetool.&lt;tool&gt;.path</code>. For example, you
 can configure the absolute path to kdiff3 by setting
 <code>mergetool.kdiff3.path</code>. Otherwise, <em>git mergetool</em> assumes the
 tool is available in PATH.</p></div>
 <div class="paragraph"><p>Instead of running one of the known merge tool programs,
 <em>git mergetool</em> can be customized to run an alternative program
 by specifying the command line to invoke in a configuration
-variable <code>mergetool.</code><em>&lt;tool&gt;</em><code>.cmd</code>.</p></div>
+variable <code>mergetool.&lt;tool&gt;.cmd</code>.</p></div>
 <div class="paragraph"><p>When <em>git mergetool</em> is invoked with this tool (either through the
 <code>-t</code> or <code>--tool</code> option or the <code>merge.tool</code> configuration
 variable), the configured command line will be invoked with <code>$BASE</code>
@@ -808,7 +808,7 @@ of the file to which the merge tool should write the result of the
 merge resolution.</p></div>
 <div class="paragraph"><p>If the custom merge tool correctly indicates the success of a
 merge resolution with its exit code, then the configuration
-variable <code>mergetool.</code><em>&lt;tool&gt;</em><code>.trustExitCode</code> can be set to <code>true</code>.
+variable <code>mergetool.&lt;tool&gt;.trustExitCode</code> can be set to <code>true</code>.
 Otherwise, <em>git mergetool</em> will prompt the user to indicate the
 success of the resolution after the custom tool has exited.</p></div>
 </dd>
@@ -947,7 +947,7 @@ mergetool.meld.hasOutput
 <p>
         Older versions of <code>meld</code> do not support the <code>--output</code> option.
         Git will attempt to detect whether <code>meld</code> supports <code>--output</code>
-        by inspecting the output of <code>meld</code> <code>--help</code>.  Configuring
+        by inspecting the output of <code>meld --help</code>.  Configuring
         <code>mergetool.meld.hasOutput</code> will make Git skip these checks and
         use the configured value instead.  Setting <code>mergetool.meld.hasOutput</code>
         to <code>true</code> tells Git to unconditionally use the <code>--output</code> option,
@@ -974,14 +974,14 @@ mergetool.&lt;vimdiff variant&gt;.layout
 </dt>
 <dd>
 <p>
-        Configure the split window layout for vimdiff&#8217;s <em>&lt;variant&gt;</em>, which is any of <code>vimdiff</code>,
+        Configure the split window layout for vimdiff&#8217;s <code>&lt;variant&gt;</code>, which is any of <code>vimdiff</code>,
         <code>nvimdiff</code>, <code>gvimdiff</code>.
-        Upon launching <code>git</code> <code>mergetool</code> with <code>--tool=</code><em>&lt;variant&gt;</em> (or without <code>--tool</code>
-        if <code>merge.tool</code> is configured as <em>&lt;variant&gt;</em>), Git will consult
-        <code>mergetool.</code><em>&lt;variant&gt;</em><code>.layout</code> to determine the tool&#8217;s layout. If the
+        Upon launching <code>git mergetool</code> with <code>--tool=&lt;variant&gt;</code> (or without <code>--tool</code>
+        if <code>merge.tool</code> is configured as <code>&lt;variant&gt;</code>), Git will consult
+        <code>mergetool.&lt;variant&gt;.layout</code> to determine the tool&#8217;s layout. If the
         variant-specific configuration is not available, <code>vimdiff</code>'s is used as
         fallback.  If that too is not available, a default layout with 4 windows
-        will be used.  To configure the layout, see the <code>BACKEND</code> <code>SPECIFIC</code> <code>HINTS</code>
+        will be used.  To configure the layout, see the <code>BACKEND SPECIFIC HINTS</code>
         section.
 </p>
 </dd>
@@ -996,7 +996,7 @@ mergetool.hideResolved
         represent the versions of the file from before Git&#8217;s conflict
         resolution. This flag causes <em>LOCAL</em> and <em>REMOTE</em> to be overwritten so
         that only the unresolved conflicts are presented to the merge tool. Can
-        be configured per-tool via the <code>mergetool.</code><em>&lt;tool&gt;</em><code>.hideResolved</code>
+        be configured per-tool via the <code>mergetool.&lt;tool&gt;.hideResolved</code>
         configuration variable. Defaults to <code>false</code>.
 </p>
 </dd>
@@ -1060,11 +1060,11 @@ mergetool.guiDefault
 <div class="sect1">
 <h2 id="_temporary_files">TEMPORARY FILES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><code>git</code> <code>mergetool</code> creates *.orig backup files while resolving merges.
+<div class="paragraph"><p><code>git mergetool</code> creates <code>*.orig</code> backup files while resolving merges.
 These are safe to remove once a file has been merged and its
-<code>git</code> <code>mergetool</code> session has completed.</p></div>
+<code>git mergetool</code> session has completed.</p></div>
 <div class="paragraph"><p>Setting the <code>mergetool.keepBackup</code> configuration variable to <code>false</code>
-causes <code>git</code> <code>mergetool</code> to automatically remove the backup files as files
+causes <code>git mergetool</code> to automatically remove the backup files as files
 are successfully merged.</p></div>
 </div>
 </div>
@@ -1075,7 +1075,7 @@ are successfully merged.</p></div>
 <h3 id="_vimdiff">vimdiff</h3>
 <div class="sect3">
 <h4 id="_description_2">Description</h4>
-<div class="paragraph"><p>When specifying <code>--tool=vimdiff</code> in <code>git</code> <code>mergetool</code> Git will open Vim with a 4
+<div class="paragraph"><p>When specifying <code>--tool=vimdiff</code> in <code>git mergetool</code> Git will open Vim with a 4
 windows layout distributed in the following way:</p></div>
 <div class="literalblock">
 <div class="content">
@@ -1134,7 +1134,7 @@ it):</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>layout</code> <code>=</code> "(<code>LOCAL,BASE,REMOTE</code>)<code>/MERGED</code>"
+<code>layout = "(LOCAL,BASE,REMOTE)/MERGED"</code>
 </p>
 <div class="openblock">
 <div class="content">
@@ -1149,7 +1149,7 @@ needed in this case. The next layout definition is equivalent:</p></div>
 </li>
 <li>
 <p>
-<code>layout</code> <code>=</code> "LOCAL,MERGED,REMOTE"
+<code>layout = "LOCAL,MERGED,REMOTE"</code>
 </p>
 <div class="openblock">
 <div class="content">
@@ -1168,7 +1168,7 @@ needed in this case. The next layout definition is equivalent:</p></div>
 </li>
 <li>
 <p>
-<code>layout</code> <code>=</code> "MERGED"
+<code>layout = "MERGED"</code>
 </p>
 <div class="openblock">
 <div class="content">
@@ -1189,7 +1189,7 @@ command.</p></div>
 </li>
 <li>
 <p>
-<code>layout</code> <code>=</code> "@LOCAL,REMOTE"
+<code>layout = "@LOCAL,REMOTE"</code>
 </p>
 <div class="openblock">
 <div class="content">
@@ -1212,7 +1212,7 @@ save after resolving the conflicts.</p></div>
 </li>
 <li>
 <p>
-<code>layout</code> <code>=</code> "LOCAL,BASE,REMOTE <code>/</code> <code>MERGED</code> <code>+</code> <code>BASE,LOCAL</code> <code>+</code> <code>BASE,REMOTE</code>"
+<code>layout = "LOCAL,BASE,REMOTE / MERGED + BASE,LOCAL + BASE,REMOTE"</code>
 </p>
 <div class="openblock">
 <div class="content">
@@ -1265,7 +1265,7 @@ the other two only show the differences between (<code>BASE</code> and <code>LOC
 </li>
 <li>
 <p>
-<code>layout</code> <code>=</code> "LOCAL,BASE,REMOTE <code>/</code> <code>MERGED</code> <code>+</code> <code>BASE,LOCAL</code> <code>+</code> <code>BASE,REMOTE</code> <code>+</code> (<code>LOCAL/BASE/REMOTE</code>)<code>,MERGED</code>"
+<code>layout = "LOCAL,BASE,REMOTE / MERGED + BASE,LOCAL + BASE,REMOTE + (LOCAL/BASE/REMOTE),MERGED"</code>
 </p>
 <div class="openblock">
 <div class="content">
@@ -1311,23 +1311,23 @@ latter will be used as fallback if the variant-specific one is not set).</p></di
 <div class="paragraph"><p>In addition, for backwards compatibility with previous Git versions, you can
 also append <code>1</code>, <code>2</code> or <code>3</code> to either <code>vimdiff</code> or any of the variants (ex:
 <code>vimdiff3</code>, <code>nvimdiff1</code>, etc&#8230;) to use a predefined layout.
-In other words, using <code>--tool=</code>[<code>g,n,</code>]<code>vimdiffx</code> is the same as using
-<code>--tool=</code>[<code>g,n,</code>]<code>vimdiff</code> and setting configuration variable
-<code>mergetool.</code>[<code>g,n,</code>]<code>vimdiff.layout</code> to&#8230;</p></div>
+In other words, using <code>--tool=[g,n,]vimdiffx</code> is the same as using
+<code>--tool=[g,n,]vimdiff</code> and setting configuration variable
+<code>mergetool.[g,n,]vimdiff.layout</code> to&#8230;</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>x=1</code>: "@LOCAL, <code>REMOTE</code>"
+<code>x=1</code>: <code>"@LOCAL, REMOTE"</code>
 </p>
 </li>
 <li>
 <p>
-<code>x=2</code>: "LOCAL, <code>MERGED,</code> <code>REMOTE</code>"
+<code>x=2</code>: <code>"LOCAL, MERGED, REMOTE"</code>
 </p>
 </li>
 <li>
 <p>
-<code>x=3</code>: "MERGED"
+<code>x=3</code>: <code>"MERGED"</code>
 </p>
 </li>
 </ul></div>

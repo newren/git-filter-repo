@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-rerere(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -871,7 +871,7 @@ One way to do it is to pull master into the topic branch:</p></div>
              /           /
     o---o---o---*---o---o master</code></pre>
 </div></div>
-<div class="paragraph"><p>The commits marked with * touch the same area in the same
+<div class="paragraph"><p>The commits marked with <code>*</code> touch the same area in the same
 file; you need to resolve the conflicts when creating the commit
 marked with <code>+</code>.  Then you can test the result to make sure your
 work-in-progress still works with what is in the latest master.</p></div>
@@ -919,14 +919,14 @@ top of the tip before the test merge:</p></div>
 <div class="paragraph"><p>This would leave only one merge commit when your topic branch is
 finally ready and merged into the master branch.  This merge
 would require you to resolve the conflict, introduced by the
-commits marked with *.  However, this conflict is often the
+commits marked with <code>*</code>.  However, this conflict is often the
 same conflict you resolved when you created the test merge you
 blew away.  <em>git rerere</em> helps you resolve this final
 conflicted merge using the information from your earlier hand
 resolve.</p></div>
 <div class="paragraph"><p>Running the <em>git rerere</em> command immediately after a conflicted
 automerge records the conflicted working tree files, with the
-usual conflict markers &lt;&lt;&lt;&lt;&lt;&lt;&lt;, <code>=======</code>, and &gt;&gt;&gt;&gt;&gt;&gt;&gt; in
+usual conflict markers <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> in
 them.  Later, after you are done resolving the conflicts,
 running <em>git rerere</em> again will record the resolved state of these
 files.  Suppose you did this when you created the test merge of
@@ -938,8 +938,8 @@ the current conflicted automerge.
 If this three-way merge resolves cleanly, the result is written
 out to your working tree file, so you do not have to manually
 resolve it.  Note that <em>git rerere</em> leaves the index file alone,
-so you still need to do the final sanity checks with <code>git</code> <code>diff</code>
-(or <code>git</code> <code>diff</code> <code>-c</code>) and <em>git add</em> when you are satisfied.</p></div>
+so you still need to do the final sanity checks with <code>git diff</code>
+(or <code>git diff -c</code>) and <em>git add</em> when you are satisfied.</p></div>
 <div class="paragraph"><p>As a convenience measure, <em>git merge</em> automatically invokes
 <em>git rerere</em> upon exiting with a failed automerge and <em>git rerere</em>
 records the hand resolve when it is a new conflict, or reuses the earlier hand
@@ -966,7 +966,7 @@ development on the topic branch:</p></div>
                                  /
     o---o---o---*---o---o---o---o   master</code></pre>
 </div></div>
-<div class="paragraph"><p>you could run <code>git</code> <code>rebase</code> <code>master</code> <code>topic</code>, to bring yourself
+<div class="paragraph"><p>you could run <code>git rebase master topic</code>, to bring yourself
 up to date before your topic is ready to be sent upstream.
 This would result in falling back to a three-way merge, and it
 would conflict the same way as the test merge you resolved earlier.

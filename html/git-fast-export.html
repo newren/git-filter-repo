@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-fast-export(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -830,7 +830,7 @@ produced incorrect results if you gave these options.</p></div>
 <dd>
 <p>
         Dumps the internal marks table to &lt;file&gt; when complete.
-        Marks are written one per line as <code>:markid</code> <code>SHA-1</code>. Only marks
+        Marks are written one per line as <code>:markid SHA-1</code>. Only marks
         for revisions are dumped; marks for blobs are ignored.
         Backends can use this file to validate imports after they
         have been completed, or to save the marks table across
@@ -928,8 +928,8 @@ by keeping the marks the same across runs.</p></div>
 </dt>
 <dd>
 <p>
-        Convert token <em>&lt;from&gt;</em> to <em>&lt;to&gt;</em> in the anonymized output. If
-        <em>&lt;to&gt;</em> is omitted, map <em>&lt;from&gt;</em> to itself (i.e., do not
+        Convert token <code>&lt;from&gt;</code> to <code>&lt;to&gt;</code> in the anonymized output. If
+        <code>&lt;to&gt;</code> is omitted, map <code>&lt;from&gt;</code> to itself (i.e., do not
         anonymize it). See the section on <code>ANONYMIZING</code> below.
 </p>
 </dd>
@@ -938,8 +938,8 @@ by keeping the marks the same across runs.</p></div>
 </dt>
 <dd>
 <p>
-        By default, running a command such as <code>git</code> <code>fast-export</code>
-        <code>master~5</code><code>..</code><code>master</code> will not include the commit master&#126;5
+        By default, running a command such as <code>git fast-export
+        master~5..master</code> will not include the commit master&#126;5
         and will make master&#126;4 no longer have master&#126;5 as
         a parent (though both the old master&#126;4 and new
         master&#126;4 will have all the same files).  Use
@@ -956,7 +956,7 @@ by keeping the marks the same across runs.</p></div>
 <dd>
 <p>
         Add an extra directive to the output for commits and blobs,
-        <code>original-oid</code> <em>&lt;SHA1SUM&gt;</em>.  While such directives will likely be
+        <code>original-oid &lt;SHA1SUM&gt;</code>.  While such directives will likely be
         ignored by importers such as git-fast-import, it may be useful
         for intermediary filters (e.g. for rewriting commit messages
         which refer to older commits, or for stripping blobs by id).
@@ -990,7 +990,7 @@ by keeping the marks the same across runs.</p></div>
 <p>
         A list of arguments, acceptable to <em>git rev-parse</em> and
         <em>git rev-list</em>, that specifies the specific objects and references
-        to export.  For example, <code>master~10</code><code>..</code><code>master</code> causes the
+        to export.  For example, <code>master~10..master</code> causes the
         current master reference to be exported along with all objects
         added since its 10th ancestor commit and (unless the
         --reference-excluded-parents option is specified) all files
@@ -1076,7 +1076,7 @@ no private data in the stream.</p></div>
 paths, which becomes challenging after refnames and paths have been
 anonymized. You can ask for a particular token to be left as-is or
 mapped to a new value. For example, if you have a bug which reproduces
-with <code>git</code> <code>rev-list</code> <code>sensitive</code> <code>--</code> <code>secret.c</code>, you can run:</p></div>
+with <code>git rev-list sensitive -- secret.c</code>, you can run:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git fast-export --anonymize --all \
@@ -1084,7 +1084,7 @@ with <code>git</code> <code>rev-list</code> <code>sensitive</code> <code>--</cod
       --anonymize-map=secret.c:bar.c \
       &gt;stream</code></pre>
 </div></div>
-<div class="paragraph"><p>After importing the stream, you can then run <code>git</code> <code>rev-list</code> <code>foo</code> <code>--</code> <code>bar.c</code>
+<div class="paragraph"><p>After importing the stream, you can then run <code>git rev-list foo -- bar.c</code>
 in the anonymized repository.</p></div>
 <div class="paragraph"><p>Note that paths and refnames are split into tokens at slash boundaries.
 The command above would anonymize <code>subdir/secret.c</code> as something like

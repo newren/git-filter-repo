@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-filter-branch(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -887,8 +887,8 @@ multiple commits.</p></div>
 <p>
         This is the filter for rewriting the index.  It is similar to the
         tree filter but does not check out the tree, which makes it much
-        faster.  Frequently used with <code>git</code> <code>rm</code> <code>--cached</code>
-        <code>--ignore-unmatch</code> ..., see EXAMPLES below.  For hairy
+        faster.  Frequently used with <code>git rm --cached
+        --ignore-unmatch ...</code>, see EXAMPLES below.  For hairy
         cases, see <a href="git-update-index.html">git-update-index(1)</a>.
 </p>
 </dd>
@@ -934,8 +934,8 @@ have all of them as parents.</p></div>
 convenience functions, too.  For example, calling <em>skip_commit "$@"</em>
 will leave out the current commit (but not its changes! If you want
 that, use <em>git rebase</em> instead).</p></div>
-<div class="paragraph"><p>You can also use the <code>git_commit_non_empty_tree</code> "$@" instead of
-<code>git</code> <code>commit-tree</code> "$@" if you don&#8217;t wish to keep commits with a single parent
+<div class="paragraph"><p>You can also use the <code>git_commit_non_empty_tree "$@"</code> instead of
+<code>git commit-tree "$@"</code> if you don&#8217;t wish to keep commits with a single parent
 and that makes no change to the tree.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1063,10 +1063,10 @@ or copyright violation) from all commits:</p></div>
 <pre><code>git filter-branch --tree-filter 'rm filename' HEAD</code></pre>
 </div></div>
 <div class="paragraph"><p>However, if the file is absent from the tree of some commit,
-a simple <code>rm</code> <code>filename</code> will fail for that tree and commit.
-Thus you may instead want to use <code>rm</code> <code>-f</code> <code>filename</code> as the script.</p></div>
+a simple <code>rm filename</code> will fail for that tree and commit.
+Thus you may instead want to use <code>rm -f filename</code> as the script.</p></div>
 <div class="paragraph"><p>Using <code>--index-filter</code> with <em>git rm</em> yields a significantly faster
-version.  Like with using <code>rm</code> <code>filename</code>, <code>git</code> <code>rm</code> <code>--cached</code> <code>filename</code>
+version.  Like with using <code>rm filename</code>, <code>git rm --cached filename</code>
 will fail if the file is absent from the tree of a commit.  If you
 want to "completely forget" a file, it does not matter when it entered
 history, so we also add <code>--ignore-unmatch</code>:</p></div>
@@ -1221,13 +1221,13 @@ objects until you tell it to.  First make sure that:</p></div>
 <li>
 <p>
 You really removed all variants of a filename, if a blob was moved
-  over its lifetime.  <code>git</code> <code>log</code> <code>--name-only</code> <code>--follow</code> <code>--all</code> <code>--</code> <code>filename</code>
+  over its lifetime.  <code>git log --name-only --follow --all -- filename</code>
   can help you find renames.
 </p>
 </li>
 <li>
 <p>
-You really filtered all refs: use <code>--tag-name-filter</code> <code>cat</code> <code>--</code> <code>--all</code>
+You really filtered all refs: use <code>--tag-name-filter cat -- --all</code>
   when calling git-filter-branch.
 </p>
 </li>
@@ -1237,7 +1237,7 @@ to clone, that keeps your original intact.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-Clone it with <code>git</code> <code>clone</code> <code>file:///path/to/repo</code>.  The clone
+Clone it with <code>git clone file:///path/to/repo</code>.  The clone
   will not have the removed objects.  See <a href="git-clone.html">git-clone(1)</a>.  (Note
   that cloning with a plain path just hardlinks everything!)
 </p>
@@ -1250,21 +1250,21 @@ warned.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-Remove the original refs backed up by git-filter-branch: say <code>git</code>
-  <code>for-each-ref</code> <code>--format=</code>"%(<code>refname</code>)" <code>refs/original/</code> | <code>xargs</code> <code>-n</code> <code>1</code> <code>git</code>
-  <code>update-ref</code> <code>-d</code>.
+Remove the original refs backed up by git-filter-branch: say <code>git
+  for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git
+  update-ref -d</code>.
 </p>
 </li>
 <li>
 <p>
-Expire all reflogs with <code>git</code> <code>reflog</code> <code>expire</code> <code>--expire=now</code> <code>--all</code>.
+Expire all reflogs with <code>git reflog expire --expire=now --all</code>.
 </p>
 </li>
 <li>
 <p>
-Garbage collect all unreferenced objects with <code>git</code> <code>gc</code> <code>--prune=now</code>
+Garbage collect all unreferenced objects with <code>git gc --prune=now</code>
   (or if your git-gc is not new enough to support arguments to
-  <code>--prune</code>, use <code>git</code> <code>repack</code> <code>-ad</code>; <code>git</code> <code>prune</code> instead).
+  <code>--prune</code>, use <code>git repack -ad; git prune</code> instead).
 </p>
 </li>
 </ul></div>
@@ -1282,7 +1282,7 @@ In editing files, git-filter-branch by design checks out each and
   every commit as it existed in the original repo.  If your repo has
   <code>10^5</code> files and <code>10^5</code> commits, but each commit only modifies five
   files, then git-filter-branch will make you do <code>10^10</code> modifications,
-  despite only having (at most) <code>5</code>*10^5 unique blobs.
+  despite only having (at most) <code>5*10^5</code> unique blobs.
 </p>
 </li>
 <li>
@@ -1424,7 +1424,7 @@ Filenames with spaces are often mishandled by shell snippets since
 <p>
 Non-ascii filenames can be silently removed despite being in a
   desired directory.  Keeping only wanted paths is often done using
-  pipelines like <code>git</code> <code>ls-files</code> | <code>grep</code> <code>-v</code> <code>^WANTED_DIR/</code> | <code>xargs</code> <code>git</code> <code>rm</code>.
+  pipelines like <code>git ls-files | grep -v ^WANTED_DIR/ | xargs git rm</code>.
   ls-files will only quote filenames if needed, so folks may not
   notice that one of the files didn&#8217;t match the regex (at least not
   until it&#8217;s much too late).  Yes, someone who knows about

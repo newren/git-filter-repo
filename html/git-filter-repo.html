@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-filter-repo(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -917,7 +917,7 @@ provides an option to analyze a repository and generate reports that
 <h3 id="_filtering_based_on_paths_see_also_filename_callback">Filtering based on paths (see also --filename-callback)</h3>
 <div class="paragraph"><p>These options specify the paths to select.  Note that much like git
 itself, renames are NOT followed so you may need to specify multiple
-paths, e.g. <code>--path</code> <code>olddir/</code> <code>--path</code> <code>newdir/</code></p></div>
+paths, e.g. <code>--path olddir/ --path newdir/</code></p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 --invert-paths
@@ -1002,12 +1002,12 @@ paths, e.g. <code>--path</code> <code>olddir/</code> <code>--path</code> <code>n
 <dd>
 <p>
         Specify several path filtering and renaming directives, one
-        per line. Lines with <code>==</code>&gt; in them specify path renames, and
+        per line. Lines with <code>==&gt;</code> in them specify path renames, and
         lines can begin with <code>literal:</code> (the default), <code>glob:</code>, or
         <code>regex:</code> to specify different matching styles.  Blank lines
-        and lines starting with a # are ignored (if you have a
+        and lines starting with a <code>#</code> are ignored (if you have a
         filename that you want to filter on that starts with
-        <code>literal:</code>, #, <code>glob:</code>, or <code>regex:</code>, then prefix the line
+        <code>literal:</code>, <code>#</code>, <code>glob:</code>, or <code>regex:</code>, then prefix the line
         with <em>literal:</em>).
 </p>
 </dd>
@@ -1018,7 +1018,7 @@ paths, e.g. <code>--path</code> <code>olddir/</code> <code>--path</code> <code>n
 <p>
         Only look at history that touches the given subdirectory and
         treat that directory as the project root. Equivalent to using
-        <code>--path</code> <em>&lt;directory&gt;</em><code>/</code> <code>--path-rename</code> <em>&lt;directory&gt;</em><code>/:</code>
+        <code>--path &lt;directory&gt;/ --path-rename &lt;directory&gt;/:</code>
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1027,7 +1027,7 @@ paths, e.g. <code>--path</code> <code>olddir/</code> <code>--path</code> <code>n
 <dd>
 <p>
         Treat the project root as if it were under
-        &lt;directory&gt;.  Equivalent to using <code>--path-rename</code> <code>:</code><em>&lt;directory&gt;</em><code>/</code>
+        &lt;directory&gt;.  Equivalent to using <code>--path-rename :&lt;directory&gt;/</code>
 </p>
 </dd>
 </dl></div>
@@ -1043,8 +1043,8 @@ paths, e.g. <code>--path</code> <code>olddir/</code> <code>--path</code> <code>n
         A file with expressions that, if found, will be replaced. By
         default, each expression is treated as literal text, but
         <code>regex:</code> and <code>glob:</code> prefixes are supported. You can end the
-        line with <code>==</code>&gt; and some replacement text to choose a
-        replacement choice other than the default of ***REMOVED***.
+        line with <code>==&gt;</code> and some replacement text to choose a
+        replacement choice other than the default of <code>***REMOVED***</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1468,7 +1468,7 @@ different repositories.</td>
 </dt>
 <dd>
 <p>
-        Do not change the repository. Run <code>git</code> <code>fast-export</code> and filter its
+        Do not change the repository. Run <code>git fast-export</code> and filter its
         output, and save both the original and the filtered version for
         comparison.  This also disables rewriting commit messages due to
         not knowing new commit IDs and disables filtering of some empty
@@ -1490,7 +1490,7 @@ different repositories.</td>
 </dt>
 <dd>
 <p>
-        Instead of running <code>git</code> <code>fast-export</code> and filtering its output,
+        Instead of running <code>git fast-export</code> and filtering its output,
         filter the fast-export stream from stdin.  The stdin must be in
         the expected input format (e.g. it needs to include original-oid
         directives).
@@ -1800,7 +1800,7 @@ history rewrite are roughly as follows:</p></div>
 <li>
 <p>
 Create a clone of your repository.  You may pass <code>--bare</code> or
-   <code>--mirror</code> to <code>git</code> <code>clone</code>, if you prefer.  You should pass
+   <code>--mirror</code> to <code>git clone</code>, if you prefer.  You should pass
    <code>--no-local</code> if the repository you are cloning from is on the local
    filesystem.  Avoid other flags; some might confuse the fresh clone
    check, and others could cause parts of the data to be missing that
@@ -1809,7 +1809,7 @@ Create a clone of your repository.  You may pass <code>--bare</code> or
 </li>
 <li>
 <p>
-(Optional) Run <code>git</code> <code>filter-repo</code> <code>--analyze</code>.  This will create a
+(Optional) Run <code>git filter-repo --analyze</code>.  This will create a
    directory of reports mentioning multiple things: (a) paths that have
    existed over time in your repo, (b) renames that have occurred in
    your repo and (c) sizes of objects aggregated by
@@ -1835,7 +1835,7 @@ Before rewriting the history of your local copy with git-filter-repo,
 <p>
 Even after you rewrite history and push it back, other people who
      previously cloned from the original repo will have the old history.
-     If they simply run <code>git</code> <code>pull</code> &amp;&amp; <code>git</code> <code>push</code>, it will merge the
+     If they simply run <code>git pull &amp;&amp; git push</code>, it will merge the
      unrewritten history with the new, resulting in what looks like two
      copies of each commit involved in your rewrite&#8201;&#8212;&#8201;a new copy of
      each commit which has the cleanups you made, and an old copy of
@@ -1850,7 +1850,7 @@ Even after you rewrite history and push it back, other people who
 <p>
 Rewriting history will rewrite tags; those who have already
      downloaded tags will not get the updated tags even if they specify
-     <code>--tags</code> to <code>git</code> <code>fetch</code> or <code>git</code> <code>pull</code> (see the "On Re-tagging"
+     <code>--tags</code> to <code>git fetch</code> or <code>git pull</code> (see the "On Re-tagging"
      section of <a href="git-tag.html">git-tag(1)</a>).  Every user trying to use an
      existing clone will have to forcibly delete all tags they already
      downloaded <em>before</em> re-fetching them; it may be easier for them to
@@ -1916,8 +1916,8 @@ filter-repo has a --replace-refs option to allow creating replace
      command line to refer to the newly rewritten commits.  If you
      want to use these replace refs, manually push them to the
      relevant clone URL and tell users to manually fetch them (e.g. by
-     adjusting their fetch refspec, <code>git</code> <code>config</code> <code>--add</code>
-     <code>remote.origin.fetch</code> <code>+refs/replace/</code>*:refs/replace/*).  Sadly,
+     adjusting their fetch refspec, <code>git config --add
+     remote.origin.fetch +refs/replace/*:refs/replace/*</code>).  Sadly,
      replace refs are not yet widely understood; projects like jgit
      and libgit2 do not support them and existing repository managers
      (e.g. Gerrit, GitHub, GitLab) do not yet understand replace refs.
@@ -1947,15 +1947,15 @@ ugly history returning but getting you "two copies" of each commit
 (both an original commit and a cleaned-up alternative), and thus
 doubling the number of commits in your repository.  In short, you end
 up with an even bigger mess to clean up than you started with.</p></div>
-<div class="paragraph"><p>This happens frequently to people using <code>git</code> <code>filter-branch</code> or <code>BFG</code>
-<code>repo</code> <code>cleaner</code>, and can happen to folks using <code>git</code> <code>filter-repo</code> if they
+<div class="paragraph"><p>This happens frequently to people using <code>git filter-branch</code> or <code>BFG
+repo cleaner</code>, and can happen to folks using <code>git filter-repo</code> if they
 insist on pushing back to the original repo.  Example ways you can get
 such an even uglier history include:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
 at the command line (of another clone of the same repo from before the
-    cleanup): <code>git</code> <code>pull</code> &amp;&amp; <code>git</code> <code>push</code>
+    cleanup): <code>git pull &amp;&amp; git push</code>
 </p>
 </li>
 <li>
@@ -1973,12 +1973,12 @@ trivial to do so; simply run:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>git</code> <code>remote</code> <code>add</code> <code>origin</code> <code>$ORIGINAL_CLONE_URL</code>
+<code>git remote add origin $ORIGINAL_CLONE_URL</code>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>and then you can push (e.g. <code>git</code> <code>push</code> <code>--force</code> <code>--branches</code> <code>--tags</code>
-<code>--prune</code>).  Since removing the origin url is such a cheap way to
+<div class="paragraph"><p>and then you can push (e.g. <code>git push --force --branches --tags
+--prune</code>).  Since removing the origin url is such a cheap way to
 potentially prevent big messes, and it&#8217;s so easy to work around for
 those that really do want to push back over the original history,
 removing the origin url is a great safety measure that I employ.</p></div>
@@ -2104,8 +2104,8 @@ If any of your colleagues have pushed any changes since you
 <p>
 This force push is likely to fail to push some refs, since most
     forges (Gerrit, GitHub, GitLab, etc.) prevent you from updating
-    some refs (e.g. <code>refs/changes/</code>*, <code>refs/pull/</code>*,
-    <code>refs/merge-requests/</code>*).  You will need to follow the directions
+    some refs (e.g. <code>refs/changes/*</code>, <code>refs/pull/*</code>,
+    <code>refs/merge-requests/*</code>).  You will need to follow the directions
     from those forges to get the remaining refs updated or deleted,
     and a garbage collection to be triggered on their end.  Some
     examples:
@@ -2147,7 +2147,7 @@ using for how to delete/purge those on the server.</p></div>
 <div class="paragraph"><p>After you have cleaned up the server, the easiest way to clean up other
 clones is to make everyone delete their existing clones and reclone.</p></div>
 <div class="paragraph"><p>If that isn&#8217;t an option, then you will need to proceed carefully because
-a simple <code>git</code> <code>pull</code> &amp;&amp; <code>git</code> <code>push</code> from any other clone will recontaminate
+a simple <code>git pull &amp;&amp; git push</code> from any other clone will recontaminate
 the main repository and make the mess even harder to clean up.  To avoid
 this, before pushing from any other clone, you&#8217;ll need to have them clean
 up their copy, as detailed below.</p></div>
@@ -2164,7 +2164,7 @@ to discard their copy and reclone:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-delete all tags and run <code>git</code> <code>fetch</code> <code>--prune</code> <code>--tags</code>.  Running the
+delete all tags and run <code>git fetch --prune --tags</code>.  Running the
     fetch command without deleting tags first will result in the old
     tags being kept, which will keep the sensitive data.
 </p>
@@ -2205,7 +2205,7 @@ sensitive data).  You can do so by running:</p></div>
 <div class="content">
 <pre><code>git cat-file -t ${HASH_OF_FIRST_CHANGED_COMMIT}</code></pre>
 </div></div>
-<div class="paragraph"><p>Where <code>$</code>{HASH_OF_FIRST_CHANGED_COMMIT} was printed by git-filter-repo at
+<div class="paragraph"><p>Where <code>${HASH_OF_FIRST_CHANGED_COMMIT}</code> was printed by git-filter-repo at
 the end of its run (if there was more than one "first changed commit",
 run this command multiple times, with each commit hash).  If this
 command returns a fatal error, then the commit has correctly been
@@ -2213,7 +2213,7 @@ removed from this repository.  If it responds with "commit", then the
 object still exists and you need to re-delete tags, re-rebase all
 necessary branches/refs, and re-expire reflogs and redo the gc.  If you
 are curious about which branches or refs were the problematic ones
-holding on to <code>$</code>{HASH_OF_FIRST_CHANGED_COMMIT}, then presuming you did
+holding on to <code>${HASH_OF_FIRST_CHANGED_COMMIT}</code>, then presuming you did
 the reflog expire and gc jobs above, the following command should help
 you find the problematic branches/refs:</p></div>
 <div class="listingblock">
@@ -2221,7 +2221,7 @@ you find the problematic branches/refs:</p></div>
 <pre><code>git for-each-ref --contains ${HASH_OF_FIRST_CHANGED_COMMIT}</code></pre>
 </div></div>
 <div class="paragraph"><p>Also, remember, the cat-file command needs to come back with a fatal
-error for every <code>$</code>{HASH_OF_FIRST_CHANGED_COMMIT} involved if you have
+error for every <code>${HASH_OF_FIRST_CHANGED_COMMIT}</code> involved if you have
 more than one.</p></div>
 <div class="paragraph"><p>After this is all done, then if any LFS objects were orphaned by the
 rewrite (which again, you will be told if you use the
@@ -2239,7 +2239,7 @@ likely you can avoid problems.</p></div>
 <li>
 <p>
 Since it is so easy to re-contaminate the repository you cloned from
-  (it merely takes a colleague to run <code>git</code> <code>pull</code> &amp;&amp; <code>git</code> <code>push</code> from their
+  (it merely takes a colleague to run <code>git pull &amp;&amp; git push</code> from their
   clone that was created before your cleanup), take extra vigilance in
   performing the clean ups steps above for other clones to ensure they
   have all been cleaned up.
@@ -2255,9 +2255,9 @@ If you have a central repository everyone pushes to, look into methods
   <a href="https://gerrit-review.googlesource.com/Documentation/cmd-ban-commit.html">https://gerrit-review.googlesource.com/Documentation/cmd-ban-commit.html</a>),
   but a few may allow you to write your own pre-receive hooks that
   reject pushes containing these bad commits.  (Pro-tip for writing such
-  a pre-receive hook: use <code>git</code> <code>cat-file</code> <code>-t</code> <code>$</code>{BAD_COMMIT} as a cheap
-  check before checking if any revision range between <em>&lt;old-oid&gt;</em> and
-  <em>&lt;new-oid&gt;</em> contains <code>$</code>{BAD_COMMIT})
+  a pre-receive hook: use <code>git cat-file -t ${BAD_COMMIT}</code> as a cheap
+  check before checking if any revision range between <code>&lt;old-oid&gt;</code> and
+  <code>&lt;new-oid&gt;</code> contains <code>${BAD_COMMIT}</code>)
 </p>
 </li>
 </ul></div>
@@ -2316,7 +2316,7 @@ subdirectory but exclude files under src/main named <em>data</em>, run:</p></div
 <pre><code>git filter-repo --path src/main/
 git filter-repo --path-glob 'src/*/data' --invert-paths</code></pre>
 </div></div>
-<div class="paragraph"><p>Note that the asterisk (*) will match across multiple directories, so the
+<div class="paragraph"><p>Note that the asterisk (<code>*</code>) will match across multiple directories, so the
 second command would remove e.g. src/main/org/whatever/data.  Also, the
 second command by itself would also remove e.g. src/not-main/foo/data, but
 since src/not-main/ was removed by the first command, that&#8217;s not an issue.
@@ -2394,7 +2394,7 @@ either use:</p></div>
 <pre><code>git filter-repo --invert-paths --path-glob '*/.DS_Store' --path '.DS_Store'</code></pre>
 </div></div>
 <div class="paragraph"><p>(the <code>--path-glob</code> isn&#8217;t sufficient by itself as it might miss a toplevel
-.DS_Store file; further while something like <code>--path-glob</code> '*.DS_Store'
+.DS_Store file; further while something like <code>--path-glob '*.DS_Store'</code>
 would workaround that problem it would also grab files named <code>foo.DS_Store</code>
 or <code>bar/baz.DS_Store</code>)</p></div>
 <div class="paragraph"><p>Finally, see also the <code>--filename-callback</code> from <a href="#CALLBACKS">[CALLBACKS]</a>.</p></div>
@@ -2435,11 +2435,11 @@ and tools/releases/ directories, all python files, files whose name
 was of the form YYYY-MM-DD.txt at least two subdirectories deep, and
 would rename tools/ to scripts/ and rename files like foo/bar/baz.text
 to bar/foo/baz.txt.  Note the special line prefixes of <code>glob:</code> and
-<code>regex:</code> and the special string <code>==</code>&gt; denoting renames.</p></div>
+<code>regex:</code> and the special string <code>==&gt;</code> denoting renames.</p></div>
 <div class="paragraph"><p>Sometimes you have a way of easily generating all the files you want.
 For example, if you know that none of the currently tracked files have
 any newlines or special characters in them (see core.quotePath from
-<code>git</code> <code>config</code> <code>--help</code>) so that <code>git</code> <code>ls-files</code> would print all files
+<code>git config --help</code>) so that <code>git ls-files</code> would print all files
 literally one per line, and you knew that you wanted to keep only the
 files that are currently tracked (thus deleting from all commits in
 history any files that only appear on other branches or that only
@@ -2451,7 +2451,7 @@ as</p></div>
 git filter-repo --paths-from-file ../paths-i-want.txt</code></pre>
 </div></div>
 <div class="paragraph"><p>Similarly, you could use --paths-from-file to delete many files.  For
-example, you could run <code>git</code> <code>filter-repo</code> <code>--analyze</code> to get reports,
+example, you could run <code>git filter-repo --analyze</code> to get reports,
 look in one such as .git/filter-repo/analysis/path-deleted-sizes.txt
 and copy all the filenames into a file such as
 /tmp/files-i-dont-want-anymore.txt and then run</p></div>
@@ -2538,7 +2538,7 @@ regex:([0-9]{2})/([0-9]{2})/([0-9]{4})==&gt;\3-\1-\2</code></pre>
 <div class="content">
 <pre><code>git filter-repo --replace-text expressions.txt</code></pre>
 </div></div>
-<div class="paragraph"><p>will go through and replace <code>p455w0rd</code> with ***REMOVED***, <code>foo</code> with
+<div class="paragraph"><p>will go through and replace <code>p455w0rd</code> with <code>***REMOVED***</code>, <code>foo</code> with
 <code>bar</code>, any line containing <code>666</code> with a blank line, the word <code>driver</code> with
 <code>pilot</code> (but not if it has letters before or after; e.g. <code>drivers</code> will be
 unmodified), replace the exact text <code>MM/DD/YYYY</code> with <code>YYYY-MM-DD</code> and
@@ -2548,8 +2548,8 @@ YYYY-MM-DD.  In the expressions file, there are a few things to note:</p></div>
 <li>
 <p>
 Every line has a replacement, given by whatever is on the right of
-    <code>==</code>&gt;.  If <code>==</code>&gt; does not appear on the line, the default replacement
-    is ***REMOVED***.
+    <code>==&gt;</code>.  If <code>==&gt;</code> does not appear on the line, the default replacement
+    is <code>***REMOVED***</code>.
 </p>
 </li>
 <li>
@@ -2569,7 +2569,7 @@ If multiple matches are found, all are replaced.
 <li>
 <p>
 globs and regexes are applied to the entire file, but without any
-    special flags turned on.  Some folks may be interested in adding (?m)
+    special flags turned on.  Some folks may be interested in adding <code>(?m)</code>
     to the regex to turn on MULTILINE mode, so that <code>^</code> and <code>$</code> match the
     beginning and ends of lines rather than the beginning and end of file.
     See <a href="https://docs.python.org/3/library/re.html">https://docs.python.org/3/library/re.html</a> for details.
@@ -2981,37 +2981,37 @@ Verify we&#8217;re in a fresh clone
 </li>
 <li>
 <p>
-<code>git</code> <code>fetch</code> <code>-u</code> . <code>refs/remotes/origin/</code>*:refs/heads/*
+<code>git fetch -u . refs/remotes/origin/*:refs/heads/*</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>remote</code> <code>rm</code> <code>origin</code>
+<code>git remote rm origin</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>fast-export</code> <code>--show-original-ids</code> <code>--reference-excluded-parents</code> <code>--fake-missing-tagger</code> <code>--signed-tags=strip</code> <code>--tag-of-filtered-object=rewrite</code> <code>--use-done-feature</code> <code>--no-data</code> <code>--reencode=yes</code> <code>--mark-tags</code> <code>--all</code> | <code>filter</code> | <code>git</code> <code>-c</code> <code>core.ignorecase=false</code> <code>fast-import</code> <code>--date-format=raw-permissive</code> <code>--force</code> <code>--quiet</code>
+<code>git fast-export --show-original-ids --reference-excluded-parents --fake-missing-tagger --signed-tags=strip --tag-of-filtered-object=rewrite --use-done-feature --no-data --reencode=yes --mark-tags --all | filter | git -c core.ignorecase=false fast-import --date-format=raw-permissive --force --quiet</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>update-ref</code> <code>--no-deref</code> <code>--stdin</code>, fed with a list of refs to nuke, and a list of replace refs to delete, create, or update.
+<code>git update-ref --no-deref --stdin</code>, fed with a list of refs to nuke, and a list of replace refs to delete, create, or update.
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>reset</code> <code>--hard</code>
+<code>git reset --hard</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>reflog</code> <code>expire</code> <code>--expire=now</code> <code>--all</code>
+<code>git reflog expire --expire=now --all</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>gc</code> <code>--prune=now</code>
+<code>git gc --prune=now</code>
 </p>
 </li>
 </ol></div>
@@ -3027,7 +3027,7 @@ If we&#8217;re not in a fresh clone, users will not be able to recover if
 </li>
 <li>
 <p>
-Technically, we actually use a <code>git</code> <code>update-ref</code> command fed with a lot
+Technically, we actually use a <code>git update-ref</code> command fed with a lot
      of input due to the fact that users can use <code>--force</code> when local
      branches might not match remote branches.  But this fetch command
      catches the intent rather succinctly.
@@ -3280,7 +3280,7 @@ history, possibly add some commits, then unrewrite and get the original
 history back plus a few new "unrewritten" commits.  Obviously this is
 impossible if your rewrite involves throwing away information
 (e.g. filtering out files or replacing several different strings with
-***REMOVED***), but may be possible with some rewrites.  filter-repo is
+<code>***REMOVED***</code>), but may be possible with some rewrites.  filter-repo is
 likely to be a poor fit for this type of workflow for a few reasons:</p></div>
 <div class="ulist"><ul>
 <li>

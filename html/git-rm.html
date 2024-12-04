@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-rm(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -760,7 +760,7 @@ git-rm(1) Manual Page
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Remove files matching pathspec from the index, or from the working tree
-and the index. <code>git</code> <code>rm</code> will not remove a file from just your working
+and the index. <code>git rm</code> will not remove a file from just your working
 directory. (There is no option to remove a file only from the working
 tree and yet keep it in the index; use <code>/bin/rm</code> if you want to do
 that.) The files being removed have to be identical to the tip of the
@@ -770,7 +770,7 @@ When <code>--cached</code> is given, the staged content has to
 match either the tip of the branch or the file on disk,
 allowing the file to be removed from just the index. When
 sparse-checkouts are in use (see <a href="git-sparse-checkout.html">git-sparse-checkout(1)</a>),
-<code>git</code> <code>rm</code> will only remove paths within the sparse-checkout patterns.</p></div>
+<code>git rm</code> will only remove paths within the sparse-checkout patterns.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -790,7 +790,7 @@ sparse-checkouts are in use (see <a href="git-sparse-checkout.html">git-sparse-c
 <div class="paragraph"><p>The command removes only the paths that are known to Git.</p></div>
 <div class="paragraph"><p>File globbing matches across directory boundaries.  Thus, given two
 directories <code>d</code> and <code>d2</code>, there is a difference between using
-<code>git</code> <code>rm</code> 'd*' and <code>git</code> <code>rm</code> 'd/*', as the former will also remove all
+<code>git rm 'd*'</code> and <code>git rm 'd/*'</code>, as the former will also remove all
 of directory <code>d2</code>.</p></div>
 <div class="paragraph"><p>For more details, see the <em>pathspec</em> entry in <a href="gitglossary.html">gitglossary(7)</a>.</p></div>
 </dd>
@@ -861,7 +861,7 @@ of directory <code>d2</code>.</p></div>
 <dd>
 <p>
         Allow updating index entries outside of the sparse-checkout cone.
-        Normally, <code>git</code> <code>rm</code> refuses to update index entries whose paths do
+        Normally, <code>git rm</code> refuses to update index entries whose paths do
         not fit within the sparse-checkout cone. See
         <a href="git-sparse-checkout.html">git-sparse-checkout(1)</a> for more.
 </p>
@@ -874,7 +874,7 @@ of directory <code>d2</code>.</p></div>
 </dt>
 <dd>
 <p>
-        <code>git</code> <code>rm</code> normally outputs one line (in the form of an <code>rm</code> command)
+        <code>git rm</code> normally outputs one line (in the form of an <code>rm</code> command)
         for each file removed. This option suppresses that output.
 </p>
 </dd>
@@ -883,8 +883,8 @@ of directory <code>d2</code>.</p></div>
 </dt>
 <dd>
 <p>
-        Pathspec is passed in <em>&lt;file&gt;</em> instead of commandline args. If
-        <em>&lt;file&gt;</em> is exactly <code>-</code> then standard input is used. Pathspec
+        Pathspec is passed in <code>&lt;file&gt;</code> instead of commandline args. If
+        <code>&lt;file&gt;</code> is exactly <code>-</code> then standard input is used. Pathspec
         elements are separated by LF or CR/LF. Pathspec elements can be
         quoted as explained for the configuration variable <code>core.quotePath</code>
         (see <a href="git-config.html">git-config(1)</a>). See also <code>--pathspec-file-nul</code> and
@@ -907,7 +907,7 @@ of directory <code>d2</code>.</p></div>
 <div class="sect1">
 <h2 id="_removing_files_that_have_disappeared_from_the_filesystem">REMOVING FILES THAT HAVE DISAPPEARED FROM THE FILESYSTEM</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>There is no option for <code>git</code> <code>rm</code> to remove from the index only
+<div class="paragraph"><p>There is no option for <code>git rm</code> to remove from the index only
 the paths that have disappeared from the filesystem. However,
 depending on the use case, there are several ways that can be
 done.</p></div>
@@ -916,9 +916,9 @@ done.</p></div>
 <div class="paragraph"><p>If you intend that your next commit should record all modifications
 of tracked files in the working tree and record all removals of
 files that have been removed from the working tree with <code>rm</code>
-(as opposed to <code>git</code> <code>rm</code>), use <code>git</code> <code>commit</code> <code>-a</code>, as it will
+(as opposed to <code>git rm</code>), use <code>git commit -a</code>, as it will
 automatically notice and record all removals.  You can also have a
-similar effect without committing by using <code>git</code> <code>add</code> <code>-u</code>.</p></div>
+similar effect without committing by using <code>git add -u</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_using_8220_git_add_a_8221">Using &#8220;git add -A&#8221;</h3>
@@ -945,7 +945,7 @@ modifications in the working tree is:</p></div>
 <h3 id="_other_ways">Other ways</h3>
 <div class="paragraph"><p>If all you really want to do is to remove from the index the files
 that are no longer present in the working tree (perhaps because
-your working tree is dirty so that you cannot use <code>git</code> <code>commit</code> <code>-a</code>),
+your working tree is dirty so that you cannot use <code>git commit -a</code>),
 use the following command:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -961,7 +961,7 @@ use the following command:</p></div>
 with a Git version 1.7.8 or newer) will be removed from the work
 tree, as their repository lives inside the .git directory of the
 superproject. If a submodule (or one of those nested inside it)
-still uses a .git directory, <code>git</code> <code>rm</code> will move the submodules
+still uses a .git directory, <code>git rm</code> will move the submodules
 git directory into the superprojects git directory to protect
 the submodule&#8217;s history. If it exists the submodule.&lt;name&gt; section
 in the <a href="gitmodules.html">gitmodules(5)</a> file will also be removed and that file
@@ -981,19 +981,19 @@ instead. Also see <a href="gitsubmodules.html">gitsubmodules(7)</a> for details 
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<code>git</code> <code>rm</code> <code>Documentation/</code>\*.txt
+<code>git rm Documentation/\*.txt</code>
 </dt>
 <dd>
 <p>
-        Removes all *.txt files from the index that are under the
+        Removes all <code>*.txt</code> files from the index that are under the
         <code>Documentation</code> directory and any of its subdirectories.
 </p>
-<div class="paragraph"><p>Note that the asterisk * is quoted from the shell in this
+<div class="paragraph"><p>Note that the asterisk <code>*</code> is quoted from the shell in this
 example; this lets Git, and not the shell, expand the pathnames
 of files and subdirectories under the <code>Documentation/</code> directory.</p></div>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>rm</code> <code>-f</code> <code>git-</code>*.sh
+<code>git rm -f git-*.sh</code>
 </dt>
 <dd>
 <p>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>Submitting Patches</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -735,7 +735,7 @@ asciidoc.install();
 <body class="article">
 <div id="header">
 <h1>Submitting Patches</h1>
-<span id="revdate">2024-11-23</span>
+<span id="revdate">2024-11-27</span>
 </div>
 <div id="content">
 <div class="sect1">
@@ -867,8 +867,8 @@ that come before it. For example, <code>maint</code> is an "older" branch than
 contributors.  Topic branches are created by the Git maintainer (in
 their fork) to organize the current set of incoming contributions on
 the mailing list, and are itemized in the regular "What&#8217;s cooking in
-git.git" announcements.  To find the tip of a topic branch, run <code>git</code> <code>log</code>
-<code>--first-parent</code> <code>master</code><code>..</code><code>seen</code> and look for the merge commit. The second
+git.git" announcements.  To find the tip of a topic branch, run <code>git log
+--first-parent master..seen</code> and look for the merge commit. The second
 parent of this commit is the tip of the topic branch.</p></div>
 <div class="paragraph"><p>There is one guiding principle for choosing the right starting point: in
 general, always base your work on the oldest integration branch that
@@ -898,7 +898,7 @@ Otherwise (such as if you are adding new features) use <code>master</code>.
 </td>
 <td class="content">In exceptional cases, a bug that was introduced in an old
 version may have to be fixed for users of releases that are much older
-than the recent releases.  <code>git</code> <code>describe</code> <code>--contains</code> <code>X</code> may describe
+than the recent releases.  <code>git describe --contains X</code> may describe
 <code>X</code> as <code>v2.30.0-rc2-gXXXXXX</code> for the commit <code>X</code> that introduced the
 bug, and the bug may be so high-impact that we may need to issue a new
 maintenance release for Git 2.30.x series, when "Git 2.41.0" is the
@@ -993,7 +993,7 @@ patches separate from other documentation changes.</p></div>
 <div class="paragraph" id="whitespace-check"><p>Oh, another thing.  We are picky about whitespaces.  Make sure your
 changes do not trigger errors with the sample pre-commit hook shipped
 in <code>templates/hooks--pre-commit</code>.  To help ensure this does not happen,
-run <code>git</code> <code>diff</code> <code>--check</code> on your changes before you commit.</p></div>
+run <code>git diff --check</code> on your changes before you commit.</p></div>
 </div>
 <div class="sect2">
 <h3 id="describe-changes">Describe your changes well.</h3>
@@ -1050,7 +1050,7 @@ githooks.txt: improve the intro section
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>If in doubt which identifier to use, run <code>git</code> <code>log</code> <code>--no-merges</code> on the
+<div class="paragraph"><p>If in doubt which identifier to use, run <code>git log --no-merges</code> on the
 files you are modifying to see the current conventions.</p></div>
 <div class="paragraph" id="summary-section"><p>The title sentence after the "area:" prefix omits the full stop at the
 end, and its first word is not capitalized (the omission
@@ -1123,7 +1123,7 @@ date)", like this:</p></div>
 </div></div>
 <div class="paragraph"><p>The "Copy commit reference" command of gitk can be used to obtain this
 format (with the subject enclosed in a pair of double-quotes), or this
-invocation of <code>git</code> <code>show</code>:</p></div>
+invocation of <code>git show</code>:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>        git show -s --pretty=reference &lt;commit&gt;</code></pre>
@@ -1203,7 +1203,7 @@ your patch differs from project to project, so it may be different
 from that of the project you are accustomed to.</p></div>
 <div class="paragraph" id="real-name"><p>Also notice that a real name is used in the <code>Signed-off-by</code> trailer. Please
 don&#8217;t hide your real name.</p></div>
-<div class="paragraph" id="commit-trailers"><p>If you like, you can put extra trailers at the end:</p></div>
+<div class="paragraph" id="commit-trailers"><p>If you like, you can put extra tags at the end:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -1219,7 +1219,7 @@ don&#8217;t hide your real name.</p></div>
 </li>
 <li>
 <p>
-<code>Reviewed-by:</code>, unlike the other trailers, can only be offered by the
+<code>Reviewed-by:</code>, unlike the other tags, can only be offered by the
   reviewers themselves when they are completely satisfied with the
   patch after a detailed analysis.
 </p>
@@ -1258,14 +1258,14 @@ don&#8217;t hide your real name.</p></div>
 <div class="paragraph"><p>While you can also create your own trailer if the situation warrants it, we
 encourage you to instead use one of the common trailers in this project
 highlighted above.</p></div>
-<div class="paragraph"><p>Only capitalize the very first letter of the trailer, i.e. favor
+<div class="paragraph"><p>Only capitalize the very first letter of tags, i.e. favor
 "Signed-off-by" over "Signed-Off-By" and "Acked-by:" over "Acked-By".</p></div>
 </div>
 <div class="sect2">
 <h3 id="git-tools">Generate your patch using Git tools out of your commits.</h3>
 <div class="paragraph"><p>Git based diff tools generate unidiff which is the preferred format.</p></div>
-<div class="paragraph"><p>You do not have to be afraid to use <code>-M</code> option to <code>git</code> <code>diff</code> or
-<code>git</code> <code>format-patch</code>, if your patch involves file renames.  The
+<div class="paragraph"><p>You do not have to be afraid to use <code>-M</code> option to <code>git diff</code> or
+<code>git format-patch</code>, if your patch involves file renames.  The
 receiving end can handle them just fine.</p></div>
 <div class="paragraph" id="review-patch"><p>Please make sure your patch does not add commented out debugging code,
 or include any extra files which do not relate to what your patch
@@ -1301,7 +1301,7 @@ mailing list<span class="footnote" id="_footnote_security-ml"><br />[The Git Sec
 </div>
 <div class="paragraph"><p>Send your patch with "To:" set to the mailing list, with "cc:" listing
 people who are involved in the area you are touching (the <code>git-contacts</code>
-script in <code>contrib/contacts/</code><span class="footnote" id="_footnote_contrib-scripts"><br />[Scripts under <code>ontrib</code> are not part of the core <code>i</code> binary and must be called directly. Clone the Git codebase and run <code>erl</code> <code>contrib/contacts/git-contact</code>.]<br /></span> can help to
+script in <code>contrib/contacts/</code><span class="footnote" id="_footnote_contrib-scripts"><br />[Scripts under <code>contrib/</code> are not part of the core <code>git</code> binary and must be called directly. Clone the Git codebase and run <code>perl contrib/contacts/git-contacts</code>.]<br /></span> can help to
 identify them), to solicit comments and reviews.  Also, when you made
 trial merges of your topic to <code>next</code> and <code>seen</code>, you may have noticed
 work by others conflicting with your changes.  There is a good possibility
@@ -1371,7 +1371,7 @@ comments") is often used to indicate a patch needs further
 discussion before being accepted, [PATCH v2], [PATCH v3] etc.
 are often seen when you are sending an update to what you have
 previously sent.</p></div>
-<div class="paragraph"><p>The <code>git</code> <code>format-patch</code> command follows the best current practice to
+<div class="paragraph"><p>The <code>git format-patch</code> command follows the best current practice to
 format the body of an e-mail message.  At the beginning of the
 patch should come your commit message, ending with the
 <code>Signed-off-by</code> trailers, and a line that consists of three dashes,
@@ -1380,16 +1380,16 @@ you are forwarding a patch from somebody else, optionally, at
 the beginning of the e-mail message just before the commit
 message starts, you can put a "From: " line to name that person.
 To change the default "[PATCH]" in the subject to "[&lt;text&gt;]", use
-<code>git</code> <code>format-patch</code> <code>--subject-prefix=</code><em>&lt;text&gt;</em>.  As a shortcut, you
-can use <code>--rfc</code> instead of <code>--subject-prefix=</code>"RFC <code>PATCH</code>", or
-<code>-v</code> <em>&lt;n&gt;</em> instead of <code>--subject-prefix=</code>"PATCH <code>v</code><em>&lt;n&gt;</em>".</p></div>
+<code>git format-patch --subject-prefix=&lt;text&gt;</code>.  As a shortcut, you
+can use <code>--rfc</code> instead of <code>--subject-prefix="RFC PATCH"</code>, or
+<code>-v &lt;n&gt;</code> instead of <code>--subject-prefix="PATCH v&lt;n&gt;"</code>.</p></div>
 <div class="paragraph"><p>You often want to add additional explanation about the patch,
 other than the commit message itself.  Place such "cover letter"
 material between the three-dash line and the diffstat.  For
 patches requiring multiple iterations of review and discussion,
 an explanation of changes between each iteration can be kept in
 Git-notes and inserted automatically following the three-dash
-line via <code>git</code> <code>format-patch</code> <code>--notes</code>.</p></div>
+line via <code>git format-patch --notes</code>.</p></div>
 <div class="paragraph" id="the-topic-summary"><p><strong>This is EXPERIMENTAL</strong>.</p></div>
 <div class="paragraph"><p>When sending a topic, you can propose a one-paragraph summary that
 should appear in the "What&#8217;s cooking" report when it is picked up to
@@ -1418,7 +1418,7 @@ has a far better chance of being accepted than a patch from a known, respected
 origin that is done poorly or does incorrect things.</p></div>
 <div class="paragraph"><p>If you really really really really want to do a PGP signed
 patch, format it as "multipart/signed", not a text/plain message
-that starts with <code>-----BEGIN</code> <code>PGP</code> <code>SIGNED</code> <code>MESSAGE-----</code>.  That is
+that starts with <code>-----BEGIN PGP SIGNED MESSAGE-----</code>.  That is
 not a text/plain, it&#8217;s something else.</p></div>
 </div>
 </div>
@@ -1603,7 +1603,7 @@ Fork <a href="https://github.com/git/git">https://github.com/git/git</a> to your
 </ol></div>
 <div class="paragraph"><p>After the initial setup, CI will run whenever you push new changes
 to your fork of Git on GitHub.  You can monitor the test state of all your
-branches here: <code>https://github.com/</code>&lt;Your <code>GitHub</code> <code>handle</code>&gt;<code>/git/actions/workflows/main.yml</code></p></div>
+branches here: <code>https://github.com/&lt;Your GitHub handle&gt;/git/actions/workflows/main.yml</code></p></div>
 <div class="paragraph"><p>If a branch does not pass all test cases then it will be marked with a
 red <code>x</code>, instead of a green check. In that case, you can click on the
 failing job and navigate to "ci/run-build-and-tests.sh" and/or
@@ -1690,11 +1690,11 @@ it.</code></pre>
 </div>
 <div class="sect2">
 <h3 id="_gnus">Gnus</h3>
-<div class="paragraph"><p>"|" in the *Summary* buffer can be used to pipe the current
+<div class="paragraph"><p>"|" in the <code>*Summary*</code> buffer can be used to pipe the current
 message to an external program, and this is a handy way to drive
-<code>git</code> <code>am</code>.  However, if the message is MIME encoded, what is
+<code>git am</code>.  However, if the message is MIME encoded, what is
 piped into the program is the representation you see in your
-*Article* buffer after unwrapping MIME.  This is often not what
+<code>*Article*</code> buffer after unwrapping MIME.  This is often not what
 you would want for two reasons.  It tends to screw up non-ASCII
 characters (most notably in people&#8217;s names), and also
 whitespaces (fatal in patches).  Running "C-u g" to display the
@@ -1708,7 +1708,7 @@ this problem around.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-11-21 08:58:37 PST
+ 2024-12-03 18:48:29 PST
 </div>
 </div>
 </body>

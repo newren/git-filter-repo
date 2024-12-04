@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-update-index(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -1024,7 +1024,7 @@ you will need to handle the situation manually.</p></div>
         Write the resulting index out in the named on-disk format version.
         Supported versions are 2, 3, and 4. The current default version is 2
         or 3, depending on whether extra features are used, such as
-        <code>git</code> <code>add</code> <code>-N</code>.  With <code>--verbose</code>, also report the version the index
+        <code>git add -N</code>.  With <code>--verbose</code>, also report the version the index
         file uses before and after this command.
 </p>
 <div class="paragraph"><p>Version 4 performs a simple pathname compression that reduces index
@@ -1196,7 +1196,7 @@ specifically for scripts.  It can take inputs of three formats:</p></div>
 <p>
 mode SP type SP sha1          TAB path
 </p>
-<div class="paragraph"><p>This format is to stuff <code>git</code> <code>ls-tree</code> output into the index.</p></div>
+<div class="paragraph"><p>This format is to stuff <code>git ls-tree</code> output into the index.</p></div>
 </li>
 <li>
 <p>
@@ -1210,7 +1210,7 @@ index file and matches <em>git ls-files --stage</em> output.</p></div>
 mode         SP sha1          TAB path
 </p>
 <div class="paragraph"><p>This format is no longer produced by any Git command, but is
-and will continue to be supported by <code>update-index</code> <code>--index-info</code>.</p></div>
+and will continue to be supported by <code>update-index --index-info</code>.</p></div>
 </li>
 </ol></div>
 <div class="paragraph"><p>To place a higher stage entry to the index, the path should
@@ -1246,11 +1246,11 @@ for that path.  After the above, we would end up with this:</p></div>
 <h2 id="_using_8220_assume_unchanged_8221_bit">USING &#8220;ASSUME UNCHANGED&#8221; BIT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Many operations in Git depend on your filesystem to have an
-efficient <code>lstat</code>(<code>2</code>) implementation, so that <code>st_mtime</code>
+efficient <code>lstat(2)</code> implementation, so that <code>st_mtime</code>
 information for working tree files can be cheaply checked to see
 if the file contents have changed from the version recorded in
 the index file.  Unfortunately, some filesystems have
-inefficient <code>lstat</code>(<code>2</code>).  If your filesystem is one of them, you
+inefficient <code>lstat(2)</code>.  If your filesystem is one of them, you
 can set "assume unchanged" bit to paths you have not changed to
 cause Git not to do this check.  Note that setting this bit on a
 path does not mean Git will check the contents of the file to
@@ -1260,16 +1260,16 @@ tree files, you have to explicitly tell Git about it by dropping
 "assume unchanged" bit, either before or after you modify them.</p></div>
 <div class="paragraph"><p>In order to set "assume unchanged" bit, use <code>--assume-unchanged</code>
 option.  To unset, use <code>--no-assume-unchanged</code>. To see which files
-have the "assume unchanged" bit set, use <code>git</code> <code>ls-files</code> <code>-v</code>
+have the "assume unchanged" bit set, use <code>git ls-files -v</code>
 (see <a href="git-ls-files.html">git-ls-files(1)</a>).</p></div>
 <div class="paragraph"><p>The command looks at <code>core.ignorestat</code> configuration variable.  When
-this is true, paths updated with <code>git</code> <code>update-index</code> <code>paths.</code>.. and
+this is true, paths updated with <code>git update-index paths...</code> and
 paths updated with other Git commands that update both index and
 working tree (e.g. <em>git apply --index</em>, <em>git checkout-index -u</em>,
 and <em>git read-tree -u</em>) are automatically marked as "assume
 unchanged".  Note that "assume unchanged" bit is <strong>not</strong> set if
-<code>git</code> <code>update-index</code> <code>--refresh</code> finds the working tree file matches
-the index (use <code>git</code> <code>update-index</code> <code>--really-refresh</code> if you want
+<code>git update-index --refresh</code> finds the working tree file matches
+the index (use <code>git update-index --really-refresh</code> if you want
 to mark them as "assume unchanged").</p></div>
 <div class="paragraph"><p>Sometimes users confuse the assume-unchanged bit with the
 skip-worktree bit.  See the final paragraph in the "Skip-worktree bit"
@@ -1380,8 +1380,8 @@ as <code>switch</code>, <code>pull</code>, <code>merge</code>) will avoid writin
 However, these commands will sometimes write these files anyway in
 important cases such as conflicts during a merge or rebase.  Git
 commands will also avoid treating the lack of such files as an
-intentional deletion; for example <code>git</code> <code>add</code> <code>-u</code> will not stage a
-deletion for these files and <code>git</code> <code>commit</code> <code>-a</code> will not make a commit
+intentional deletion; for example <code>git add -u</code> will not stage a
+deletion for these files and <code>git commit -a</code> will not make a commit
 deleting them either.</p></div>
 <div class="paragraph"><p>Although this bit looks similar to assume-unchanged bit, its goal is
 different.  The assume-unchanged bit is for leaving the file in the
@@ -1392,7 +1392,7 @@ changes).  skip-worktree tells Git to ignore the absence of the file,
 avoid updating it when possible with commands that normally update
 much of the working directory (e.g. <code>checkout</code>, <code>switch</code>, <code>pull</code>,
 etc.), and not have its absence be recorded in commits.  Note that in
-sparse checkouts (setup by <code>git</code> <code>sparse-checkout</code> or by configuring
+sparse checkouts (setup by <code>git sparse-checkout</code> or by configuring
 core.sparseCheckout to true), if a file is marked as skip-worktree in
 the index but is found in the working tree, Git will clear the
 skip-worktree bit for that file.</p></div>
@@ -1424,7 +1424,7 @@ index based on the shared index file is either created or read from.</p></div>
 <h2 id="_untracked_cache">UNTRACKED CACHE</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>This cache is meant to speed up commands that involve determining
-untracked files such as <code>git</code> <code>status</code>.</p></div>
+untracked files such as <code>git status</code>.</p></div>
 <div class="paragraph"><p>This feature works by recording the mtime of the working tree
 directories and then omitting reading directories and stat calls
 against files in those directories whose mtime hasn&#8217;t changed. For
@@ -1438,13 +1438,13 @@ no longer the case.</p></div>
 <div class="paragraph"><p>If you want to enable (or disable) this feature, it is easier to use
 the <code>core.untrackedCache</code> configuration variable (see
 <a href="git-config.html">git-config(1)</a>) than using the <code>--untracked-cache</code> option to
-<code>git</code> <code>update-index</code> in each repository, especially if you want to do so
+<code>git update-index</code> in each repository, especially if you want to do so
 across all repositories you use, because you can set the configuration
 variable to <code>true</code> (or <code>false</code>) in your <code>$HOME/.gitconfig</code> just once
 and have it affect all repositories you touch.</p></div>
 <div class="paragraph"><p>When the <code>core.untrackedCache</code> configuration variable is changed, the
 untracked cache is added to or removed from the index the next time a
-command reads the index; while when <code>--</code>[<code>no-</code>|<code>force-</code>]<code>untracked-cache</code>
+command reads the index; while when <code>--[no-|force-]untracked-cache</code>
 are used, the untracked cache is immediately added to or removed from
 the index.</p></div>
 <div class="paragraph"><p>Before 2.17, the untracked cache had a bug where replacing a directory
@@ -1487,14 +1487,14 @@ performance by avoiding the cost of scanning the entire working directory
 looking for new files.</p></div>
 <div class="paragraph"><p>If you want to enable (or disable) this feature, it is easier to use
 the <code>core.fsmonitor</code> configuration variable (see
-<a href="git-config.html">git-config(1)</a>) than using the <code>--fsmonitor</code> option to <code>git</code>
-<code>update-index</code> in each repository, especially if you want to do so
+<a href="git-config.html">git-config(1)</a>) than using the <code>--fsmonitor</code> option to <code>git
+update-index</code> in each repository, especially if you want to do so
 across all repositories you use, because you can set the configuration
 variable in your <code>$HOME/.gitconfig</code> just once and have it affect all
 repositories you touch.</p></div>
 <div class="paragraph"><p>When the <code>core.fsmonitor</code> configuration variable is changed, the
 file system monitor is added to or removed from the index the next time
-a command reads the index. When <code>--</code>[<code>no-</code>]<code>fsmonitor</code> are used, the file
+a command reads the index. When <code>--[no-]fsmonitor</code> are used, the file
 system monitor is immediately added to or removed from the index.</p></div>
 </div>
 </div>

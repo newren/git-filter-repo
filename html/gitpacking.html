@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitpacking(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -842,8 +842,8 @@ of (a) a large number of references, with (b) poor bitmap coverage, and
 (c) deep, nested trees, making fill-in traversal relatively expensive.
 For example, suppose that there are a large enough number of tags where
 bitmapping each of the tags individually is infeasible. Without
-pseudo-merge bitmaps, computing the result of, say, <code>git</code> <code>rev-list</code>
-<code>--use-bitmap-index</code> <code>--count</code> <code>--objects</code> <code>--tags</code> would likely require a
+pseudo-merge bitmaps, computing the result of, say, <code>git rev-list
+--use-bitmap-index --count --objects --tags</code> would likely require a
 large amount of fill-in traversal. But when a large quantity of those
 tags are stored together in a pseudo-merge bitmap, the bitmap machinery
 can take advantage of the fact that we only care about the union of
@@ -858,10 +858,10 @@ pseudo-merge patterns, and optionally one or more capture groups within
 that pattern which further partition the group.</p></div>
 <div class="paragraph"><p>Within a group, commits may be considered "stable", or "unstable"
 depending on their age. These are adjusted by setting the
-<code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.stableThreshold</code> and
-<code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.threshold</code> configuration values, respectively.</p></div>
+<code>bitmapPseudoMerge.&lt;name&gt;.stableThreshold</code> and
+<code>bitmapPseudoMerge.&lt;name&gt;.threshold</code> configuration values, respectively.</p></div>
 <div class="paragraph"><p>All stable commits are grouped into pseudo-merges of equal size
-(<code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.stableSize</code>). If the <code>stableSize</code>
+(<code>bitmapPseudoMerge.&lt;name&gt;.stableSize</code>). If the <code>stableSize</code>
 configuration is set to, say, 100, then the first 100 commits (ordered
 by committer date) which are older than the <code>stableThreshold</code> value will
 form one group, the next 100 commits will form another group, and so on.</p></div>
@@ -871,8 +871,8 @@ which will appear in smaller groups. This is based on the heuristic that
 references whose tip commit is older are less likely to be modified to
 point at a different commit than a reference whose tip commit is newer.</p></div>
 <div class="paragraph"><p>The size of groups is determined by a power-law decay function, and the
-decay parameter roughly corresponds to "k" in <code>f</code>(<code>n</code>) <code>=</code> <code>C</code>*n^(<code>-k/100</code>),
-where <code>f</code>(<code>n</code>) describes the size of the <code>n</code>-th pseudo-merge group. The
+decay parameter roughly corresponds to "k" in <code>f(n) = C*n^(-k/100)</code>,
+where <code>f(n)</code> describes the size of the <code>n</code>-th pseudo-merge group. The
 sample rate controls what percentage of eligible commits are considered
 as candidates. The threshold parameter indicates the minimum age (so as
 to avoid including too-recent commits in a pseudo-merge group, making it
@@ -888,7 +888,7 @@ chunks of "stableSize" in order of age.</p></div>
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">The configuration options in <code>bitmapPseudoMerge.</code>* are considered
+<td class="content">The configuration options in <code>bitmapPseudoMerge.*</code> are considered
 EXPERIMENTAL and may be subject to change or be removed entirely in the
 future. For more information about the pseudo-merge bitmap feature, see
 the "Pseudo-merge bitmaps" section of <a href="gitpacking.html">gitpacking(7)</a>.</td>
@@ -902,8 +902,8 @@ bitmapPseudoMerge.&lt;name&gt;.pattern
 <p>
         Regular expression used to match reference names. Commits
         pointed to by references matching this pattern (and meeting
-        the below criteria, like <code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.sampleRate</code>
-        and <code>bitmapPseudoMerge.</code><em>&lt;name&gt;</em><code>.threshold</code>) will be considered
+        the below criteria, like <code>bitmapPseudoMerge.&lt;name&gt;.sampleRate</code>
+        and <code>bitmapPseudoMerge.&lt;name&gt;.threshold</code>) will be considered
         for inclusion in a pseudo-merge bitmap.
 </p>
 <div class="paragraph"><p>Commits are grouped into pseudo-merge groups based on whether or not
@@ -917,7 +917,7 @@ between.</p></div>
 <div class="paragraph"><p>For example, if the pattern is <code>refs/tags/</code>, then all tags (provided
 they meet the below criteria) will be considered candidates for the
 same pseudo-merge group. However, if the pattern is instead
-<code>refs/remotes/</code>([<code>0-9</code>])<code>+/tags/</code>, then tags from different remotes will
+<code>refs/remotes/([0-9])+/tags/</code>, then tags from different remotes will
 be grouped into separate pseudo-merge groups, based on the remote
 number.</p></div>
 </dd>
@@ -928,12 +928,12 @@ bitmapPseudoMerge.&lt;name&gt;.decay
 <p>
         Determines the rate at which consecutive pseudo-merge bitmap
         groups decrease in size. Must be non-negative. This parameter
-        can be thought of as <code>k</code> in the function <code>f</code>(<code>n</code>) <code>=</code> <code>C</code> * <code>n^-k</code>,
-        where <code>f</code>(<code>n</code>) is the size of the `n`th group.
+        can be thought of as <code>k</code> in the function <code>f(n) = C * n^-k</code>,
+        where <code>f(n)</code> is the size of the `n`th group.
 </p>
 <div class="paragraph"><p>Setting the decay rate equal to <code>0</code> will cause all groups to be the
-same size. Setting the decay rate equal to <code>1</code> will cause the <code>n</code>`th
-<code>group</code> <code>to</code> <code>be</code> `1/n the size of the initial group.  Higher values of the
+same size. Setting the decay rate equal to <code>1</code> will cause the <code>n`th
+group to be `1/n</code> the size of the initial group.  Higher values of the
 decay rate cause consecutive groups to shrink at an increasing rate.
 The default is <code>1</code>.</p></div>
 <div class="paragraph"><p>If all groups are the same size, it is possible that groups containing
@@ -978,7 +978,7 @@ setting is applied for each distinct capture group.</p></div>
 <div class="paragraph"><p>For example, if your capture group is <code>refs/tags/</code>, then this setting
 will distribute all tags into a maximum of <code>maxMerges</code> pseudo-merge
 commits. However, if your capture group is, say,
-<code>refs/remotes/</code>([<code>0-9</code>]<code>+</code>)<code>/tags/</code>, then this setting will be applied to
+<code>refs/remotes/([0-9]+)/tags/</code>, then this setting will be applied to
 each remote&#8217;s set of tags individually.</p></div>
 <div class="paragraph"><p>Must be non-negative. The default value is 64.</p></div>
 </dd>

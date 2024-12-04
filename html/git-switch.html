@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-switch(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -800,17 +800,17 @@ otherwise with <code>--discard-changes</code> or <code>--merge</code>.</p></div>
 <dd>
 <p>
         The starting point for the new branch. Specifying a
-        <em>&lt;start-point&gt;</em> allows you to create a branch based on some
+        <code>&lt;start-point&gt;</code> allows you to create a branch based on some
         other point in history than where HEAD currently points. (Or,
         in the case of <code>--detach</code>, allows you to inspect and detach
         from some other point.)
 </p>
-<div class="paragraph"><p>You can use the <code>@</code>{-N} syntax to refer to the N-th last
+<div class="paragraph"><p>You can use the <code>@{-N}</code> syntax to refer to the N-th last
 branch/commit switched to using "git switch" or "git checkout"
-operation. You may also specify <code>-</code> which is synonymous to <code>@</code>{-1}.
+operation. You may also specify <code>-</code> which is synonymous to <code>@{-1}</code>.
 This is often used to switch quickly between two branches, or to undo
 a branch switch by mistake.</p></div>
-<div class="paragraph"><p>As a special case, you may use <code>A</code><code>...</code><code>B</code> as a shortcut for the merge
+<div class="paragraph"><p>As a special case, you may use <code>A...B</code> as a shortcut for the merge
 base of <code>A</code> and <code>B</code> if there is exactly one merge base. You can leave
 out at most one of <code>A</code> and <code>B</code>, in which case it defaults to <code>HEAD</code>.</p></div>
 </dd>
@@ -822,8 +822,8 @@ out at most one of <code>A</code> and <code>B</code>, in which case it defaults 
 </dt>
 <dd>
 <p>
-        Create a new branch named <em>&lt;new-branch&gt;</em> starting at
-        <em>&lt;start-point&gt;</em> before switching to the branch. This is the
+        Create a new branch named <code>&lt;new-branch&gt;</code> starting at
+        <code>&lt;start-point&gt;</code> before switching to the branch. This is the
         transactional equivalent of
 </p>
 <div class="listingblock">
@@ -844,8 +844,8 @@ the start-point, either).</p></div>
 </dt>
 <dd>
 <p>
-        Similar to <code>--create</code> except that if <em>&lt;new-branch&gt;</em> already
-        exists, it will be reset to <em>&lt;start-point&gt;</em>. This is a
+        Similar to <code>--create</code> except that if <code>&lt;new-branch&gt;</code> already
+        exists, it will be reset to <code>&lt;start-point&gt;</code>. This is a
         convenient shortcut for:
 </p>
 <div class="listingblock">
@@ -875,8 +875,8 @@ $ git switch &lt;new-branch&gt;</code></pre>
 </dt>
 <dd>
 <p>
-        If <em>&lt;branch&gt;</em> is not found but there does exist a tracking
-        branch in exactly one remote (call it <em>&lt;remote&gt;</em>) with a
+        If <code>&lt;branch&gt;</code> is not found but there does exist a tracking
+        branch in exactly one remote (call it <code>&lt;remote&gt;</code>) with a
         matching name, treat as equivalent to
 </p>
 <div class="listingblock">
@@ -885,9 +885,9 @@ $ git switch &lt;new-branch&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>If the branch exists in multiple remotes and one of them is named by
 the <code>checkout.defaultRemote</code> configuration variable, we&#8217;ll use that
-one for the purposes of disambiguation, even if the <em>&lt;branch&gt;</em> isn&#8217;t
+one for the purposes of disambiguation, even if the <code>&lt;branch&gt;</code> isn&#8217;t
 unique across all remotes. Set it to e.g. <code>checkout.defaultRemote=origin</code>
-to always checkout remote branches from there if <em>&lt;branch&gt;</em> is
+to always checkout remote branches from there if <code>&lt;branch&gt;</code> is
 ambiguous but exists on the <em>origin</em> remote. See also
 <code>checkout.defaultRemote</code> in <a href="git-config.html">git-config(1)</a>.</p></div>
 <div class="paragraph"><p><code>--guess</code> is the default behavior. Use <code>--no-guess</code> to disable it.</p></div>
@@ -935,7 +935,7 @@ variable.</p></div>
 </p>
 <div class="paragraph"><p>When a merge conflict happens, the index entries for conflicting
 paths are left unmerged, and you need to resolve the conflicts
-and mark the resolved paths with <code>git</code> <code>add</code> (or <code>git</code> <code>rm</code> if the merge
+and mark the resolved paths with <code>git add</code> (or <code>git rm</code> if the merge
 should result in deletion of the path).</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1010,7 +1010,7 @@ name, the guessing is aborted.  You can explicitly give a name with
 </dt>
 <dd>
 <p>
-        Create a new unborn branch, named <em>&lt;new-branch&gt;</em>. All
+        Create a new unborn branch, named <code>&lt;new-branch&gt;</code>. All
         tracked files are removed.
 </p>
 </dd>
@@ -1019,7 +1019,7 @@ name, the guessing is aborted.  You can explicitly give a name with
 </dt>
 <dd>
 <p>
-        <code>git</code> <code>switch</code> refuses when the wanted ref is already
+        <code>git switch</code> refuses when the wanted ref is already
         checked out by another worktree. This option makes it check
         the ref out anyway. In other words, the ref can be held by
         more than one worktree.
@@ -1074,7 +1074,7 @@ merge:</p></div>
 Auto-merging frotz</code></pre>
 </div></div>
 <div class="paragraph"><p>After this three-way merge, the local modifications are <em>not</em>
-registered in your index file, so <code>git</code> <code>diff</code> would show you what
+registered in your index file, so <code>git diff</code> would show you what
 changes you made since the tip of the new branch.</p></div>
 <div class="paragraph"><p>To switch back to the previous branch before we switched to mytopic
 (i.e. "master" branch):</p></div>
@@ -1124,21 +1124,21 @@ checkout.defaultRemote
 </dt>
 <dd>
 <p>
-        When you run <code>git</code> <code>checkout</code> <em>&lt;something&gt;</em>
-        or <code>git</code> <code>switch</code> <em>&lt;something&gt;</em> and only have one
+        When you run <code>git checkout &lt;something&gt;</code>
+        or <code>git switch &lt;something&gt;</code> and only have one
         remote, it may implicitly fall back on checking out and
-        tracking e.g. <code>origin/</code><em>&lt;something&gt;</em>. This stops working as soon
-        as you have more than one remote with a <em>&lt;something&gt;</em>
+        tracking e.g. <code>origin/&lt;something&gt;</code>. This stops working as soon
+        as you have more than one remote with a <code>&lt;something&gt;</code>
         reference. This setting allows for setting the name of a
         preferred remote that should always win when it comes to
         disambiguation. The typical use-case is to set this to
         <code>origin</code>.
 </p>
 <div class="paragraph"><p>Currently this is used by <a href="git-switch.html">git-switch(1)</a> and
-<a href="git-checkout.html">git-checkout(1)</a> when <code>git</code> <code>checkout</code> <em>&lt;something&gt;</em>
-or <code>git</code> <code>switch</code> <em>&lt;something&gt;</em>
-will checkout the <em>&lt;something&gt;</em> branch on another remote,
-and by <a href="git-worktree.html">git-worktree(1)</a> when <code>git</code> <code>worktree</code> <code>add</code> refers to a
+<a href="git-checkout.html">git-checkout(1)</a> when <code>git checkout &lt;something&gt;</code>
+or <code>git switch &lt;something&gt;</code>
+will checkout the <code>&lt;something&gt;</code> branch on another remote,
+and by <a href="git-worktree.html">git-worktree(1)</a> when <code>git worktree add</code> refers to a
 remote branch. This setting might be used for other checkout-like
 commands or functionality in the future.</p></div>
 </dd>
@@ -1148,7 +1148,7 @@ checkout.guess
 <dd>
 <p>
         Provides the default value for the <code>--guess</code> or <code>--no-guess</code>
-        option in <code>git</code> <code>checkout</code> and <code>git</code> <code>switch</code>. See
+        option in <code>git checkout</code> and <code>git switch</code>. See
         <a href="git-switch.html">git-switch(1)</a> and <a href="git-checkout.html">git-checkout(1)</a>.
 </p>
 </dd>

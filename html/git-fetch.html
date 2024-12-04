@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-fetch(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -792,7 +792,7 @@ may be used by scripts or other git commands, such as <a href="git-pull.html">gi
 <dd>
 <p>
         Fetch all remotes, except for the ones that has the
-        <code>remote.</code><em>&lt;name&gt;</em><code>.skipFetchAll</code> configuration variable set.
+        <code>remote.&lt;name&gt;.skipFetchAll</code> configuration variable set.
         This overrides the configuration variable fetch.all`.
 </p>
 </dd>
@@ -825,7 +825,7 @@ may be used by scripts or other git commands, such as <a href="git-pull.html">gi
 <p>
         Limit fetching to the specified number of commits from the tip of
         each remote branch history. If fetching to a <em>shallow</em> repository
-        created by <code>git</code> <code>clone</code> with <code>--depth=</code><em>&lt;depth&gt;</em> option (see
+        created by <code>git clone</code> with <code>--depth=&lt;depth&gt;</code> option (see
         <a href="git-clone.html">git-clone(1)</a>), deepen or shorten the history to the specified
         number of commits. Tags for the deepened commits are not fetched.
 </p>
@@ -850,7 +850,7 @@ may be used by scripts or other git commands, such as <a href="git-pull.html">gi
 </p>
 </dd>
 <dt class="hdlist1">
---shallow-exclude=&lt;ref&gt;
+--shallow-exclude=&lt;revision&gt;
 </dt>
 <dd>
 <p>
@@ -877,7 +877,7 @@ the current repository has the same history as the source repository.</p></div>
 <dd>
 <p>
         By default when fetching from a shallow repository,
-        <code>git</code> <code>fetch</code> refuses refs that require updating
+        <code>git fetch</code> refuses refs that require updating
         .git/shallow. This option updates .git/shallow and accepts such
         refs.
 </p>
@@ -910,10 +910,10 @@ configuration variables documented in <a href="git-config.html">git-config(1)</a
 <dd>
 <p>
         Do not fetch anything from the server, and instead print the
-        ancestors of the provided <code>--negotiation-tip=</code>* arguments,
+        ancestors of the provided <code>--negotiation-tip=*</code> arguments,
         which we have in common with the server.
 </p>
-<div class="paragraph"><p>This is incompatible with <code>--recurse-submodules=</code>[<code>yes</code>|<code>on-demand</code>].
+<div class="paragraph"><p>This is incompatible with <code>--recurse-submodules=[yes|on-demand]</code>.
 Internally this is used to implement the <code>push.negotiate</code> option, see
 <a href="git-config.html">git-config(1)</a>.</p></div>
 </dd>
@@ -933,7 +933,7 @@ Internally this is used to implement the <code>push.negotiate</code> option, see
         Print the output to standard output in an easy-to-parse format for
         scripts. See section OUTPUT in <a href="git-fetch.html">git-fetch(1)</a> for details.
 </p>
-<div class="paragraph"><p>This is incompatible with <code>--recurse-submodules=</code>[<code>yes</code>|<code>on-demand</code>] and takes
+<div class="paragraph"><p>This is incompatible with <code>--recurse-submodules=[yes|on-demand]</code> and takes
 precedence over the <code>fetch.output</code> config option.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -956,9 +956,9 @@ precedence over the <code>fetch.output</code> config option.</p></div>
 </dt>
 <dd>
 <p>
-        When <em>git fetch</em> is used with <em>&lt;src&gt;</em><code>:</code><em>&lt;dst&gt;</em> refspec, it may
+        When <em>git fetch</em> is used with <code>&lt;src&gt;:&lt;dst&gt;</code> refspec, it may
         refuse to update the local branch as discussed
-        in the <em>&lt;refspec&gt;</em> part below.
+        in the <code>&lt;refspec&gt;</code> part below.
         This option overrides that check.
 </p>
 </dd>
@@ -990,8 +990,8 @@ precedence over the <code>fetch.output</code> config option.</p></div>
 </dt>
 <dd>
 <p>
-        Run <code>git</code> <code>maintenance</code> <code>run</code> <code>--auto</code> at the end to perform automatic
-        repository maintenance if needed. (<code>--</code>[<code>no-</code>]<code>auto-gc</code> is a synonym.)
+        Run <code>git maintenance run --auto</code> at the end to perform automatic
+        repository maintenance if needed. (<code>--[no-]auto-gc</code> is a synonym.)
         This is enabled by default.
 </p>
 </dd>
@@ -1087,8 +1087,8 @@ precedence over the <code>fetch.output</code> config option.</p></div>
         When fetching refs listed on the command line, use the
         specified refspec (can be given more than once) to map the
         refs to remote-tracking branches, instead of the values of
-        <code>remote.</code>*.fetch configuration variables for the remote
-        repository.  Providing an empty <em>&lt;refspec&gt;</em> to the
+        <code>remote.*.fetch</code> configuration variables for the remote
+        repository.  Providing an empty <code>&lt;refspec&gt;</code> to the
         <code>--refmap</code> option causes Git to ignore the configured
         refspecs and rely entirely on the refspecs supplied as
         command-line arguments. See section on "Configured Remote-tracking
@@ -1104,7 +1104,7 @@ precedence over the <code>fetch.output</code> config option.</p></div>
 <dd>
 <p>
         Fetch all tags from the remote (i.e., fetch remote tags
-        <code>refs/tags/</code>* into local tags with the same name), in addition
+        <code>refs/tags/*</code> into local tags with the same name), in addition
         to whatever else would otherwise be fetched.  Using this
         option alone does not subject tags to pruning, even if --prune
         is used (though tags may be pruned anyway if they are also the
@@ -1118,13 +1118,13 @@ precedence over the <code>fetch.output</code> config option.</p></div>
 <p>
         This option controls if and under what conditions new commits of
         submodules should be fetched too. When recursing through submodules,
-        <code>git</code> <code>fetch</code> always attempts to fetch "changed" submodules, that is, a
+        <code>git fetch</code> always attempts to fetch "changed" submodules, that is, a
         submodule that has commits that are referenced by a newly fetched
         superproject commit but are missing in the local submodule clone. A
         changed submodule can be fetched as long as it is present locally e.g.
         in <code>$GIT_DIR/modules/</code> (see <a href="gitsubmodules.html">gitsubmodules(7)</a>); if the upstream
         adds a new submodule, that submodule cannot be fetched until it is
-        cloned e.g. by <code>git</code> <code>submodule</code> <code>update</code>.
+        cloned e.g. by <code>git submodule update</code>.
 </p>
 <div class="paragraph"><p>When set to <em>on-demand</em>, only changed submodules are fetched. When set
 to <em>yes</em>, all populated submodules are fetched and submodules that are
@@ -1168,7 +1168,7 @@ default fetches are performed sequentially, not in parallel.</p></div>
         If the remote is fetched successfully, add upstream
         (tracking) reference, used by argument-less
         <a href="git-pull.html">git-pull(1)</a> and other commands. For more information,
-        see <code>branch.</code><em>&lt;name&gt;</em><code>.merge</code> and <code>branch.</code><em>&lt;name&gt;</em><code>.remote</code> in
+        see <code>branch.&lt;name&gt;.merge</code> and <code>branch.&lt;name&gt;.remote</code> in
         <a href="git-config.html">git-config(1)</a>.
 </p>
 </dd>
@@ -1217,7 +1217,7 @@ default fetches are performed sequentially, not in parallel.</p></div>
 <dd>
 <p>
         When given, and the repository to fetch from is handled
-        by <em>git fetch-pack</em>, <code>--exec=</code><em>&lt;upload-pack&gt;</em> is passed to
+        by <em>git fetch-pack</em>, <code>--exec=&lt;upload-pack&gt;</code> is passed to
         the command to specify non-default path for the command
         run on the other end.
 </p>
@@ -1269,11 +1269,8 @@ default fetches are performed sequentially, not in parallel.</p></div>
         protocol version 2.  The given string must not contain a NUL or LF
         character.  The server&#8217;s handling of server options, including
         unknown ones, is server-specific.
-        When multiple <code>--server-option=</code><em>&lt;option&gt;</em> are given, they are all
+        When multiple <code>--server-option=&lt;option&gt;</code> are given, they are all
         sent to the other side in the order listed on the command line.
-        When no <code>--server-option=</code><em>&lt;option&gt;</em> is given from the command line,
-        the values of configuration variable <code>remote.</code><em>&lt;name&gt;</em><code>.serverOption</code>
-        are used instead.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1349,20 +1346,20 @@ default fetches are performed sequentially, not in parallel.</p></div>
 <p>
         Specifies which refs to fetch and which local refs to update.
         When no &lt;refspec&gt;s appear on the command line, the refs to fetch
-        are read from <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code> variables instead
+        are read from <code>remote.&lt;repository&gt;.fetch</code> variables instead
         (see <a href="#CRTB">CONFIGURED REMOTE-TRACKING BRANCHES</a> below).
 </p>
 <div class="paragraph"><p>The format of a &lt;refspec&gt; parameter is an optional plus
 <code>+</code>, followed by the source &lt;src&gt;, followed
 by a colon <code>:</code>, followed by the destination &lt;dst&gt;.
 The colon can be omitted when &lt;dst&gt; is empty.  &lt;src&gt; is
-typically a ref, or a glob pattern with a single * that is used
+typically a ref, or a glob pattern with a single <code>*</code> that is used
 to match a set of refs, but it can also be a fully spelled hex object
 name.</p></div>
-<div class="paragraph"><p>A &lt;refspec&gt; may contain a * in its &lt;src&gt; to indicate a simple pattern
+<div class="paragraph"><p>A &lt;refspec&gt; may contain a <code>*</code> in its &lt;src&gt; to indicate a simple pattern
 match. Such a refspec functions like a glob that matches any ref with the
-pattern. A pattern &lt;refspec&gt; must have one and only one * in both the &lt;src&gt; and
-&lt;dst&gt;. It will map refs to the destination by replacing the * with the
+pattern. A pattern &lt;refspec&gt; must have one and only one <code>*</code> in both the &lt;src&gt; and
+&lt;dst&gt;. It will map refs to the destination by replacing the <code>*</code> with the
 contents matched from the source.</p></div>
 <div class="paragraph"><p>If a refspec is prefixed by <code>^</code>, it will be interpreted as a negative
 refspec. Rather than specifying which refs to fetch or which local refs to
@@ -1373,7 +1370,7 @@ the scope of a pattern refspec so that it will not include specific refs.
 Negative refspecs can themselves be pattern refspecs. However, they may only
 contain a &lt;src&gt; and do not specify a &lt;dst&gt;. Fully spelled out hex object
 names are also not supported.</p></div>
-<div class="paragraph"><p><code>tag</code> <em>&lt;tag&gt;</em> means the same as <code>refs/tags/</code><em>&lt;tag&gt;</em><code>:refs/tags/</code><em>&lt;tag&gt;</em>;
+<div class="paragraph"><p><code>tag &lt;tag&gt;</code> means the same as <code>refs/tags/&lt;tag&gt;:refs/tags/&lt;tag&gt;</code>;
 it requests fetching everything up to the given tag.</p></div>
 <div class="paragraph"><p>The remote ref that matches &lt;src&gt;
 is fetched, and if &lt;dst&gt; is not an empty string, an attempt
@@ -1381,18 +1378,18 @@ is made to update the local ref that matches it.</p></div>
 <div class="paragraph"><p>Whether that update is allowed without <code>--force</code> depends on the ref
 namespace it&#8217;s being fetched to, the type of object being fetched, and
 whether the update is considered to be a fast-forward. Generally, the
-same rules apply for fetching as when pushing, see the <em>&lt;refspec&gt;</em>...
+same rules apply for fetching as when pushing, see the <code>&lt;refspec&gt;...</code>
 section of <a href="git-push.html">git-push(1)</a> for what those are. Exceptions to those
 rules particular to <em>git fetch</em> are noted below.</p></div>
 <div class="paragraph"><p>Until Git version 2.20, and unlike when pushing with
-<a href="git-push.html">git-push(1)</a>, any updates to <code>refs/tags/</code>* would be accepted
+<a href="git-push.html">git-push(1)</a>, any updates to <code>refs/tags/*</code> would be accepted
 without <code>+</code> in the refspec (or <code>--force</code>). When fetching, we promiscuously
 considered all tag updates from a remote to be forced fetches.  Since
-Git version 2.20, fetching to update <code>refs/tags/</code>* works the same way
+Git version 2.20, fetching to update <code>refs/tags/*</code> works the same way
 as when pushing. I.e. any updates will be rejected without <code>+</code> in the
 refspec (or <code>--force</code>).</p></div>
 <div class="paragraph"><p>Unlike when pushing with <a href="git-push.html">git-push(1)</a>, any updates outside of
-<code>refs/</code>{tags,heads}/* will be accepted without <code>+</code> in the refspec (or
+<code>refs/{tags,heads}/*</code> will be accepted without <code>+</code> in the refspec (or
 <code>--force</code>), whether that&#8217;s swapping e.g. a tree object for a blob, or
 a commit for another commit that doesn&#8217;t have the previous commit as
 an ancestor etc.</p></div>
@@ -1403,7 +1400,7 @@ configuration which&#8217;ll amend these rules, and nothing like a
 above about what&#8217;s not allowed as an update can be overridden by
 adding an optional leading <code>+</code> to a refspec (or using the <code>--force</code>
 command line option). The only exception to this is that no amount of
-forcing will make the <code>refs/heads/</code>* namespace accept a non-commit
+forcing will make the <code>refs/heads/*</code> namespace accept a non-commit
 object.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1445,28 +1442,28 @@ absent.</p></div>
 <div class="paragraph"><p>Git supports ssh, git, http, and https protocols (in addition, ftp
 and ftps can be used for fetching, but this is inefficient and
 deprecated; do not use them).</p></div>
-<div class="paragraph"><p>The native transport (i.e. <code>git://</code> URL) does no authentication and
+<div class="paragraph"><p>The native transport (i.e. git:// URL) does no authentication and
 should be used with caution on unsecured networks.</p></div>
 <div class="paragraph"><p>The following syntaxes may be used with them:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>ssh://</code>[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>ssh://</code>&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>git://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>git://</code><em>&lt;host&gt;</em>&#91;:<em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>http</code>[<code>s</code>]<code>://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>http</code>&#91;<code>s</code>&#93;<code>://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>ftp</code>[<code>s</code>]<code>://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>ftp</code>&#91;<code>s</code>&#93;<code>://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1474,7 +1471,7 @@ should be used with caution on unsecured networks.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em><code>:/</code><em>&lt;path-to-git-repo&gt;</em>
+&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em><code>:/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1487,17 +1484,17 @@ url.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>ssh://</code>[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>ssh://</code>&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>git://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>git://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em><code>:~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
+&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em><code>:~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1518,7 +1515,7 @@ syntaxes may be used:</p></div>
 <div class="paragraph"><p>These two syntaxes are mostly equivalent, except when cloning, when
 the former implies <code>--local</code> option. See <a href="git-clone.html">git-clone(1)</a> for
 details.</p></div>
-<div class="paragraph"><p><code>git</code> <code>clone</code>, <code>git</code> <code>fetch</code> and <code>git</code> <code>pull</code>, but not <code>git</code> <code>push</code>, will also
+<div class="paragraph"><p><code>git clone</code>, <code>git fetch</code> and <code>git pull</code>, but not <code>git push</code>, will also
 accept a suitable bundle file. See <a href="git-bundle.html">git-bundle(1)</a>.</p></div>
 <div class="paragraph"><p>When Git doesn&#8217;t know how to handle a certain transport protocol, it
 attempts to use the <code>remote-</code><em>&lt;transport&gt;</em> remote helper, if one
@@ -1527,7 +1524,7 @@ may be used:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<em>&lt;transport&gt;</em><code>::</code><em>&lt;address&gt;</em>
+<em>&lt;transport&gt;</em>::<em>&lt;address&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1574,7 +1571,7 @@ use the original URL.</p></div>
 <h2 id="_remotes_a_id_remotes_a">REMOTES<a id="REMOTES"></a></h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The name of one of the following can be used instead
-of a URL as <em>&lt;repository&gt;</em> argument:</p></div>
+of a URL as <code>&lt;repository&gt;</code> argument:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1611,8 +1608,8 @@ config file would appear like this:</p></div>
                 push = &lt;refspec&gt;
                 fetch = &lt;refspec&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p>The <em>&lt;pushurl&gt;</em> is used for pushes only. It is optional and defaults
-to <em>&lt;URL&gt;</em>. Pushing to a remote affects all defined pushurls or all
+<div class="paragraph"><p>The <code>&lt;pushurl&gt;</code> is used for pushes only. It is optional and defaults
+to <code>&lt;URL&gt;</code>. Pushing to a remote affects all defined pushurls or all
 defined urls if no pushurls are defined. Fetch, however, will only
 fetch from the first defined url if multiple urls are defined.</p></div>
 </div>
@@ -1645,11 +1642,11 @@ This file should have the following format:</p></div>
 <div class="content">
 <pre><code>        &lt;URL&gt;#&lt;head&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p><em>&lt;URL&gt;</em> is required; #<em>&lt;head&gt;</em> is optional.</p></div>
+<div class="paragraph"><p><code>&lt;URL&gt;</code> is required; <code>#&lt;head&gt;</code> is optional.</p></div>
 <div class="paragraph"><p>Depending on the operation, git will use one of the following
 refspecs, if you don&#8217;t provide one on the command line.
-<em>&lt;branch&gt;</em> is the name of this file in <code>$GIT_DIR/branches</code> and
-<em>&lt;head&gt;</em> defaults to <code>master</code>.</p></div>
+<code>&lt;branch&gt;</code> is the name of this file in <code>$GIT_DIR/branches</code> and
+<code>&lt;head&gt;</code> defaults to <code>master</code>.</p></div>
 <div class="paragraph"><p>git fetch uses:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1668,8 +1665,8 @@ refspecs, if you don&#8217;t provide one on the command line.
 <div class="sectionbody">
 <div class="paragraph"><p>You often interact with the same remote repository by
 regularly and repeatedly fetching from it.  In order to keep track
-of the progress of such a remote repository, <code>git</code> <code>fetch</code> allows you
-to configure <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code> configuration variables.</p></div>
+of the progress of such a remote repository, <code>git fetch</code> allows you
+to configure <code>remote.&lt;repository&gt;.fetch</code> configuration variables.</p></div>
 <div class="paragraph"><p>Typically such a variable may look like this:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1680,31 +1677,31 @@ to configure <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code> 
 <div class="ulist"><ul>
 <li>
 <p>
-When <code>git</code> <code>fetch</code> is run without specifying what branches
-  and/or tags to fetch on the command line, e.g. <code>git</code> <code>fetch</code> <code>origin</code>
-  or <code>git</code> <code>fetch</code>, <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code> values are used as
+When <code>git fetch</code> is run without specifying what branches
+  and/or tags to fetch on the command line, e.g. <code>git fetch origin</code>
+  or <code>git fetch</code>, <code>remote.&lt;repository&gt;.fetch</code> values are used as
   the refspecs&#8212;they specify which refs to fetch and which local refs
   to update.  The example above will fetch
   all branches that exist in the <code>origin</code> (i.e. any ref that matches
-  the left-hand side of the value, <code>refs/heads/</code>*) and update the
-  corresponding remote-tracking branches in the <code>refs/remotes/origin/</code>*
+  the left-hand side of the value, <code>refs/heads/*</code>) and update the
+  corresponding remote-tracking branches in the <code>refs/remotes/origin/*</code>
   hierarchy.
 </p>
 </li>
 <li>
 <p>
-When <code>git</code> <code>fetch</code> is run with explicit branches and/or tags
-  to fetch on the command line, e.g. <code>git</code> <code>fetch</code> <code>origin</code> <code>master</code>, the
+When <code>git fetch</code> is run with explicit branches and/or tags
+  to fetch on the command line, e.g. <code>git fetch origin master</code>, the
   &lt;refspec&gt;s given on the command line determine what are to be
   fetched (e.g. <code>master</code> in the example,
   which is a short-hand for <code>master:</code>, which in turn means
   "fetch the <em>master</em> branch but I do not explicitly say what
   remote-tracking branch to update with it from the command line"),
   and the example command will
-  fetch <em>only</em> the <em>master</em> branch.  The <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code>
+  fetch <em>only</em> the <em>master</em> branch.  The <code>remote.&lt;repository&gt;.fetch</code>
   values determine which
   remote-tracking branch, if any, is updated.  When used in this
-  way, the <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code> values do not have any
+  way, the <code>remote.&lt;repository&gt;.fetch</code> values do not have any
   effect in deciding <em>what</em> gets fetched (i.e. the values are not
   used as refspecs when the command-line lists refspecs); they are
   only used to decide <em>where</em> the refs that are fetched are stored
@@ -1712,8 +1709,8 @@ When <code>git</code> <code>fetch</code> is run with explicit branches and/or ta
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>The latter use of the <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code> values can be
-overridden by giving the <code>--refmap=</code><em>&lt;refspec&gt;</em> parameter(s) on the
+<div class="paragraph"><p>The latter use of the <code>remote.&lt;repository&gt;.fetch</code> values can be
+overridden by giving the <code>--refmap=&lt;refspec&gt;</code> parameter(s) on the
 command line.</p></div>
 </div>
 </div>
@@ -1725,8 +1722,8 @@ thrown away; this extends to holding onto local references to branches
 on remotes that have themselves deleted those branches.</p></div>
 <div class="paragraph"><p>If left to accumulate, these stale references might make performance
 worse on big and busy repos that have a lot of branch churn, and
-e.g. make the output of commands like <code>git</code> <code>branch</code> <code>-a</code> <code>--contains</code>
-<em>&lt;commit&gt;</em> needlessly verbose, as well as impacting anything else
+e.g. make the output of commands like <code>git branch -a --contains
+&lt;commit&gt;</code> needlessly verbose, as well as impacting anything else
 that&#8217;ll work with the complete set of known references.</p></div>
 <div class="paragraph"><p>These remote-tracking references can be deleted as a one-off with
 either of:</p></div>
@@ -1740,32 +1737,32 @@ $ git remote prune &lt;name&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>To prune references as part of your normal workflow without needing to
 remember to run that, set <code>fetch.prune</code> globally, or
-<code>remote.</code><em>&lt;name&gt;</em><code>.prune</code> per-remote in the config. See
+<code>remote.&lt;name&gt;.prune</code> per-remote in the config. See
 <a href="git-config.html">git-config(1)</a>.</p></div>
 <div class="paragraph"><p>Here&#8217;s where things get tricky and more specific. The pruning feature
 doesn&#8217;t actually care about branches, instead it&#8217;ll prune local &#8592;&#8594;
 remote-references as a function of the refspec of the remote (see
-<em>&lt;refspec&gt;</em> and <a href="#CRTB">CONFIGURED REMOTE-TRACKING BRANCHES</a> above).</p></div>
+<code>&lt;refspec&gt;</code> and <a href="#CRTB">CONFIGURED REMOTE-TRACKING BRANCHES</a> above).</p></div>
 <div class="paragraph"><p>Therefore if the refspec for the remote includes
-e.g. <code>refs/tags/</code>*:refs/tags/*, or you manually run e.g. <code>git</code> <code>fetch</code>
-<code>--prune</code> <em>&lt;name&gt;</em> "refs/tags/*:refs/tags/*" it won&#8217;t be stale remote
+e.g. <code>refs/tags/*:refs/tags/*</code>, or you manually run e.g. <code>git fetch
+--prune &lt;name&gt; "refs/tags/*:refs/tags/*"</code> it won&#8217;t be stale remote
 tracking branches that are deleted, but any local tag that doesn&#8217;t
 exist on the remote.</p></div>
 <div class="paragraph"><p>This might not be what you expect, i.e. you want to prune remote
-<em>&lt;name&gt;</em>, but also explicitly fetch tags from it, so when you fetch
+<code>&lt;name&gt;</code>, but also explicitly fetch tags from it, so when you fetch
 from it you delete all your local tags, most of which may not have
-come from the <em>&lt;name&gt;</em> remote in the first place.</p></div>
+come from the <code>&lt;name&gt;</code> remote in the first place.</p></div>
 <div class="paragraph"><p>So be careful when using this with a refspec like
-<code>refs/tags/</code>*:refs/tags/*, or any other refspec which might map
+<code>refs/tags/*:refs/tags/*</code>, or any other refspec which might map
 references from multiple remotes to the same local namespace.</p></div>
 <div class="paragraph"><p>Since keeping up-to-date with both branches and tags on the remote is
 a common use-case the <code>--prune-tags</code> option can be supplied along with
 <code>--prune</code> to prune local tags that don&#8217;t exist on the remote, and
 force-update those tags that differ. Tag pruning can also be enabled
-with <code>fetch.pruneTags</code> or <code>remote.</code><em>&lt;name&gt;</em><code>.pruneTags</code> in the config. See
+with <code>fetch.pruneTags</code> or <code>remote.&lt;name&gt;.pruneTags</code> in the config. See
 <a href="git-config.html">git-config(1)</a>.</p></div>
 <div class="paragraph"><p>The <code>--prune-tags</code> option is equivalent to having
-<code>refs/tags/</code>*:refs/tags/* declared in the refspecs of the remote. This
+<code>refs/tags/*:refs/tags/*</code> declared in the refspecs of the remote. This
 can lead to some seemingly strange interactions:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1778,8 +1775,8 @@ config versions is for flexibility of the configured versions, and to
 maintain a 1=1 mapping between what the command line flags do, and
 what the configuration versions do.</p></div>
 <div class="paragraph"><p>It&#8217;s reasonable to e.g. configure <code>fetch.pruneTags=true</code> in
-<code>~/.gitconfig</code> to have tags pruned whenever <code>git</code> <code>fetch</code> <code>--prune</code> is
-run, without making every invocation of <code>git</code> <code>fetch</code> without <code>--prune</code>
+<code>~/.gitconfig</code> to have tags pruned whenever <code>git fetch --prune</code> is
+run, without making every invocation of <code>git fetch</code> without <code>--prune</code>
 an error.</p></div>
 <div class="paragraph"><p>Pruning tags with <code>--prune-tags</code> also works when fetching a URL
 instead of a named remote. These will all prune tags not found on
@@ -1816,9 +1813,9 @@ of the form:</p></div>
 <div class="paragraph"><p>The status of up-to-date refs is shown only if the --verbose option is
 used.</p></div>
 <div class="paragraph"><p>In compact output mode, specified with configuration variable
-fetch.output, if either entire <em>&lt;from&gt;</em> or <em>&lt;to&gt;</em> is found in the
-other string, it will be substituted with * in the other string. For
-example, <code>master</code> <code>-</code>&gt; <code>origin/master</code> becomes <code>master</code> <code>-</code>&gt; <code>origin/</code>*.</p></div>
+fetch.output, if either entire <code>&lt;from&gt;</code> or <code>&lt;to&gt;</code> is found in the
+other string, it will be substituted with <code>*</code> in the other string. For
+example, <code>master -&gt; origin/master</code> becomes <code>master -&gt; origin/*</code>.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 flag
@@ -1861,7 +1858,7 @@ for a successful tag update;
 </p>
 </dd>
 <dt class="hdlist1">
-*
+<code>*</code>
 </dt>
 <dd>
 <p>
@@ -1869,7 +1866,7 @@ for a successfully fetched new ref;
 </p>
 </dd>
 <dt class="hdlist1">
-!
+<code>!</code>
 </dt>
 <dd>
 <p>
@@ -1893,8 +1890,8 @@ summary
 <p>
         For a successfully fetched ref, the summary shows the old and new
         values of the ref in a form suitable for using as an argument to
-        <code>git</code> <code>log</code> (this is <em>&lt;old&gt;</em><code>..</code><em>&lt;new&gt;</em> in most cases, and
-        <em>&lt;old&gt;</em><code>...</code><em>&lt;new&gt;</em> for forced non-fast-forward updates).
+        <code>git log</code> (this is <code>&lt;old&gt;..&lt;new&gt;</code> in most cases, and
+        <code>&lt;old&gt;...&lt;new&gt;</code> for forced non-fast-forward updates).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1903,7 +1900,7 @@ from
 <dd>
 <p>
         The name of the remote ref being fetched from, minus its
-        <code>refs/</code><em>&lt;type&gt;</em><code>/</code> prefix. In the case of deletion, the name of
+        <code>refs/&lt;type&gt;/</code> prefix. In the case of deletion, the name of
         the remote ref is "(none)".
 </p>
 </dd>
@@ -1913,7 +1910,7 @@ to
 <dd>
 <p>
         The name of the local ref being updated, minus its
-        <code>refs/</code><em>&lt;type&gt;</em><code>/</code> prefix.
+        <code>refs/&lt;type&gt;/</code> prefix.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1943,7 +1940,7 @@ Update the remote-tracking branches:
 </div></div>
 <div class="paragraph"><p>The above command copies all branches from the remote <code>refs/heads/</code>
 namespace and stores them to the local <code>refs/remotes/origin/</code> namespace,
-unless the <code>remote.</code><em>&lt;repository&gt;</em><code>.fetch</code> option is used to specify a
+unless the <code>remote.&lt;repository&gt;.fetch</code> option is used to specify a
 non-default refspec.</p></div>
 </li>
 <li>
@@ -2031,8 +2028,8 @@ fetch.recurseSubmodules
 </dt>
 <dd>
 <p>
-        This option controls whether <code>git</code> <code>fetch</code> (and the underlying fetch
-        in <code>git</code> <code>pull</code>) will recursively fetch into populated submodules.
+        This option controls whether <code>git fetch</code> (and the underlying fetch
+        in <code>git pull</code>) will recursively fetch into populated submodules.
         This option can be set either to a boolean value or to <em>on-demand</em>.
         Setting it to a boolean changes the behavior of fetch and pull to
         recurse unconditionally into submodules when set to true or to not
@@ -2059,9 +2056,9 @@ fetch.fsck.&lt;msg-id&gt;
 </dt>
 <dd>
 <p>
-        Acts like <code>fsck.</code><em>&lt;msg-id&gt;</em>, but is used by
+        Acts like <code>fsck.&lt;msg-id&gt;</code>, but is used by
         <a href="git-fetch-pack.html">git-fetch-pack(1)</a> instead of <a href="git-fsck.html">git-fsck(1)</a>. See
-        the <code>fsck.</code><em>&lt;msg-id&gt;</em> documentation for details.
+        the <code>fsck.&lt;msg-id&gt;</code> documentation for details.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2096,7 +2093,7 @@ fetch.prune
 <dd>
 <p>
         If true, fetch will automatically behave as if the <code>--prune</code>
-        option was given on the command line.  See also <code>remote.</code><em>&lt;name&gt;</em><code>.prune</code>
+        option was given on the command line.  See also <code>remote.&lt;name&gt;.prune</code>
         and the PRUNING section of <a href="git-fetch.html">git-fetch(1)</a>.
 </p>
 </dd>
@@ -2106,10 +2103,10 @@ fetch.pruneTags
 <dd>
 <p>
         If true, fetch will automatically behave as if the
-        <code>refs/tags/</code>*:refs/tags/* refspec was provided when pruning,
+        <code>refs/tags/*:refs/tags/*</code> refspec was provided when pruning,
         if not set already. This allows for setting both this option
         and <code>fetch.prune</code> to maintain a 1=1 mapping to upstream
-        refs. See also <code>remote.</code><em>&lt;name&gt;</em><code>.pruneTags</code> and the PRUNING
+        refs. See also <code>remote.&lt;name&gt;.pruneTags</code> and the PRUNING
         section of <a href="git-fetch.html">git-fetch(1)</a>.
 </p>
 </dd>
@@ -2184,13 +2181,13 @@ fetch.writeCommitGraph
 </dt>
 <dd>
 <p>
-        Set to true to write a commit-graph after every <code>git</code> <code>fetch</code> command
+        Set to true to write a commit-graph after every <code>git fetch</code> command
         that downloads a pack-file from a remote. Using the <code>--split</code> option,
         most executions will create a very small commit-graph file on top of
         the existing commit-graph file(s). Occasionally, these files will
         merge and the write may take longer. Having an updated commit-graph
-        file helps performance of many Git commands, including <code>git</code> <code>merge-base</code>,
-        <code>git</code> <code>push</code> <code>-f</code>, and <code>git</code> <code>log</code> <code>--graph</code>. Defaults to false.
+        file helps performance of many Git commands, including <code>git merge-base</code>,
+        <code>git push -f</code>, and <code>git log --graph</code>. Defaults to false.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2201,7 +2198,7 @@ fetch.bundleURI
         This value stores a URI for downloading Git object data from a bundle
         URI before performing an incremental fetch from the origin Git server.
         This is similar to how the <code>--bundle-uri</code> option behaves in
-        <a href="git-clone.html">git-clone(1)</a>. <code>git</code> <code>clone</code> <code>--bundle-uri</code> will set the
+        <a href="git-clone.html">git-clone(1)</a>. <code>git clone --bundle-uri</code> will set the
         <code>fetch.bundleURI</code> value if the supplied bundle URI contains a bundle
         list that is organized for incremental fetches.
 </p>
@@ -2233,8 +2230,8 @@ remove the value for the <code>fetch.bundleCreationToken</code> value before fet
 <div class="sectionbody">
 <div class="paragraph"><p>Using --recurse-submodules can only fetch new commits in submodules that are
 present locally e.g. in <code>$GIT_DIR/modules/</code>. If the upstream adds a new
-submodule, that submodule cannot be fetched until it is cloned e.g. by <code>git</code>
-<code>submodule</code> <code>update</code>. This is expected to be fixed in a future Git version.</p></div>
+submodule, that submodule cannot be fetched until it is cloned e.g. by <code>git
+submodule update</code>. This is expected to be fixed in a future Git version.</p></div>
 </div>
 </div>
 <div class="sect1">

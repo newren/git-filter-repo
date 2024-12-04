@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-rebase(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -761,23 +761,23 @@ git-rebase(1) Manual Page
 <div class="sect1">
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>If <em>&lt;branch&gt;</em> is specified, <code>git</code> <code>rebase</code> will perform an automatic
-<code>git</code> <code>switch</code> <em>&lt;branch&gt;</em> before doing anything else.  Otherwise
+<div class="paragraph"><p>If <code>&lt;branch&gt;</code> is specified, <code>git rebase</code> will perform an automatic
+<code>git switch &lt;branch&gt;</code> before doing anything else.  Otherwise
 it remains on the current branch.</p></div>
-<div class="paragraph"><p>If <em>&lt;upstream&gt;</em> is not specified, the upstream configured in
-<code>branch.</code><em>&lt;name&gt;</em><code>.remote</code> and <code>branch.</code><em>&lt;name&gt;</em><code>.merge</code> options will be used (see
+<div class="paragraph"><p>If <code>&lt;upstream&gt;</code> is not specified, the upstream configured in
+<code>branch.&lt;name&gt;.remote</code> and <code>branch.&lt;name&gt;.merge</code> options will be used (see
 <a href="git-config.html">git-config(1)</a> for details) and the <code>--fork-point</code> option is
 assumed.  If you are currently not on any branch or if the current
 branch does not have a configured upstream, the rebase will abort.</p></div>
 <div class="paragraph"><p>All changes made by commits in the current branch but that are not
-in <em>&lt;upstream&gt;</em> are saved to a temporary area.  This is the same set
-of commits that would be shown by <code>git</code> <code>log</code> <em>&lt;upstream&gt;</em><code>..</code><code>HEAD</code>; or by
-<code>git</code> <code>log</code> 'fork_point'<code>..</code><code>HEAD</code>, if <code>--fork-point</code> is active (see the
-description on <code>--fork-point</code> below); or by <code>git</code> <code>log</code> <code>HEAD</code>, if the
+in <code>&lt;upstream&gt;</code> are saved to a temporary area.  This is the same set
+of commits that would be shown by <code>git log &lt;upstream&gt;..HEAD</code>; or by
+<code>git log 'fork_point'..HEAD</code>, if <code>--fork-point</code> is active (see the
+description on <code>--fork-point</code> below); or by <code>git log HEAD</code>, if the
 <code>--root</code> option is specified.</p></div>
-<div class="paragraph"><p>The current branch is reset to <em>&lt;upstream&gt;</em> or <em>&lt;newbase&gt;</em> if the
+<div class="paragraph"><p>The current branch is reset to <code>&lt;upstream&gt;</code> or <code>&lt;newbase&gt;</code> if the
 <code>--onto</code> option was supplied.  This has the exact same effect as
-<code>git</code> <code>reset</code> <code>--hard</code> <em>&lt;upstream&gt;</em> (or <em>&lt;newbase&gt;</em>). <code>ORIG_HEAD</code> is set
+<code>git reset --hard &lt;upstream&gt;</code> (or <code>&lt;newbase&gt;</code>). <code>ORIG_HEAD</code> is set
 to point at the tip of the branch before the reset.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -786,22 +786,22 @@ to point at the tip of the branch before the reset.</p></div>
 </td>
 <td class="content"><code>ORIG_HEAD</code> is not guaranteed to still point to the previous branch tip
 at the end of the rebase if other commands that write that pseudo-ref
-(e.g. <code>git</code> <code>reset</code>) are used during the rebase. The previous branch tip,
+(e.g. <code>git reset</code>) are used during the rebase. The previous branch tip,
 however, is accessible using the reflog of the current branch
-(i.e. <code>@</code>{1}, see <a href="gitrevisions.html">gitrevisions(7)</a>).</td>
+(i.e. <code>@{1}</code>, see <a href="gitrevisions.html">gitrevisions(7)</a>).</td>
 </tr></table>
 </div>
 <div class="paragraph"><p>The commits that were previously saved into the temporary area are
 then reapplied to the current branch, one by one, in order. Note that
 any commits in <code>HEAD</code> which introduce the same textual changes as a commit
-in <code>HEAD</code><code>..</code><em>&lt;upstream&gt;</em> are omitted (i.e., a patch already accepted upstream
+in <code>HEAD..&lt;upstream&gt;</code> are omitted (i.e., a patch already accepted upstream
 with a different commit message or timestamp will be skipped).</p></div>
 <div class="paragraph"><p>It is possible that a merge failure will prevent this process from being
 completely automatic.  You will have to resolve any such merge failure
-and run <code>git</code> <code>rebase</code> <code>--continue</code>.  Another option is to bypass the commit
-that caused the merge failure with <code>git</code> <code>rebase</code> <code>--skip</code>.  To check out the
-original <em>&lt;branch&gt;</em> and remove the <code>.git/rebase-apply</code> working files, use
-the command <code>git</code> <code>rebase</code> <code>--abort</code> instead.</p></div>
+and run <code>git rebase --continue</code>.  Another option is to bypass the commit
+that caused the merge failure with <code>git rebase --skip</code>.  To check out the
+original <code>&lt;branch&gt;</code> and remove the <code>.git/rebase-apply</code> working files, use
+the command <code>git rebase --abort</code> instead.</p></div>
 <div class="paragraph"><p>Assume the following history exists and the current branch is "topic":</p></div>
 <div class="listingblock">
 <div class="content">
@@ -822,14 +822,14 @@ git rebase master topic</code></pre>
                  /
     D---E---F---G master</code></pre>
 </div></div>
-<div class="paragraph"><p><strong>NOTE:</strong> The latter form is just a short-hand of <code>git</code> <code>checkout</code> <code>topic</code>
-followed by <code>git</code> <code>rebase</code> <code>master</code>. When rebase exits <code>topic</code> will
+<div class="paragraph"><p><strong>NOTE:</strong> The latter form is just a short-hand of <code>git checkout topic</code>
+followed by <code>git rebase master</code>. When rebase exits <code>topic</code> will
 remain the checked-out branch.</p></div>
 <div class="paragraph"><p>If the upstream branch already contains a change you have made (e.g.,
 because you mailed a patch which was applied upstream), then that commit
 will be skipped and warnings will be issued (if the <em>merge</em> backend is
-used).  For example, running <code>git</code> <code>rebase</code> <code>master</code> on the following
-history (in which <code>A</code>' and <code>A</code> introduce the same set of changes, but
+used).  For example, running <code>git rebase master</code> on the following
+history (in which <code>A'</code> and <code>A</code> introduce the same set of changes, but
 have different committer information):</p></div>
 <div class="listingblock">
 <div class="content">
@@ -846,7 +846,7 @@ have different committer information):</p></div>
 </div></div>
 <div class="paragraph"><p>Here is how you would transplant a topic branch based on one
 branch to another, to pretend that you forked the topic branch
-from the latter branch, using <code>rebase</code> <code>--onto</code>.</p></div>
+from the latter branch, using <code>rebase --onto</code>.</p></div>
 <div class="paragraph"><p>First let&#8217;s assume your <em>topic</em> is based on branch <em>next</em>.
 For example, a feature developed in <em>topic</em> depends on some
 functionality which is found in <em>next</em>.</p></div>
@@ -916,10 +916,10 @@ the following situation:</p></div>
 <pre><code>    E---H'---I'---J'  topicA</code></pre>
 </div></div>
 <div class="paragraph"><p>This is useful if F and G were flawed in some way, or should not be
-part of topicA.  Note that the argument to <code>--onto</code> and the <em>&lt;upstream&gt;</em>
+part of topicA.  Note that the argument to <code>--onto</code> and the <code>&lt;upstream&gt;</code>
 parameter can be any valid commit-ish.</p></div>
-<div class="paragraph"><p>In case of conflict, <code>git</code> <code>rebase</code> will stop at the first problematic commit
-and leave conflict markers in the tree.  You can use <code>git</code> <code>diff</code> to locate
+<div class="paragraph"><p>In case of conflict, <code>git rebase</code> will stop at the first problematic commit
+and leave conflict markers in the tree.  You can use <code>git diff</code> to locate
 the markers (&lt;&lt;&lt;&lt;&lt;&lt;) and make edits to resolve the conflict.  For each
 file you edit, you need to tell Git that the conflict has been resolved,
 typically this would be done with</p></div>
@@ -968,8 +968,8 @@ including not with each other:</p></div>
 <dd>
 <p>
         Abort the rebase operation and reset HEAD to the original
-        branch. If <em>&lt;branch&gt;</em> was provided when the rebase operation was
-        started, then <code>HEAD</code> will be reset to <em>&lt;branch&gt;</em>. Otherwise <code>HEAD</code>
+        branch. If <code>&lt;branch&gt;</code> was provided when the rebase operation was
+        started, then <code>HEAD</code> will be reset to <code>&lt;branch&gt;</code>. Otherwise <code>HEAD</code>
         will be reset to where it was when the rebase operation was
         started.
 </p>
@@ -1000,7 +1000,7 @@ including not with each other:</p></div>
 <p>
         Show the current patch in an interactive rebase or when rebase
         is stopped because of conflicts. This is the equivalent of
-        <code>git</code> <code>show</code> <code>REBASE_HEAD</code>.
+        <code>git show REBASE_HEAD</code>.
 </p>
 </dd>
 </dl></div>
@@ -1017,7 +1017,7 @@ including not with each other:</p></div>
 <p>
         Starting point at which to create the new commits. If the
         <code>--onto</code> option is not specified, the starting point is
-        <em>&lt;upstream&gt;</em>.  May be any valid commit, and not just an
+        <code>&lt;upstream&gt;</code>.  May be any valid commit, and not just an
         existing branch name.
 </p>
 <div class="paragraph"><p>As a special case, you may use "A...B" as a shortcut for the
@@ -1030,10 +1030,10 @@ leave out at most one of A and B, in which case it defaults to HEAD.</p></div>
 <dd>
 <p>
         Set the starting point at which to create the new commits to the
-        merge base of <em>&lt;upstream&gt;</em> and <em>&lt;branch&gt;</em>. Running
-        <code>git</code> <code>rebase</code> <code>--keep-base</code> <em>&lt;upstream&gt;</em> <em>&lt;branch&gt;</em> is equivalent to
+        merge base of <code>&lt;upstream&gt;</code> and <code>&lt;branch&gt;</code>. Running
+        <code>git rebase --keep-base &lt;upstream&gt; &lt;branch&gt;</code> is equivalent to
         running
-        <code>git</code> <code>rebase</code> <code>--reapply-cherry-picks</code> <code>--no-fork-point</code> <code>--onto</code> <em>&lt;upstream&gt;</em><code>...</code><em>&lt;branch&gt;</em> <em>&lt;upstream&gt;</em> <em>&lt;branch&gt;</em>.
+        <code>git rebase --reapply-cherry-picks --no-fork-point --onto &lt;upstream&gt;...&lt;branch&gt; &lt;upstream&gt; &lt;branch&gt;</code>.
 </p>
 <div class="paragraph"><p>This option is useful in the case where one is developing a feature on
 top of an upstream branch. While the feature is being worked on, the
@@ -1042,7 +1042,7 @@ rebasing on top of the upstream but to keep the base commit as-is. As
 the base commit is unchanged this option implies <code>--reapply-cherry-picks</code>
 to avoid losing commits.</p></div>
 <div class="paragraph"><p>Although both this option and <code>--fork-point</code> find the merge base between
-<em>&lt;upstream&gt;</em> and <em>&lt;branch&gt;</em>, this option uses the merge base as the <em>starting
+<code>&lt;upstream&gt;</code> and <code>&lt;branch&gt;</code>, this option uses the merge base as the <em>starting
 point</em> on which new commits will be created, whereas <code>--fork-point</code> uses
 the merge base to determine the <em>set of commits</em> which will be rebased.</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
@@ -1124,7 +1124,7 @@ the merge base to determine the <em>set of commits</em> which will be rebased.</
 </div></div>
 <div class="paragraph"><p>Note that commits which start empty are kept (unless <code>--no-keep-empty</code>
 is specified), and commits which are clean cherry-picks (as determined
-by <code>git</code> <code>log</code> <code>--cherry-mark</code> ...) are detected and dropped as a
+by <code>git log --cherry-mark ...</code>) are detected and dropped as a
 preliminary step (unless <code>--reapply-cherry-picks</code> or <code>--keep-base</code> is
 passed).</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
@@ -1141,7 +1141,7 @@ passed).</p></div>
         (i.e. that do not change anything from its parent) in the
         result.  The default is to keep commits which start empty,
         since creating such commits requires passing the <code>--allow-empty</code>
-        override flag to <code>git</code> <code>commit</code>, signifying that a user is very
+        override flag to <code>git commit</code>, signifying that a user is very
         intentionally creating such a commit and thus wants to keep
         it.
 </p>
@@ -1203,9 +1203,9 @@ commits, potentially improving performance.</p></div>
         Using merging strategies to rebase (default).
 </p>
 <div class="paragraph"><p>Note that a rebase merge works by replaying each commit from the working
-branch on top of the <em>&lt;upstream&gt;</em> branch.  Because of this, when a merge
+branch on top of the <code>&lt;upstream&gt;</code> branch.  Because of this, when a merge
 conflict happens, the side reported as <em>ours</em> is the so-far rebased
-series, starting with <em>&lt;upstream&gt;</em>, and <em>theirs</em> is the working branch.
+series, starting with <code>&lt;upstream&gt;</code>, and <em>theirs</em> is the working branch.
 In other words, the sides are swapped.</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
@@ -1220,9 +1220,9 @@ In other words, the sides are swapped.</p></div>
         Use the given merge strategy, instead of the default <code>ort</code>.
         This implies <code>--merge</code>.
 </p>
-<div class="paragraph"><p>Because <code>git</code> <code>rebase</code> replays each commit from the working branch
-on top of the <em>&lt;upstream&gt;</em> branch using the given strategy, using
-the <code>ours</code> strategy simply empties all patches from the <em>&lt;branch&gt;</em>,
+<div class="paragraph"><p>Because <code>git rebase</code> replays each commit from the working branch
+on top of the <code>&lt;upstream&gt;</code> branch using the given strategy, using
+the <code>ours</code> strategy simply empties all patches from the <code>&lt;branch&gt;</code>,
 which makes little sense.</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
@@ -1236,7 +1236,7 @@ which makes little sense.</p></div>
 <p>
         Pass the &lt;strategy-option&gt; through to the merge strategy.
         This implies <code>--merge</code> and, if no strategy has been
-        specified, <code>-s</code> <code>ort</code>.  Note the reversal of <em>ours</em> and
+        specified, <code>-s ort</code>.  Note the reversal of <em>ours</em> and
         <em>theirs</em> as noted above for the <code>-m</code> option.
 </p>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
@@ -1255,7 +1255,7 @@ which makes little sense.</p></div>
         resolution.  <code>--no-rerere-autoupdate</code> is a good way to
         double-check what <code>rerere</code> did and catch potential
         mismerges, before committing the result to the index with a
-        separate <code>git</code> <code>add</code>.
+        separate <code>git add</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1340,7 +1340,7 @@ which makes little sense.</p></div>
 </dt>
 <dd>
 <p>
-        Ensure at least <em>&lt;n&gt;</em> lines of surrounding context match before
+        Ensure at least <code>&lt;n&gt;</code> lines of surrounding context match before
         and after each change.  When fewer lines of surrounding
         context exist they all must match.  By default no context is
         ever ignored.  Implies <code>--apply</code>.
@@ -1376,19 +1376,19 @@ details).</p></div>
 </dt>
 <dd>
 <p>
-        Use reflog to find a better common ancestor between <em>&lt;upstream&gt;</em>
-        and <em>&lt;branch&gt;</em> when calculating which commits have been
-        introduced by <em>&lt;branch&gt;</em>.
+        Use reflog to find a better common ancestor between <code>&lt;upstream&gt;</code>
+        and <code>&lt;branch&gt;</code> when calculating which commits have been
+        introduced by <code>&lt;branch&gt;</code>.
 </p>
 <div class="paragraph"><p>When <code>--fork-point</code> is active, <em>fork_point</em> will be used instead of
-<em>&lt;upstream&gt;</em> to calculate the set of commits to rebase, where
-<em>fork_point</em> is the result of <code>git</code> <code>merge-base</code> <code>--fork-point</code> <em>&lt;upstream&gt;</em>
-<em>&lt;branch&gt;</em> command (see <a href="git-merge-base.html">git-merge-base(1)</a>).  If <em>fork_point</em>
-ends up being empty, the <em>&lt;upstream&gt;</em> will be used as a fallback.</p></div>
-<div class="paragraph"><p>If <em>&lt;upstream&gt;</em> or <code>--keep-base</code> is given on the command line, then
+<code>&lt;upstream&gt;</code> to calculate the set of commits to rebase, where
+<em>fork_point</em> is the result of <code>git merge-base --fork-point &lt;upstream&gt;
+&lt;branch&gt;</code> command (see <a href="git-merge-base.html">git-merge-base(1)</a>).  If <em>fork_point</em>
+ends up being empty, the <code>&lt;upstream&gt;</code> will be used as a fallback.</p></div>
+<div class="paragraph"><p>If <code>&lt;upstream&gt;</code> or <code>--keep-base</code> is given on the command line, then
 the default is <code>--no-fork-point</code>, otherwise the default is
 <code>--fork-point</code>. See also <code>rebase.forkpoint</code> in <a href="git-config.html">git-config(1)</a>.</p></div>
-<div class="paragraph"><p>If your branch was based on <em>&lt;upstream&gt;</em> but <em>&lt;upstream&gt;</em> was rewound and
+<div class="paragraph"><p>If your branch was based on <code>&lt;upstream&gt;</code> but <code>&lt;upstream&gt;</code> was rewound and
 your branch contains commits which were dropped, this option can be used
 with <code>--keep-base</code> in order to drop those commits from your branch.</p></div>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
@@ -1433,7 +1433,7 @@ merge backend
 </dt>
 <dd>
 <p>
-        This flag is passed to the <code>git</code> <code>apply</code> program
+        This flag is passed to the <code>git apply</code> program
         (see <a href="git-apply.html">git-apply(1)</a>) that applies the patch.
         Implies <code>--apply</code>.
 </p>
@@ -1515,14 +1515,14 @@ have the commit hash prepended to the format.</p></div>
 <div class="paragraph"><p>When rebasing merges, there are two modes: <code>rebase-cousins</code> and
 <code>no-rebase-cousins</code>. If the mode is not specified, it defaults to
 <code>no-rebase-cousins</code>. In <code>no-rebase-cousins</code> mode, commits which do not have
-<em>&lt;upstream&gt;</em> as direct ancestor will keep their original branch point, i.e.
+<code>&lt;upstream&gt;</code> as direct ancestor will keep their original branch point, i.e.
 commits that would be excluded by <a href="git-log.html">git-log(1)</a>'s <code>--ancestry-path</code>
 option will keep their original ancestry by default. In <code>rebase-cousins</code> mode,
-such commits are instead rebased onto <em>&lt;upstream&gt;</em> (or <em>&lt;onto&gt;</em>, if
+such commits are instead rebased onto <code>&lt;upstream&gt;</code> (or <code>&lt;onto&gt;</code>, if
 specified).</p></div>
 <div class="paragraph"><p>It is currently only possible to recreate the merge commits using the
 <code>ort</code> merge strategy; different merge strategies can be used only via
-explicit <code>exec</code> <code>git</code> <code>merge</code> <code>-s</code> <em>&lt;strategy&gt;</em> [...] commands.</p></div>
+explicit <code>exec git merge -s &lt;strategy&gt; [...]</code> commands.</p></div>
 <div class="paragraph"><p>See also REBASING MERGES and INCOMPATIBLE OPTIONS below.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1534,7 +1534,7 @@ explicit <code>exec</code> <code>git</code> <code>merge</code> <code>-s</code> <
 <dd>
 <p>
         Append "exec &lt;cmd&gt;" after each line creating a commit in the
-        final history. <em>&lt;cmd&gt;</em> will be interpreted as one or more shell
+        final history. <code>&lt;cmd&gt;</code> will be interpreted as one or more shell
         commands. Any command that fails will interrupt the rebase,
         with exit code 1.
 </p>
@@ -1561,8 +1561,8 @@ without an explicit <code>--interactive</code>.</p></div>
 </dt>
 <dd>
 <p>
-        Rebase all commits reachable from <em>&lt;branch&gt;</em>, instead of
-        limiting them with an <em>&lt;upstream&gt;</em>.  This allows you to rebase
+        Rebase all commits reachable from <code>&lt;branch&gt;</code>, instead of
+        limiting them with an <code>&lt;upstream&gt;</code>.  This allows you to rebase
         the root commit(s) on a branch.
 </p>
 <div class="paragraph"><p>See also INCOMPATIBLE OPTIONS below.</p></div>
@@ -1584,7 +1584,7 @@ without an explicit <code>--interactive</code>.</p></div>
         subjects are considered.
 </p>
 <div class="paragraph"><p>In the rebase todo list, the actions of squash, fixup and amend commits are
-changed from <code>pick</code> to <code>squash</code>, <code>fixup</code> or <code>fixup</code> <code>-C</code>, respectively, and they
+changed from <code>pick</code> to <code>squash</code>, <code>fixup</code> or <code>fixup -C</code>, respectively, and they
 are moved right after the commit they modify.  The <code>--interactive</code> option can
 be used to review and edit the todo list before proceeding.</p></div>
 <div class="paragraph"><p>The recommended way to create commits with squash markers is by using the
@@ -1623,14 +1623,14 @@ option can be used to override that setting.</p></div>
         sense in interactive mode (or when an <code>--exec</code> option was provided).
 </p>
 <div class="paragraph"><p>This option applies once a rebase is started. It is preserved for the whole
-rebase based on, in order, the command line option provided to the initial <code>git</code>
-<code>rebase</code>, the <code>rebase.rescheduleFailedExec</code> configuration (see
+rebase based on, in order, the command line option provided to the initial <code>git
+rebase</code>, the <code>rebase.rescheduleFailedExec</code> configuration (see
 <a href="git-config.html">git-config(1)</a> or "CONFIGURATION" below), or it defaults to false.</p></div>
 <div class="paragraph"><p>Recording this option for the whole rebase is a convenience feature. Otherwise
 an explicit <code>--no-reschedule-failed-exec</code> at the start would be overridden by
-the presence of a <code>rebase.rescheduleFailedExec=true</code> configuration when <code>git</code>
-<code>rebase</code> <code>--continue</code> is invoked. Currently, you cannot pass
-<code>--</code>[<code>no-</code>]<code>reschedule-failed-exec</code> to <code>git</code> <code>rebase</code> <code>--continue</code>.</p></div>
+the presence of a <code>rebase.rescheduleFailedExec=true</code> configuration when <code>git
+rebase --continue</code> is invoked. Currently, you cannot pass
+<code>--[no-]reschedule-failed-exec</code> to <code>git rebase --continue</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 --update-refs
@@ -1758,7 +1758,7 @@ can be used to override and disable this setting.</p></div>
 <div class="sect1">
 <h2 id="_behavioral_differences">BEHAVIORAL DIFFERENCES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><code>git</code> <code>rebase</code> has two primary backends: <em>apply</em> and <em>merge</em>.  (The <em>apply</em>
+<div class="paragraph"><p><code>git rebase</code> has two primary backends: <em>apply</em> and <em>merge</em>.  (The <em>apply</em>
 backend used to be known as the <em>am</em> backend, but the name led to
 confusion as it looks like a verb instead of a noun.  Also, the <em>merge</em>
 backend used to be known as the interactive backend, but it is now
@@ -1777,7 +1777,7 @@ be dropped automatically with <code>--no-keep-empty</code>).</p></div>
 <div class="paragraph"><p>Similar to the apply backend, by default the merge backend drops
 commits that become empty unless <code>-i</code>/<code>--interactive</code> is specified (in
 which case it stops and asks the user what to do).  The merge backend
-also has an <code>--empty=</code>(<code>drop</code>|<code>keep</code>|<code>stop</code>) option for changing the behavior
+also has an <code>--empty=(drop|keep|stop)</code> option for changing the behavior
 of handling commits that become empty.</p></div>
 </div>
 <div class="sect2">
@@ -1837,7 +1837,7 @@ commit of the rebase, not the intermediate commits nor the final
 commit.  In each case, the calling of these hooks was by accident of
 implementation rather than by design (both backends were originally
 implemented as shell scripts and happened to invoke other commands
-like <code>git</code> <code>checkout</code> or <code>git</code> <code>commit</code> that would call the hooks).  Both
+like <code>git checkout</code> or <code>git commit</code> that would call the hooks).  Both
 backends should have the same behavior, though it is not entirely
 clear which, if any, is correct.  We will likely make rebase stop
 calling either of these hooks in the future.</p></div>
@@ -1847,7 +1847,7 @@ calling either of these hooks in the future.</p></div>
 <div class="paragraph"><p>The <em>apply</em> backend has safety problems with an ill-timed interrupt; if
 the user presses Ctrl-C at the wrong time to try to abort the rebase,
 the rebase can enter a state where it cannot be aborted with a
-subsequent <code>git</code> <code>rebase</code> <code>--abort</code>.  The <em>merge</em> backend does not appear to
+subsequent <code>git rebase --abort</code>.  The <em>merge</em> backend does not appear to
 suffer from the same shortcoming.  (See
 <a href="https://lore.kernel.org/git/20200207132152.GC2868@szeder.dev/">https://lore.kernel.org/git/20200207132152.GC2868@szeder.dev/</a> for
 details.)</p></div>
@@ -1857,7 +1857,7 @@ details.)</p></div>
 <div class="paragraph"><p>When a conflict occurs while rebasing, rebase stops and asks the user
 to resolve.  Since the user may need to make notable changes while
 resolving conflicts, after conflicts are resolved and the user has run
-<code>git</code> <code>rebase</code> <code>--continue</code>, the rebase should open an editor and ask the
+<code>git rebase --continue</code>, the rebase should open an editor and ask the
 user to update the commit message.  The <em>merge</em> backend does this, while
 the <em>apply</em> backend blindly applies the original commit message.</p></div>
 </div>
@@ -1896,10 +1896,10 @@ State directories: The two backends keep their state in different
 <div class="sect1">
 <h2 id="_merge_strategies">MERGE STRATEGIES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The merge mechanism (<code>git</code> <code>merge</code> and <code>git</code> <code>pull</code> commands) allows the
+<div class="paragraph"><p>The merge mechanism (<code>git merge</code> and <code>git pull</code> commands) allows the
 backend <em>merge strategies</em> to be chosen with <code>-s</code> option.  Some strategies
-can also take their own options, which can be passed by giving <code>-X</code><em>&lt;option&gt;</em>
-arguments to <code>git</code> <code>merge</code> and/or <code>git</code> <code>pull</code>.</p></div>
+can also take their own options, which can be passed by giving <code>-X&lt;option&gt;</code>
+arguments to <code>git merge</code> and/or <code>git pull</code>.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 ort
@@ -2024,7 +2024,7 @@ rename-threshold=&lt;n&gt;
 </dt>
 <dd>
 <p>
-        Deprecated synonym for <code>find-renames=</code><em>&lt;n&gt;</em>.
+        Deprecated synonym for <code>find-renames=&lt;n&gt;</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2157,14 +2157,14 @@ substitutes the changed version instead.</p></div>
 <div class="sect1">
 <h2 id="_notes">NOTES</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>You should understand the implications of using <code>git</code> <code>rebase</code> on a
+<div class="paragraph"><p>You should understand the implications of using <code>git rebase</code> on a
 repository that you share.  See also RECOVERING FROM UPSTREAM REBASE
 below.</p></div>
 <div class="paragraph"><p>When the rebase is run, it will first execute a <code>pre-rebase</code> hook if one
 exists.  You can use this hook to do sanity checks and reject the rebase
 if it isn&#8217;t appropriate.  Please see the template <code>pre-rebase</code> hook script
 for an example.</p></div>
-<div class="paragraph"><p>Upon completion, <em>&lt;branch&gt;</em> will be the current branch.</p></div>
+<div class="paragraph"><p>Upon completion, <code>&lt;branch&gt;</code> will be the current branch.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -2252,7 +2252,7 @@ pick fa1afe1 The oneline of the next commit
 not look at them but at the commit names ("deadbee" and "fa1afe1" in this
 example), so do not delete or edit the names.</p></div>
 <div class="paragraph"><p>By replacing the command "pick" with the command "edit", you can tell
-<code>git</code> <code>rebase</code> to stop after applying that commit, so that you can edit
+<code>git rebase</code> to stop after applying that commit, so that you can edit
 the files and/or the commit message, amend the commit, and continue
 rebasing.</p></div>
 <div class="paragraph"><p>To interrupt the rebase (just like an "edit" command would do, but without
@@ -2275,12 +2275,12 @@ incorporated into the folded commit. If there is more than one "fixup -c"
 commit, the message from the final one is used.  You can also use
 "fixup -C" to get the same behavior as "fixup -c" except without opening
 an editor.</p></div>
-<div class="paragraph"><p><code>git</code> <code>rebase</code> will stop when "pick" has been replaced with "edit" or
+<div class="paragraph"><p><code>git rebase</code> will stop when "pick" has been replaced with "edit" or
 when a command fails due to merge errors. When you are done editing
-and/or resolving conflicts you can continue with <code>git</code> <code>rebase</code> <code>--continue</code>.</p></div>
+and/or resolving conflicts you can continue with <code>git rebase --continue</code>.</p></div>
 <div class="paragraph"><p>For example, if you want to reorder the last 5 commits, such that what
 was <code>HEAD~4</code> becomes the new <code>HEAD</code>. To achieve that, you would call
-<code>git</code> <code>rebase</code> like this:</p></div>
+<code>git rebase</code> like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git rebase -i HEAD~5</code></pre>
@@ -2319,7 +2319,7 @@ exec cd subdir; make test
 </div></div>
 <div class="paragraph"><p>The interactive rebase will stop when a command fails (i.e. exits with
 non-0 status) to give you an opportunity to fix the problem. You can
-continue with <code>git</code> <code>rebase</code> <code>--continue</code>.</p></div>
+continue with <code>git rebase --continue</code>.</p></div>
 <div class="paragraph"><p>The "exec" command launches the command in a shell (the default one, usually
 /bin/sh), so you can use shell features (like "cd", "&gt;", ";" &#8230;). The command
 is run from the root of the working tree.</p></div>
@@ -2346,14 +2346,14 @@ exec make test</code></pre>
 <h2 id="_splitting_commits">SPLITTING COMMITS</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>In interactive mode, you can mark commits with the action "edit".  However,
-this does not necessarily mean that <code>git</code> <code>rebase</code> expects the result of this
+this does not necessarily mean that <code>git rebase</code> expects the result of this
 edit to be exactly one commit.  Indeed, you can undo the commit, or you can
 add other commits.  This can be used to split a commit into two:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-Start an interactive rebase with <code>git</code> <code>rebase</code> <code>-i</code> <em>&lt;commit&gt;</em><code>^</code>, where
-  <em>&lt;commit&gt;</em> is the commit you want to split.  In fact, any commit range
+Start an interactive rebase with <code>git rebase -i &lt;commit&gt;^</code>, where
+  <code>&lt;commit&gt;</code> is the commit you want to split.  In fact, any commit range
   will do, as long as it contains that commit.
 </p>
 </li>
@@ -2364,7 +2364,7 @@ Mark the commit you want to split with the action "edit".
 </li>
 <li>
 <p>
-When it comes to editing that commit, execute <code>git</code> <code>reset</code> <code>HEAD^</code>.  The
+When it comes to editing that commit, execute <code>git reset HEAD^</code>.  The
   effect is that the <code>HEAD</code> is rewound by one, and the index follows suit.
   However, the working tree stays the same.
 </p>
@@ -2372,8 +2372,8 @@ When it comes to editing that commit, execute <code>git</code> <code>reset</code
 <li>
 <p>
 Now add the changes to the index that you want to have in the first
-  commit.  You can use <code>git</code> <code>add</code> (possibly interactively) or
-  <code>git</code> <code>gui</code> (or both) to do that.
+  commit.  You can use <code>git add</code> (possibly interactively) or
+  <code>git gui</code> (or both) to do that.
 </p>
 </li>
 <li>
@@ -2389,13 +2389,13 @@ Repeat the last two steps until your working tree is clean.
 </li>
 <li>
 <p>
-Continue the rebase with <code>git</code> <code>rebase</code> <code>--continue</code>.
+Continue the rebase with <code>git rebase --continue</code>.
 </p>
 </li>
 </ul></div>
 <div class="paragraph"><p>If you are not absolutely sure that the intermediate revisions are
 consistent (they compile, pass the testsuite, etc.) you should use
-<code>git</code> <code>stash</code> to stash away the not-yet-committed changes
+<code>git stash</code> to stash away the not-yet-committed changes
 after each commit, test, and amend the commit if fixes are necessary.</p></div>
 </div>
 </div>
@@ -2461,7 +2461,7 @@ Hard case: The changes are not the same.
 <p>
         This happens if the <em>subsystem</em> rebase had conflicts, or used
         <code>--interactive</code> to omit, edit, squash, or fixup commits; or
-        if the upstream used one of <code>commit</code> <code>--amend</code>, <code>reset</code>, or
+        if the upstream used one of <code>commit --amend</code>, <code>reset</code>, or
         a full history rewriting command like
         <a href="https://github.com/newren/git-filter-repo"><code>filter-repo</code></a>.
 </p>
@@ -2501,19 +2501,19 @@ correspond to the ones before the rebase.</p></div>
 </td>
 <td class="content">While an "easy case recovery" sometimes appears to be successful
       even in the hard case, it may have unintended consequences.  For
-      example, a commit that was removed via <code>git</code> <code>rebase</code>
-      <code>--interactive</code> will be <strong>resurrected</strong>!</td>
+      example, a commit that was removed via <code>git rebase
+      --interactive</code> will be <strong>resurrected</strong>!</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>The idea is to manually tell <code>git</code> <code>rebase</code> "where the old <em>subsystem</em>
+<div class="paragraph"><p>The idea is to manually tell <code>git rebase</code> "where the old <em>subsystem</em>
 ended and your <em>topic</em> began", that is, what the old merge base
 between them was.  You will have to find a way to name the last commit
 of the old <em>subsystem</em>, for example:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-With the <em>subsystem</em> reflog: after <code>git</code> <code>fetch</code>, the old tip of
-  <em>subsystem</em> is at <code>subsystem@</code>{1}.  Subsequent fetches will
+With the <em>subsystem</em> reflog: after <code>git fetch</code>, the old tip of
+  <em>subsystem</em> is at <code>subsystem@{1}</code>.  Subsequent fetches will
   increase the number.  (See <a href="git-reflog.html">git-reflog(1)</a>.)
 </p>
 </li>
@@ -2524,7 +2524,7 @@ Relative to the tip of <em>topic</em>: knowing that your <em>topic</em> has thre
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>You can then transplant the old <code>subsystem</code><code>..</code><code>topic</code> to the new tip by
+<div class="paragraph"><p>You can then transplant the old <code>subsystem..topic</code> to the new tip by
 saying (for the reflog case, and assuming you are on <em>topic</em> already):</p></div>
 <div class="listingblock">
 <div class="content">
@@ -2551,7 +2551,7 @@ topology") when working on multiple, inter-related branches.</p></div>
 <div class="paragraph"><p>In the following example, the developer works on a topic branch that
 refactors the way buttons are defined, and on another topic branch
 that uses that refactoring to implement a "Report a bug" button. The
-output of <code>git</code> <code>log</code> <code>--graph</code> <code>--format=</code>%s <code>-5</code> may look like this:</p></div>
+output of <code>git log --graph --format=%s -5</code> may look like this:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>*   Merge branch 'report-a-bug'
@@ -2593,19 +2593,19 @@ merge -C 6f5e4d report-a-bug # Merge 'report-a-bug'</code></pre>
 and <code>merge</code> commands in addition to <code>pick</code> ones.</p></div>
 <div class="paragraph"><p>The <code>label</code> command associates a label with the current HEAD when that
 command is executed. These labels are created as worktree-local refs
-(<code>refs/rewritten/</code><em>&lt;label&gt;</em>) that will be deleted when the rebase
+(<code>refs/rewritten/&lt;label&gt;</code>) that will be deleted when the rebase
 finishes. That way, rebase operations in multiple worktrees linked to
 the same repository do not interfere with one another. If the <code>label</code>
 command fails, it is rescheduled immediately, with a helpful message how
 to proceed.</p></div>
 <div class="paragraph"><p>The <code>reset</code> command resets the HEAD, index and worktree to the specified
-revision. It is similar to an <code>exec</code> <code>git</code> <code>reset</code> <code>--hard</code> <em>&lt;label&gt;</em>, but
+revision. It is similar to an <code>exec git reset --hard &lt;label&gt;</code>, but
 refuses to overwrite untracked files. If the <code>reset</code> command fails, it is
 rescheduled immediately, with a helpful message how to edit the todo list
 (this typically happens when a <code>reset</code> command was inserted into the todo
 list manually and contains a typo).</p></div>
 <div class="paragraph"><p>The <code>merge</code> command will merge the specified revision(s) into whatever
-is HEAD at that time. With <code>-C</code> <em>&lt;original-commit&gt;</em>, the commit message of
+is HEAD at that time. With <code>-C &lt;original-commit&gt;</code>, the commit message of
 the specified merge commit will be used. When the <code>-C</code> is changed to
 a lower-case <code>-c</code>, the message will be opened in an editor after a
 successful merge so that the user can edit the message.</p></div>
@@ -2615,17 +2615,17 @@ when the merge operation did not even start), it is rescheduled immediately.</p>
 regular merges, and <code>octopus</code> for octopus merges.  One can specify a
 default strategy for all merges using the <code>--strategy</code> argument when
 invoking rebase, or can override specific merges in the interactive
-list of commands by using an <code>exec</code> command to call <code>git</code> <code>merge</code>
-explicitly with a <code>--strategy</code> argument.  Note that when calling <code>git</code>
-<code>merge</code> explicitly like this, you can make use of the fact that the
+list of commands by using an <code>exec</code> command to call <code>git merge</code>
+explicitly with a <code>--strategy</code> argument.  Note that when calling <code>git
+merge</code> explicitly like this, you can make use of the fact that the
 labels are worktree-local refs (the ref <code>refs/rewritten/onto</code> would
 correspond to the label <code>onto</code>, for example) in order to refer to the
 branches you want to merge.</p></div>
-<div class="paragraph"><p>Note: the first command (<code>label</code> <code>onto</code>) labels the revision onto which
+<div class="paragraph"><p>Note: the first command (<code>label onto</code>) labels the revision onto which
 the commits are rebased; The name <code>onto</code> is just a convention, as a nod
 to the <code>--onto</code> option.</p></div>
 <div class="paragraph"><p>It is also possible to introduce completely new merge commits from scratch
-by adding a command of the form <code>merge</code> <em>&lt;merge-head&gt;</em>. This form will
+by adding a command of the form <code>merge &lt;merge-head&gt;</code>. This form will
 generate a tentative commit message and always open an editor to let the
 user edit it. This can be useful e.g. when a topic branch turns out to
 address more than a single concern and wants to be split into two or
@@ -2753,7 +2753,7 @@ rebase.abbreviateCommands
 </dt>
 <dd>
 <p>
-        If set to true, <code>git</code> <code>rebase</code> will use abbreviated command names in the
+        If set to true, <code>git rebase</code> will use abbreviated command names in the
         todo list resulting in something like this:
 </p>
 <div class="listingblock">
@@ -2820,7 +2820,7 @@ sequence.editor
 </dt>
 <dd>
 <p>
-        Text editor used by <code>git</code> <code>rebase</code> <code>-i</code> for editing the rebase instruction file.
+        Text editor used by <code>git rebase -i</code> for editing the rebase instruction file.
         The value is meant to be interpreted by the shell when it is used.
         It can be overridden by the <code>GIT_SEQUENCE_EDITOR</code> environment variable.
         When not configured, the default commit message editor is used instead.

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitignore(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -844,26 +844,26 @@ A blank line matches no files, so it can serve as a separator
 <li>
 <p>
 A line starting with # serves as a comment.
-   Put a backslash ("\") in front of the first hash for patterns
+   Put a backslash ("<code>\</code>") in front of the first hash for patterns
    that begin with a hash.
 </p>
 </li>
 <li>
 <p>
 Trailing spaces are ignored unless they are quoted with backslash
-   ("\").
+   ("<code>\</code>").
 </p>
 </li>
 <li>
 <p>
-An optional prefix "!" which negates the pattern; any
+An optional prefix "<code>!</code>" which negates the pattern; any
    matching file excluded by a previous pattern will become
    included again. It is not possible to re-include a file if a parent
    directory of that file is excluded. Git doesn&#8217;t list excluded
    directories for performance reasons, so any patterns on contained
    files have no effect, no matter where they are defined.
-   Put a backslash ("\") in front of the first "!" for patterns
-   that begin with a literal "!", for example, "\!important!.txt".
+   Put a backslash ("<code>\</code>") in front of the first "<code>!</code>" for patterns
+   that begin with a literal "<code>!</code>", for example, "<code>\!important!.txt</code>".
 </p>
 </li>
 <li>
@@ -897,37 +897,37 @@ For example, a pattern <code>doc/frotz/</code> matches <code>doc/frotz</code> di
 </li>
 <li>
 <p>
-An asterisk "*" matches anything except a slash.
-   The character "?" matches any one character except "<code>/</code>".
-   The range notation, e.g. [<code>a-zA-Z</code>], can be used to match
+An asterisk "<code>*</code>" matches anything except a slash.
+   The character "<code>?</code>" matches any one character except "<code>/</code>".
+   The range notation, e.g. <code>[a-zA-Z]</code>, can be used to match
    one of the characters in a range. See fnmatch(3) and the
    FNM_PATHNAME flag for a more detailed description.
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>Two consecutive asterisks ("**") in patterns matched against
+<div class="paragraph"><p>Two consecutive asterisks ("<code>**</code>") in patterns matched against
 full pathname may have special meaning:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-A leading "**" followed by a slash means match in all
-   directories. For example, "**/foo" matches file or directory
-   "<code>foo</code>" anywhere, the same as pattern "<code>foo</code>". "**/foo/bar"
+A leading "<code>**</code>" followed by a slash means match in all
+   directories. For example, "<code>**/foo</code>" matches file or directory
+   "<code>foo</code>" anywhere, the same as pattern "<code>foo</code>". "<code>**/foo/bar</code>"
    matches file or directory "<code>bar</code>" anywhere that is directly
    under directory "<code>foo</code>".
 </p>
 </li>
 <li>
 <p>
-A trailing "<code>/</code>**" matches everything inside. For example,
-   "<code>abc/</code>**" matches all files inside directory "<code>abc</code>", relative
+A trailing "<code>/**</code>" matches everything inside. For example,
+   "<code>abc/**</code>" matches all files inside directory "<code>abc</code>", relative
    to the location of the <code>.gitignore</code> file, with infinite depth.
 </p>
 </li>
 <li>
 <p>
 A slash followed by two consecutive asterisks then a slash
-   matches zero or more directories. For example, "<code>a/</code>**/b"
+   matches zero or more directories. For example, "<code>a/**/b</code>"
    matches "<code>a/b</code>", "<code>a/x/b</code>", "<code>a/x/y/b</code>" and so on.
 </p>
 </li>
@@ -969,10 +969,10 @@ accessed from the index or a tree versus from the filesystem.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-The pattern <code>hello.</code>* matches any file or directory
+The pattern <code>hello.*</code> matches any file or directory
    whose name begins with <code>hello.</code>. If one wants to restrict
    this only to the directory and not in its subdirectories,
-   one can prepend the pattern with a slash, i.e. <code>/hello.</code>*;
+   one can prepend the pattern with a slash, i.e. <code>/hello.*</code>;
    the pattern now matches <code>hello.txt</code>, <code>hello.c</code> but not
    <code>a/hello.java</code>.
 </p>
@@ -995,7 +995,7 @@ The pattern <code>doc/frotz</code> and <code>/doc/frotz</code> have the same eff
 </li>
 <li>
 <p>
-The pattern <code>foo/</code>*, matches <code>foo/test.json</code>
+The pattern <code>foo/*</code>, matches <code>foo/test.json</code>
    (a regular file), <code>foo/bar</code> (a directory), but it does not match
    <code>foo/bar/hello.c</code> (a regular file), as the asterisk in the
    pattern does not match <code>bar/hello.c</code> which has a slash in it.
@@ -1041,7 +1041,7 @@ The pattern <code>foo/</code>*, matches <code>foo/test.json</code>
 <div class="paragraph"><p>The second .gitignore prevents Git from ignoring
 <code>arch/foo/kernel/vmlinux.lds.S</code>.</p></div>
 <div class="paragraph"><p>Example to exclude everything except a specific directory <code>foo/bar</code>
-(note the <code>/</code>* - without the slash, the wildcard would also exclude
+(note the <code>/*</code> - without the slash, the wildcard would also exclude
 everything within <code>foo/bar</code>):</p></div>
 <div class="listingblock">
 <div class="content">

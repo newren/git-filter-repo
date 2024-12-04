@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>My First Contribution to the Git Project</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -735,7 +735,7 @@ asciidoc.install();
 <body class="article">
 <div id="header">
 <h1>My First Contribution to the Git Project</h1>
-<span id="revdate">2024-11-23</span>
+<span id="revdate">2024-11-27</span>
 </div>
 <div id="content">
 <div class="sect1">
@@ -836,7 +836,7 @@ new clone of Git from the above step:</p></div>
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">The Git build is parallelizable. <code>-j</code># is not included above but you can
+<td class="content">The Git build is parallelizable. <code>-j#</code> is not included above but you can
 use it as you prefer, here and elsewhere.</td>
 </tr></table>
 </div>
@@ -902,8 +902,8 @@ in order to keep the declarations alphabetically sorted:</p></div>
 <div class="content">
 <pre><code>int cmd_psuh(int argc, const char **argv, const char *prefix);</code></pre>
 </div></div>
-<div class="paragraph"><p>Be sure to #include "builtin.h" in your <code>psuh.c</code>. You&#8217;ll also need to
-#include "gettext.h" to use functions related to printing output text.</p></div>
+<div class="paragraph"><p>Be sure to <code>#include "builtin.h"</code> in your <code>psuh.c</code>. You&#8217;ll also need to
+<code>#include "gettext.h"</code> to use functions related to printing output text.</p></div>
 <div class="paragraph"><p>Go ahead and add some throwaway printf to the <code>cmd_psuh</code> function. This is a
 decent starting point as we can now add build rules and register the command.</p></div>
 <div class="admonitionblock">
@@ -949,7 +949,7 @@ it off, but it&#8217;s a good idea to mention the problem to the mailing list.</
 <div class="paragraph"><p>Great, now your new command builds happily on its own. But nobody invokes it.
 Let&#8217;s change that.</p></div>
 <div class="paragraph"><p>The list of commands lives in <code>git.c</code>. We can register a new command by adding
-a <code>cmd_struct</code> to the <code>commands</code>[] array. <code>struct</code> <code>cmd_struct</code> takes a string
+a <code>cmd_struct</code> to the <code>commands[]</code> array. <code>struct cmd_struct</code> takes a string
 with the command name, a function pointer to the command implementation, and a
 setup option flag. For now, let&#8217;s keep mimicking <code>push</code>. Find the line where
 <code>cmd_push</code> is registered, copy it, and modify it for <code>cmd_psuh</code>, placing the new
@@ -965,7 +965,7 @@ and see if it works. There&#8217;s a binary you can use to test with in the
 <pre><code>$ ./bin-wrappers/git psuh</code></pre>
 </div></div>
 <div class="paragraph"><p>Check it out! You&#8217;ve got a command! Nice work! Let&#8217;s commit this.</p></div>
-<div class="paragraph"><p><code>git</code> <code>status</code> reveals modified <code>Makefile</code>, <code>builtin.h</code>, and <code>git.c</code> as well as
+<div class="paragraph"><p><code>git status</code> reveals modified <code>Makefile</code>, <code>builtin.h</code>, and <code>git.c</code> as well as
 untracked <code>builtin/psuh.c</code> and <code>git-psuh</code>. First, let&#8217;s take care of the binary,
 which should be ignored. Open <code>.gitignore</code> in your editor, find <code>/git-pull</code>, and
 add an entry for your new command in alphabetical order:</p></div>
@@ -980,7 +980,7 @@ add an entry for your new command in alphabetical order:</p></div>
 /git-range-diff
 ...</code></pre>
 </div></div>
-<div class="paragraph"><p>Checking <code>git</code> <code>status</code> again should show that <code>git-psuh</code> has been removed from
+<div class="paragraph"><p>Checking <code>git status</code> again should show that <code>git-psuh</code> has been removed from
 the untracked list and <code>.gitignore</code> has been added to the modified list. Now we
 can stage and commit:</p></div>
 <div class="listingblock">
@@ -1013,7 +1013,7 @@ such as answering the question "why?".
 
 Signed-off-by: A U Thor &lt;author@example.com&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p>Go ahead and inspect your new commit with <code>git</code> <code>show</code>. "psuh:" indicates you
+<div class="paragraph"><p>Go ahead and inspect your new commit with <code>git show</code>. "psuh:" indicates you
 have modified mainly the <code>psuh</code> command. The subject line gives readers an idea
 of what you&#8217;ve changed. The sign-off line (<code>-s</code>) indicates that you agree to
 the Developer&#8217;s Certificate of Origin 1.1 (see the
@@ -1027,7 +1027,7 @@ on the reference implementation linked at the top of this document.</p></div>
 <div class="paragraph"><p>It&#8217;s probably useful to do at least something besides printing out a string.
 Let&#8217;s start by having a look at everything we get.</p></div>
 <div class="paragraph"><p>Modify your <code>cmd_psuh</code> implementation to dump the args you&#8217;re passed, keeping
-existing <code>printf</code>() calls in place:</p></div>
+existing <code>printf()</code> calls in place:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>        int i;
@@ -1046,9 +1046,9 @@ existing <code>printf</code>() calls in place:</p></div>
 </div></div>
 <div class="paragraph"><p>Build and try it. As you may expect, there&#8217;s pretty much just whatever we give
 on the command line, including the name of our command. (If <code>prefix</code> is empty
-for you, try <code>cd</code> <code>Documentation/</code> &amp;&amp; <code>..</code><code>/bin-wrappers/git</code> <code>psuh</code>). That&#8217;s not so
+for you, try <code>cd Documentation/ &amp;&amp; ../bin-wrappers/git psuh</code>). That&#8217;s not so
 helpful. So what other context can we get?</p></div>
-<div class="paragraph"><p>Add a line to #include "config.h". Then, add the following bits to the
+<div class="paragraph"><p>Add a line to <code>#include "config.h"</code>. Then, add the following bits to the
 function body:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1062,11 +1062,11 @@ function body:</p></div>
         else
                 printf(_("Your name: %s\n"), cfg_name);</code></pre>
 </div></div>
-<div class="paragraph"><p><code>git_config</code>() will grab the configuration from config files known to Git and
-apply standard precedence rules. <code>git_config_get_string_tmp</code>() will look up
+<div class="paragraph"><p><code>git_config()</code> will grab the configuration from config files known to Git and
+apply standard precedence rules. <code>git_config_get_string_tmp()</code> will look up
 a specific key ("user.name") and give you the value. There are a number of
 single-key lookup functions like this one; you can see them all (and more info
-about how to use <code>git_config</code>()) in <code>Documentation/technical/api-config.txt</code>.</p></div>
+about how to use <code>git_config()</code>) in <code>Documentation/technical/api-config.txt</code>.</p></div>
 <div class="paragraph"><p>You should see that the name printed matches the one you see when you run:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1091,22 +1091,22 @@ message.</td>
 </div>
 <div class="paragraph"><p>Still, it&#8217;d be nice to know what the user&#8217;s working context is like. Let&#8217;s see
 if we can print the name of the user&#8217;s current branch. We can mimic the
-<code>git</code> <code>status</code> implementation; the printer is located in <code>wt-status.c</code> and we can
-see that the branch is held in a <code>struct</code> <code>wt_status</code>.</p></div>
-<div class="paragraph"><p><code>wt_status_print</code>() gets invoked by <code>cmd_status</code>() in <code>builtin/commit.c</code>.
+<code>git status</code> implementation; the printer is located in <code>wt-status.c</code> and we can
+see that the branch is held in a <code>struct wt_status</code>.</p></div>
+<div class="paragraph"><p><code>wt_status_print()</code> gets invoked by <code>cmd_status()</code> in <code>builtin/commit.c</code>.
 Looking at that implementation we see the status config being populated like so:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>status_init_config(&amp;s, git_status_config);</code></pre>
 </div></div>
-<div class="paragraph"><p>But as we drill down, we can find that <code>status_init_config</code>() wraps a call
-to <code>git_config</code>(). Let&#8217;s modify the code we wrote in the previous commit.</p></div>
-<div class="paragraph"><p>Be sure to include the header to allow you to use <code>struct</code> <code>wt_status</code>:</p></div>
+<div class="paragraph"><p>But as we drill down, we can find that <code>status_init_config()</code> wraps a call
+to <code>git_config()</code>. Let&#8217;s modify the code we wrote in the previous commit.</p></div>
+<div class="paragraph"><p>Be sure to include the header to allow you to use <code>struct wt_status</code>:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>#include "wt-status.h"</code></pre>
 </div></div>
-<div class="paragraph"><p>Then modify your <code>cmd_psuh</code> implementation to declare your <code>struct</code> <code>wt_status</code>,
+<div class="paragraph"><p>Then modify your <code>cmd_psuh</code> implementation to declare your <code>struct wt_status</code>,
 prepare it, and print its contents:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1131,7 +1131,7 @@ $ git commit -sm "psuh: print the current branch"</code></pre>
 <div class="paragraph"><p>Now let&#8217;s see if we can get some info about a specific commit.</p></div>
 <div class="paragraph"><p>Luckily, there are some helpers for us here. <code>commit.h</code> has a function called
 <code>lookup_commit_reference_by_name</code> to which we can simply provide a hardcoded
-string; <code>pretty.h</code> has an extremely handy <code>pp_commit_easy</code>() call which doesn&#8217;t
+string; <code>pretty.h</code> has an extremely handy <code>pp_commit_easy()</code> call which doesn&#8217;t
 require a full format object to be passed.</p></div>
 <div class="paragraph"><p>Add the following includes:</p></div>
 <div class="listingblock">
@@ -1139,7 +1139,7 @@ require a full format object to be passed.</p></div>
 <pre><code>#include "commit.h"
 #include "pretty.h"</code></pre>
 </div></div>
-<div class="paragraph"><p>Then, add the following lines within your implementation of <code>cmd_psuh</code>() near
+<div class="paragraph"><p>Then, add the following lines within your implementation of <code>cmd_psuh()</code> near
 the declarations and the logic, respectively.</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1155,9 +1155,9 @@ the declarations and the logic, respectively.</p></div>
                 printf(_("Current commit: %s\n"), commitline.buf);
         }</code></pre>
 </div></div>
-<div class="paragraph"><p>The <code>struct</code> <code>strbuf</code> provides some safety belts to your basic <code>char</code>*, one of
+<div class="paragraph"><p>The <code>struct strbuf</code> provides some safety belts to your basic <code>char*</code>, one of
 which is a length member to prevent buffer overruns. It needs to be initialized
-nicely with <code>STRBUF_INIT</code>. Keep it in mind when you need to pass around <code>char</code>*.</p></div>
+nicely with <code>STRBUF_INIT</code>. Keep it in mind when you need to pass around <code>char*</code>.</p></div>
 <div class="paragraph"><p><code>lookup_commit_reference_by_name</code> resolves the name you pass it, so you can play
 with the value there and see what kind of things you can come up with.</p></div>
 <div class="paragraph"><p><code>pp_commit_easy</code> is a convenience wrapper in <code>pretty.h</code> that takes a single
@@ -1183,7 +1183,7 @@ following:</p></div>
 <pre><code>$ ./bin-wrappers/git help psuh</code></pre>
 </div></div>
 <div class="paragraph"><p>Your new command is undocumented! Let&#8217;s fix that.</p></div>
-<div class="paragraph"><p>Take a look at <code>Documentation/git-</code>*.txt. These are the manpages for the
+<div class="paragraph"><p>Take a look at <code>Documentation/git-*.txt</code>. These are the manpages for the
 subcommands that Git knows about. You can open these up and take a look to get
 acquainted with the format, but then go ahead and make a new file
 <code>Documentation/git-psuh.txt</code>. Like with most of the documentation in the Git
@@ -1249,16 +1249,16 @@ $ man Documentation/git-psuh.1</code></pre>
 <pre><code>$ make -C Documentation/ git-psuh.1
 $ man Documentation/git-psuh.1</code></pre>
 </div></div>
-<div class="paragraph"><p>While this isn&#8217;t as satisfying as running through <code>git</code> <code>help</code>, you can at least
+<div class="paragraph"><p>While this isn&#8217;t as satisfying as running through <code>git help</code>, you can at least
 check that your help page looks right.</p></div>
 <div class="paragraph"><p>You can also check that the documentation coverage is good (that is, the project
 sees that your command has been implemented as well as documented) by running
-<code>make</code> <code>check-docs</code> from the top-level.</p></div>
+<code>make check-docs</code> from the top-level.</p></div>
 <div class="paragraph"><p>Go ahead and commit your new documentation change.</p></div>
 </div>
 <div class="sect2">
 <h3 id="add-usage">Adding Usage Text</h3>
-<div class="paragraph"><p>Try and run <code>./bin-wrappers/git</code> <code>psuh</code> <code>-h</code>. Your command should crash at the end.
+<div class="paragraph"><p>Try and run <code>./bin-wrappers/git psuh -h</code>. Your command should crash at the end.
 That&#8217;s because <code>-h</code> is a special case which your command should handle by
 printing usage.</p></div>
 <div class="paragraph"><p>Take a look at <code>Documentation/technical/api-parse-options.txt</code>. This is a handy
@@ -1266,7 +1266,7 @@ tool for pulling out options you need to be able to handle, and it takes a
 usage string.</p></div>
 <div class="paragraph"><p>In order to use it, we&#8217;ll need to prepare a NULL-terminated array of usage
 strings and a <code>builtin_psuh_options</code> array.</p></div>
-<div class="paragraph"><p>Add a line to #include "parse-options.h".</p></div>
+<div class="paragraph"><p>Add a line to <code>#include "parse-options.h"</code>.</p></div>
 <div class="paragraph"><p>At global scope, add your array of usage strings:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1275,9 +1275,9 @@ strings and a <code>builtin_psuh_options</code> array.</p></div>
         NULL,
 };</code></pre>
 </div></div>
-<div class="paragraph"><p>Then, within your <code>cmd_psuh</code>() implementation, we can declare and populate our
+<div class="paragraph"><p>Then, within your <code>cmd_psuh()</code> implementation, we can declare and populate our
 <code>option</code> struct. Ours is pretty boring but you can add more to it if you want to
-explore <code>parse_options</code>() in more detail:</p></div>
+explore <code>parse_options()</code> in more detail:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>        struct option options[] = {
@@ -1285,7 +1285,7 @@ explore <code>parse_options</code>() in more detail:</p></div>
         };</code></pre>
 </div></div>
 <div class="paragraph"><p>Finally, before you print your args and prefix, add the call to
-<code>parse-options</code>():</p></div>
+<code>parse-options()</code>:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>        argc = parse_options(argc, argv, prefix, options, psuh_usage, 0);</code></pre>
@@ -1293,24 +1293,24 @@ explore <code>parse_options</code>() in more detail:</p></div>
 <div class="paragraph"><p>This call will modify your <code>argv</code> parameter. It will strip the options you
 specified in <code>options</code> from <code>argv</code> and the locations pointed to from <code>options</code>
 entries will be updated. Be sure to replace your <code>argc</code> with the result from
-<code>parse_options</code>(), or you will be confused if you try to parse <code>argv</code> later.</p></div>
+<code>parse_options()</code>, or you will be confused if you try to parse <code>argv</code> later.</p></div>
 <div class="paragraph"><p>It&#8217;s worth noting the special argument <code>--</code>. As you may be aware, many Unix
 commands use <code>--</code> to indicate "end of named parameters" - all parameters after
 the <code>--</code> are interpreted merely as positional arguments. (This can be handy if
 you want to pass as a parameter something which would usually be interpreted as
-a flag.) <code>parse_options</code>() will terminate parsing when it reaches <code>--</code> and give
+a flag.) <code>parse_options()</code> will terminate parsing when it reaches <code>--</code> and give
 you the rest of the options afterwards, untouched.</p></div>
 <div class="paragraph"><p>Now that you have a usage hint, you can teach Git how to show it in the general
-command list shown by <code>git</code> <code>help</code> <code>git</code> or <code>git</code> <code>help</code> <code>-a</code>, which is generated from
+command list shown by <code>git help git</code> or <code>git help -a</code>, which is generated from
 <code>command-list.txt</code>. Find the line for <em>git-pull</em> so you can add your <em>git-psuh</em>
 line above it in alphabetical order. Now, we can add some attributes about the
 command which impacts where it shows up in the aforementioned help commands. The
 top of <code>command-list.txt</code> shares some information about what each attribute
 means; in those help pages, the commands are sorted according to these
-attributes. <code>git</code> <code>psuh</code> is user-facing, or porcelain - so we will mark it as
+attributes. <code>git psuh</code> is user-facing, or porcelain - so we will mark it as
 "mainporcelain". For "mainporcelain" commands, the comments at the top of
 <code>command-list.txt</code> indicate we can also optionally add an attribute from another
-list; since <code>git</code> <code>psuh</code> shows some information about the user&#8217;s workspace but
+list; since <code>git psuh</code> shows some information about the user&#8217;s workspace but
 doesn&#8217;t modify anything, let&#8217;s mark it as "info". Make sure to keep your
 attributes in the same style as the rest of <code>command-list.txt</code> using spaces to
 align and delineate them:</p></div>
@@ -1376,7 +1376,7 @@ This test runs git-psuh and makes sure it does not crash.'
 . ./test-lib.sh</code></pre>
 </div></div>
 <div class="paragraph"><p>Tests are framed inside of a <code>test_expect_success</code> in order to output TAP
-formatted results. Let&#8217;s make sure that <code>git</code> <code>psuh</code> doesn&#8217;t exit poorly and does
+formatted results. Let&#8217;s make sure that <code>git psuh</code> doesn&#8217;t exit poorly and does
 mention the right animal somewhere:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1397,7 +1397,7 @@ bottom of your script:</p></div>
 <pre><code>$ chmod +x t/t9999-psuh-tutorial.sh</code></pre>
 </div></div>
 <div class="paragraph"><p>You can get an idea of whether you created your new test script successfully
-by running <code>make</code> <code>-C</code> <code>t</code> <code>test-lint</code>, which will check for things like test number
+by running <code>make -C t test-lint</code>, which will check for things like test number
 uniqueness, executable bit, and so on.</p></div>
 </div>
 <div class="sect2">
@@ -1419,7 +1419,7 @@ $ prove -j$(nproc) --shuffle t[0-9]*.sh</code></pre>
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">You can also do this with <code>make</code> <code>test</code> or use any testing harness which can
+<td class="content">You can also do this with <code>make test</code> or use any testing harness which can
 speak TAP. <code>prove</code> can run concurrently. <code>shuffle</code> randomizes the order the
 tests are run in, which makes them resilient against unwanted inter-test
 dependencies. <code>prove</code> also makes the output nicer.</td>
@@ -1539,13 +1539,13 @@ different methods of formatting your patchset and getting it reviewed.</p></div>
 <div class="paragraph"><p>The first method to be covered is GitGitGadget, which is useful for those
 already familiar with GitHub&#8217;s common pull request workflow. This method
 requires a GitHub account.</p></div>
-<div class="paragraph"><p>The second method to be covered is <code>git</code> <code>send-email</code>, which can give slightly
+<div class="paragraph"><p>The second method to be covered is <code>git send-email</code>, which can give slightly
 more fine-grained control over the emails to be sent. This method requires some
 setup which can change depending on your system and will not be covered in this
 tutorial.</p></div>
 <div class="paragraph"><p>Regardless of which method you choose, your engagement with reviewers will be
 the same; the review process will be covered after the sections on GitGitGadget
-and <code>git</code> <code>send-email</code>.</p></div>
+and <code>git send-email</code>.</p></div>
 </div>
 </div>
 </div>
@@ -1570,7 +1570,7 @@ button. Place your fork wherever you deem appropriate and create it.</p></div>
 <div class="sect2">
 <h3 id="upload-to-fork">Uploading to Your Own Fork</h3>
 <div class="paragraph"><p>To upload your branch to your own fork, you&#8217;ll need to add the new fork as a
-remote. You can use <code>git</code> <code>remote</code> <code>-v</code> to show the remotes you have added already.
+remote. You can use <code>git remote -v</code> to show the remotes you have added already.
 From your new fork&#8217;s page on GitHub, you can press "Clone or download" to get
 the URL; then you need to run the following to add, replacing your own URL and
 remote name for the examples provided:</p></div>
@@ -1583,11 +1583,11 @@ remote name for the examples provided:</p></div>
 <div class="content">
 <pre><code>$ git remote add remotename https://github.com/remotename/git/.git</code></pre>
 </div></div>
-<div class="paragraph"><p>Run <code>git</code> <code>remote</code> <code>-v</code> again and you should see the new remote showing up.
-<code>git</code> <code>fetch</code> <code>remotename</code> (with the real name of your remote replaced) in order to
+<div class="paragraph"><p>Run <code>git remote -v</code> again and you should see the new remote showing up.
+<code>git fetch remotename</code> (with the real name of your remote replaced) in order to
 get ready to push.</p></div>
 <div class="paragraph"><p>Next, double-check that you&#8217;ve been doing all your development in a new branch
-by running <code>git</code> <code>branch</code>. If you didn&#8217;t, now is a good time to move your new
+by running <code>git branch</code>. If you didn&#8217;t, now is a good time to move your new
 commits to their own branch.</p></div>
 <div class="paragraph"><p>As mentioned briefly at the beginning of this document, we are basing our work
 on <code>master</code>, so go ahead and update as shown below, or using your preferred
@@ -1640,7 +1640,7 @@ submitted).</td>
 <div class="paragraph"><p>If it&#8217;s your first time using GitGitGadget (which is likely, as you&#8217;re using
 this tutorial) then someone will need to give you permission to use the tool.
 As mentioned in the GitGitGadget documentation, you just need someone who
-already uses it to comment on your PR with <code>/allow</code> <em>&lt;username&gt;</em>. GitGitGadget
+already uses it to comment on your PR with <code>/allow &lt;username&gt;</code>. GitGitGadget
 will automatically run your PRs through the CI even without the permission given
 but you will not be able to <code>/submit</code> your changes until someone allows you to
 use the tool.</p></div>
@@ -1658,7 +1658,7 @@ granted the <code>/allow</code> can now <code>/allow</code> you, or by inquiring
 linking your pull request and asking for someone to <code>/allow</code> you.</td>
 </tr></table>
 </div>
-<div class="paragraph"><p>If the CI fails, you can update your changes with <code>git</code> <code>rebase</code> <code>-i</code> and push your
+<div class="paragraph"><p>If the CI fails, you can update your changes with <code>git rebase -i</code> and push your
 branch again:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1695,7 +1695,7 @@ changes.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="howto-git-send-email">Sending Patches with <code>git</code> <code>send-email</code></h2>
+<h2 id="howto-git-send-email">Sending Patches with <code>git send-email</code></h2>
 <div class="sectionbody">
 <div class="paragraph"><p>If you don&#8217;t want to use GitGitGadget, you can also use Git itself to mail your
 patches. Some benefits of using Git this way include finer grained control of
@@ -1703,7 +1703,7 @@ subject line (for example, being able to use the tag [RFC PATCH] in the subject)
 and being able to send a &#8220;dry run&#8221; mail to yourself to ensure it all looks
 good before going out to the list.</p></div>
 <div class="sect2">
-<h3 id="setup-git-send-email">Prerequisite: Setting Up <code>git</code> <code>send-email</code></h3>
+<h3 id="setup-git-send-email">Prerequisite: Setting Up <code>git send-email</code></h3>
 <div class="paragraph"><p>Configuration for <code>send-email</code> can vary based on your operating system and email
 provider, and so will not be covered in this tutorial, beyond stating that in
 many distributions of Linux, <code>git-send-email</code> is not packaged alongside the
@@ -1732,8 +1732,8 @@ The <code>--cover-letter</code> option tells <code>format-patch</code> to create
 </li>
 <li>
 <p>
-The <code>-o</code> <code>psuh/</code> option tells <code>format-patch</code> to place the patch
-   files into a directory. This is useful because <code>git</code> <code>send-email</code>
+The <code>-o psuh/</code> option tells <code>format-patch</code> to place the patch
+   files into a directory. This is useful because <code>git send-email</code>
    can take a directory and send out all the patches from there.
 </p>
 </li>
@@ -1749,11 +1749,11 @@ The <code>--base=auto</code> option tells the command to record the "base
 </li>
 <li>
 <p>
-The <code>psuh@</code>{u}<code>..</code><code>psuh</code> option tells <code>format-patch</code> to generate
+The <code>psuh@{u}..psuh</code> option tells <code>format-patch</code> to generate
    patches for the commits you created on the <code>psuh</code> branch since it
    forked from its upstream (which is <code>origin/master</code> if you
    followed the example in the "Set up your workspace" section).  If
-   you are already on the <code>psuh</code> branch, you can just say <code>@</code>{u},
+   you are already on the <code>psuh</code> branch, you can just say <code>@{u}</code>,
    which means "commits on the current branch since it forked from
    its upstream", which is the same thing.
 </p>
@@ -1763,7 +1763,7 @@ The <code>psuh@</code>{u}<code>..</code><code>psuh</code> option tells <code>for
 run, you can go have a look at each of the patches with your favorite text
 editor and make sure everything looks alright; however, it&#8217;s not recommended to
 make code fixups via the patch file. It&#8217;s a better idea to make the change the
-normal way using <code>git</code> <code>rebase</code> <code>-i</code> or by adding a new commit than by modifying a
+normal way using <code>git rebase -i</code> or by adding a new commit than by modifying a
 patch.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1798,11 +1798,11 @@ how to choose good title for your patch series):</p></div>
 <div class="paragraph"><p>Make sure you retain the &#8220;[PATCH 0/X]&#8221; part; that&#8217;s what indicates to the Git
 community that this email is the beginning of a patch series, and many
 reviewers filter their email for this type of flag.</p></div>
-<div class="paragraph"><p>You&#8217;ll need to add some extra parameters when you invoke <code>git</code> <code>send-email</code> to add
+<div class="paragraph"><p>You&#8217;ll need to add some extra parameters when you invoke <code>git send-email</code> to add
 the cover letter.</p></div>
 <div class="paragraph"><p>Next you&#8217;ll have to fill out the body of your cover letter. Again, see
 <a href="#cover-letter">above</a> for what content to include.</p></div>
-<div class="paragraph"><p>The template created by <code>git</code> <code>format-patch</code> <code>--cover-letter</code> includes a diffstat.
+<div class="paragraph"><p>The template created by <code>git format-patch --cover-letter</code> includes a diffstat.
 This gives reviewers a summary of what they&#8217;re in for when reviewing your topic.
 The one generated for <code>psuh</code> from the sample implementation looks like this:</p></div>
 <div class="listingblock">
@@ -1834,7 +1834,7 @@ patches and a cover letter. Time to mail it out! You can send it like this:</p><
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">Check <code>git</code> <code>help</code> <code>send-email</code> for some other options which you may find
+<td class="content">Check <code>git help send-email</code> for some other options which you may find
 valuable, such as changing the Reply-to address or adding more CC and BCC lines.</td>
 </tr></table>
 </div>
@@ -1844,8 +1844,8 @@ valuable, such as changing the Reply-to address or adding more CC and BCC lines.
 <div class="title">Note</div>
 </td>
 <td class="content">If you&#8217;re not sure whom to CC, running <code>contrib/contacts/git-contacts</code> can
-list potential reviewers. In addition, you can do <code>git</code> <code>send-email</code>
-<code>--cc-cmd=</code>'perl <code>contrib/contacts/git-contacts</code>' <code>feature/</code>*.patch<span class="footnote" id="_footnote_contrib-scripts"><br />[Scripts under <code>ontrib</code> are not part of the core <code>i</code> binary and must be called directly. Clone the Git codebase and run <code>erl</code> <code>contrib/contacts/git-contact</code>.]<br /></span> to
+list potential reviewers. In addition, you can do <code>git send-email
+--cc-cmd='perl contrib/contacts/git-contacts' feature/*.patch</code><span class="footnote" id="_footnote_contrib-scripts"><br />[Scripts under <code>contrib/</code> are not part of the core <code>git</code> binary and must be called directly. Clone the Git codebase and run <code>perl contrib/contacts/git-contacts</code>.]<br /></span> to
 automatically pass this list of emails to <code>send-email</code>.</td>
 </tr></table>
 </div>
@@ -1878,14 +1878,14 @@ mark the tip of our v1 branch for easy reference:</p></div>
 <pre><code>$ git checkout psuh
 $ git branch psuh-v1</code></pre>
 </div></div>
-<div class="paragraph"><p>Refine your patch series by using <code>git</code> <code>rebase</code> <code>-i</code> to adjust commits based upon
+<div class="paragraph"><p>Refine your patch series by using <code>git rebase -i</code> to adjust commits based upon
 reviewer comments. Once the patch series is ready for submission, generate your
 patches again, but with some new flags:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>$ git format-patch -v2 --cover-letter -o psuh/ --range-diff master..psuh-v1 master..</code></pre>
 </div></div>
-<div class="paragraph"><p>The <code>--range-diff</code> <code>master</code><code>..</code><code>psuh-v1</code> parameter tells <code>format-patch</code> to include a
+<div class="paragraph"><p>The <code>--range-diff master..psuh-v1</code> parameter tells <code>format-patch</code> to include a
 range-diff between <code>psuh-v1</code> and <code>psuh</code> in the cover letter (see
 <a href="git-range-diff.html">git-range-diff(1)</a>). This helps tell reviewers about the differences
 between your v1 and v2 patches.</p></div>
@@ -1898,14 +1898,14 @@ and your range-diff will be prefaced with "Range-diff against v1".</p></div>
 directory, alongside the v1 patches. Using a single directory makes it easy to
 refer to the old v1 patches while proofreading the v2 patches, but you will need
 to be careful to send out only the v2 patches. We will use a pattern like
-<code>psuh/v2-</code>*.patch (not <code>psuh/</code>*.patch, which would match v1 and v2 patches).</p></div>
+<code>psuh/v2-*.patch</code> (not <code>psuh/*.patch</code>, which would match v1 and v2 patches).</p></div>
 <div class="paragraph"><p>Edit your cover letter again. Now is a good time to mention what&#8217;s different
 between your last version and now, if it&#8217;s something significant. You do not
 need the exact same body in your second cover letter; focus on explaining to
 reviewers the changes you&#8217;ve made that may not be as visible.</p></div>
 <div class="paragraph"><p>You will also need to go and find the Message-ID of your previous cover letter.
-You can either note it when you send the first series, from the output of <code>git</code>
-<code>send-email</code>, or you can look it up on the
+You can either note it when you send the first series, from the output of <code>git
+send-email</code>, or you can look it up on the
 <a href="https://lore.kernel.org/git">mailing list</a>. Find your cover letter in the
 archives, click on it, then click "permalink" or "raw" to reveal the Message-ID
 header. It should match:</p></div>
@@ -1913,7 +1913,7 @@ header. It should match:</p></div>
 <div class="content">
 <pre><code>Message-ID: &lt;foo.12345.author@example.com&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p>Your Message-ID is &lt;foo.12345.author@example.com&gt;. This example will be used
+<div class="paragraph"><p>Your Message-ID is <code>&lt;foo.12345.author@example.com&gt;</code>. This example will be used
 below as well; make sure to replace it with the correct Message-ID for your
 <strong>previous cover letter</strong> - that is, if you&#8217;re sending v2, use the Message-ID
 from v1; if you&#8217;re sending v3, use the Message-ID from v2.</p></div>
@@ -1940,8 +1940,8 @@ to the command:</p></div>
 happens, you only need to send one email. Your commit message should already be
 meaningful and explain at a high level the purpose (what is happening and why)
 of your patch, but if you need to supply even more context, you can do so below
-the <code>---</code> in your patch. Take the example below, which was generated with <code>git</code>
-<code>format-patch</code> on a single commit, and then edited to add the content between
+the <code>---</code> in your patch. Take the example below, which was generated with <code>git
+format-patch</code> on a single commit, and then edited to add the content between
 the <code>---</code> and the diffstat.</p></div>
 <div class="listingblock">
 <div class="content">
@@ -2058,7 +2058,7 @@ outlined in the
 Note</a>, which are similar to etiquette rules in most open source communities
 surrounding bottom-posting and inline replies.</p></div>
 <div class="paragraph"><p>When you&#8217;re making changes to your code, it is cleanest - that is, the resulting
-commits are easiest to look at - if you use <code>git</code> <code>rebase</code> <code>-i</code> (interactive
+commits are easiest to look at - if you use <code>git rebase -i</code> (interactive
 rebase). Take a look at this
 <a href="https://www.oreilly.com/library/view/git-pocket-guide/9781449327507/ch10.html">overview</a>
 from O&#8217;Reilly. The general idea is to modify each commit which requires changes;
@@ -2091,16 +2091,16 @@ but have not yet done so - you should send an email asking the maintainer to
 wait a little longer: "I&#8217;ve sent v4 of my series and you marked it for <code>next</code>,
 but I need to change this and that - please wait for v5 before you merge it."</p></div>
 <div class="paragraph"><p>If the topic has already been merged to <code>next</code>, rather than modifying your
-patches with <code>git</code> <code>rebase</code> <code>-i</code>, you should make further changes incrementally -
+patches with <code>git rebase -i</code>, you should make further changes incrementally -
 that is, with another commit, based on top of the maintainer&#8217;s topic branch as
 detailed in <a href="https://github.com/gitster/git">https://github.com/gitster/git</a>. Your work is still in the same topic
 but is now incremental, rather than a wholesale rewrite of the topic branch.</p></div>
 <div class="paragraph"><p>The topic branches in the maintainer&#8217;s GitHub are mirrored in GitGitGadget, so
 if you&#8217;re sending your reviews out that way, you should be sure to open your PR
 against the appropriate GitGitGadget/Git branch.</p></div>
-<div class="paragraph"><p>If you&#8217;re using <code>git</code> <code>send-email</code>, you can use it the same way as before, but you
-should generate your diffs from <em>&lt;topic&gt;</em><code>..</code><em>&lt;mybranch&gt;</em> and base your work on
-<em>&lt;topic&gt;</em> instead of <code>master</code>.</p></div>
+<div class="paragraph"><p>If you&#8217;re using <code>git send-email</code>, you can use it the same way as before, but you
+should generate your diffs from <code>&lt;topic&gt;..&lt;mybranch&gt;</code> and base your work on
+<code>&lt;topic&gt;</code> instead of <code>master</code>.</p></div>
 </div>
 </div>
 </div>

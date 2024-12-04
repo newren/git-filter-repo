@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitformat-signature(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -762,7 +762,7 @@ gitformat-signature(5) Manual Page
 commits, mergetags) and transactions (pushes). In every case, the command which
 is about to create an object or transaction determines a payload from that,
 calls an external program to obtain a detached signature for the payload
-(<code>gpg</code> <code>-bsa</code> in the case of PGP signatures), and embeds the signature into the
+(<code>gpg -bsa</code> in the case of PGP signatures), and embeds the signature into the
 object or transaction.</p></div>
 <div class="paragraph"><p>Signatures begin with an "ASCII Armor" header line and end with a tail line,
 which differ depending on signature type (as selected by <code>gpg.format</code>, see
@@ -773,9 +773,9 @@ which differ depending on signature type (as selected by <code>gpg.format</code>
 </dt>
 <dd>
 <p>
-        <code>-----BEGIN</code> <code>PGP</code> <code>SIGNATURE-----</code> and <code>-----END</code> <code>PGP</code> <code>SIGNATURE-----</code>.
+        <code>-----BEGIN PGP SIGNATURE-----</code> and <code>-----END PGP SIGNATURE-----</code>.
         Or, if gpg is told to produce RFC1991 signatures,
-        <code>-----BEGIN</code> <code>PGP</code> <code>MESSAGE-----</code> and <code>-----END</code> <code>PGP</code> <code>MESSAGE-----</code>
+        <code>-----BEGIN PGP MESSAGE-----</code> and <code>-----END PGP MESSAGE-----</code>
 </p>
 </dd>
 <dt class="hdlist1">
@@ -783,7 +783,7 @@ which differ depending on signature type (as selected by <code>gpg.format</code>
 </dt>
 <dd>
 <p>
-        <code>-----BEGIN</code> <code>SSH</code> <code>SIGNATURE-----</code> and <code>-----END</code> <code>SSH</code> <code>SIGNATURE-----</code>
+        <code>-----BEGIN SSH SIGNATURE-----</code> and <code>-----END SSH SIGNATURE-----</code>
 </p>
 </dd>
 <dt class="hdlist1">
@@ -791,7 +791,7 @@ which differ depending on signature type (as selected by <code>gpg.format</code>
 </dt>
 <dd>
 <p>
-        <code>-----BEGIN</code> <code>SIGNED</code> <code>MESSAGE-----</code> and <code>-----END</code> <code>SIGNED</code> <code>MESSAGE-----</code>
+        <code>-----BEGIN SIGNED MESSAGE-----</code> and <code>-----END SIGNED MESSAGE-----</code>
 </p>
 </dd>
 </dl></div>
@@ -819,7 +819,7 @@ on the type of the object resp. transaction.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-created by: <code>git</code> <code>tag</code> <code>-s</code>
+created by: <code>git tag -s</code>
 </p>
 </li>
 <li>
@@ -834,7 +834,7 @@ embedding: append the signature to the unsigned tag object
 </li>
 <li>
 <p>
-example: tag <code>signedtag</code> with subject <code>signed</code> <code>tag</code>
+example: tag <code>signedtag</code> with subject <code>signed tag</code>
 </p>
 </li>
 </ul></div>
@@ -863,7 +863,7 @@ lZyI6HWixKJkWw8lE9aAOD9TmTW9sFJwcVAzmAuFX2kUreDUKMZduGcoRYGpD7E=
 <div class="ulist"><ul>
 <li>
 <p>
-verify with: <code>git</code> <code>verify-tag</code> [<code>-v</code>] or <code>git</code> <code>tag</code> <code>-v</code>
+verify with: <code>git verify-tag [-v]</code> or <code>git tag -v</code>
 </p>
 </li>
 </ul></div>
@@ -891,7 +891,7 @@ signed tag message body</code></pre>
 <div class="ulist"><ul>
 <li>
 <p>
-created by: <code>git</code> <code>commit</code> <code>-S</code>
+created by: <code>git commit -S</code>
 </p>
 </li>
 <li>
@@ -907,7 +907,7 @@ embedding: header entry <code>gpgsig</code>
 </li>
 <li>
 <p>
-example: commit with subject <code>signed</code> <code>commit</code>
+example: commit with subject <code>signed commit</code>
 </p>
 </li>
 </ul></div>
@@ -936,7 +936,7 @@ signed commit message body</code></pre>
 <div class="ulist"><ul>
 <li>
 <p>
-verify with: <code>git</code> <code>verify-commit</code> [<code>-v</code>] (or <code>git</code> <code>show</code> <code>--show-signature</code>)
+verify with: <code>git verify-commit [-v]</code> (or <code>git show --show-signature</code>)
 </p>
 </li>
 </ul></div>
@@ -964,7 +964,7 @@ signed commit message body</code></pre>
 <div class="ulist"><ul>
 <li>
 <p>
-created by: <code>git</code> <code>merge</code> on signed tag
+created by: <code>git merge</code> on signed tag
 </p>
 </li>
 <li>
@@ -1022,7 +1022,7 @@ signed tag message body
 <li>
 <p>
 verify with: verification is embedded in merge commit message by default,
-  alternatively with <code>git</code> <code>show</code> <code>--show-signature</code>:
+  alternatively with <code>git show --show-signature</code>:
 </p>
 </li>
 </ul></div>

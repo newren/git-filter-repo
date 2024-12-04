@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-gc(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -765,9 +765,9 @@ reflog, rerere metadata or stale working trees. May also update ancillary
 indexes such as the commit-graph.</p></div>
 <div class="paragraph"><p>When common porcelain operations that create objects are run, they
 will check whether the repository has grown substantially since the
-last maintenance, and if so run <code>git</code> <code>gc</code> automatically. See <code>gc.auto</code>
+last maintenance, and if so run <code>git gc</code> automatically. See <code>gc.auto</code>
 below for how to disable this behavior.</p></div>
-<div class="paragraph"><p>Running <code>git</code> <code>gc</code> manually should only be needed when adding objects to
+<div class="paragraph"><p>Running <code>git gc</code> manually should only be needed when adding objects to
 a repository without regularly running such porcelain commands, to do
 a one-off repository optimization, or e.g. to clean up a suboptimal
 mass-import. See the "PACKFILE OPTIMIZATION" section in
@@ -830,7 +830,7 @@ be performed as well.</p></div>
 <dd>
 <p>
         When packing unreachable objects into a cruft pack, limit the
-        size of new cruft packs to be at most <em>&lt;n&gt;</em> bytes. Overrides any
+        size of new cruft packs to be at most <code>&lt;n&gt;</code> bytes. Overrides any
         value specified via the <code>gc.maxCruftSize</code> configuration. See
         the <code>--max-cruft-size</code> option of <a href="git-repack.html">git-repack(1)</a> for
         more.
@@ -870,7 +870,7 @@ be performed as well.</p></div>
 </dt>
 <dd>
 <p>
-        Force <code>git</code> <code>gc</code> to run even if there may be another <code>git</code> <code>gc</code>
+        Force <code>git gc</code> to run even if there may be another <code>git gc</code>
         instance running on this repository.
 </p>
 </dd>
@@ -951,13 +951,13 @@ gc.auto
 <dd>
 <p>
         When there are approximately more than this many loose
-        objects in the repository, <code>git</code> <code>gc</code> <code>--auto</code> will pack them.
+        objects in the repository, <code>git gc --auto</code> will pack them.
         Some Porcelain commands use this command to perform a
         light-weight garbage collection from time to time.  The
         default value is 6700.
 </p>
 <div class="paragraph"><p>Setting this to 0 disables not only automatic packing based on the
-number of loose objects, but also any other heuristic <code>git</code> <code>gc</code> <code>--auto</code> will
+number of loose objects, but also any other heuristic <code>git gc --auto</code> will
 otherwise use to determine if there&#8217;s work to do, such as
 <code>gc.autoPackLimit</code>.</p></div>
 </dd>
@@ -967,8 +967,8 @@ gc.autoPackLimit
 <dd>
 <p>
         When there are more than this many packs that are not
-        marked with *.keep file in the repository, <code>git</code> <code>gc</code>
-        <code>--auto</code> consolidates them into one larger pack.  The
+        marked with <code>*.keep</code> file in the repository, <code>git gc
+        --auto</code> consolidates them into one larger pack.  The
         default value is 50.  Setting this to 0 disables it.
         Setting <code>gc.auto</code> to 0 will also disable this.
 </p>
@@ -980,7 +980,7 @@ gc.autoDetach
 </dt>
 <dd>
 <p>
-        Make <code>git</code> <code>gc</code> <code>--auto</code> return immediately and run in the background
+        Make <code>git gc --auto</code> return immediately and run in the background
         if the system supports it. Default is true. This config variable acts
         as a fallback in case <code>maintenance.autoDetach</code> is not set.
 </p>
@@ -991,7 +991,7 @@ gc.bigPackThreshold
 <dd>
 <p>
         If non-zero, all non-cruft packs larger than this limit are kept
-        when <code>git</code> <code>gc</code> is run. This is very similar to
+        when <code>git gc</code> is run. This is very similar to
         <code>--keep-largest-pack</code> except that all non-cruft packs that meet
         the threshold are kept, not just the largest pack. Defaults to
         zero. Common unit suffixes of <em>k</em>, <em>m</em>, or <em>g</em> are supported.
@@ -1000,9 +1000,9 @@ gc.bigPackThreshold
 this configuration variable is ignored, all packs except the base pack
 will be repacked. After this the number of packs should go below
 gc.autoPackLimit and gc.bigPackThreshold should be respected again.</p></div>
-<div class="paragraph"><p>If the amount of memory estimated for <code>git</code> <code>repack</code> to run smoothly is
+<div class="paragraph"><p>If the amount of memory estimated for <code>git repack</code> to run smoothly is
 not available and <code>gc.bigPackThreshold</code> is not set, the largest pack
-will also be excluded (this is the equivalent of running <code>git</code> <code>gc</code> with
+will also be excluded (this is the equivalent of running <code>git gc</code> with
 <code>--keep-largest-pack</code>).</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1011,7 +1011,7 @@ gc.writeCommitGraph
 <dd>
 <p>
         If true, then gc will rewrite the commit-graph file when
-        <a href="git-gc.html">git-gc(1)</a> is run. When using <code>git</code> <code>gc</code> <code>--auto</code>
+        <a href="git-gc.html">git-gc(1)</a> is run. When using <code>git gc --auto</code>
         the commit-graph will be updated if housekeeping is
         required. Default is true. See <a href="git-commit-graph.html">git-commit-graph(1)</a>
         for details.
@@ -1022,7 +1022,7 @@ gc.logExpiry
 </dt>
 <dd>
 <p>
-        If the file gc.log exists, then <code>git</code> <code>gc</code> <code>--auto</code> will print
+        If the file gc.log exists, then <code>git gc --auto</code> will print
         its content and exit with status zero instead of running
         unless that file is more than <em>gc.logExpiry</em> old.  Default is
         "1.day".  See <code>gc.pruneExpire</code> for more ways to specify its
@@ -1034,10 +1034,10 @@ gc.packRefs
 </dt>
 <dd>
 <p>
-        Running <code>git</code> <code>pack-refs</code> in a repository renders it
+        Running <code>git pack-refs</code> in a repository renders it
         unclonable by Git versions prior to 1.5.1.2 over dumb
         transports such as HTTP.  This variable determines whether
-        <em>git gc</em> runs <code>git</code> <code>pack-refs</code>. This can be set to <code>notbare</code>
+        <em>git gc</em> runs <code>git pack-refs</code>. This can be set to <code>notbare</code>
         to enable it within all non-bare repos or it can be set to a
         boolean value.  The default is <code>true</code>.
 </p>
@@ -1124,8 +1124,8 @@ gc.&lt;pattern&gt;.reflogExpireUnreachable
         in the middle, the setting applies only to the refs that
         match the &lt;pattern&gt;.
 </p>
-<div class="paragraph"><p>These types of entries are generally created as a result of using <code>git</code>
-<code>commit</code> <code>--amend</code> or <code>git</code> <code>rebase</code> and are the commits prior to the amend
+<div class="paragraph"><p>These types of entries are generally created as a result of using <code>git
+commit --amend</code> or <code>git rebase</code> and are the commits prior to the amend
 or rebase occurring.  Since these changes are not part of the current
 project most users will want to expire them sooner, which is why the
 default is more aggressive than <code>gc.reflogExpire</code>.</p></div>
@@ -1156,7 +1156,7 @@ gc.repackFilter
 <p>
         When repacking, use the specified filter to move certain
         objects into a separate packfile.  See the
-        <code>--filter=</code><em>&lt;filter-spec&gt;</em> option of <a href="git-repack.html">git-repack(1)</a>.
+        <code>--filter=&lt;filter-spec&gt;</code> option of <a href="git-repack.html">git-repack(1)</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1170,7 +1170,7 @@ gc.repackFilterTo
         specified location should be accessible, using for example the
         Git alternates mechanism, otherwise the repo could be
         considered corrupt by Git as it might not be able to access the
-        objects in that packfile. See the <code>--filter-to=</code><em>&lt;dir&gt;</em> option
+        objects in that packfile. See the <code>--filter-to=&lt;dir&gt;</code> option
         of <a href="git-repack.html">git-repack(1)</a> and the <code>objects/info/alternates</code>
         section of <a href="gitrepository-layout.html">gitrepository-layout(5)</a>.
 </p>

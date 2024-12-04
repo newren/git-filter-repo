@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-fast-import(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -879,7 +879,7 @@ already trusted to run their own code.</code></pre>
 <dd>
 <p>
         Dumps the internal marks table to &lt;file&gt; when complete.
-        Marks are written one per line as <code>:markid</code> <code>SHA-1</code>.
+        Marks are written one per line as <code>:markid SHA-1</code>.
         Frontends can use this file to validate imports after they
         have been completed, or to save the marks table across
         incremental runs.  As &lt;file&gt; is only opened and truncated
@@ -939,8 +939,8 @@ already trusted to run their own code.</code></pre>
 <p>
   Rewrite the object IDs for the submodule specified by &lt;name&gt; from the values
         used in the from &lt;file&gt; to those used in the to &lt;file&gt;. The from marks should
-        have been created by <code>git</code> <code>fast-export</code>, and the to marks should have been
-        created by <code>git</code> <code>fast-import</code> when importing that same submodule.
+        have been created by <code>git fast-export</code>, and the to marks should have been
+        created by <code>git fast-import</code> when importing that same submodule.
 </p>
 <div class="paragraph"><p>&lt;name&gt; may be any arbitrary string not containing a colon character, but the
 same value must be used with both options when specifying corresponding marks.
@@ -1051,7 +1051,7 @@ an ideal situation, given that most conversion tools are throw-away
 <h2 id="_parallel_operation">PARALLEL OPERATION</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Like <em>git push</em> or <em>git fetch</em>, imports handled by fast-import are safe to
-run alongside parallel <code>git</code> <code>repack</code> <code>-a</code> <code>-d</code> or <code>git</code> <code>gc</code> invocations,
+run alongside parallel <code>git repack -a -d</code> or <code>git gc</code> invocations,
 or any other Git operation (including <em>git prune</em>, as loose objects
 are never used by fast-import).</p></div>
 <div class="paragraph"><p>fast-import does not lock the branch or tag refs it is actively importing.
@@ -1104,7 +1104,7 @@ unexpected input.</p></div>
 <div class="sect2">
 <h3 id="_stream_comments">Stream Comments</h3>
 <div class="paragraph"><p>To aid in debugging frontends fast-import ignores any line that
-begins with # (ASCII pound/hash) up to and including the line
+begins with <code>#</code> (ASCII pound/hash) up to and including the line
 ending <code>LF</code>.  A comment line may contain any sequence of bytes
 that does not contain an LF and therefore may be used to include
 any detailed debugging information that might be specific to the
@@ -1121,17 +1121,17 @@ in the --date-format=&lt;fmt&gt; command-line option.</p></div>
 </dt>
 <dd>
 <p>
-        This is the Git native format and is <em>&lt;time&gt;</em> <code>SP</code> <em>&lt;offutc&gt;</em>.
+        This is the Git native format and is <code>&lt;time&gt; SP &lt;offutc&gt;</code>.
         It is also fast-import&#8217;s default format, if --date-format was
         not specified.
 </p>
-<div class="paragraph"><p>The time of the event is specified by <em>&lt;time&gt;</em> as the number of
+<div class="paragraph"><p>The time of the event is specified by <code>&lt;time&gt;</code> as the number of
 seconds since the UNIX epoch (midnight, Jan 1, 1970, UTC) and is
 written as an ASCII decimal integer.</p></div>
-<div class="paragraph"><p>The local offset is specified by <em>&lt;offutc&gt;</em> as a positive or negative
+<div class="paragraph"><p>The local offset is specified by <code>&lt;offutc&gt;</code> as a positive or negative
 offset from UTC.  For example EST (which is 5 hours behind UTC)
-would be expressed in <em>&lt;tz&gt;</em> by &#8220;-0500&#8221; while UTC is &#8220;+0000&#8221;.
-The local offset does not affect <em>&lt;time&gt;</em>; it is used only as an
+would be expressed in <code>&lt;tz&gt;</code> by &#8220;-0500&#8221; while UTC is &#8220;+0000&#8221;.
+The local offset does not affect <code>&lt;time&gt;</code>; it is used only as an
 advisement to help formatting routines display the timestamp.</p></div>
 <div class="paragraph"><p>If the local offset is not available in the source material, use
 &#8220;+0000&#8221;, or the most common local offset.  For example many
@@ -1188,7 +1188,7 @@ ambiguity in parsing.</p></div>
 <dd>
 <p>
         Always use the current time and time zone.  The literal
-        <code>now</code> must always be supplied for <em>&lt;when&gt;</em>.
+        <code>now</code> must always be supplied for <code>&lt;when&gt;</code>.
 </p>
 <div class="paragraph"><p>This is a toy format.  The current time and time zone of this system
 is always copied into the identity string at the time it is being
@@ -1294,7 +1294,7 @@ and control the current import process.  More detailed discussion
 <p>
         Marks the end of the stream. This command is optional
         unless the <code>done</code> feature was requested using the
-        <code>--done</code> command-line option or <code>feature</code> <code>done</code> command.
+        <code>--done</code> command-line option or <code>feature done</code> command.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1366,11 +1366,11 @@ change to the project.</p></div>
         (filemodify | filedelete | filecopy | filerename | filedeleteall | notemodify)*
         LF?</code></pre>
 </div></div>
-<div class="paragraph"><p>where <em>&lt;ref&gt;</em> is the name of the branch to make the commit on.
+<div class="paragraph"><p>where <code>&lt;ref&gt;</code> is the name of the branch to make the commit on.
 Typically branch names are prefixed with <code>refs/heads/</code> in
 Git, so importing the CVS branch symbol <code>RELENG-1_0</code> would use
-<code>refs/heads/RELENG-1_0</code> for the value of <em>&lt;ref&gt;</em>.  The value of
-<em>&lt;ref&gt;</em> must be a valid refname in Git.  As <code>LF</code> is not valid in
+<code>refs/heads/RELENG-1_0</code> for the value of <code>&lt;ref&gt;</code>.  The value of
+<code>&lt;ref&gt;</code> must be a valid refname in Git.  As <code>LF</code> is not valid in
 a Git refname, no quoting or escaping syntax is supported here.</p></div>
 <div class="paragraph"><p>A <code>mark</code> command may optionally appear, requesting fast-import to save a
 reference to the newly created commit for future use by the frontend
@@ -1407,14 +1407,14 @@ the fields in <code>author</code>, as they are identical to <code>committer</cod
 <h4 id="_code_committer_code"><code>committer</code></h4>
 <div class="paragraph"><p>The <code>committer</code> command indicates who made this commit, and when
 they made it.</p></div>
-<div class="paragraph"><p>Here <em>&lt;name&gt;</em> is the person&#8217;s display name (for example
-&#8220;Com M Itter&#8221;) and <em>&lt;email&gt;</em> is the person&#8217;s email address
+<div class="paragraph"><p>Here <code>&lt;name&gt;</code> is the person&#8217;s display name (for example
+&#8220;Com M Itter&#8221;) and <code>&lt;email&gt;</code> is the person&#8217;s email address
 (&#8220;cm@example.com&#8221;).  <code>LT</code> and <code>GT</code> are the literal less-than (\x3c)
 and greater-than (\x3e) symbols.  These are required to delimit
 the email address from the other fields in the line.  Note that
-<em>&lt;name&gt;</em> and <em>&lt;email&gt;</em> are free-form and may contain any sequence
-of bytes, except <code>LT</code>, <code>GT</code> and <code>LF</code>.  <em>&lt;name&gt;</em> is typically UTF-8 encoded.</p></div>
-<div class="paragraph"><p>The time of the change is specified by <em>&lt;when&gt;</em> using the date format
+<code>&lt;name&gt;</code> and <code>&lt;email&gt;</code> are free-form and may contain any sequence
+of bytes, except <code>LT</code>, <code>GT</code> and <code>LF</code>.  <code>&lt;name&gt;</code> is typically UTF-8 encoded.</p></div>
+<div class="paragraph"><p>The time of the change is specified by <code>&lt;when&gt;</code> using the date format
 that was selected by the --date-format=&lt;fmt&gt; command-line option.
 See &#8220;Date Formats&#8221; above for the set of supported formats, and
 their syntax.</p></div>
@@ -1442,8 +1442,8 @@ Omitting the <code>from</code> command on existing branches is usually desired,
 as the current commit on that branch is automatically assumed to
 be the first ancestor of the new commit.</p></div>
 <div class="paragraph"><p>As <code>LF</code> is not valid in a Git refname or SHA-1 expression, no
-quoting or escaping syntax is supported within <em>&lt;commit-ish&gt;</em>.</p></div>
-<div class="paragraph"><p>Here <em>&lt;commit-ish&gt;</em> is any of the following:</p></div>
+quoting or escaping syntax is supported within <code>&lt;commit-ish&gt;</code>.</p></div>
+<div class="paragraph"><p>Here <code>&lt;commit-ish&gt;</code> is any of the following:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1454,7 +1454,7 @@ The name of an existing branch already in fast-import&#8217;s internal branch
 </li>
 <li>
 <p>
-A mark reference, <code>:</code><em>&lt;idnum&gt;</em>, where <em>&lt;idnum&gt;</em> is the mark number.
+A mark reference, <code>:&lt;idnum&gt;</code>, where <code>&lt;idnum&gt;</code> is the mark number.
 </p>
 <div class="paragraph"><p>The reason fast-import uses <code>:</code> to denote a mark reference is this character
 is not legal in a Git branch name.  The leading <code>:</code> makes it easy
@@ -1503,7 +1503,7 @@ omitted when creating a new branch, the first <code>merge</code> commit will be
 the first ancestor of the current commit, and the branch will start
 out with no files.  An unlimited number of <code>merge</code> commands per
 commit are permitted by fast-import, thereby establishing an n-way merge.</p></div>
-<div class="paragraph"><p>Here <em>&lt;commit-ish&gt;</em> is any of the commit specification expressions
+<div class="paragraph"><p>Here <code>&lt;commit-ish&gt;</code> is any of the commit specification expressions
 also accepted by <code>from</code> (see above).</p></div>
 </div>
 <div class="sect3">
@@ -1524,10 +1524,10 @@ External data format
 <div class="content">
 <pre><code>        'M' SP &lt;mode&gt; SP &lt;dataref&gt; SP &lt;path&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>Here usually <em>&lt;dataref&gt;</em> must be either a mark reference (<code>:</code><em>&lt;idnum&gt;</em>)
+<div class="paragraph"><p>Here usually <code>&lt;dataref&gt;</code> must be either a mark reference (<code>:&lt;idnum&gt;</code>)
 set by a prior <code>blob</code> command, or a full 40-byte SHA-1 of an
-existing Git blob object.  If <em>&lt;mode&gt;</em> is <code>040000</code>` then
-<em>&lt;dataref&gt;</em> must be the full 40-byte SHA-1 of an existing
+existing Git blob object.  If <code>&lt;mode&gt;</code> is <code>040000`</code> then
+<code>&lt;dataref&gt;</code> must be the full 40-byte SHA-1 of an existing
 Git tree object or a mark reference set with <code>--import-marks</code>.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1547,7 +1547,7 @@ Inline data format
 <div class="paragraph"><p>See below for a detailed description of the <code>data</code> command.</p></div>
 </dd>
 </dl></div>
-<div class="paragraph"><p>In both formats <em>&lt;mode&gt;</em> is the type of file entry, specified
+<div class="paragraph"><p>In both formats <code>&lt;mode&gt;</code> is the type of file entry, specified
 in octal.  Git only supports the following modes:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -1581,26 +1581,26 @@ in octal.  Git only supports the following modes:</p></div>
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>In both formats <em>&lt;path&gt;</em> is the complete path of the file to be added
+<div class="paragraph"><p>In both formats <code>&lt;path&gt;</code> is the complete path of the file to be added
 (if not already existing) or modified (if already existing).</p></div>
-<div class="paragraph"><p>A <em>&lt;path&gt;</em> can be written as unquoted bytes or a C-style quoted string.</p></div>
-<div class="paragraph"><p>When a <em>&lt;path&gt;</em> does not start with a double quote ("), it is an
+<div class="paragraph"><p>A <code>&lt;path&gt;</code> can be written as unquoted bytes or a C-style quoted string.</p></div>
+<div class="paragraph"><p>When a <code>&lt;path&gt;</code> does not start with a double quote (<code>"</code>), it is an
 unquoted string and is parsed as literal bytes without any escape
 sequences. However, if the filename contains <code>LF</code> or starts with double
 quote, it cannot be represented as an unquoted string and must be
-quoted. Additionally, the source <em>&lt;path&gt;</em> in <code>filecopy</code> or <code>filerename</code>
+quoted. Additionally, the source <code>&lt;path&gt;</code> in <code>filecopy</code> or <code>filerename</code>
 must be quoted if it contains SP.</p></div>
-<div class="paragraph"><p>When a <em>&lt;path&gt;</em> starts with a double quote ("), it is a C-style quoted
+<div class="paragraph"><p>When a <code>&lt;path&gt;</code> starts with a double quote (<code>"</code>), it is a C-style quoted
 string, where the complete filename is enclosed in a pair of double
 quotes and escape sequences are used. Certain characters must be escaped
-by preceding them with a backslash: <code>LF</code> is written as \n, backslash
-as \\, and double quote as \". Some characters may optionally be
-written with escape sequences: \a for bell, \b for backspace, \f
-for form feed, \n for line feed, \r for carriage return, \t for
-horizontal tab, and \v for vertical tab. Any byte can be written with
-3-digit octal codes (e.g., \033). All filenames can be represented as
+by preceding them with a backslash: <code>LF</code> is written as <code>\n</code>, backslash
+as <code>\\</code>, and double quote as <code>\"</code>. Some characters may optionally be
+written with escape sequences: <code>\a</code> for bell, <code>\b</code> for backspace, <code>\f</code>
+for form feed, <code>\n</code> for line feed, <code>\r</code> for carriage return, <code>\t</code> for
+horizontal tab, and <code>\v</code> for vertical tab. Any byte can be written with
+3-digit octal codes (e.g., <code>\033</code>). All filenames can be represented as
 quoted strings.</p></div>
-<div class="paragraph"><p>A <em>&lt;path&gt;</em> must use UNIX-style directory separators (forward slash <code>/</code>)
+<div class="paragraph"><p>A <code>&lt;path&gt;</code> must use UNIX-style directory separators (forward slash <code>/</code>)
 and its value must be in canonical form. That is it must not:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -1620,14 +1620,14 @@ start with a directory separator (e.g. <code>/foo</code> is invalid),
 </li>
 <li>
 <p>
-contain the special component . or .. (e.g. <code>foo/./bar</code> and
-  <code>foo/</code><code>..</code><code>/bar</code> are invalid).
+contain the special component <code>.</code> or <code>..</code> (e.g. <code>foo/./bar</code> and
+  <code>foo/../bar</code> are invalid).
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>The root of the tree can be represented by an empty string as <em>&lt;path&gt;</em>.</p></div>
-<div class="paragraph"><p><em>&lt;path&gt;</em> cannot contain NUL, either literally or escaped as \000.
-It is recommended that <em>&lt;path&gt;</em> always be encoded using UTF-8.</p></div>
+<div class="paragraph"><p>The root of the tree can be represented by an empty string as <code>&lt;path&gt;</code>.</p></div>
+<div class="paragraph"><p><code>&lt;path&gt;</code> cannot contain NUL, either literally or escaped as <code>\000</code>.
+It is recommended that <code>&lt;path&gt;</code> always be encoded using UTF-8.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_code_filedelete_code"><code>filedelete</code></h4>
@@ -1640,9 +1640,9 @@ first non-empty directory or the root is reached.</p></div>
 <div class="content">
 <pre><code>        'D' SP &lt;path&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>here <em>&lt;path&gt;</em> is the complete path of the file or subdirectory to
+<div class="paragraph"><p>here <code>&lt;path&gt;</code> is the complete path of the file or subdirectory to
 be removed from the branch.
-See <code>filemodify</code> above for a detailed description of <em>&lt;path&gt;</em>.</p></div>
+See <code>filemodify</code> above for a detailed description of <code>&lt;path&gt;</code>.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_code_filecopy_code"><code>filecopy</code></h4>
@@ -1654,9 +1654,9 @@ by the content copied from the source.</p></div>
 <div class="content">
 <pre><code>        'C' SP &lt;path&gt; SP &lt;path&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>here the first <em>&lt;path&gt;</em> is the source location and the second
-<em>&lt;path&gt;</em> is the destination.  See <code>filemodify</code> above for a detailed
-description of what <em>&lt;path&gt;</em> may look like.  To use a source path
+<div class="paragraph"><p>here the first <code>&lt;path&gt;</code> is the source location and the second
+<code>&lt;path&gt;</code> is the destination.  See <code>filemodify</code> above for a detailed
+description of what <code>&lt;path&gt;</code> may look like.  To use a source path
 that contains SP the path must be quoted.</p></div>
 <div class="paragraph"><p>A <code>filecopy</code> command takes effect immediately.  Once the source
 location has been copied to the destination any future commands
@@ -1672,9 +1672,9 @@ the destination exists it will be replaced by the source directory.</p></div>
 <div class="content">
 <pre><code>        'R' SP &lt;path&gt; SP &lt;path&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>here the first <em>&lt;path&gt;</em> is the source location and the second
-<em>&lt;path&gt;</em> is the destination.  See <code>filemodify</code> above for a detailed
-description of what <em>&lt;path&gt;</em> may look like.  To use a source path
+<div class="paragraph"><p>here the first <code>&lt;path&gt;</code> is the source location and the second
+<code>&lt;path&gt;</code> is the destination.  See <code>filemodify</code> above for a detailed
+description of what <code>&lt;path&gt;</code> may look like.  To use a source path
 that contains SP the path must be quoted.</p></div>
 <div class="paragraph"><p>A <code>filerename</code> command takes effect immediately.  Once the source
 location has been renamed to the destination any future commands
@@ -1713,11 +1713,11 @@ paths for a commit are encouraged to do so.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_code_notemodify_code"><code>notemodify</code></h4>
-<div class="paragraph"><p>Included in a <code>commit</code> <em>&lt;notes-ref&gt;</em> command to add a new note
-annotating a <em>&lt;commit-ish&gt;</em> or change this annotation contents.
-Internally it is similar to filemodify 100644 on <em>&lt;commit-ish&gt;</em>
+<div class="paragraph"><p>Included in a <code>commit</code> <code>&lt;notes-ref&gt;</code> command to add a new note
+annotating a <code>&lt;commit-ish&gt;</code> or change this annotation contents.
+Internally it is similar to filemodify 100644 on <code>&lt;commit-ish&gt;</code>
 path (maybe split into subdirectories). It&#8217;s not advised to
-use any other commands to write to the <em>&lt;notes-ref&gt;</em> tree except
+use any other commands to write to the <code>&lt;notes-ref&gt;</code> tree except
 <code>filedeleteall</code> to delete all existing notes in this tree.
 This command has two different means of specifying the content
 of the note.</p></div>
@@ -1735,7 +1735,7 @@ External data format
 <div class="content">
 <pre><code>        'N' SP &lt;dataref&gt; SP &lt;commit-ish&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>Here <em>&lt;dataref&gt;</em> can be either a mark reference (<code>:</code><em>&lt;idnum&gt;</em>)
+<div class="paragraph"><p>Here <code>&lt;dataref&gt;</code> can be either a mark reference (<code>:&lt;idnum&gt;</code>)
 set by a prior <code>blob</code> command, or a full 40-byte SHA-1 of an
 existing Git blob object.</p></div>
 </dd>
@@ -1756,7 +1756,7 @@ Inline data format
 <div class="paragraph"><p>See below for a detailed description of the <code>data</code> command.</p></div>
 </dd>
 </dl></div>
-<div class="paragraph"><p>In both formats <em>&lt;commit-ish&gt;</em> is any of the commit specification
+<div class="paragraph"><p>In both formats <code>&lt;commit-ish&gt;</code> is any of the commit specification
 expressions also accepted by <code>from</code> (see above).</p></div>
 </div>
 </div>
@@ -1771,12 +1771,12 @@ command the <code>mark</code> command appears within.  This can be <code>commit<
 <div class="content">
 <pre><code>        'mark' SP ':' &lt;idnum&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>where <em>&lt;idnum&gt;</em> is the number assigned by the frontend to this mark.
-The value of <em>&lt;idnum&gt;</em> is expressed as an ASCII decimal integer.
+<div class="paragraph"><p>where <code>&lt;idnum&gt;</code> is the number assigned by the frontend to this mark.
+The value of <code>&lt;idnum&gt;</code> is expressed as an ASCII decimal integer.
 The value 0 is reserved and cannot be used as
 a mark.  Only values greater than or equal to 1 may be used as marks.</p></div>
 <div class="paragraph"><p>New marks are created automatically.  Existing marks can be moved
-to another object simply by reusing the same <em>&lt;idnum&gt;</em> in another
+to another object simply by reusing the same <code>&lt;idnum&gt;</code> in another
 <code>mark</code> command.</p></div>
 </div>
 <div class="sect2">
@@ -1789,7 +1789,7 @@ may have uses for this information</p></div>
 <div class="content">
 <pre><code>        'original-oid' SP &lt;object-identifier&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>where <em>&lt;object-identifier&gt;</em> is any string not containing LF.</p></div>
+<div class="paragraph"><p>where <code>&lt;object-identifier&gt;</code> is any string not containing LF.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_code_tag_code"><code>tag</code></h3>
@@ -1804,12 +1804,12 @@ lightweight (non-annotated) tags see the <code>reset</code> command below.</p></
         'tagger' (SP &lt;name&gt;)? SP LT &lt;email&gt; GT SP &lt;when&gt; LF
         data</code></pre>
 </div></div>
-<div class="paragraph"><p>where <em>&lt;name&gt;</em> is the name of the tag to create.</p></div>
+<div class="paragraph"><p>where <code>&lt;name&gt;</code> is the name of the tag to create.</p></div>
 <div class="paragraph"><p>Tag names are automatically prefixed with <code>refs/tags/</code> when stored
 in Git, so importing the CVS branch symbol <code>RELENG-1_0-FINAL</code> would
-use just <code>RELENG-1_0-FINAL</code> for <em>&lt;name&gt;</em>, and fast-import will write the
+use just <code>RELENG-1_0-FINAL</code> for <code>&lt;name&gt;</code>, and fast-import will write the
 corresponding ref as <code>refs/tags/RELENG-1_0-FINAL</code>.</p></div>
-<div class="paragraph"><p>The value of <em>&lt;name&gt;</em> must be a valid refname in Git and therefore
+<div class="paragraph"><p>The value of <code>&lt;name&gt;</code> must be a valid refname in Git and therefore
 may contain forward slashes.  As <code>LF</code> is not valid in a Git refname,
 no quoting or escaping syntax is supported here.</p></div>
 <div class="paragraph"><p>The <code>from</code> command is the same as in the <code>commit</code> command; see
@@ -1841,7 +1841,7 @@ branch from an existing commit without creating a new commit.</p></div>
         ('from' SP &lt;commit-ish&gt; LF)?
         LF?</code></pre>
 </div></div>
-<div class="paragraph"><p>For a detailed description of <em>&lt;ref&gt;</em> and <em>&lt;commit-ish&gt;</em> see above
+<div class="paragraph"><p>For a detailed description of <code>&lt;ref&gt;</code> and <code>&lt;commit-ish&gt;</code> see above
 under <code>commit</code> and <code>from</code>.</p></div>
 <div class="paragraph"><p>The <code>LF</code> after the command is optional (it used to be required).</p></div>
 <div class="paragraph"><p>The <code>reset</code> command can also be used to create lightweight
@@ -1883,10 +1883,10 @@ byte count or delimited with a terminating line.  Real frontends
 intended for production-quality conversions should always use the
 exact byte count format, as it is more robust and performs better.
 The delimited format is intended primarily for testing fast-import.</p></div>
-<div class="paragraph"><p>Comment lines appearing within the <em>&lt;raw&gt;</em> part of <code>data</code> commands
+<div class="paragraph"><p>Comment lines appearing within the <code>&lt;raw&gt;</code> part of <code>data</code> commands
 are always taken to be part of the body of the data and are therefore
 never ignored by fast-import.  This makes it safe to import any
-file/message content whose lines might start with #.</p></div>
+file/message content whose lines might start with <code>#</code>.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 Exact byte count format
@@ -1900,14 +1900,14 @@ Exact byte count format
 <pre><code>        'data' SP &lt;count&gt; LF
         &lt;raw&gt; LF?</code></pre>
 </div></div>
-<div class="paragraph"><p>where <em>&lt;count&gt;</em> is the exact number of bytes appearing within
-<em>&lt;raw&gt;</em>.  The value of <em>&lt;count&gt;</em> is expressed as an ASCII decimal
-integer.  The <code>LF</code> on either side of <em>&lt;raw&gt;</em> is not
-included in <em>&lt;count&gt;</em> and will not be included in the imported data.</p></div>
-<div class="paragraph"><p>The <code>LF</code> after <em>&lt;raw&gt;</em> is optional (it used to be required) but
+<div class="paragraph"><p>where <code>&lt;count&gt;</code> is the exact number of bytes appearing within
+<code>&lt;raw&gt;</code>.  The value of <code>&lt;count&gt;</code> is expressed as an ASCII decimal
+integer.  The <code>LF</code> on either side of <code>&lt;raw&gt;</code> is not
+included in <code>&lt;count&gt;</code> and will not be included in the imported data.</p></div>
+<div class="paragraph"><p>The <code>LF</code> after <code>&lt;raw&gt;</code> is optional (it used to be required) but
 recommended.  Always including it makes debugging a fast-import
 stream easier as the next command always starts in column 0
-of the next line, even if <em>&lt;raw&gt;</em> did not end with an <code>LF</code>.</p></div>
+of the next line, even if <code>&lt;raw&gt;</code> did not end with an <code>LF</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 Delimited format
@@ -1926,13 +1926,13 @@ Delimited format
         &lt;delim&gt; LF
         LF?</code></pre>
 </div></div>
-<div class="paragraph"><p>where <em>&lt;delim&gt;</em> is the chosen delimiter string.  The string <em>&lt;delim&gt;</em>
-must not appear on a line by itself within <em>&lt;raw&gt;</em>, as otherwise
+<div class="paragraph"><p>where <code>&lt;delim&gt;</code> is the chosen delimiter string.  The string <code>&lt;delim&gt;</code>
+must not appear on a line by itself within <code>&lt;raw&gt;</code>, as otherwise
 fast-import will think the data ends earlier than it really does.  The <code>LF</code>
-immediately trailing <em>&lt;raw&gt;</em> is part of <em>&lt;raw&gt;</em>.  This is one of
+immediately trailing <code>&lt;raw&gt;</code> is part of <code>&lt;raw&gt;</code>.  This is one of
 the limitations of the delimited format, it is impossible to supply
 a data chunk which does not have an LF as its last byte.</p></div>
-<div class="paragraph"><p>The <code>LF</code> after <em>&lt;delim&gt;</em> <code>LF</code> is optional (it used to be required).</p></div>
+<div class="paragraph"><p>The <code>LF</code> after <code>&lt;delim&gt; LF</code> is optional (it used to be required).</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1947,7 +1947,7 @@ new object.</p></div>
         'to' SP &lt;commit-ish&gt; LF
         LF?</code></pre>
 </div></div>
-<div class="paragraph"><p>For a detailed description of <em>&lt;commit-ish&gt;</em> see above under <code>from</code>.</p></div>
+<div class="paragraph"><p>For a detailed description of <code>&lt;commit-ish&gt;</code> see above under <code>from</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_code_checkpoint_code"><code>checkpoint</code></h3>
@@ -1984,7 +1984,7 @@ on the current import, or on any of fast-import&#8217;s internal state.</p></div
 <pre><code>        'progress' SP &lt;any&gt; LF
         LF?</code></pre>
 </div></div>
-<div class="paragraph"><p>The <em>&lt;any&gt;</em> part of the command may contain any sequence of bytes
+<div class="paragraph"><p>The <code>&lt;any&gt;</code> part of the command may contain any sequence of bytes
 that does not contain <code>LF</code>.  The <code>LF</code> after the command is optional.
 Callers may wish to process the output through a tool such as sed to
 remove the leading part of the line, for example:</p></div>
@@ -2024,10 +2024,10 @@ accessible from the target repository.</p></div>
 <div class="content">
 <pre><code>        'cat-blob' SP &lt;dataref&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>The <em>&lt;dataref&gt;</em> can be either a mark reference (<code>:</code><em>&lt;idnum&gt;</em>)
+<div class="paragraph"><p>The <code>&lt;dataref&gt;</code> can be either a mark reference (<code>:&lt;idnum&gt;</code>)
 set previously or a full 40-byte SHA-1 of a Git blob, preexisting or
 ready to be written.</p></div>
-<div class="paragraph"><p>Output uses the same format as <code>git</code> <code>cat-file</code> <code>--batch</code>:</p></div>
+<div class="paragraph"><p>Output uses the same format as <code>git cat-file --batch</code>:</p></div>
 <div class="exampleblock">
 <div class="content">
 <div class="literalblock">
@@ -2072,11 +2072,11 @@ Reading from a named tree
 </dt>
 <dd>
 <p>
-        The <em>&lt;dataref&gt;</em> can be a mark reference (<code>:</code><em>&lt;idnum&gt;</em>) or the
+        The <code>&lt;dataref&gt;</code> can be a mark reference (<code>:&lt;idnum&gt;</code>) or the
         full 40-byte SHA-1 of a Git tag, commit, or tree object,
         preexisting or waiting to be written.
         The path is relative to the top level of the tree
-        named by <em>&lt;dataref&gt;</em>.
+        named by <code>&lt;dataref&gt;</code>.
 </p>
 <div class="literalblock">
 <div class="content">
@@ -2084,8 +2084,8 @@ Reading from a named tree
 </div></div>
 </dd>
 </dl></div>
-<div class="paragraph"><p>See <code>filemodify</code> above for a detailed description of <em>&lt;path&gt;</em>.</p></div>
-<div class="paragraph"><p>Output uses the same format as <code>git</code> <code>ls-tree</code> <em>&lt;tree&gt;</em> <code>--</code> <em>&lt;path&gt;</em>:</p></div>
+<div class="paragraph"><p>See <code>filemodify</code> above for a detailed description of <code>&lt;path&gt;</code>.</p></div>
+<div class="paragraph"><p>Output uses the same format as <code>git ls-tree &lt;tree&gt; -- &lt;path&gt;</code>:</p></div>
 <div class="exampleblock">
 <div class="content">
 <div class="literalblock">
@@ -2213,7 +2213,7 @@ options the user may specify to git fast-import itself.</p></div>
 <div class="content">
 <pre><code>    'option' SP &lt;option&gt; LF</code></pre>
 </div></div>
-<div class="paragraph"><p>The <em>&lt;option&gt;</em> part of the command may contain any of the options
+<div class="paragraph"><p>The <code>&lt;option&gt;</code> part of the command may contain any of the options
 listed in the OPTIONS section that do not change import semantics,
 without the leading <code>--</code> and is treated in the same way.</p></div>
 <div class="paragraph"><p>Option commands must be the first commands on the input (not counting
@@ -2253,7 +2253,7 @@ force
 <h3 id="_code_done_code"><code>done</code></h3>
 <div class="paragraph"><p>If the <code>done</code> feature is not in use, treated as if EOF was read.
 This can be used to tell fast-import to finish early.</p></div>
-<div class="paragraph"><p>If the <code>--done</code> command-line option or <code>feature</code> <code>done</code> command is
+<div class="paragraph"><p>If the <code>--done</code> command-line option or <code>feature done</code> command is
 in use, the <code>done</code> command is mandatory and marks the end of the
 stream.</p></div>
 </div>
@@ -2402,7 +2402,7 @@ users of fast-import, and are offered here as suggestions.</p></div>
 <div class="sect2">
 <h3 id="_use_one_mark_per_commit">Use One Mark Per Commit</h3>
 <div class="paragraph"><p>When doing a repository conversion, use a unique mark per commit
-(<code>mark</code> <code>:</code><em>&lt;n&gt;</em>) and supply the --export-marks option on the command
+(<code>mark :&lt;n&gt;</code>) and supply the --export-marks option on the command
 line.  fast-import will dump a file which lists every mark and the Git
 object SHA-1 that corresponds to it.  If the frontend can tie
 the marks back to the source repository, it is easy to verify the
@@ -2450,7 +2450,7 @@ commit(s) which are supplying file revisions to the fixup branch.
 Doing so will allow tools such as <em>git blame</em> to track
 through the real commit history and properly annotate the source
 files.</p></div>
-<div class="paragraph"><p>After fast-import terminates the frontend will need to do <code>rm</code> <code>.git/TAG_FIXUP</code>
+<div class="paragraph"><p>After fast-import terminates the frontend will need to do <code>rm .git/TAG_FIXUP</code>
 to remove the dummy branch.</p></div>
 </div>
 <div class="sect2">
@@ -2511,13 +2511,13 @@ data within packfiles to make the most recent (current tip) data
 appear before historical data.  Git also clusters commits together,
 speeding up revision traversal through better cache locality.</p></div>
 <div class="paragraph"><p>For this reason it is strongly recommended that users repack the
-repository with <code>git</code> <code>repack</code> <code>-a</code> <code>-d</code> after fast-import completes, allowing
+repository with <code>git repack -a -d</code> after fast-import completes, allowing
 Git to reorganize the packfiles for faster data access.  If blob
 deltas are suboptimal (see above) then also adding the <code>-f</code> option
 to force recomputation of all deltas can significantly reduce the
 final packfile size (30-50% smaller can be quite typical).</p></div>
-<div class="paragraph"><p>Instead of running <code>git</code> <code>repack</code> you can also run <code>git</code> <code>gc</code>
-<code>--aggressive</code>, which will also optimize other things after an import
+<div class="paragraph"><p>Instead of running <code>git repack</code> you can also run <code>git gc
+--aggressive</code>, which will also optimize other things after an import
 (e.g. pack loose refs). As noted in the "AGGRESSIVE" section in
 <a href="git-gc.html">git-gc(1)</a> the <code>--aggressive</code> option will find new deltas with
 the <code>-f</code> option to <a href="git-repack.html">git-repack(1)</a>. For the reasons elaborated

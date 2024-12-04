@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitprotocol-v2(5)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -1526,10 +1526,10 @@ currently advertise a capability value. Both may be added in the
 future.</p></div>
 <div class="paragraph"><p>When the client issues a <code>command=bundle-uri</code> request, the response is a
 list of key-value pairs provided as packet lines with value
-<em>&lt;key&gt;</em><code>=</code><em>&lt;value&gt;</em>. Each <em>&lt;key&gt;</em> should be interpreted as a config key from
-the <code>bundle.</code>* namespace to construct a list of bundles. These keys are
-grouped by a <code>bundle.</code><em>&lt;id&gt;</em>. subsection, where each key corresponding to a
-given <em>&lt;id&gt;</em> contributes attributes to the bundle defined by that <em>&lt;id&gt;</em>.
+<code>&lt;key&gt;=&lt;value&gt;</code>. Each <code>&lt;key&gt;</code> should be interpreted as a config key from
+the <code>bundle.*</code> namespace to construct a list of bundles. These keys are
+grouped by a <code>bundle.&lt;id&gt;.</code> subsection, where each key corresponding to a
+given <code>&lt;id&gt;</code> contributes attributes to the bundle defined by that <code>&lt;id&gt;</code>.
 See <a href="git-config.html">git-config(1)</a> for the specific details of these keys and how
 the Git client will interpret their values.</p></div>
 <div class="paragraph"><p>Clients MUST parse the line according to the above format, lines that do
@@ -1546,14 +1546,14 @@ URI CONTENTS
 <p>
 The content at the advertised URIs MUST be one of two types.
 </p>
-<div class="paragraph"><p>The advertised URI may contain a bundle file that <code>git</code> <code>bundle</code> <code>verify</code>
+<div class="paragraph"><p>The advertised URI may contain a bundle file that <code>git bundle verify</code>
 would accept. I.e. they MUST contain one or more reference tips for
 use by the client, MUST indicate prerequisites (in any) with standard
 "-" prefixes, and MUST indicate their "object-format", if
 applicable.</p></div>
-<div class="paragraph"><p>The advertised URI may alternatively contain a plaintext file that <code>git</code>
-<code>config</code> <code>--list</code> would accept (with the <code>--file</code> option). The key-value
-pairs in this list are in the <code>bundle.</code>* namespace (see
+<div class="paragraph"><p>The advertised URI may alternatively contain a plaintext file that <code>git
+config --list</code> would accept (with the <code>--file</code> option). The key-value
+pairs in this list are in the <code>bundle.*</code> namespace (see
 <a href="git-config.html">git-config(1)</a>).</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1660,8 +1660,8 @@ from, see above.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_bundle_uri_protocol_features">bundle-uri PROTOCOL FEATURES</h4>
-<div class="paragraph"><p>The client constructs a bundle list from the <em>&lt;key&gt;</em><code>=</code><em>&lt;value&gt;</em> pairs
-provided by the server. These pairs are part of the <code>bundle.</code>* namespace
+<div class="paragraph"><p>The client constructs a bundle list from the <code>&lt;key&gt;=&lt;value&gt;</code> pairs
+provided by the server. These pairs are part of the <code>bundle.*</code> namespace
 as documented in <a href="git-config.html">git-config(1)</a>. In this section, we discuss some
 of these keys and describe the actions the client will do in response to
 this information.</p></div>
@@ -1700,7 +1700,7 @@ A "oid=&lt;OID&gt;" shortcut and "prerequisite=&lt;OID&gt;" shortcut. For
 <div class="paragraph"><p>This would allow for optimizing the common case of servers who&#8217;d like
 to provide one "big bundle" containing only their "main" branch,
 and/or incremental updates thereof.</p></div>
-<div class="paragraph"><p>A client receiving such a response MAY assume that they can skip
+<div class="paragraph"><p>A client receiving such a a response MAY assume that they can skip
 retrieving the header from a bundle at the indicated URI, and thus
 save themselves and the server(s) the request(s) needed to inspect the
 headers of that bundle or bundles.</p></div>
@@ -1721,7 +1721,7 @@ headers of that bundle or bundles.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2024-11-15 09:47:12 PST
+ 2024-11-27 10:41:59 PST
 </div>
 </div>
 </body>

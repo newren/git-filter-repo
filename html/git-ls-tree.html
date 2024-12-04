@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-ls-tree(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -777,7 +777,7 @@ the behaviour is similar to that of "/bin/ls" in that the <em>&lt;path&gt;</em> 
    in a directory <em>sub</em> that has a directory <em>dir</em>, you can run <em>git
    ls-tree -r HEAD dir</em> to list the contents of the tree (that is
    <code>sub/dir</code> in <code>HEAD</code>).  You don&#8217;t want to give a tree that is not at the
-   root level (e.g. <code>git</code> <code>ls-tree</code> <code>-r</code> <code>HEAD:sub</code> <code>dir</code>) in this case, as that
+   root level (e.g. <code>git ls-tree -r HEAD:sub dir</code>) in this case, as that
    would result in asking for <code>sub/sub/dir</code> in the <code>HEAD</code> commit.
    However, the current working directory can be ignored by passing
    --full-tree option.
@@ -862,7 +862,7 @@ the behaviour is similar to that of "/bin/ls" in that the <em>&lt;path&gt;</em> 
 <p>
         List only names of the objects, one per line. Cannot be combined
         with <code>--name-only</code> or <code>--name-status</code>.
-        This is equivalent to specifying <code>--format=</code>'%(<code>objectname</code>)', but
+        This is equivalent to specifying <code>--format='%(objectname)'</code>, but
         for both this option and that exact format the command takes a
         hand-optimized codepath instead of going through the generic
         formatting mechanism.
@@ -902,11 +902,11 @@ the behaviour is similar to that of "/bin/ls" in that the <em>&lt;path&gt;</em> 
 </dt>
 <dd>
 <p>
-        A string that interpolates %(<code>fieldname</code>) from the result
-        being shown. It also interpolates %% to %, and
-        %xNN where <code>NN</code> are hex digits interpolates to character
-        with hex code <code>NN</code>; for example %x00 interpolates to
-        \0 (NUL), %x09 to \t (TAB) and %x0a to \n (LF).
+        A string that interpolates <code>%(fieldname)</code> from the result
+        being shown. It also interpolates <code>%%</code> to <code>%</code>, and
+        <code>%xNN</code> where <code>NN</code> are hex digits interpolates to character
+        with hex code <code>NN</code>; for example <code>%x00</code> interpolates to
+        <code>\0</code> (NUL), <code>%x09</code> to <code>\t</code> (TAB) and <code>%x0a</code> to <code>\n</code> (LF).
         When specified, <code>--format</code> cannot be combined with other
         format-altering options, including <code>--long</code>, <code>--name-only</code>
         and <code>--object-only</code>.
@@ -941,7 +941,7 @@ is equivalent to:</p></div>
 <div class="content">
 <pre><code>%(objectmode) %(objecttype) %(objectname)%x09%(path)</code></pre>
 </div></div>
-<div class="paragraph"><p>This output format is compatible with what <code>--index-info</code> <code>--stdin</code> of
+<div class="paragraph"><p>This output format is compatible with what <code>--index-info --stdin</code> of
 <em>git update-index</em> expects.</p></div>
 <div class="paragraph"><p>When the <code>-l</code> option is used, format changes to</p></div>
 <div class="literalblock">
@@ -957,7 +957,7 @@ quoted as explained for the configuration variable <code>core.quotePath</code>
 verbatim and the line is terminated by a NUL byte.</p></div>
 <div class="paragraph"><p>Customized format:</p></div>
 <div class="paragraph"><p>It is possible to print in a custom format by using the <code>--format</code> option,
-which is able to interpolate different fields using a %(<code>fieldname</code>) notation.
+which is able to interpolate different fields using a <code>%(fieldname)</code> notation.
 For example, if you only care about the "objectname" and "path" fields, you
 can execute with a specific "--format" like</p></div>
 <div class="literalblock">

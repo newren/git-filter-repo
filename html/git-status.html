@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-status(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -761,9 +761,9 @@ git-status(1) Manual Page
 current HEAD commit, paths that have differences between the working
 tree and the index file, and paths in the working tree that are not
 tracked by Git (and are not ignored by <a href="gitignore.html">gitignore(5)</a>). The first
-are what you <em>would</em> commit by running <code>git</code> <code>commit</code>; the second and
+are what you <em>would</em> commit by running <code>git commit</code>; the second and
 third are what you <em>could</em> commit by running <em>git add</em> before running
-<code>git</code> <code>commit</code>.</p></div>
+<code>git commit</code>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -831,9 +831,9 @@ This is optional and defaults to the original version <em>v1</em> format.</p></d
 <p>
         In addition to the names of files that have been changed, also
         show the textual changes that are staged to be committed
-        (i.e., like the output of <code>git</code> <code>diff</code> <code>--cached</code>). If <code>-v</code> is specified
+        (i.e., like the output of <code>git diff --cached</code>). If <code>-v</code> is specified
         twice, then also show the changes in the working tree that
-        have not yet been staged (i.e., like the output of <code>git</code> <code>diff</code>).
+        have not yet been staged (i.e., like the output of <code>git diff</code>).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -850,7 +850,7 @@ This is optional and defaults to the original version <em>v1</em> format.</p></d
 <div class="content">
 <div class="paragraph"><p>The mode parameter is used to specify the handling of untracked files.
 It is optional: it defaults to <em>all</em>, and if specified, it must be
-stuck to the option (e.g. <code>-uno</code>, but not <code>-u</code> <code>no</code>).</p></div>
+stuck to the option (e.g. <code>-uno</code>, but not <code>-u no</code>).</p></div>
 <div class="paragraph"><p>The possible options are:</p></div>
 <div class="ulist"><ul>
 <li>
@@ -875,8 +875,8 @@ forgetting to add newly created files.  Because it takes extra work
 to find untracked files in the filesystem, this mode may take some
 time in a large working tree.
 Consider enabling untracked cache and split index if supported (see
-<code>git</code> <code>update-index</code> <code>--untracked-cache</code> and <code>git</code> <code>update-index</code>
-<code>--split-index</code>), Otherwise you can use <code>no</code> to have <code>git</code> <code>status</code>
+<code>git update-index --untracked-cache</code> and <code>git update-index
+--split-index</code>), Otherwise you can use <code>no</code> to have <code>git status</code>
 return more quickly without showing untracked files.
 All usual spellings for Boolean value <code>true</code> are taken as <code>normal</code>
 and <code>false</code> as <code>no</code>.</p></div>
@@ -1036,7 +1036,7 @@ XY ORIG_PATH -&gt; PATH</code></pre>
 <div class="paragraph"><p>where <code>ORIG_PATH</code> is where the renamed/copied contents came
 from. <code>ORIG_PATH</code> is only shown when the entry is renamed or
 copied. The <code>XY</code> is a two-letter status code.</p></div>
-<div class="paragraph"><p>The fields (including the <code>-</code>&gt;) are separated from each other by a
+<div class="paragraph"><p>The fields (including the <code>-&gt;</code>) are separated from each other by a
 single space. If a filename contains whitespace or other nonprintable
 characters, that field will be quoted in the manner of a C string
 literal: surrounded by ASCII double quote (34) characters, and with
@@ -1061,9 +1061,9 @@ When a merge conflict has occurred and has not yet been resolved, <code>X</code>
 <li>
 <p>
 When a path is untracked, <code>X</code> and <code>Y</code> are always the same, since they are
-        unknown to the index. ?? is used for untracked paths. Ignored files are
+        unknown to the index. <code>??</code> is used for untracked paths. Ignored files are
         not listed unless <code>--ignored</code> is used; if it is, ignored files are indicated
-        by !!.
+        by <code>!!</code>.
 </p>
 </li>
 </ul></div>
@@ -1163,7 +1163,7 @@ U           U    unmerged, both modified
 </li>
 </ul></div>
 <div class="paragraph"><p>This is since modified content or untracked files in a submodule cannot be added
-via <code>git</code> <code>add</code> in the superproject to prepare a commit.</p></div>
+via <code>git add</code> in the superproject to prepare a commit.</p></div>
 <div class="paragraph"><p><em>m</em> and <em>?</em> are applied recursively. For example if a nested submodule
 in a submodule contains an untracked file, this is reported as <em>?</em> as well.</p></div>
 <div class="paragraph"><p>If -b is used the short-format status is preceded by a line</p></div>
@@ -1202,7 +1202,7 @@ and the terminating newline (but a space still separates the status
 field from the first filename).  Third, filenames containing special
 characters are not specially formatted; no quoting or
 backslash-escaping is performed.</p></div>
-<div class="paragraph"><p>Any submodule changes are reported as modified <code>M</code> instead of <code>m</code> or single ?.</p></div>
+<div class="paragraph"><p>Any submodule changes are reported as modified <code>M</code> instead of <code>m</code> or single <code>?</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_porcelain_format_version_2">Porcelain Format Version 2</h3>
@@ -1344,7 +1344,7 @@ quoted as explained for the configuration variable <code>core.quotePath</code>
 <div class="sectionbody">
 <div class="paragraph"><p>The command honors <code>color.status</code> (or <code>status.color</code>&#8201;&#8212;&#8201;they
 mean the same thing and the latter is kept for backward
-compatibility) and <code>color.status.</code><em>&lt;slot&gt;</em> configuration variables
+compatibility) and <code>color.status.&lt;slot&gt;</code> configuration variables
 to colorize its output.</p></div>
 <div class="paragraph"><p>If the config variable <code>status.relativePaths</code> is set to false, then all
 paths shown are relative to the repository root, not to the current
@@ -1355,7 +1355,7 @@ the long format and a summary of commits for modified submodules will be
 shown (see --summary-limit option of <a href="git-submodule.html">git-submodule(1)</a>). Please note
 that the summary output from the status command will be suppressed for all
 submodules when <code>diff.ignoreSubmodules</code> is set to <em>all</em> or only for those
-submodules where <code>submodule.</code><em>&lt;name&gt;</em><code>.ignore=all</code>. To also view the summary for
+submodules where <code>submodule.&lt;name&gt;.ignore=all</code>. To also view the summary for
 ignored submodules you can either use the --ignore-submodules=dirty command
 line option or the <em>git submodule summary</em> command, which shows a similar
 output but does not honor these settings.</p></div>
@@ -1364,7 +1364,7 @@ output but does not honor these settings.</p></div>
 <div class="sect1">
 <h2 id="_background_refresh">BACKGROUND REFRESH</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>By default, <code>git</code> <code>status</code> will automatically refresh the index, updating
+<div class="paragraph"><p>By default, <code>git status</code> will automatically refresh the index, updating
 the cached stat information from the working tree and writing out the
 result. Writing out the updated index is an optimization that isn&#8217;t
 strictly necessary (<code>status</code> computes the values for itself, but writing
@@ -1372,30 +1372,30 @@ them out is just to save subsequent programs from repeating our
 computation). When <code>status</code> is run in the background, the lock held
 during the write may conflict with other simultaneous processes, causing
 them to fail. Scripts running <code>status</code> in the background should consider
-using <code>git</code> <code>--no-optional-locks</code> <code>status</code> (see <a href="git.html">git(1)</a> for details).</p></div>
+using <code>git --no-optional-locks status</code> (see <a href="git.html">git(1)</a> for details).</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_untracked_files_and_performance">UNTRACKED FILES AND PERFORMANCE</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><code>git</code> <code>status</code> can be very slow in large worktrees if/when it
+<div class="paragraph"><p><code>git status</code> can be very slow in large worktrees if/when it
 needs to search for untracked files and directories. There are
 many configuration options available to speed this up by either
 avoiding the work or making use of cached results from previous
 Git commands. There is no single optimum set of settings right
 for everyone. We&#8217;ll list a summary of the relevant options to help
-you, but before going into the list, you may want to run <code>git</code> <code>status</code>
-again, because your configuration may already be caching <code>git</code> <code>status</code>
+you, but before going into the list, you may want to run <code>git status</code>
+again, because your configuration may already be caching <code>git status</code>
 results, so it could be faster on subsequent runs.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
 The <code>--untracked-files=no</code> flag or the
         <code>status.showUntrackedFiles=no</code> config (see above for both):
-        indicate that <code>git</code> <code>status</code> should not report untracked
-        files. This is the fastest option. <code>git</code> <code>status</code> will not list
+        indicate that <code>git status</code> should not report untracked
+        files. This is the fastest option. <code>git status</code> will not list
         the untracked files, so you need to be careful to remember if
-        you create any new files and manually <code>git</code> <code>add</code> them.
+        you create any new files and manually <code>git add</code> them.
 </p>
 </li>
 <li>
@@ -1414,7 +1414,7 @@ The <code>--untracked-files=no</code> flag or the
 <p>
 <code>core.untrackedCache=true</code> (see <a href="git-update-index.html">git-update-index(1)</a>):
         enable the untracked cache feature and only search directories
-        that have been modified since the previous <code>git</code> <code>status</code> command.
+        that have been modified since the previous <code>git status</code> command.
         Git remembers the set of untracked files within each directory
         and assumes that if a directory has not been modified, then
         the set of untracked files within has not changed.  This is much
@@ -1430,10 +1430,10 @@ The <code>--untracked-files=no</code> flag or the
 <li>
 <p>
 <code>core.untrackedCache=true</code> and <code>core.fsmonitor=true</code> or
-        <code>core.fsmonitor=</code><em>&lt;hook-command-pathname&gt;</em> (see
+        <code>core.fsmonitor=&lt;hook-command-pathname&gt;</code> (see
         <a href="git-update-index.html">git-update-index(1)</a>): enable both the untracked cache
         and FSMonitor features and only search directories that have
-        been modified since the previous <code>git</code> <code>status</code> command.  This
+        been modified since the previous <code>git status</code> command.  This
         is faster than using just the untracked cache alone because
         Git can also avoid searching for modified directories.  Git
         only has to enumerate the exact set of directories that have
@@ -1444,7 +1444,7 @@ The <code>--untracked-files=no</code> flag or the
 </li>
 </ul></div>
 <div class="paragraph"><p>Note that after you turn on the untracked cache and/or FSMonitor
-features it may take a few <code>git</code> <code>status</code> commands for the various
+features it may take a few <code>git status</code> commands for the various
 caches to warm up before you see improved command times.  This is
 normal.</p></div>
 </div>

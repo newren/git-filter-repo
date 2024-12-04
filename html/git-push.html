@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-push(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -768,12 +768,12 @@ necessary to complete the given refs.</p></div>
 every time you push into it, by setting up <em>hooks</em> there.  See
 documentation for <a href="git-receive-pack.html">git-receive-pack(1)</a>.</p></div>
 <div class="paragraph"><p>When the command line does not specify where to push with the
-<em>&lt;repository&gt;</em> argument, <code>branch.</code>*.remote configuration for the
+<code>&lt;repository&gt;</code> argument, <code>branch.*.remote</code> configuration for the
 current branch is consulted to determine where to push.  If the
 configuration is missing, it defaults to <em>origin</em>.</p></div>
-<div class="paragraph"><p>When the command line does not specify what to push with <em>&lt;refspec&gt;</em>...
+<div class="paragraph"><p>When the command line does not specify what to push with <code>&lt;refspec&gt;...</code>
 arguments or <code>--all</code>, <code>--mirror</code>, <code>--tags</code> options, the command finds
-the default <em>&lt;refspec&gt;</em> by consulting <code>remote.</code>*.push configuration,
+the default <code>&lt;refspec&gt;</code> by consulting <code>remote.*.push</code> configuration,
 and if it is not found, honors <code>push.default</code> configuration to decide
 what to push (See <a href="git-config.html">git-config(1)</a> for the meaning of <code>push.default</code>).</p></div>
 <div class="paragraph"><p>When neither the command-line nor the configuration specifies what to
@@ -815,14 +815,14 @@ it can be any arbitrary "SHA-1 expression", such as <code>master~4</code> or
 <div class="paragraph"><p>The &lt;dst&gt; tells which ref on the remote side is updated with this
 push. Arbitrary expressions cannot be used here, an actual ref must
 be named.
-If <code>git</code> <code>push</code> [<em>&lt;repository&gt;</em>] without any <em>&lt;refspec&gt;</em> argument is set to
-update some ref at the destination with <em>&lt;src&gt;</em> with
-<code>remote.</code><em>&lt;repository&gt;</em><code>.push</code> configuration variable, <code>:</code><em>&lt;dst&gt;</em> part can
-be omitted&#8212;such a push will update a ref that <em>&lt;src&gt;</em> normally updates
-without any <em>&lt;refspec&gt;</em> on the command line.  Otherwise, missing
-<code>:</code><em>&lt;dst&gt;</em> means to update the same ref as the <em>&lt;src&gt;</em>.</p></div>
+If <code>git push [&lt;repository&gt;]</code> without any <code>&lt;refspec&gt;</code> argument is set to
+update some ref at the destination with <code>&lt;src&gt;</code> with
+<code>remote.&lt;repository&gt;.push</code> configuration variable, <code>:&lt;dst&gt;</code> part can
+be omitted&#8212;such a push will update a ref that <code>&lt;src&gt;</code> normally updates
+without any <code>&lt;refspec&gt;</code> on the command line.  Otherwise, missing
+<code>:&lt;dst&gt;</code> means to update the same ref as the <code>&lt;src&gt;</code>.</p></div>
 <div class="paragraph"><p>If &lt;dst&gt; doesn&#8217;t start with <code>refs/</code> (e.g. <code>refs/heads/master</code>) we will
-try to infer where in <code>refs/</code>* on the destination &lt;repository&gt; it
+try to infer where in <code>refs/*</code> on the destination &lt;repository&gt; it
 belongs based on the type of &lt;src&gt; being pushed and whether &lt;dst&gt;
 is ambiguous.</p></div>
 <div class="openblock">
@@ -853,19 +853,19 @@ Other ambiguity resolutions might be added in the future, but for
 </div></div>
 <div class="paragraph"><p>The object referenced by &lt;src&gt; is used to update the &lt;dst&gt; reference
 on the remote side. Whether this is allowed depends on where in
-<code>refs/</code>* the &lt;dst&gt; reference lives as described in detail below, in
+<code>refs/*</code> the &lt;dst&gt; reference lives as described in detail below, in
 those sections "update" means any modifications except deletes, which
 as noted after the next few sections are treated differently.</p></div>
-<div class="paragraph"><p>The <code>refs/heads/</code>* namespace will only accept commit objects, and
+<div class="paragraph"><p>The <code>refs/heads/*</code> namespace will only accept commit objects, and
 updates only if they can be fast-forwarded.</p></div>
-<div class="paragraph"><p>The <code>refs/tags/</code>* namespace will accept any kind of object (as
+<div class="paragraph"><p>The <code>refs/tags/*</code> namespace will accept any kind of object (as
 commits, trees and blobs can be tagged), and any updates to them will
 be rejected.</p></div>
 <div class="paragraph"><p>It&#8217;s possible to push any type of object to any namespace outside of
-<code>refs/</code>{tags,heads}/*. In the case of tags and commits, these will be
-treated as if they were the commits inside <code>refs/heads/</code>* for the
+<code>refs/{tags,heads}/*</code>. In the case of tags and commits, these will be
+treated as if they were the commits inside <code>refs/heads/*</code> for the
 purposes of whether the update is allowed.</p></div>
-<div class="paragraph"><p>I.e. a fast-forward of commits and tags outside <code>refs/</code>{tags,heads}/*
+<div class="paragraph"><p>I.e. a fast-forward of commits and tags outside <code>refs/{tags,heads}/*</code>
 is allowed, even in cases where what&#8217;s being fast-forwarded is not a
 commit, but a tag object which happens to point to a new commit which
 is a fast-forward of the commit the last tag (or commit) it&#8217;s
@@ -873,13 +873,13 @@ replacing. Replacing a tag with an entirely different tag is also
 allowed, if it points to the same commit, as well as pushing a peeled
 tag, i.e. pushing the commit that existing tag object points to, or a
 new tag object which an existing commit points to.</p></div>
-<div class="paragraph"><p>Tree and blob objects outside of <code>refs/</code>{tags,heads}/* will be treated
-the same way as if they were inside <code>refs/tags/</code>*, any update of them
+<div class="paragraph"><p>Tree and blob objects outside of <code>refs/{tags,heads}/*</code> will be treated
+the same way as if they were inside <code>refs/tags/*</code>, any update of them
 will be rejected.</p></div>
 <div class="paragraph"><p>All of the rules described above about what&#8217;s not allowed as an update
 can be overridden by adding an the optional leading <code>+</code> to a refspec
 (or using <code>--force</code> command line option). The only exception to this
-is that no amount of forcing will make the <code>refs/heads/</code>* namespace
+is that no amount of forcing will make the <code>refs/heads/*</code> namespace
 accept a non-commit object. Hooks and configuration can also override
 or amend these rules, see e.g. <code>receive.denyNonFastForwards</code> in
 <a href="git-config.html">git-config(1)</a> and <code>pre-receive</code> and <code>update</code> in
@@ -893,7 +893,7 @@ or hooks. See <code>receive.denyDeletes</code> in <a href="git-config.html">git-
 directs Git to push "matching" branches: for every branch that exists on
 the local side, the remote side is updated if a branch of the same name
 already exists on the remote side.</p></div>
-<div class="paragraph"><p><code>tag</code> <em>&lt;tag&gt;</em> means the same as <code>refs/tags/</code><em>&lt;tag&gt;</em><code>:refs/tags/</code><em>&lt;tag&gt;</em>.</p></div>
+<div class="paragraph"><p><code>tag &lt;tag&gt;</code> means the same as <code>refs/tags/&lt;tag&gt;:refs/tags/&lt;tag&gt;</code>.</p></div>
 </dd>
 <dt class="hdlist1">
 --all
@@ -915,7 +915,7 @@ already exists on the remote side.</p></div>
         Remove remote branches that don&#8217;t have a local counterpart. For example
         a remote branch <code>tmp</code> will be removed if a local branch with the same
         name doesn&#8217;t exist any more. This also respects refspecs, e.g.
-        <code>git</code> <code>push</code> <code>--prune</code> <code>remote</code> <code>refs/heads/</code>*:refs/tmp/* would
+        <code>git push --prune remote refs/heads/*:refs/tmp/*</code> would
         make sure that remote <code>refs/tmp/foo</code> will be removed if <code>refs/heads/foo</code>
         doesn&#8217;t exist.
 </p>
@@ -932,7 +932,7 @@ already exists on the remote side.</p></div>
         refs will be pushed to the remote end, locally updated refs
         will be force updated on the remote end, and deleted refs
         will be removed from the remote end.  This is the default
-        if the configuration option <code>remote.</code><em>&lt;remote&gt;</em><code>.mirror</code> is
+        if the configuration option <code>remote.&lt;remote&gt;.mirror</code> is
         set.
 </p>
 </dd>
@@ -1006,7 +1006,7 @@ already exists on the remote side.</p></div>
         attempted.  If <code>true</code> or <code>--signed</code>, the push will fail if the
         server does not support signed pushes.  If set to <code>if-asked</code>,
         sign if and only if the server supports signed pushes.  The push
-        will also fail if the actual call to <code>gpg</code> <code>--sign</code> fails.  See
+        will also fail if the actual call to <code>gpg --sign</code> fails.  See
         <a href="git-receive-pack.html">git-receive-pack(1)</a> for the details on the receiving end.
 </p>
 </dd>
@@ -1031,10 +1031,10 @@ already exists on the remote side.</p></div>
         Transmit the given string to the server, which passes them to
         the pre-receive as well as the post-receive hook. The given string
         must not contain a NUL or LF character.
-        When multiple <code>--push-option=</code><em>&lt;option&gt;</em> are given, they are
+        When multiple <code>--push-option=&lt;option&gt;</code> are given, they are
         all sent to the other side in the order listed on the
         command line.
-        When no <code>--push-option=</code><em>&lt;option&gt;</em> is given from the command
+        When no <code>--push-option=&lt;option&gt;</code> is given from the command
         line, the values of configuration variable <code>push.pushOption</code>
         are used instead.
 </p>
@@ -1085,27 +1085,27 @@ only if the "lease" is still valid.</p></div>
 all remote refs that are going to be updated by requiring their
 current value to be the same as the remote-tracking branch we have
 for them.</p></div>
-<div class="paragraph"><p><code>--force-with-lease=</code><em>&lt;refname&gt;</em>, without specifying the expected value, will
+<div class="paragraph"><p><code>--force-with-lease=&lt;refname&gt;</code>, without specifying the expected value, will
 protect the named ref (alone), if it is going to be updated, by
 requiring its current value to be the same as the remote-tracking
 branch we have for it.</p></div>
-<div class="paragraph"><p><code>--force-with-lease=</code><em>&lt;refname&gt;</em><code>:</code><em>&lt;expect&gt;</em> will protect the named ref (alone),
+<div class="paragraph"><p><code>--force-with-lease=&lt;refname&gt;:&lt;expect&gt;</code> will protect the named ref (alone),
 if it is going to be updated, by requiring its current value to be
-the same as the specified value <em>&lt;expect&gt;</em> (which is allowed to be
+the same as the specified value <code>&lt;expect&gt;</code> (which is allowed to be
 different from the remote-tracking branch we have for the refname,
 or we do not even have to have such a remote-tracking branch when
-this form is used).  If <em>&lt;expect&gt;</em> is the empty string, then the named ref
+this form is used).  If <code>&lt;expect&gt;</code> is the empty string, then the named ref
 must not already exist.</p></div>
-<div class="paragraph"><p>Note that all forms other than <code>--force-with-lease=</code><em>&lt;refname&gt;</em><code>:</code><em>&lt;expect&gt;</em>
+<div class="paragraph"><p>Note that all forms other than <code>--force-with-lease=&lt;refname&gt;:&lt;expect&gt;</code>
 that specifies the expected current value of the ref explicitly are
 still experimental and their semantics may change as we gain experience
 with this feature.</p></div>
 <div class="paragraph"><p>"--no-force-with-lease" will cancel all the previous --force-with-lease on the
 command line.</p></div>
 <div class="paragraph"><p>A general note on safety: supplying this option without an expected
-value, i.e. as <code>--force-with-lease</code> or <code>--force-with-lease=</code><em>&lt;refname&gt;</em>
-interacts very badly with anything that implicitly runs <code>git</code> <code>fetch</code> on
-the remote to be pushed to in the background, e.g. <code>git</code> <code>fetch</code> <code>origin</code>
+value, i.e. as <code>--force-with-lease</code> or <code>--force-with-lease=&lt;refname&gt;</code>
+interacts very badly with anything that implicitly runs <code>git fetch</code> on
+the remote to be pushed to in the background, e.g. <code>git fetch origin</code>
 on your repository in a cronjob.</p></div>
 <div class="paragraph"><p>The protection it offers over <code>--force</code> is ensuring that subsequent
 changes your work wasn&#8217;t based on aren&#8217;t clobbered, but this is
@@ -1113,7 +1113,7 @@ trivially defeated if some background process is updating refs in the
 background. We don&#8217;t have anything except the remote tracking info to
 go by as a heuristic for refs you&#8217;re expected to have seen &amp; are
 willing to clobber.</p></div>
-<div class="paragraph"><p>If your editor or some other system is running <code>git</code> <code>fetch</code> in the
+<div class="paragraph"><p>If your editor or some other system is running <code>git fetch</code> in the
 background for you a way to mitigate this is to simply set up another
 remote:</p></div>
 <div class="literalblock">
@@ -1121,15 +1121,15 @@ remote:</p></div>
 <pre><code>git remote add origin-push $(git config remote.origin.url)
 git fetch origin-push</code></pre>
 </div></div>
-<div class="paragraph"><p>Now when the background process runs <code>git</code> <code>fetch</code> <code>origin</code> the references
+<div class="paragraph"><p>Now when the background process runs <code>git fetch origin</code> the references
 on <code>origin-push</code> won&#8217;t be updated, and thus commands like:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>git push --force-with-lease origin-push</code></pre>
 </div></div>
-<div class="paragraph"><p>Will fail unless you manually run <code>git</code> <code>fetch</code> <code>origin-push</code>. This method
-is of course entirely defeated by something that runs <code>git</code> <code>fetch</code>
-<code>--all</code>, in that case you&#8217;d need to either disable it or do something
+<div class="paragraph"><p>Will fail unless you manually run <code>git fetch origin-push</code>. This method
+is of course entirely defeated by something that runs <code>git fetch
+--all</code>, in that case you&#8217;d need to either disable it or do something
 more tedious like:</p></div>
 <div class="literalblock">
 <div class="content">
@@ -1144,7 +1144,7 @@ force push changes to <code>master</code> if the remote version is still at
 <code>base</code>, regardless of what your local <code>remotes/origin/master</code> has been
 updated to in the background.</p></div>
 <div class="paragraph"><p>Alternatively, specifying <code>--force-if-includes</code> as an ancillary option
-along with <code>--force-with-lease</code>[<code>=</code><em>&lt;refname&gt;</em>] (i.e., without saying what
+along with <code>--force-with-lease[=&lt;refname&gt;]</code> (i.e., without saying what
 exact commit the ref on the remote side must be pointing at, or which
 refs on the remote side are being protected) at the time of "push" will
 verify if updates from the remote-tracking refs that may have been
@@ -1169,12 +1169,12 @@ allowing a forced update.</p></div>
 to lose commits; use it with care.</p></div>
 <div class="paragraph"><p>Note that <code>--force</code> applies to all the refs that are pushed, hence
 using it with <code>push.default</code> set to <code>matching</code> or with multiple push
-destinations configured with <code>remote.</code>*.push may overwrite refs
+destinations configured with <code>remote.*.push</code> may overwrite refs
 other than the current branch (including local refs that are
 strictly behind their remote counterpart).  To force a push to only
-one branch, use a <code>+</code> in front of the refspec to push (e.g <code>git</code> <code>push</code>
-<code>origin</code> <code>+master</code> to force a push to the <code>master</code> branch). See the
-<em>&lt;refspec&gt;</em>... section above for details.</p></div>
+one branch, use a <code>+</code> in front of the refspec to push (e.g <code>git push
+origin +master</code> to force a push to the <code>master</code> branch). See the
+<code>&lt;refspec&gt;...</code> section above for details.</p></div>
 </dd>
 <dt class="hdlist1">
 --[no-]force-if-includes
@@ -1190,7 +1190,7 @@ the local branch based in it for a rewrite. The check ensures that any
 updates from the remote have been incorporated locally by rejecting the
 forced update if that is not the case.</p></div>
 <div class="paragraph"><p>If the option is passed without specifying <code>--force-with-lease</code>, or
-specified along with <code>--force-with-lease=</code><em>&lt;refname&gt;</em><code>:</code><em>&lt;expect&gt;</em>, it is
+specified along with <code>--force-with-lease=&lt;refname&gt;:&lt;expect&gt;</code>, it is
 a "no-op".</p></div>
 <div class="paragraph"><p>Specifying <code>--no-force-if-includes</code> disables this behavior.</p></div>
 </dd>
@@ -1214,7 +1214,7 @@ a "no-op".</p></div>
         For every branch that is up to date or successfully pushed, add
         upstream (tracking) reference, used by argument-less
         <a href="git-pull.html">git-pull(1)</a> and other commands. For more information,
-        see <code>branch.</code><em>&lt;name&gt;</em><code>.merge</code> in <a href="git-config.html">git-config(1)</a>.
+        see <code>branch.&lt;name&gt;.merge</code> in <a href="git-config.html">git-config(1)</a>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1334,28 +1334,28 @@ absent.</p></div>
 <div class="paragraph"><p>Git supports ssh, git, http, and https protocols (in addition, ftp
 and ftps can be used for fetching, but this is inefficient and
 deprecated; do not use them).</p></div>
-<div class="paragraph"><p>The native transport (i.e. <code>git://</code> URL) does no authentication and
+<div class="paragraph"><p>The native transport (i.e. git:// URL) does no authentication and
 should be used with caution on unsecured networks.</p></div>
 <div class="paragraph"><p>The following syntaxes may be used with them:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>ssh://</code>[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>ssh://</code>&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>git://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>git://</code><em>&lt;host&gt;</em>&#91;:<em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>http</code>[<code>s</code>]<code>://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>http</code>&#91;<code>s</code>&#93;<code>://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>ftp</code>[<code>s</code>]<code>://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>ftp</code>&#91;<code>s</code>&#93;<code>://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1363,7 +1363,7 @@ should be used with caution on unsecured networks.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em><code>:/</code><em>&lt;path-to-git-repo&gt;</em>
+&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em><code>:/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1376,17 +1376,17 @@ url.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>ssh://</code>[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>ssh://</code>&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-<code>git://</code><em>&lt;host&gt;</em>[<code>:</code><em>&lt;port&gt;</em>]<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
+<code>git://</code><em>&lt;host&gt;</em>&#91;<code>:</code><em>&lt;port&gt;</em>&#93;<code>/~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 <li>
 <p>
-[<em>&lt;user&gt;</em><code>@</code>]<em>&lt;host&gt;</em><code>:~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
+&#91;<em>&lt;user&gt;</em><code>@</code>&#93;<em>&lt;host&gt;</em><code>:~</code><em>&lt;user&gt;</em><code>/</code><em>&lt;path-to-git-repo&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1407,7 +1407,7 @@ syntaxes may be used:</p></div>
 <div class="paragraph"><p>These two syntaxes are mostly equivalent, except when cloning, when
 the former implies <code>--local</code> option. See <a href="git-clone.html">git-clone(1)</a> for
 details.</p></div>
-<div class="paragraph"><p><code>git</code> <code>clone</code>, <code>git</code> <code>fetch</code> and <code>git</code> <code>pull</code>, but not <code>git</code> <code>push</code>, will also
+<div class="paragraph"><p><code>git clone</code>, <code>git fetch</code> and <code>git pull</code>, but not <code>git push</code>, will also
 accept a suitable bundle file. See <a href="git-bundle.html">git-bundle(1)</a>.</p></div>
 <div class="paragraph"><p>When Git doesn&#8217;t know how to handle a certain transport protocol, it
 attempts to use the <code>remote-</code><em>&lt;transport&gt;</em> remote helper, if one
@@ -1416,7 +1416,7 @@ may be used:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<em>&lt;transport&gt;</em><code>::</code><em>&lt;address&gt;</em>
+<em>&lt;transport&gt;</em>::<em>&lt;address&gt;</em>
 </p>
 </li>
 </ul></div>
@@ -1463,7 +1463,7 @@ use the original URL.</p></div>
 <h2 id="_remotes_a_id_remotes_a">REMOTES<a id="REMOTES"></a></h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The name of one of the following can be used instead
-of a URL as <em>&lt;repository&gt;</em> argument:</p></div>
+of a URL as <code>&lt;repository&gt;</code> argument:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1500,8 +1500,8 @@ config file would appear like this:</p></div>
                 push = &lt;refspec&gt;
                 fetch = &lt;refspec&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p>The <em>&lt;pushurl&gt;</em> is used for pushes only. It is optional and defaults
-to <em>&lt;URL&gt;</em>. Pushing to a remote affects all defined pushurls or all
+<div class="paragraph"><p>The <code>&lt;pushurl&gt;</code> is used for pushes only. It is optional and defaults
+to <code>&lt;URL&gt;</code>. Pushing to a remote affects all defined pushurls or all
 defined urls if no pushurls are defined. Fetch, however, will only
 fetch from the first defined url if multiple urls are defined.</p></div>
 </div>
@@ -1534,11 +1534,11 @@ This file should have the following format:</p></div>
 <div class="content">
 <pre><code>        &lt;URL&gt;#&lt;head&gt;</code></pre>
 </div></div>
-<div class="paragraph"><p><em>&lt;URL&gt;</em> is required; #<em>&lt;head&gt;</em> is optional.</p></div>
+<div class="paragraph"><p><code>&lt;URL&gt;</code> is required; <code>#&lt;head&gt;</code> is optional.</p></div>
 <div class="paragraph"><p>Depending on the operation, git will use one of the following
 refspecs, if you don&#8217;t provide one on the command line.
-<em>&lt;branch&gt;</em> is the name of this file in <code>$GIT_DIR/branches</code> and
-<em>&lt;head&gt;</em> defaults to <code>master</code>.</p></div>
+<code>&lt;branch&gt;</code> is the name of this file in <code>$GIT_DIR/branches</code> and
+<code>&lt;head&gt;</code> defaults to <code>master</code>.</p></div>
 <div class="paragraph"><p>git fetch uses:</p></div>
 <div class="listingblock">
 <div class="content">
@@ -1605,7 +1605,7 @@ for a successfully deleted ref;
 </p>
 </dd>
 <dt class="hdlist1">
-*
+<code>*</code>
 </dt>
 <dd>
 <p>
@@ -1613,7 +1613,7 @@ for a successfully pushed new ref;
 </p>
 </dd>
 <dt class="hdlist1">
-!
+<code>!</code>
 </dt>
 <dd>
 <p>
@@ -1637,8 +1637,8 @@ summary
 <p>
         For a successfully pushed ref, the summary shows the old and new
         values of the ref in a form suitable for using as an argument to
-        <code>git</code> <code>log</code> (this is <em>&lt;old&gt;</em><code>..</code><em>&lt;new&gt;</em> in most cases, and
-        <em>&lt;old&gt;</em><code>...</code><em>&lt;new&gt;</em> for forced non-fast-forward updates).
+        <code>git log</code> (this is <code>&lt;old&gt;..&lt;new&gt;</code> in most cases, and
+        <code>&lt;old&gt;...&lt;new&gt;</code> for forced non-fast-forward updates).
 </p>
 <div class="paragraph"><p>For a failed update, more details are given:</p></div>
 <div class="openblock">
@@ -1686,7 +1686,7 @@ from
 <dd>
 <p>
         The name of the local ref being pushed, minus its
-        <code>refs/</code><em>&lt;type&gt;</em><code>/</code> prefix. In the case of deletion, the
+        <code>refs/&lt;type&gt;/</code> prefix. In the case of deletion, the
         name of the local ref is omitted.
 </p>
 </dd>
@@ -1696,7 +1696,7 @@ to
 <dd>
 <p>
         The name of the remote ref being updated, minus its
-        <code>refs/</code><em>&lt;type&gt;</em><code>/</code> prefix.
+        <code>refs/&lt;type&gt;/</code> prefix.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1786,22 +1786,22 @@ a case where you do mean to lose history.</p></div>
 <div class="sectionbody">
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<code>git</code> <code>push</code>
+<code>git push</code>
 </dt>
 <dd>
 <p>
-        Works like <code>git</code> <code>push</code> <em>&lt;remote&gt;</em>, where &lt;remote&gt; is the
+        Works like <code>git push &lt;remote&gt;</code>, where &lt;remote&gt; is the
         current branch&#8217;s remote (or <code>origin</code>, if no remote is
         configured for the current branch).
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code>
+<code>git push origin</code>
 </dt>
 <dd>
 <p>
         Without additional configuration, pushes the current branch to
-        the configured upstream (<code>branch.</code><em>&lt;name&gt;</em><code>.merge</code> configuration
+        the configured upstream (<code>branch.&lt;name&gt;.merge</code> configuration
         variable) if it has the same name as the current branch, and
         errors out without pushing otherwise.
 </p>
@@ -1809,12 +1809,12 @@ a case where you do mean to lose history.</p></div>
 configured by setting the <code>push</code> option of the remote, or the <code>push.default</code>
 configuration variable.</p></div>
 <div class="paragraph"><p>For example, to default to pushing only the current branch to <code>origin</code>
-use <code>git</code> <code>config</code> <code>remote.origin.push</code> <code>HEAD</code>.  Any valid &lt;refspec&gt; (like
+use <code>git config remote.origin.push HEAD</code>.  Any valid &lt;refspec&gt; (like
 the ones in the examples below) can be configured as the default for
-<code>git</code> <code>push</code> <code>origin</code>.</p></div>
+<code>git push origin</code>.</p></div>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code> <code>:</code>
+<code>git push origin :</code>
 </dt>
 <dd>
 <p>
@@ -1824,7 +1824,7 @@ the ones in the examples below) can be configured as the default for
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code> <code>master</code>
+<code>git push origin master</code>
 </dt>
 <dd>
 <p>
@@ -1836,7 +1836,7 @@ the ones in the examples below) can be configured as the default for
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code> <code>HEAD</code>
+<code>git push origin HEAD</code>
 </dt>
 <dd>
 <p>
@@ -1845,7 +1845,7 @@ the ones in the examples below) can be configured as the default for
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>mothership</code> <code>master:satellite/master</code> <code>dev:satellite/dev</code>
+<code>git push mothership master:satellite/master dev:satellite/dev</code>
 </dt>
 <dd>
 <p>
@@ -1854,21 +1854,21 @@ the ones in the examples below) can be configured as the default for
         <code>refs/remotes/satellite/master</code>) in the <code>mothership</code> repository;
         do the same for <code>dev</code> and <code>satellite/dev</code>.
 </p>
-<div class="paragraph"><p>See the section describing <em>&lt;refspec&gt;</em>... above for a discussion of
+<div class="paragraph"><p>See the section describing <code>&lt;refspec&gt;...</code> above for a discussion of
 the matching semantics.</p></div>
-<div class="paragraph"><p>This is to emulate <code>git</code> <code>fetch</code> run on the <code>mothership</code> using <code>git</code>
-<code>push</code> that is run in the opposite direction in order to integrate
+<div class="paragraph"><p>This is to emulate <code>git fetch</code> run on the <code>mothership</code> using <code>git
+push</code> that is run in the opposite direction in order to integrate
 the work done on <code>satellite</code>, and is often necessary when you can
 only make connection in one way (i.e. satellite can ssh into
 mothership but mothership cannot initiate connection to satellite
 because the latter is behind a firewall or does not run sshd).</p></div>
-<div class="paragraph"><p>After running this <code>git</code> <code>push</code> on the <code>satellite</code> machine, you would
-ssh into the <code>mothership</code> and run <code>git</code> <code>merge</code> there to complete the
-emulation of <code>git</code> <code>pull</code> that were run on <code>mothership</code> to pull changes
+<div class="paragraph"><p>After running this <code>git push</code> on the <code>satellite</code> machine, you would
+ssh into the <code>mothership</code> and run <code>git merge</code> there to complete the
+emulation of <code>git pull</code> that were run on <code>mothership</code> to pull changes
 made on <code>satellite</code>.</p></div>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code> <code>HEAD:master</code>
+<code>git push origin HEAD:master</code>
 </dt>
 <dd>
 <p>
@@ -1878,7 +1878,7 @@ made on <code>satellite</code>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code> <code>master:refs/heads/experimental</code>
+<code>git push origin master:refs/heads/experimental</code>
 </dt>
 <dd>
 <p>
@@ -1890,7 +1890,7 @@ made on <code>satellite</code>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code> <code>:experimental</code>
+<code>git push origin :experimental</code>
 </dt>
 <dd>
 <p>
@@ -1899,7 +1899,7 @@ made on <code>satellite</code>.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<code>git</code> <code>push</code> <code>origin</code> <code>+dev:master</code>
+<code>git push origin +dev:master</code>
 </dt>
 <dd>
 <p>
@@ -1923,7 +1923,7 @@ made on <code>satellite</code>.</p></div>
 </div></div>
 <div class="paragraph"><p>Commits A and B would no longer belong to a branch with a symbolic name,
 and so would be unreachable.  As such, these commits would be removed by
-a <code>git</code> <code>gc</code> command on the origin repository.</p></div>
+a <code>git gc</code> command on the origin repository.</p></div>
 </dd>
 </dl></div>
 </div>
@@ -1996,7 +1996,7 @@ push.default
 </dt>
 <dd>
 <p>
-        Defines the action <code>git</code> <code>push</code> should take if no refspec is
+        Defines the action <code>git push</code> should take if no refspec is
         given (whether from the command-line, config, or elsewhere).
         Different values are well-suited for
         specific workflows; for instance, in a purely central workflow
@@ -2024,7 +2024,7 @@ push.default
 <p>
 <code>upstream</code> - push the current branch back to the branch whose
   changes are usually integrated into the current branch (which is
-  called <code>@</code>{upstream}).  This mode only makes sense if you are
+  called <code>@{upstream}</code>).  This mode only makes sense if you are
   pushing to the same repository you would normally pull from
   (i.e. central workflow).
 </p>
@@ -2097,9 +2097,9 @@ push.pushOption
 </dt>
 <dd>
 <p>
-        When no <code>--push-option=</code><em>&lt;option&gt;</em> argument is given from the
-        command line, <code>git</code> <code>push</code> behaves as if each &lt;value&gt; of
-        this variable is given as <code>--push-option=</code><em>&lt;value&gt;</em>.
+        When no <code>--push-option=&lt;option&gt;</code> argument is given from the
+        command line, <code>git push</code> behaves as if each &lt;value&gt; of
+        this variable is given as <code>--push-option=&lt;value&gt;</code>.
 </p>
 <div class="paragraph"><p>This is a multi-valued variable, and an empty value can be used in a
 higher priority configuration file (e.g. <code>.git/config</code> in a

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-replay(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -760,7 +760,7 @@ git-replay(1) Manual Page
 <div class="paragraph"><p>Takes ranges of commits and replays them onto a new location. Leaves
 the working tree and the index untouched, and updates no references.
 The output of this command is meant to be used as input to
-<code>git</code> <code>update-ref</code> <code>--stdin</code>, which would update the relevant branches
+<code>git update-ref --stdin</code>, which would update the relevant branches
 (see the OUTPUT section below).</p></div>
 <div class="paragraph"><p>THIS COMMAND IS EXPERIMENTAL. THE BEHAVIOR MAY CHANGE.</p></div>
 </div>
@@ -779,7 +779,7 @@ The output of this command is meant to be used as input to
 </p>
 <div class="paragraph"><p>When <code>--onto</code> is specified, the update-ref command(s) in the output will
 update the branch(es) in the revision range to point at the new
-commits, similar to the way how <code>git</code> <code>rebase</code> <code>--update-refs</code> updates
+commits, similar to the way how <code>git rebase --update-refs</code> updates
 multiple branches in the affected range.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -800,7 +800,7 @@ the new commits (in other words, this mimics a cherry-pick operation).</p></div>
 <dd>
 <p>
         Range of commits to replay. More than one &lt;revision-range&gt; can
-        be passed, but in <code>--advance</code> <em>&lt;branch&gt;</em> mode, they should have
+        be passed, but in <code>--advance &lt;branch&gt;</code> mode, they should have
         a single tip, so that it&#8217;s clear where &lt;branch&gt; should point
         to. See "Specifying Ranges" in <a href="git-rev-parse.html">git-rev-parse(1)</a> and the
         "Commit Limiting" options below.
@@ -813,9 +813,9 @@ the new commits (in other words, this mimics a cherry-pick operation).</p></div>
 special notations explained in the description, additional commit
 limiting may be applied.</p></div>
 <div class="paragraph"><p>Using more options generally further limits the output (e.g.
-<code>--since=</code><em>&lt;date1&gt;</em> limits to commits newer than <em>&lt;date1&gt;</em>, and using it
-with <code>--grep=</code><em>&lt;pattern&gt;</em> further limits to commits whose log message
-has a line that matches <em>&lt;pattern&gt;</em>), unless otherwise noted.</p></div>
+<code>--since=&lt;date1&gt;</code> limits to commits newer than <code>&lt;date1&gt;</code>, and using it
+with <code>--grep=&lt;pattern&gt;</code> further limits to commits whose log message
+has a line that matches <code>&lt;pattern&gt;</code>), unless otherwise noted.</p></div>
 <div class="paragraph"><p>Note that these are applied before commit
 ordering and formatting options, such as <code>--reverse</code>.</p></div>
 <div class="dlist"><dl>
@@ -883,9 +883,9 @@ ordering and formatting options, such as <code>--reverse</code>.</p></div>
 <p>
         Limit the commits output to ones with author/committer
         header lines that match the specified pattern (regular
-        expression).  With more than one <code>--author=</code><em>&lt;pattern&gt;</em>,
+        expression).  With more than one <code>--author=&lt;pattern&gt;</code>,
         commits whose author matches any of the given patterns are
-        chosen (similarly for multiple <code>--committer=</code><em>&lt;pattern&gt;</em>).
+        chosen (similarly for multiple <code>--committer=&lt;pattern&gt;</code>).
 </p>
 </dd>
 <dt class="hdlist1">
@@ -907,7 +907,7 @@ ordering and formatting options, such as <code>--reverse</code>.</p></div>
 <p>
         Limit the commits output to ones with a log message that
         matches the specified pattern (regular expression).  With
-        more than one <code>--grep=</code><em>&lt;pattern&gt;</em>, commits whose message
+        more than one <code>--grep=&lt;pattern&gt;</code>, commits whose message
         matches any of the given patterns are chosen (but see
         <code>--all-match</code>).
 </p>
@@ -929,7 +929,7 @@ matched as if it were part of the log message.</p></div>
 <dd>
 <p>
         Limit the commits output to ones with a log message that do not
-        match the pattern specified with <code>--grep=</code><em>&lt;pattern&gt;</em>.
+        match the pattern specified with <code>--grep=&lt;pattern&gt;</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1170,7 +1170,7 @@ explicitly.</p></div>
 <dd>
 <p>
         Pretend as if all objects mentioned by reflogs are listed on the
-        command line as <em>&lt;commit&gt;</em>.
+        command line as <code>&lt;commit&gt;</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1215,7 +1215,7 @@ explicitly.</p></div>
 <p>
         Pretend as if the bad bisection ref <code>refs/bisect/bad</code>
         was listed and as if it was followed by <code>--not</code> and the good
-        bisection refs <code>refs/bisect/good-</code>* on the command
+        bisection refs <code>refs/bisect/good-*</code> on the command
         line.
 </p>
 </dd>
@@ -1268,13 +1268,13 @@ excluded from the output.</p></div>
 <dd>
 <p>
         List only commits on the respective side of a symmetric difference,
-        i.e. only those which would be marked &lt; resp. &gt; by
+        i.e. only those which would be marked <code>&lt;</code> resp. <code>&gt;</code> by
         <code>--left-right</code>.
 </p>
-<div class="paragraph"><p>For example, <code>--cherry-pick</code> <code>--right-only</code> <code>A</code><code>...</code><code>B</code> omits those
+<div class="paragraph"><p>For example, <code>--cherry-pick --right-only A...B</code> omits those
 commits from <code>B</code> which are in <code>A</code> or are patch-equivalent to a commit in
-<code>A</code>. In other words, this lists the <code>+</code> commits from <code>git</code> <code>cherry</code> <code>A</code> <code>B</code>.
-More precisely, <code>--cherry-pick</code> <code>--right-only</code> <code>--no-merges</code> gives the exact
+<code>A</code>. In other words, this lists the <code>+</code> commits from <code>git cherry A B</code>.
+More precisely, <code>--cherry-pick --right-only --no-merges</code> gives the exact
 list.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -1282,11 +1282,11 @@ list.</p></div>
 </dt>
 <dd>
 <p>
-        A synonym for <code>--right-only</code> <code>--cherry-mark</code> <code>--no-merges</code>; useful to
+        A synonym for <code>--right-only --cherry-mark --no-merges</code>; useful to
         limit the output to the commits on our side and mark those that
         have been applied to the other side of a forked history with
-        <code>git</code> <code>log</code> <code>--cherry</code> <code>upstream</code><code>...</code><code>mybranch</code>, similar to
-        <code>git</code> <code>cherry</code> <code>upstream</code> <code>mybranch</code>.
+        <code>git log --cherry upstream...mybranch</code>, similar to
+        <code>git cherry upstream mybranch</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1306,21 +1306,21 @@ list.</p></div>
 <div class="paragraph"><p>With <code>--pretty</code> format other than <code>oneline</code> and <code>reference</code> (for obvious reasons),
 this causes the output to have two extra lines of information
 taken from the reflog.  The reflog designator in the output may be shown
-as <code>ref@</code>{<em>&lt;Nth&gt;</em>} (where <em>&lt;Nth&gt;</em> is the reverse-chronological index in the
-reflog) or as <code>ref@</code>{<em>&lt;timestamp&gt;</em>} (with the <em>&lt;timestamp&gt;</em> for that entry),
+as <code>ref@{&lt;Nth&gt;}</code> (where <em>&lt;Nth&gt;</em> is the reverse-chronological index in the
+reflog) or as <code>ref@{&lt;timestamp&gt;}</code> (with the <em>&lt;timestamp&gt;</em> for that entry),
 depending on a few rules:</p></div>
 <div class="openblock">
 <div class="content">
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-If the starting point is specified as <code>ref@</code>{<em>&lt;Nth&gt;</em>}, show the index
+If the starting point is specified as <code>ref@{&lt;Nth&gt;}</code>, show the index
    format.
 </p>
 </li>
 <li>
 <p>
-If the starting point was specified as <code>ref@</code>{now}, show the
+If the starting point was specified as <code>ref@{now}</code>, show the
    timestamp format.
 </p>
 </li>
@@ -1348,8 +1348,8 @@ See also <a href="git-reflog.html">git-reflog(1)</a>.</p></div>
 </dt>
 <dd>
 <p>
-        Show commits touching conflicted paths in the range <code>HEAD</code><code>...</code><em>&lt;other&gt;</em>,
-        where <em>&lt;other&gt;</em> is the first existing pseudoref in <code>MERGE_HEAD</code>,
+        Show commits touching conflicted paths in the range <code>HEAD...&lt;other&gt;</code>,
+        where <code>&lt;other&gt;</code> is the first existing pseudoref in <code>MERGE_HEAD</code>,
         <code>CHERRY_PICK_HEAD</code>, <code>REVERT_HEAD</code> or <code>REBASE_HEAD</code>. Only works
         when the index has unmerged entries. This option can be used to show
         relevant commits when resolving conflicts from a 3-way merge.
@@ -1638,19 +1638,19 @@ sides of the merge are never walked.</p></div>
         First, build a history graph in the same way that
         <code>--full-history</code> with parent rewriting does (see above).
 </p>
-<div class="paragraph"><p>Then simplify each commit <code>C</code> to its replacement <code>C</code>' in the final
+<div class="paragraph"><p>Then simplify each commit <code>C</code> to its replacement <code>C'</code> in the final
 history according to the following rules:</p></div>
 <div class="openblock">
 <div class="content">
 <div class="ulist"><ul>
 <li>
 <p>
-Set <code>C</code>' to <code>C</code>.
+Set <code>C'</code> to <code>C</code>.
 </p>
 </li>
 <li>
 <p>
-Replace each parent <code>P</code> of <code>C</code>' with its simplification <code>P</code>'.  In
+Replace each parent <code>P</code> of <code>C'</code> with its simplification <code>P'</code>.  In
   the process, drop parents that are ancestors of other parents or that are
   root commits TREESAME to an empty tree, and remove duplicates, but take care
   to never drop all parents that we are TREESAME to.
@@ -1658,7 +1658,7 @@ Replace each parent <code>P</code> of <code>C</code>' with its simplification <c
 </li>
 <li>
 <p>
-If after this parent rewriting, <code>C</code>' is a root or merge commit (has
+If after this parent rewriting, <code>C'</code> is a root or merge commit (has
   zero or &gt;1 parents), a boundary commit, or !TREESAME, it remains.
   Otherwise, it is replaced with its only parent.
 </p>
@@ -1746,8 +1746,8 @@ means the same thing when applied to the <em>D..M</em> range but is just more
 explicit.</p></div>
 <div class="paragraph"><p>If we instead are interested in a given topic within this range, and all
 commits affected by that topic, we may only want to view the subset of
-<code>D</code><code>..</code><code>M</code> which contain that topic in their ancestry path.  So, using
-<code>--ancestry-path=H</code> <code>D</code><code>..</code><code>M</code> for example would result in:</p></div>
+<code>D..M</code> which contain that topic in their ancestry path.  So, using
+<code>--ancestry-path=H D..M</code> for example would result in:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>                E
@@ -1756,7 +1756,7 @@ commits affected by that topic, we may only want to view the subset of
                                \
                                 L--M</code></pre>
 </div></div>
-<div class="paragraph"><p>Whereas <code>--ancestry-path=K</code> <code>D</code><code>..</code><code>M</code> would result in</p></div>
+<div class="paragraph"><p>Whereas <code>--ancestry-path=K D..M</code> would result in</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>                K---------------L--M</code></pre>
@@ -1931,8 +1931,8 @@ commits are marked as TREESAME (subject to be simplified away).</p></div>
         \              \
          3----5----6----8---</code></pre>
 </div></div>
-<div class="paragraph"><p>where the numbers denote the order of commit timestamps, <code>git</code>
-<code>rev-list</code> and friends with <code>--date-order</code> show the commits in the
+<div class="paragraph"><p>where the numbers denote the order of commit timestamps, <code>git
+rev-list</code> and friends with <code>--date-order</code> show the commits in the
 timestamp order: 8 7 6 5 4 3 2 1.</p></div>
 <div class="paragraph"><p>With <code>--topo-order</code>, they would show 8 6 5 3 7 4 2 1 (or 8 7 4 2 6 5
 3 1); some older commits are shown before newer ones in order to
@@ -2080,7 +2080,7 @@ and <em>fuller</em>).</p></div>
 <p>
         Show the notes (see <a href="git-notes.html">git-notes(1)</a>) that annotate the
         commit, when showing the commit log message.  This is the default
-        for <code>git</code> <code>log</code>, <code>git</code> <code>show</code> and <code>git</code> <code>whatchanged</code> commands when
+        for <code>git log</code>, <code>git show</code> and <code>git whatchanged</code> commands when
         there is no <code>--pretty</code>, <code>--format</code>, or <code>--oneline</code> option given
         on the command line.
 </p>
@@ -2135,7 +2135,7 @@ being displayed. Examples: "--notes=foo" will show only notes from
 <dd>
 <p>
         Check the validity of a signed commit object by passing the signature
-        to <code>gpg</code> <code>--verify</code> and show the output.
+        to <code>gpg --verify</code> and show the output.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -2192,7 +2192,7 @@ format, often found in email messages.</p></div>
 00:00:00 UTC), followed by a space, and then the timezone as an offset
 from UTC (a <code>+</code> or <code>-</code> with four digits; the first two are hours, and
 the second two are minutes). I.e., as if the timestamp were formatted
-with <code>strftime</code>("%s %z")).
+with <code>strftime("%s %z")</code>).
 Note that the <code>-local</code> option does not affect the seconds-since-epoch
 value (which is always measured in UTC), but does switch the accompanying
 timezone value.</p></div>
@@ -2205,17 +2205,17 @@ omitted.</p></div>
 <div class="paragraph"><p><code>--date=unix</code> shows the date as a Unix epoch timestamp (seconds since
 1970).  As with <code>--raw</code>, this is always in UTC and therefore <code>-local</code>
 has no effect.</p></div>
-<div class="paragraph"><p><code>--date=format:.</code>.. feeds the format ... to your system <code>strftime</code>,
+<div class="paragraph"><p><code>--date=format:...</code> feeds the format <code>...</code> to your system <code>strftime</code>,
 except for %s, %z, and %Z, which are handled internally.
-Use <code>--date=format:</code>%c to show the date in your system locale&#8217;s
+Use <code>--date=format:%c</code> to show the date in your system locale&#8217;s
 preferred format.  See the <code>strftime</code> manual for a complete list of
 format placeholders. When using <code>-local</code>, the correct syntax is
-<code>--date=format-local:.</code>...</p></div>
+<code>--date=format-local:...</code>.</p></div>
 <div class="paragraph"><p><code>--date=default</code> is the default format, and is based on ctime(3)
 output.  It shows a single line with three-letter day of the week,
 three-letter month, day-of-month, hour-minute-seconds in "HH:MM:SS"
 format, followed by 4-digit year, plus timezone information, unless
-the local time zone is used, e.g. <code>Thu</code> <code>Jan</code> <code>1</code> <code>00:00:00</code> <code>1970</code> <code>+0000</code>.</p></div>
+the local time zone is used, e.g. <code>Thu Jan 1 00:00:00 1970 +0000</code>.</p></div>
 </div></div>
 </dd>
 <dt class="hdlist1">
@@ -2242,8 +2242,8 @@ the local time zone is used, e.g. <code>Thu</code> <code>Jan</code> <code>1</cod
 <dd>
 <p>
         Mark which side of a symmetric difference a commit is reachable from.
-        Commits from the left side are prefixed with &lt; and those from
-        the right with &gt;.  If combined with <code>--boundary</code>, those
+        Commits from the left side are prefixed with <code>&lt;</code> and those from
+        the right with <code>&gt;</code>.  If combined with <code>--boundary</code>, those
         commits are prefixed with <code>-</code>.
 </p>
 <div class="paragraph"><p>For example, if you have this topology:</p></div>
@@ -2291,7 +2291,7 @@ the local time zone is used, e.g. <code>Thu</code> <code>Jan</code> <code>1</cod
         When --graph is not used, all history branches are flattened
         which can make it hard to see that the two consecutive commits
         do not belong to a linear branch. This option puts a barrier
-        in between them in that case. If <em>&lt;barrier&gt;</em> is specified, it
+        in between them in that case. If <code>&lt;barrier&gt;</code> is specified, it
         is the string that will be shown instead of the default one.
 </p>
 </dd>
@@ -2303,7 +2303,7 @@ the local time zone is used, e.g. <code>Thu</code> <code>Jan</code> <code>1</cod
 <h2 id="_output">OUTPUT</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>When there are no conflicts, the output of this command is usable as
-input to <code>git</code> <code>update-ref</code> <code>--stdin</code>.  It is of the form:</p></div>
+input to <code>git update-ref --stdin</code>.  It is of the form:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><code>update refs/heads/branch1 ${NEW_branch1_HASH} ${OLD_branch1_HASH}
@@ -2353,8 +2353,8 @@ update refs/heads/branch1 ${NEW_branch1_HASH} ${OLD_branch1_HASH}
 update refs/heads/branch2 ${NEW_branch2_HASH} ${OLD_branch2_HASH}
 update refs/heads/tipbranch ${NEW_tipbranch_HASH} ${OLD_tipbranch_HASH}</code></pre>
 </div></div>
-<div class="paragraph"><p>When calling <code>git</code> <code>replay</code>, one does not need to specify a range of
-commits to replay using the syntax <code>A</code><code>..</code><code>B</code>; any range expression will
+<div class="paragraph"><p>When calling <code>git replay</code>, one does not need to specify a range of
+commits to replay using the syntax <code>A..B</code>; any range expression will
 do:</p></div>
 <div class="listingblock">
 <div class="content">

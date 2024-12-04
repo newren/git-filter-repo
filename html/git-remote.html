@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-remote(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -805,30 +805,30 @@ subcommands are available to perform operations on the remotes.</p></div>
 <dd>
 <p>
 Add a remote named &lt;name&gt; for the repository at
-&lt;URL&gt;.  The command <code>git</code> <code>fetch</code> <em>&lt;name&gt;</em> can then be used to create and
+&lt;URL&gt;.  The command <code>git fetch &lt;name&gt;</code> can then be used to create and
 update remote-tracking branches &lt;name&gt;/&lt;branch&gt;.
 </p>
-<div class="paragraph"><p>With <code>-f</code> option, <code>git</code> <code>fetch</code> <em>&lt;name&gt;</em> is run immediately after
+<div class="paragraph"><p>With <code>-f</code> option, <code>git fetch &lt;name&gt;</code> is run immediately after
 the remote information is set up.</p></div>
-<div class="paragraph"><p>With <code>--tags</code> option, <code>git</code> <code>fetch</code> <em>&lt;name&gt;</em> imports every tag from the
+<div class="paragraph"><p>With <code>--tags</code> option, <code>git fetch &lt;name&gt;</code> imports every tag from the
 remote repository.</p></div>
-<div class="paragraph"><p>With <code>--no-tags</code> option, <code>git</code> <code>fetch</code> <em>&lt;name&gt;</em> does not import tags from
+<div class="paragraph"><p>With <code>--no-tags</code> option, <code>git fetch &lt;name&gt;</code> does not import tags from
 the remote repository.</p></div>
 <div class="paragraph"><p>By default, only tags on fetched branches are imported
 (see <a href="git-fetch.html">git-fetch(1)</a>).</p></div>
-<div class="paragraph"><p>With <code>-t</code> <em>&lt;branch&gt;</em> option, instead of the default glob
+<div class="paragraph"><p>With <code>-t &lt;branch&gt;</code> option, instead of the default glob
 refspec for the remote to track all branches under
-the <code>refs/remotes/</code><em>&lt;name&gt;</em><code>/</code> namespace, a refspec to track only <em>&lt;branch&gt;</em>
-is created.  You can give more than one <code>-t</code> <em>&lt;branch&gt;</em> to track
+the <code>refs/remotes/&lt;name&gt;/</code> namespace, a refspec to track only <code>&lt;branch&gt;</code>
+is created.  You can give more than one <code>-t &lt;branch&gt;</code> to track
 multiple branches without grabbing all branches.</p></div>
-<div class="paragraph"><p>With <code>-m</code> <em>&lt;master&gt;</em> option, a symbolic-ref <code>refs/remotes/</code><em>&lt;name&gt;</em><code>/HEAD</code> is set
-up to point at remote&#8217;s <em>&lt;master&gt;</em> branch. See also the set-head command.</p></div>
+<div class="paragraph"><p>With <code>-m &lt;master&gt;</code> option, a symbolic-ref <code>refs/remotes/&lt;name&gt;/HEAD</code> is set
+up to point at remote&#8217;s <code>&lt;master&gt;</code> branch. See also the set-head command.</p></div>
 <div class="paragraph"><p>When a fetch mirror is created with <code>--mirror=fetch</code>, the refs will not
 be stored in the <em>refs/remotes/</em> namespace, but rather everything in
 <em>refs/</em> on the remote will be directly mirrored into <em>refs/</em> in the
 local repository. This option only makes sense in bare repositories,
 because a fetch would overwrite any local commits.</p></div>
-<div class="paragraph"><p>When a push mirror is created with <code>--mirror=push</code>, then <code>git</code> <code>push</code>
+<div class="paragraph"><p>When a push mirror is created with <code>--mirror=push</code>, then <code>git push</code>
 will always behave as if <code>--mirror</code> was passed.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -861,22 +861,22 @@ configuration settings for the remote are removed.
 <dd>
 <p>
 Sets or deletes the default branch (i.e. the target of the
-symbolic-ref <code>refs/remotes/</code><em>&lt;name&gt;</em><code>/HEAD</code>) for
+symbolic-ref <code>refs/remotes/&lt;name&gt;/HEAD</code>) for
 the named remote. Having a default branch for a remote is not required,
 but allows the name of the remote to be specified in lieu of a specific
 branch. For example, if the default branch for <code>origin</code> is set to
 <code>master</code>, then <code>origin</code> may be specified wherever you would normally
 specify <code>origin/master</code>.
 </p>
-<div class="paragraph"><p>With <code>-d</code> or <code>--delete</code>, the symbolic ref <code>refs/remotes/</code><em>&lt;name&gt;</em><code>/HEAD</code> is deleted.</p></div>
+<div class="paragraph"><p>With <code>-d</code> or <code>--delete</code>, the symbolic ref <code>refs/remotes/&lt;name&gt;/HEAD</code> is deleted.</p></div>
 <div class="paragraph"><p>With <code>-a</code> or <code>--auto</code>, the remote is queried to determine its <code>HEAD</code>, then the
-symbolic-ref <code>refs/remotes/</code><em>&lt;name&gt;</em><code>/HEAD</code> is set to the same branch. e.g., if the remote
-<code>HEAD</code> is pointed at <code>next</code>, <code>git</code> <code>remote</code> <code>set-head</code> <code>origin</code> <code>-a</code> will set
+symbolic-ref <code>refs/remotes/&lt;name&gt;/HEAD</code> is set to the same branch. e.g., if the remote
+<code>HEAD</code> is pointed at <code>next</code>, <code>git remote set-head origin -a</code> will set
 the symbolic-ref <code>refs/remotes/origin/HEAD</code> to <code>refs/remotes/origin/next</code>. This will
 only work if <code>refs/remotes/origin/next</code> already exists; if not it must be
 fetched first.</p></div>
-<div class="paragraph"><p>Use <em>&lt;branch&gt;</em> to set the symbolic-ref <code>refs/remotes/</code><em>&lt;name&gt;</em><code>/HEAD</code> explicitly. e.g., <code>git</code>
-<code>remote</code> <code>set-head</code> <code>origin</code> <code>master</code> will set the symbolic-ref <code>refs/remotes/origin/HEAD</code> to
+<div class="paragraph"><p>Use <code>&lt;branch&gt;</code> to set the symbolic-ref <code>refs/remotes/&lt;name&gt;/HEAD</code> explicitly. e.g., <code>git
+remote set-head origin master</code> will set the symbolic-ref <code>refs/remotes/origin/HEAD</code> to
 <code>refs/remotes/origin/master</code>. This will only work if
 <code>refs/remotes/origin/master</code> already exists; if not it must be fetched first.</p></div>
 </dd>
@@ -890,7 +890,7 @@ This can be used to track a subset of the available remote branches
 after the initial setup for a remote.
 </p>
 <div class="paragraph"><p>The named branches will be interpreted as if specified with the
-<code>-t</code> option on the <code>git</code> <code>remote</code> <code>add</code> command line.</p></div>
+<code>-t</code> option on the <code>git remote add</code> command line.</p></div>
 <div class="paragraph"><p>With <code>--add</code>, instead of replacing the list of currently tracked
 branches, adds to that list.</p></div>
 </dd>
@@ -934,7 +934,7 @@ your publishing repository), use two separate remotes.</p></div>
 Gives some information about the remote &lt;name&gt;.
 </p>
 <div class="paragraph"><p>With <code>-n</code> option, the remote heads are not queried first with
-<code>git</code> <code>ls-remote</code> <em>&lt;name&gt;</em>; cached information is used instead.</p></div>
+<code>git ls-remote &lt;name&gt;</code>; cached information is used instead.</p></div>
 </dd>
 <dt class="hdlist1">
 <em>prune</em>
@@ -944,8 +944,8 @@ Gives some information about the remote &lt;name&gt;.
 Deletes stale references associated with &lt;name&gt;. By default, stale
 remote-tracking branches under &lt;name&gt; are deleted, but depending on
 global configuration and the configuration of the remote we might even
-prune local tags that haven&#8217;t been pushed there. Equivalent to <code>git</code>
-<code>fetch</code> <code>--prune</code> <em>&lt;name&gt;</em>, except that no new references will be fetched.
+prune local tags that haven&#8217;t been pushed there. Equivalent to <code>git
+fetch --prune &lt;name&gt;</code>, except that no new references will be fetched.
 </p>
 <div class="paragraph"><p>See the PRUNING section of <a href="git-fetch.html">git-fetch(1)</a> for what it&#8217;ll prune
 depending on various configuration.</p></div>
@@ -958,10 +958,10 @@ actually prune them.</p></div>
 <dd>
 <p>
 Fetch updates for remotes or remote groups in the repository as defined by
-<code>remotes.</code><em>&lt;group&gt;</em>. If neither group nor remote is specified on the command line,
+<code>remotes.&lt;group&gt;</code>. If neither group nor remote is specified on the command line,
 the configuration parameter remotes.default will be used; if
 remotes.default is not defined, all remotes which do not have the
-configuration parameter <code>remote.</code><em>&lt;name&gt;</em><code>.skipDefaultUpdate</code> set to true will
+configuration parameter <code>remote.&lt;name&gt;.skipDefaultUpdate</code> set to true will
 be updated.  (See <a href="git-config.html">git-config(1)</a>).
 </p>
 <div class="paragraph"><p>With <code>--prune</code> option, run pruning against all the remotes that are updated.</p></div>

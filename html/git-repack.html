@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-repack(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -780,8 +780,8 @@ engines, disk storage, etc.</p></div>
         pack everything referenced into a single pack.
         Especially useful when packing a repository that is used
         for private development. Use
-        with <code>-d</code>.  This will clean up the objects that <code>git</code> <code>prune</code>
-        leaves behind, but <code>git</code> <code>fsck</code> <code>--full</code> <code>--dangling</code> shows as
+        with <code>-d</code>.  This will clean up the objects that <code>git prune</code>
+        leaves behind, but <code>git fsck --full --dangling</code> shows as
         dangling.
 </p>
 <div class="paragraph"><p>Note that users fetching over dumb protocols will have to fetch the
@@ -826,7 +826,7 @@ to the new separate pack will be written.</p></div>
 <p>
         Same as <code>-a</code>, unless <code>-d</code> is used. Then any unreachable objects
         are packed into a separate cruft pack. Unreachable objects can
-        be pruned using the normal expiry rules with the next <code>git</code> <code>gc</code>
+        be pruned using the normal expiry rules with the next <code>git gc</code>
         invocation (see <a href="git-gc.html">git-gc(1)</a>). Incompatible with <code>-k</code>.
 </p>
 </dd>
@@ -835,9 +835,9 @@ to the new separate pack will be written.</p></div>
 </dt>
 <dd>
 <p>
-        Expire unreachable objects older than <em>&lt;approxidate&gt;</em>
-        immediately instead of waiting for the next <code>git</code> <code>gc</code> invocation.
-        Only useful with <code>--cruft</code> <code>-d</code>.
+        Expire unreachable objects older than <code>&lt;approxidate&gt;</code>
+        immediately instead of waiting for the next <code>git gc</code> invocation.
+        Only useful with <code>--cruft -d</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -845,15 +845,15 @@ to the new separate pack will be written.</p></div>
 </dt>
 <dd>
 <p>
-        Repack cruft objects into packs as large as <em>&lt;n&gt;</em> bytes before
+        Repack cruft objects into packs as large as <code>&lt;n&gt;</code> bytes before
         creating new packs. As long as there are enough cruft packs
-        smaller than <em>&lt;n&gt;</em>, repacking will cause a new cruft pack to
+        smaller than <code>&lt;n&gt;</code>, repacking will cause a new cruft pack to
         be created containing objects from any combined cruft packs,
         along with any new unreachable objects. Cruft packs larger than
-        <em>&lt;n&gt;</em> will not be modified. When the new cruft pack is larger
-        than <em>&lt;n&gt;</em> bytes, it will be split into multiple packs, all of
-        which are guaranteed to be at most <em>&lt;n&gt;</em> bytes in size. Only
-        useful with <code>--cruft</code> <code>-d</code>.
+        <code>&lt;n&gt;</code> will not be modified. When the new cruft pack is larger
+        than <code>&lt;n&gt;</code> bytes, it will be split into multiple packs, all of
+        which are guaranteed to be at most <code>&lt;n&gt;</code> bytes in size. Only
+        useful with <code>--cruft -d</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -862,9 +862,9 @@ to the new separate pack will be written.</p></div>
 <dd>
 <p>
         Write a cruft pack containing pruned objects (if any) to the
-        directory <em>&lt;dir&gt;</em>. This option is useful for keeping a copy of
+        directory <code>&lt;dir&gt;</code>. This option is useful for keeping a copy of
         any pruned objects in a separate directory as a backup. Only
-        useful with <code>--cruft</code> <code>-d</code>.
+        useful with <code>--cruft -d</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -942,7 +942,7 @@ depth is 4095.</p></div>
 </dt>
 <dd>
 <p>
-        This option is passed through to <code>git</code> <code>pack-objects</code>.
+        This option is passed through to <code>git pack-objects</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -992,7 +992,7 @@ depth is 4095.</p></div>
         <code>repack.writebitmaps</code> config option set to <code>false</code>) should be
         used otherwise writing bitmap index will fail, as it supposes
         a single packfile containing all the objects. See
-        <a href="git-rev-list.html">git-rev-list(1)</a> for valid <em>&lt;filter-spec&gt;</em> forms.
+        <a href="git-rev-list.html">git-rev-list(1)</a> for valid <code>&lt;filter-spec&gt;</code> forms.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1001,7 +1001,7 @@ depth is 4095.</p></div>
 <dd>
 <p>
         Write the pack containing filtered out objects to the
-        directory <em>&lt;dir&gt;</em>. Only useful with <code>--filter</code>. This can be
+        directory <code>&lt;dir&gt;</code>. Only useful with <code>--filter</code>. This can be
         used for putting the pack on a separate object directory that
         is accessed through the Git alternates mechanism. <strong>WARNING:</strong>
         If the packfile containing the filtered out objects is not
@@ -1047,7 +1047,7 @@ depth is 4095.</p></div>
 <dd>
 <p>
         Exclude the given pack from repacking. This is the equivalent
-        of having <code>.keep</code> file on the pack. <em>&lt;pack-name&gt;</em> is the
+        of having <code>.keep</code> file on the pack. <code>&lt;pack-name&gt;</code> is the
         pack file name without leading directory (e.g. <code>pack-123.pack</code>).
         The option can be specified multiple times to keep multiple
         packs.
@@ -1059,9 +1059,9 @@ depth is 4095.</p></div>
 <dd>
 <p>
         When loosening unreachable objects, do not bother loosening any
-        objects older than <em>&lt;when&gt;</em>. This can be used to optimize out
+        objects older than <code>&lt;when&gt;</code>. This can be used to optimize out
         the write of any objects that would be immediately pruned by
-        a follow-up <code>git</code> <code>prune</code>.
+        a follow-up <code>git prune</code>.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1099,10 +1099,10 @@ depth is 4095.</p></div>
 <dd>
 <p>
         Arrange resulting pack structure so that each successive pack
-        contains at least <em>&lt;factor&gt;</em> times the number of objects as the
+        contains at least <code>&lt;factor&gt;</code> times the number of objects as the
         next-largest pack.
 </p>
-<div class="paragraph"><p><code>git</code> <code>repack</code> ensures this by determining a "cut" of packfiles that need
+<div class="paragraph"><p><code>git repack</code> ensures this by determining a "cut" of packfiles that need
 to be repacked into one in order to ensure a geometric progression. It
 picks the smallest set of packfiles such that as many of the larger
 packfiles (by count of objects contained in that pack) may be left
@@ -1113,7 +1113,7 @@ packs determined to need to be combined in order to restore a geometric
 progression.</p></div>
 <div class="paragraph"><p>Loose objects are implicitly included in this "roll-up", without respect to
 their reachability. This is subject to change in the future.</p></div>
-<div class="paragraph"><p>When writing a multi-pack bitmap, <code>git</code> <code>repack</code> selects the largest resulting
+<div class="paragraph"><p>When writing a multi-pack bitmap, <code>git repack</code> selects the largest resulting
 pack as the preferred pack for object selection by the MIDX (see
 <a href="git-multi-pack-index.html">git-multi-pack-index(1)</a>).</p></div>
 </dd>

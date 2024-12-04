@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitworkflows(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -780,8 +780,8 @@ useful for later inspection and analysis, for example with
 beginning. It is always easier to squash a few commits together than
 to split one big commit into several.  Don&#8217;t be afraid of making too
 small or imperfect steps along the way. You can always go back later
-and edit the commits with <code>git</code> <code>rebase</code> <code>--interactive</code> before you
-publish them.  You can use <code>git</code> <code>stash</code> <code>push</code> <code>--keep-index</code> to run the
+and edit the commits with <code>git rebase --interactive</code> before you
+publish them.  You can use <code>git stash push --keep-index</code> to run the
 test suite independent of other uncommitted changes; see the EXAMPLES
 section of <a href="git-stash.html">git-stash(1)</a>.</p></div>
 </div>
@@ -963,7 +963,7 @@ will therefore not be included in your feature release.</p></div>
 <div class="exampleblock">
 <div class="title">Recipe: Verify <em>master</em> is a superset of <em>maint</em></div>
 <div class="content">
-<div class="paragraph"><p><code>git</code> <code>log</code> <code>master</code><code>..</code><code>maint</code></p></div>
+<div class="paragraph"><p><code>git log master..maint</code></p></div>
 </div></div>
 <div class="paragraph"><p>This command should not list any commits.  Otherwise, check out
 <em>master</em> and merge <em>maint</em> into it.</p></div>
@@ -972,7 +972,7 @@ tag to the tip of <em>master</em> indicating the release version:</p></div>
 <div class="exampleblock">
 <div class="title">Recipe: Release tagging</div>
 <div class="content">
-<div class="paragraph"><p><code>git</code> <code>tag</code> <code>-s</code> <code>-m</code> "Git <code>X.Y.Z</code>" <code>vX.Y.Z</code> <code>master</code></p></div>
+<div class="paragraph"><p><code>git tag -s -m "Git X.Y.Z" vX.Y.Z master</code></p></div>
 </div></div>
 <div class="paragraph"><p>You need to push the new tag to a public Git server (see
 "DISTRIBUTED WORKFLOWS" below). This makes the tag available to
@@ -995,7 +995,7 @@ where X.Y.Z is the current release).</p></div>
 <div class="exampleblock">
 <div class="title">Recipe: Copy maint</div>
 <div class="content">
-<div class="paragraph"><p><code>git</code> <code>branch</code> <code>maint-X.Y.</code>(<code>Z-1</code>) <code>maint</code></p></div>
+<div class="paragraph"><p><code>git branch maint-X.Y.(Z-1) maint</code></p></div>
 </div></div>
 <div class="paragraph"><p>The <em>maint</em> branch should now be fast-forwarded to the newly released
 code so that maintenance fixes can be tracked for the current release:</p></div>
@@ -1005,12 +1005,12 @@ code so that maintenance fixes can be tracked for the current release:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>git</code> <code>checkout</code> <code>maint</code>
+<code>git checkout maint</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>merge</code> <code>--ff-only</code> <code>master</code>
+<code>git merge --ff-only master</code>
 </p>
 </li>
 </ul></div>
@@ -1031,17 +1031,17 @@ topics on <em>next</em>:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>git</code> <code>switch</code> <code>-C</code> <code>next</code> <code>master</code>
+<code>git switch -C next master</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>merge</code> <code>ai/topic_in_next1</code>
+<code>git merge ai/topic_in_next1</code>
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>merge</code> <code>ai/topic_in_next2</code>
+<code>git merge ai/topic_in_next2</code>
 </p>
 </li>
 <li>
@@ -1113,7 +1113,7 @@ to merge the remote branch.</p></div>
 <div class="exampleblock">
 <div class="title">Recipe: Push/pull: Publishing branches/topics</div>
 <div class="content">
-<div class="paragraph"><p><code>git</code> <code>push</code> <em>&lt;remote&gt;</em> <em>&lt;branch&gt;</em> and tell everyone where they can fetch
+<div class="paragraph"><p><code>git push &lt;remote&gt; &lt;branch&gt;</code> and tell everyone where they can fetch
 from.</p></div>
 </div></div>
 <div class="paragraph"><p>You will still have to tell people by other means, such as mail.  (Git
@@ -1124,7 +1124,7 @@ staying up to date is easy too:</p></div>
 <div class="exampleblock">
 <div class="title">Recipe: Push/pull: Staying up to date</div>
 <div class="content">
-<div class="paragraph"><p>Use <code>git</code> <code>fetch</code> <em>&lt;remote&gt;</em> or <code>git</code> <code>remote</code> <code>update</code> to stay up to date.</p></div>
+<div class="paragraph"><p>Use <code>git fetch &lt;remote&gt;</code> or <code>git remote update</code> to stay up to date.</p></div>
 </div></div>
 <div class="paragraph"><p>Then simply fork your topic branches from the stable remotes as
 explained earlier.</p></div>
@@ -1141,7 +1141,7 @@ follows.</p></div>
 <div class="exampleblock">
 <div class="title">Recipe: Push/pull: Merging remote topics</div>
 <div class="content">
-<div class="paragraph"><p><code>git</code> <code>pull</code> <em>&lt;URL&gt;</em> <em>&lt;branch&gt;</em></p></div>
+<div class="paragraph"><p><code>git pull &lt;URL&gt; &lt;branch&gt;</code></p></div>
 </div></div>
 <div class="paragraph"><p>Occasionally, the maintainer may get merge conflicts when they try to
 pull changes from downstream.  In this case, they can ask downstream to
@@ -1162,13 +1162,13 @@ maintainer&#8217;s life easier).</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<code>git</code> <code>format-patch</code> <code>-M</code> <code>upstream</code><code>..</code><code>topic</code> to turn them into preformatted
+<code>git format-patch -M upstream..topic</code> to turn them into preformatted
   patch files
 </p>
 </li>
 <li>
 <p>
-<code>git</code> <code>send-email</code> <code>--to=</code><em>&lt;recipient&gt;</em> <em>&lt;patches&gt;</em>
+<code>git send-email --to=&lt;recipient&gt; &lt;patches&gt;</code>
 </p>
 </li>
 </ul></div>
@@ -1181,7 +1181,7 @@ merge because you cannot format-patch merges):</p></div>
 <div class="exampleblock">
 <div class="title">Recipe: format-patch/am: Keeping topics up to date</div>
 <div class="content">
-<div class="paragraph"><p><code>git</code> <code>pull</code> <code>--rebase</code> <em>&lt;URL&gt;</em> <em>&lt;branch&gt;</em></p></div>
+<div class="paragraph"><p><code>git pull --rebase &lt;URL&gt; &lt;branch&gt;</code></p></div>
 </div></div>
 <div class="paragraph"><p>You can then fix the conflicts during the rebase.  Presumably you have
 not published your topic other than by mail, so rebasing it is not a
@@ -1192,10 +1192,10 @@ create a new topic branch and use <em>git am</em> to import the commits:</p></di
 <div class="exampleblock">
 <div class="title">Recipe: format-patch/am: Importing patches</div>
 <div class="content">
-<div class="paragraph"><p><code>git</code> <code>am</code> &lt; <code>patch</code></p></div>
+<div class="paragraph"><p><code>git am &lt; patch</code></p></div>
 </div></div>
 <div class="paragraph"><p>One feature worth pointing out is the three-way merge, which can help
-if you get conflicts: <code>git</code> <code>am</code> <code>-3</code> will use index information contained
+if you get conflicts: <code>git am -3</code> will use index information contained
 in patches to figure out the merge base.  See <a href="git-am.html">git-am(1)</a> for
 other options.</p></div>
 </div>

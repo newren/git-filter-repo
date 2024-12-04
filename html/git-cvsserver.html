@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-cvsserver(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -942,7 +942,7 @@ write access to the log file and to the database (see
 <a href="#dbbackend">Database Backend</a>. If you want to offer write access over
 SSH, the users of course also need write access to the Git repository itself.</p></div>
 <div class="paragraph"><p>You also need to ensure that each repository is "bare" (without a Git index
-file) for <code>cvs</code> <code>commit</code> to work. See <a href="gitcvs-migration.html">gitcvs-migration(7)</a>.</p></div>
+file) for <code>cvs commit</code> to work. See <a href="gitcvs-migration.html">gitcvs-migration(7)</a>.</p></div>
 <div class="paragraph" id="configaccessmethod"><p>All configuration variables can also be overridden for a specific method of
 access. Valid method names are "ext" (for SSH access) and "pserver". The
 following example configuration would disable pserver access while still
@@ -988,7 +988,7 @@ For SSH clients that will make commits, make sure their server-side
 Clients should now be able to check out the project. Use the CVS <em>module</em>
    name to indicate what Git <em>head</em> you want to check out.  This also sets the
    name of your newly checked-out directory, unless you tell it otherwise with
-   <code>-d</code> <em>&lt;dir-name&gt;</em>.  For example, this checks out <em>master</em> branch to the
+   <code>-d &lt;dir-name&gt;</code>.  For example, this checks out <em>master</em> branch to the
    <code>project-master</code> directory:
 </p>
 <div class="listingblock">
@@ -1015,7 +1015,7 @@ the pserver method), <em>git-cvsserver</em> should have write access to
 the database to work reliably (otherwise you need to make sure
 that the database is up to date any time <em>git-cvsserver</em> is executed).</p></div>
 <div class="paragraph"><p>By default it uses SQLite databases in the Git directory, named
-<code>gitcvs.</code><em>&lt;module-name&gt;</em><code>.sqlite</code>. Note that the SQLite backend creates
+<code>gitcvs.&lt;module-name&gt;.sqlite</code>. Note that the SQLite backend creates
 temporary files in the same directory as the database file on
 write so it might not be enough to grant the users using
 <em>git-cvsserver</em> write access to the database file without granting
@@ -1037,7 +1037,7 @@ configuration variables:</p></div>
 <h3 id="_configuring_database_backend">Configuring database backend</h3>
 <div class="paragraph"><p><em>git-cvsserver</em> uses the Perl DBI module. Please also read
 its documentation if changing these variables, especially
-about <code>DBI-</code>&gt;<code>connect</code>().</p></div>
+about <code>DBI-&gt;connect()</code>.</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
 gitcvs.dbName
@@ -1047,7 +1047,7 @@ gitcvs.dbName
         Database name. The exact meaning depends on the
         selected database driver, for SQLite this is a filename.
         Supports variable substitution (see below). May
-        not contain semicolons (;).
+        not contain semicolons (<code>;</code>).
         Default: <em>%Ggitcvs.%m.sqlite</em>
 </p>
 </dd>
@@ -1114,7 +1114,7 @@ gitcvs.dbTableNamePrefix
 <dd>
 <p>
         Git directory name, where all characters except for
-        alphanumeric ones, ., and <code>-</code> are replaced with
+        alphanumeric ones, <code>.</code>, and <code>-</code> are replaced with
         <code>_</code> (this should make it easier to use the directory
         name in a filename if wanted)
 </p>
@@ -1170,7 +1170,7 @@ GIT_CVSSERVER_ROOT
 <dd>
 <p>
         This variable specifies a single directory, replacing the
-        <em>&lt;directory&gt;</em>... argument list. The repository still requires the
+        <code>&lt;directory&gt;...</code> argument list. The repository still requires the
         <code>gitcvs.enabled</code> config option, unless <code>--export-all</code> is specified.
 </p>
 </dd>
@@ -1212,7 +1212,7 @@ Pick <code>HEAD</code> when it asks what branch/tag to check out. Untick the
 <div class="paragraph"><p>Protocol notes: If you are using anonymous access via pserver, just select that.
 Those using SSH access should choose the <em>ext</em> protocol, and configure <em>ext</em>
 access on the Preferences&#8594;Team&#8594;CVS&#8594;ExtConnection pane. Set CVS_SERVER to
-"<code>git</code> <code>cvsserver</code>". Note that password support is not good when using <em>ext</em>,
+"<code>git cvsserver</code>". Note that password support is not good when using <em>ext</em>,
 you will definitely want to have SSH keys setup.</p></div>
 <div class="paragraph"><p>Alternatively, you can just use the non-standard extssh protocol that Eclipse
 offer. In that case CVS_SERVER is ignored, and you will have to replace
@@ -1279,10 +1279,10 @@ to supply the git refspec directly to the appropriate CVS -r argument;
 some CVS clients don&#8217;t seem to do much sanity checking of the argument.
 Second, if that fails, you can use a special character escape mechanism
 that only uses characters that are valid in CVS tags.  A sequence
-of 4 or 5 characters of the form (underscore ("_"), dash ("-"),
-one or two characters, and dash ("-")) can encode various characters based
-on the one or two letters: "s" for slash ("/"), "p" for
-period ("."), "u" for underscore ("_"), or two hexadecimal digits
+of 4 or 5 characters of the form (underscore (<code>"_"</code>), dash (<code>"-"</code>),
+one or two characters, and dash (<code>"-"</code>)) can encode various characters based
+on the one or two letters: <code>"s"</code> for slash (<code>"/"</code>), <code>"p"</code> for
+period (<code>"."</code>), <code>"u"</code> for underscore (<code>"_"</code>), or two hexadecimal digits
 for any byte value at all (typically an ASCII number, or perhaps a part
 of a UTF-8 encoded character).</p></div>
 <div class="paragraph"><p>Legacy monitoring operations are not supported (edit, watch and related).

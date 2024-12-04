@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-commit-graph(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -776,10 +776,10 @@ git-commit-graph(1) Manual Page
         Use given directory for the location of packfiles and commit-graph
         file. This parameter exists to specify the location of an alternate
         that only has the objects directory, not a full <code>.git</code> directory. The
-        commit-graph file is expected to be in the <em>&lt;dir&gt;</em><code>/info</code> directory and
-        the packfiles are expected to be in <em>&lt;dir&gt;</em><code>/pack</code>. If the directory
+        commit-graph file is expected to be in the <code>&lt;dir&gt;/info</code> directory and
+        the packfiles are expected to be in <code>&lt;dir&gt;/pack</code>. If the directory
         could not be made into an absolute path, or does not match any known
-        object directory, <code>git</code> <code>commit-graph</code> ... will exit with non-zero
+        object directory, <code>git commit-graph ...</code> will exit with non-zero
         status.
 </p>
 </dd>
@@ -825,19 +825,19 @@ existing commit-graph file.</p></div>
 <div class="paragraph"><p>With the <code>--changed-paths</code> option, compute and write information about the
 paths changed between a commit and its first parent. This operation can
 take a while on large repositories. It provides significant performance gains
-for getting history of a directory or a file with <code>git</code> <code>log</code> <code>--</code> <em>&lt;path&gt;</em>. If
+for getting history of a directory or a file with <code>git log -- &lt;path&gt;</code>. If
 this option is given, future commit-graph writes will automatically assume
 that this option was intended. Use <code>--no-changed-paths</code> to stop storing this
 data.</p></div>
-<div class="paragraph"><p>With the <code>--max-new-filters=</code><em>&lt;n&gt;</em> option, generate at most <code>n</code> new Bloom
+<div class="paragraph"><p>With the <code>--max-new-filters=&lt;n&gt;</code> option, generate at most <code>n</code> new Bloom
 filters (if <code>--changed-paths</code> is specified). If <code>n</code> is <code>-1</code>, no limit is
 enforced. Only commits present in the new layer count against this
 limit. To retroactively compute Bloom filters over earlier layers, it is
 advised to use <code>--split=replace</code>.  Overrides the <code>commitGraph.maxNewFilters</code>
 configuration.</p></div>
-<div class="paragraph"><p>With the <code>--split</code>[<code>=</code><em>&lt;strategy&gt;</em>] option, write the commit-graph as a
+<div class="paragraph"><p>With the <code>--split[=&lt;strategy&gt;]</code> option, write the commit-graph as a
 chain of multiple commit-graph files stored in
-<em>&lt;dir&gt;</em><code>/info/commit-graphs</code>. Commit-graph layers are merged based on the
+<code>&lt;dir&gt;/info/commit-graphs</code>. Commit-graph layers are merged based on the
 strategy and other splitting options. The new commits not already in the
 commit-graph are added in a new "tip" file. This file is merged with the
 existing file if the following merge conditions are met:</p></div>
@@ -854,7 +854,7 @@ incremental holds the entire graph).
 </li>
 <li>
 <p>
-If <code>--size-multiple=</code><em>&lt;X&gt;</em> is not specified, let <code>X</code> equal 2. If the new
+If <code>--size-multiple=&lt;X&gt;</code> is not specified, let <code>X</code> equal 2. If the new
 tip file would have <code>N</code> commits and the previous tip has <code>M</code> commits and
 <code>X</code> times <code>N</code> is greater than  <code>M</code>, instead merge the two files into a
 single file.
@@ -862,11 +862,11 @@ single file.
 </li>
 <li>
 <p>
-If <code>--max-commits=</code><em>&lt;M&gt;</em> is specified with <code>M</code> a positive integer, and the
+If <code>--max-commits=&lt;M&gt;</code> is specified with <code>M</code> a positive integer, and the
 new tip file would have more than <code>M</code> commits, then instead merge the new
 tip with the previous tip.
 </p>
-<div class="paragraph"><p>Finally, if <code>--expire-time=</code><em>&lt;datetime&gt;</em> is not specified, let <code>datetime</code>
+<div class="paragraph"><p>Finally, if <code>--expire-time=&lt;datetime&gt;</code> is not specified, let <code>datetime</code>
 be the current time. After writing the split commit-graph, delete all
 unused commit-graph whose modified times are older than <code>datetime</code>.</p></div>
 </li>
@@ -903,7 +903,7 @@ Write a commit-graph file for the packed commits in your local <code>.git</code>
 <li>
 <p>
 Write a commit-graph file, extending the current commit-graph file
-  using commits in <em>&lt;pack-index&gt;</em>.
+  using commits in <code>&lt;pack-index&gt;</code>.
 </p>
 <div class="listingblock">
 <div class="content">
@@ -955,8 +955,8 @@ commitGraph.maxNewFilters
 </dt>
 <dd>
 <p>
-        Specifies the default value for the <code>--max-new-filters</code> option of <code>git</code>
-        <code>commit-graph</code> <code>write</code> (c.f., <a href="git-commit-graph.html">git-commit-graph(1)</a>).
+        Specifies the default value for the <code>--max-new-filters</code> option of <code>git
+        commit-graph write</code> (c.f., <a href="git-commit-graph.html">git-commit-graph(1)</a>).
 </p>
 </dd>
 <dt class="hdlist1">

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.1.2" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>gitcli(7)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -774,7 +774,7 @@ Options come first and then args.
 <li>
 <p>
 Revisions come first and then paths.
-   E.g. in <code>git</code> <code>diff</code> <code>v1.0</code> <code>v2.0</code> <code>arch/x86</code> <code>include/asm-x86</code>,
+   E.g. in <code>git diff v1.0 v2.0 arch/x86 include/asm-x86</code>,
    <code>v1.0</code> and <code>v2.0</code> are revisions and <code>arch/x86</code> and <code>include/asm-x86</code>
    are paths.
 </p>
@@ -783,19 +783,19 @@ Revisions come first and then paths.
 <p>
 When an argument can be misunderstood as either a revision or a path,
    they can be disambiguated by placing <code>--</code> between them.
-   E.g. <code>git</code> <code>diff</code> <code>--</code> <code>HEAD</code> is, "I have a file called HEAD in my work
+   E.g. <code>git diff -- HEAD</code> is, "I have a file called HEAD in my work
    tree.  Please show changes between the version I staged in the index
    and what I have in the work tree for that file", not "show the difference
    between the HEAD commit and the work tree as a whole".  You can say
-   <code>git</code> <code>diff</code> <code>HEAD</code> <code>--</code> to ask for the latter.
+   <code>git diff HEAD --</code> to ask for the latter.
 </p>
 </li>
 <li>
 <p>
 Without disambiguating <code>--</code>, Git makes a reasonable guess, but errors
    out and asks you to disambiguate when ambiguous.  E.g. if you have a
-   file called HEAD in your work tree, <code>git</code> <code>diff</code> <code>HEAD</code> is ambiguous, and
-   you have to say either <code>git</code> <code>diff</code> <code>HEAD</code> <code>--</code> or <code>git</code> <code>diff</code> <code>--</code> <code>HEAD</code> to
+   file called HEAD in your work tree, <code>git diff HEAD</code> is ambiguous, and
+   you have to say either <code>git diff HEAD --</code> or <code>git diff -- HEAD</code> to
    disambiguate.
 </p>
 </li>
@@ -824,9 +824,9 @@ $ git restore \*.c</code></pre>
 </div></div>
 <div class="paragraph"><p>The former lets your shell expand the fileglob, and you are asking
 the dot-C files in your working tree to be overwritten with the version
-in the index.  The latter passes the *.c to Git, and you are asking
+in the index.  The latter passes the <code>*.c</code> to Git, and you are asking
 the paths in the index that match the pattern to be checked out to your
-working tree.  After running <code>git</code> <code>add</code> <code>hello.c</code>; <code>rm</code> <code>hello.c</code>, you will <em>not</em>
+working tree.  After running <code>git add hello.c; rm hello.c</code>, you will <em>not</em>
 see <code>hello.c</code> in your working tree with the former, but with the latter
 you will.</p></div>
 </li>
@@ -843,15 +843,15 @@ scripting Git:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-Splitting short options to separate words (prefer <code>git</code> <code>foo</code> <code>-a</code> <code>-b</code>
-   to <code>git</code> <code>foo</code> <code>-ab</code>, the latter may not even work).
+Splitting short options to separate words (prefer <code>git foo -a -b</code>
+   to <code>git foo -ab</code>, the latter may not even work).
 </p>
 </li>
 <li>
 <p>
 When a command-line option takes an argument, use the <em>stuck</em> form.  In
-   other words, write <code>git</code> <code>foo</code> <code>-oArg</code> instead of <code>git</code> <code>foo</code> <code>-o</code> <code>Arg</code> for short
-   options, and <code>git</code> <code>foo</code> <code>--long-opt=Arg</code> instead of <code>git</code> <code>foo</code> <code>--long-opt</code> <code>Arg</code>
+   other words, write <code>git foo -oArg</code> instead of <code>git foo -o Arg</code> for short
+   options, and <code>git foo --long-opt=Arg</code> instead of <code>git foo --long-opt Arg</code>
    for long options.  An option that takes optional option-argument must be
    written in the <em>stuck</em> form.
 </p>
@@ -860,7 +860,7 @@ When a command-line option takes an argument, use the <em>stuck</em> form.  In
 <p>
 When you give a revision parameter to a command, make sure the parameter is
    not ambiguous with a name of a file in the work tree.  E.g. do not write
-   <code>git</code> <code>log</code> <code>-1</code> <code>HEAD</code> but write <code>git</code> <code>log</code> <code>-1</code> <code>HEAD</code> <code>--</code>; the former will not work
+   <code>git log -1 HEAD</code> but write <code>git log -1 HEAD --</code>; the former will not work
    if you happen to have a file called <code>HEAD</code> in the work tree.
 </p>
 </li>
@@ -909,9 +909,9 @@ usage: git describe [&lt;options&gt;] &lt;commit-ish&gt;*
     --long                always use long format
     --abbrev[=&lt;n&gt;]        use &lt;n&gt; digits to display SHA-1s</code></pre>
 </div></div>
-<div class="paragraph"><p>Note that some subcommand (e.g. <code>git</code> <code>grep</code>) may behave differently
-when there are things on the command line other than <code>-h</code>, but <code>git</code>
-<code>subcmd</code> <code>-h</code> without anything else on the command line is meant to
+<div class="paragraph"><p>Note that some subcommand (e.g. <code>git grep</code>) may behave differently
+when there are things on the command line other than <code>-h</code>, but <code>git
+subcmd -h</code> without anything else on the command line is meant to
 consistently give the usage.</p></div>
 </dd>
 <dt class="hdlist1">
@@ -929,24 +929,24 @@ consistently give the usage.</p></div>
 <div class="sect2">
 <h3 id="_negating_options">Negating options</h3>
 <div class="paragraph"><p>Options with long option names can be negated by prefixing <code>--no-</code>. For
-example, <code>git</code> <code>branch</code> has the option <code>--track</code> which is <em>on</em> by default. You
+example, <code>git branch</code> has the option <code>--track</code> which is <em>on</em> by default. You
 can use <code>--no-track</code> to override that behaviour. The same goes for <code>--color</code>
 and <code>--no-color</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_aggregating_short_options">Aggregating short options</h3>
 <div class="paragraph"><p>Commands that support the enhanced option parser allow you to aggregate short
-options. This means that you can for example use <code>git</code> <code>rm</code> <code>-rf</code> or
-<code>git</code> <code>clean</code> <code>-fdx</code>.</p></div>
+options. This means that you can for example use <code>git rm -rf</code> or
+<code>git clean -fdx</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_abbreviating_long_options">Abbreviating long options</h3>
 <div class="paragraph"><p>Commands that support the enhanced option parser accepts unique
 prefix of a long option as if it is fully spelled out, but use this
-with a caution.  For example, <code>git</code> <code>commit</code> <code>--amen</code> behaves as if you
-typed <code>git</code> <code>commit</code> <code>--amend</code>, but that is true only until a later version
+with a caution.  For example, <code>git commit --amen</code> behaves as if you
+typed <code>git commit --amend</code>, but that is true only until a later version
 of Git introduces another option that shares the same prefix,
-e.g. <code>git</code> <code>commit</code> <code>--amenity</code> option.</p></div>
+e.g. <code>git commit --amenity</code> option.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_separating_argument_from_the_option">Separating argument from the option</h3>
@@ -984,7 +984,7 @@ different things.</p></div>
 <p>
 The <code>--cached</code> option is used to ask a command that
    usually works on files in the working tree to <strong>only</strong> work
-   with the index.  For example, <code>git</code> <code>grep</code>, when used
+   with the index.  For example, <code>git grep</code>, when used
    without a commit to specify from which commit to look for
    strings in, usually works on files in the working tree,
    but with the <code>--cached</code> option, it looks for strings in
@@ -995,14 +995,14 @@ The <code>--cached</code> option is used to ask a command that
 <p>
 The <code>--index</code> option is used to ask a command that
    usually works on files in the working tree to <strong>also</strong>
-   affect the index.  For example, <code>git</code> <code>stash</code> <code>apply</code> usually
+   affect the index.  For example, <code>git stash apply</code> usually
    merges changes recorded in a stash entry to the working tree,
    but with the <code>--index</code> option, it also merges changes to
    the index as well.
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p><code>git</code> <code>apply</code> command can be used with <code>--cached</code> and
+<div class="paragraph"><p><code>git apply</code> command can be used with <code>--cached</code> and
 <code>--index</code> (but not at the same time).  Usually the command
 only affects the files in the working tree, but with
 <code>--index</code>, it patches both the files and their index
