@@ -5,6 +5,7 @@
   * [Why did `git-filter-repo` rewrite commit hashes?](#why-did-git-filter-repo-rewrite-commit-hashes)
   * [Why did `git-filter-repo` rewrite more commit hashes than I expected?](#why-did-git-filter-repo-rewrite-more-commit-hashes-than-i-expected)
   * [Why did `git-filter-repo` rewrite other branches too?](#why-did-git-filter-repo-rewrite-other-branches-too)
+  * [How should paths be specified?](#How-should-paths-be-specified)
   * [Help! Can I recover or undo the filtering?](#help-can-i-recover-or-undo-the-filtering)
   * [Can you change `git-filter-repo` to allow future folks to recover from `--force`'d rewrites?](#can-you-change-git-filter-repo-to-allow-future-folks-to-recover-from---forced-rewrites)
   * [Can I use `git-filter-repo` to fix a repository with corruption?](#Can-I-use-git-filter-repo-to-fix-a-repository-with-corruption)
@@ -89,6 +90,42 @@ such as a single branch, using the `--refs` option.  However, using that
 comes with the risk that one branch now has a different version of some
 commits than other branches do; usually, when you rewrite history, you
 want all branches that depend on what you are rewriting to be updated.
+
+## How should paths be specified?
+
+Arguments to `--path` should be paths as Git would report them, when run
+from the toplevel of the git repository (explained more below after some
+examples).
+
+**Good** path examples:
+  * `README.md`
+  * `Documentation/README.md`
+  * `src/modules/flux/capacitor.rs`
+
+You can find examples of valid path names from your repository by
+running either `git diff --no-relative --name-only` or `git log
+--no-relative --name-only --format=""`.
+
+The following are basic rules about paths the way that Git reports and uses
+them:
+  * do not use absolute paths
+  * always treats paths as relative to the toplevel of the repository
+    (do not add a leading slash, and do not specify paths relative to some
+     subdirectory of the repository even if that is your current working
+     directory)
+  * do not use the special directories `.` or `..` anywhere in your path
+  * do not use `\`,  the Windows path separator, between directories and
+    files; always use `/` regardless of platform.
+
+**Erroneous** path examples (do **_NOT_** use any of these styles):
+ * `/absolute/path/to/src/modules/program.c`
+ * `/src/modules/program.c`
+ * `src/docs/../modules/main.java`
+ * `scripts/config/./update.sh`
+ * `./tests/fixtures/image.jpg`
+ * `../src/main.rs`
+ * `C:\absolute\path\to\src\modules\program.c`
+ * `src\modules\program.c`
 
 ## Help! Can I recover or undo the filtering?
 
