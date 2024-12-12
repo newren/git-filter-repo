@@ -88,7 +88,7 @@ git filter-repo \
 Replace "stuff" in any commit message with "task".
 
 ```
-git-filter-repo --message-callback 'return message.replace(b"stuff", b"task")'
+git filter-repo --message-callback 'return message.replace(b"stuff", b"task")'
 ```
 
 ## Only keep files from two branches
@@ -245,12 +245,21 @@ git filter-repo --refs main~5..main --commit-callback '
 
 First, run fsck to get a list of the corrupt objects, e.g.:
 ```
-$ git fsck
+$ git fsck --full
 error in commit 166f57b3fbe31257100361ecaf735f305b533b21: missingSpaceBeforeDate: invalid author/committer line - missing space before date
+error in tree c15680eae81cc8539af7e7de766a8a7c13bd27df: duplicateEntries: contains duplicate file entries
 Checking object directories: 100% (256/256), done.
 ```
 
-Then print out that object literally to a temporary file:
+Odds are you'll only see one type of corruption, but if you see
+multiple, you can either do multiple filterings, or create replacement
+objects for all the corrupt objects (both commits and trees), and then
+do the filtering.  Since the method for handling corrupt commits and
+corrupt tress is slightly different, I'll give examples below for each.
+
+### Handling repository corruption -- commit objects
+
+Print out the corrupt object literally to a temporary file:
 ```
 $ git cat-file -p 166f57b3fbe31257100361ecaf735f305b533b21 >tmp
 ```
@@ -266,7 +275,8 @@ Initial
 ```
 
 Edit that file to fix the error (in this case, the missing space
-between author email and author date):
+between author email and author date).  In this case, it would look
+like this after editing:
 
 ```
 tree e1d871155fce791680ec899fe7869067f2b4ffd2
@@ -276,7 +286,7 @@ committer My Name <my@email.com> 1673287380 -0800
 Initial
 ```
 
-Save the updated file, then use `git-replace` to make a replace reference
+Save the updated file, then use `git replace` to make a replace reference
 for it.
 ```
 $ git replace -f 166f57b3fbe31257100361ecaf735f305b533b21 $(git hash-object -t commit -w tmp)
@@ -293,6 +303,62 @@ $ git filter-repo --proceed
 Note that if you have multiple corrupt objects, you only need to run
 filter-repo once; that is, so long as you create all the replacements
 before you run filter-repo.
+
+### Handling repository corruption -- tree objects
+
+<!-- GitHub customer example -->
+
+Print out the corrupt object literally to a temporary file:
+```
+$ git cat-file -p c15680eae81cc8539af7e7de766a8a7c13bd27df >tmp
+```
+
+Taking a look at the file would show, for example:
+```
+$ cat tmp
+100644 blob cd5ded43e86f80bfd384702e3f4cc7ce42de49f9	.gitignore
+100644 blob 226febfcc91ec2c166a5a06834fb47c3553ec469	README.md
+100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391	src
+040000 tree df2b8fc99e1c1d4dbc0a854d9f72157f1d6ea078	src
+040000 tree 99d732476808176bb9d73bcbfe2505e43d65cb4f	t
+```
+
+Edit that file to fix the error (in this case, removing either the `src`
+file (blob) or the `src` directory (tree)).  In this case, it might look
+like this after editing:
+
+```
+100644 blob cd5ded43e86f80bfd384702e3f4cc7ce42de49f9	.gitignore
+100644 blob 226febfcc91ec2c166a5a06834fb47c3553ec469	README.md
+040000 tree df2b8fc99e1c1d4dbc0a854d9f72157f1d6ea078	src
+040000 tree 99d732476808176bb9d73bcbfe2505e43d65cb4f	t
+```
+
+Save the updated file, then use `git mktree` to turn it into an actual
+tree object:
+```
+$ git mktree <tmp
+ace04f50a5d13b43e94c12802d3d8a6c66a35b1d
+```
+
+Now use the output of that command to create a replacement object for
+the original corrupt object:
+```
+git replace -f c15680eae81cc8539af7e7de766a8a7c13bd27df ace04f50a5d13b43e94c12802d3d8a6c66a35b1d
+```
+
+Then remove the temporary file `tmp` and run `filter-repo` to consume
+the replace reference and make it permanent:
+
+```
+$ rm tmp
+$ git filter-repo --proceed
+```
+
+As mentioned with corrupt commit objects, if you have multiple corrupt
+objects, as long as you create all the replacements for those objects
+first, you only need to run filter-repo once.
+
 
 ## Removing all files with a backslash in them
 
