@@ -1688,9 +1688,11 @@ class GitUtils(object):
     except subprocess.CalledProcessError as e: # pragma: no cover
       raise SystemExit('fatal: {}'.format(e))
 
+    configs = map(lambda x: x.strip().split(b'=', maxsplit=1), output.splitlines())
+    # FIXME: Ignores multi-line values, just take the first line for now
+    configs = filter(lambda x: len(x) == 2, configs)
     # FIXME: Ignores multi-valued keys, just let them overwrite for now
-    return dict(line.split(b'=', maxsplit=1)
-                for line in output.strip().split(b"\n"))
+    return dict(configs)
 
   @staticmethod
   def get_blob_sizes(quiet = False):
