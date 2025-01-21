@@ -1689,8 +1689,9 @@ class GitUtils(object):
       raise SystemExit('fatal: {}'.format(e))
 
     # FIXME: Ignores multi-valued keys, just let them overwrite for now
-    return dict(line.split(b'=', maxsplit=1)
-                for line in output.strip().split(b"\n"))
+    keyvalues = re.split(b'^([a-zA-Z0-9.-]+)=', output, flags=re.MULTILINE)
+    return {keyvalues[i].strip(): keyvalues[i + 1].strip()
+            for i in range(1, len(keyvalues), 2)}
 
   @staticmethod
   def get_blob_sizes(quiet = False):
