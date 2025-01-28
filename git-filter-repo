@@ -1683,14 +1683,14 @@ class GitUtils(object):
   def get_config_settings(repo_working_dir):
     output = ''
     try:
-      output = subproc.check_output('git config --list'.split(),
+      output = subproc.check_output('git config --list --null'.split(),
                                     cwd=repo_working_dir)
     except subprocess.CalledProcessError as e: # pragma: no cover
       raise SystemExit('fatal: {}'.format(e))
 
     # FIXME: Ignores multi-valued keys, just let them overwrite for now
-    return dict(line.split(b'=', maxsplit=1)
-                for line in output.strip().split(b"\n"))
+    return dict(item.split(b'\n', maxsplit=1)
+                for item in output.strip().split(b"\0") if item)
 
   @staticmethod
   def get_blob_sizes(quiet = False):

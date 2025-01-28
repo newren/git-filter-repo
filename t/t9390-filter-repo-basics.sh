@@ -895,4 +895,15 @@ test_expect_success 'origin refs without origin remote does not die' '
 	)
 '
 
+test_expect_success 'multi-line config value' '
+	test_create_repo multiline_config &&
+	(
+		cd multiline_config &&
+
+		git config set test.test "test
+test" &&
+		git filter-repo --force
+	)
+'
+
 test_done
