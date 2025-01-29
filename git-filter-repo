@@ -4965,7 +4965,12 @@ class RepoFilter(object):
 
 def main():
   setup_gettext()
-  args = FilteringOptions.parse_args(sys.argv[1:])
+  try:
+    args = FilteringOptions.parse_args(sys.argv[1:])
+  except FileNotFoundError as e:
+    filename = e.filename.decode('utf-8') if type(e.filename) == bytes else e.filename
+    raise SystemExit(_("Error! Specified file '%s' does not exist") % filename)
+
   if args.analyze:
     RepoAnalyze.run(args)
   else:
