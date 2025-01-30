@@ -38,8 +38,7 @@ history rewriting tools](contrib/filter-repo-demos).
 
 filter-repo requires:
 
-  * git >= 2.22.0 at a minimum; [some features](#upstream-improvements)
-    require git >= 2.24.0 or later
+  * git >= 2.36.0
   * python3 >= 3.6
 
 # How do I install it?

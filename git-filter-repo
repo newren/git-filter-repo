@@ -2307,6 +2307,12 @@ EXAMPLES
       if b'--combined-all-paths' not in output:
         # We need a version of git-diff-tree with --combined-all-paths
         raise SystemExit(_("Error: need git >= 2.22.0"))
+    if args.sensitive_data_removal:
+      p = subproc.Popen('git cat-file -h'.split(),
+                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      output = p.stdout.read()
+      if b"--batch-command" not in output: # pragma: no cover
+        raise SystemExit(_("Error: need git >= 2.36.0"))
     # End of sanity checks on git version
     if args.max_blob_size:
       suffix = args.max_blob_size[-1]
