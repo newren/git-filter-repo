@@ -443,7 +443,7 @@ has also driven numerous improvements to fast-export and fast-import
 (and occasionally other commands) in core git, based on things
 filter-repo needs to do its work:
 
-  * git-2.48.0 (to be released Jan 2025)
+  * git-2.48.0
     * [fast-import: disallow more path components](
       https://git.kernel.org/pub/scm/git/git.git/commit/?id=da91a90c2f)
     * [fast-import: disallow "." and ".." path components](
