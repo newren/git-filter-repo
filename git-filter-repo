@@ -4630,6 +4630,7 @@ class RepoFilter(object):
         if not new_refs_initialized:
           target_working_dir = self._args.target or b'.'
           new_refs = GitUtils.get_refs(target_working_dir)
+          new_refs_initialized = True
         if refname in new_refs:
           new_hash = new_refs[refname]
         else:
@@ -4639,6 +4640,7 @@ class RepoFilter(object):
       if not new_refs_initialized:
         target_working_dir = self._args.target or b'.'
         new_refs = GitUtils.get_refs(target_working_dir)
+        new_refs_initialized = True
       for ref, new_hash in new_refs.items():
         if ref not in orig_refs and not ref.startswith(b'refs/replace/'):
           old_hash = b'0'*len(new_hash)
