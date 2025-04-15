@@ -3940,7 +3940,9 @@ class RepoFilter(object):
         continue
       # Otherwise, record the change
       new_file_changes[change.filename] = change
-    commit.file_changes = [v for k,v in sorted(new_file_changes.items())]
+    # Use the Git sorting algorithm for trees
+    commit.file_changes = [v for k,v in sorted(new_file_changes.items(),
+        key=lambda x: (x[0]+b'/', x[1]))]
 
   def _tweak_commit(self, commit, aux_info):
     if self._args.replace_message:
