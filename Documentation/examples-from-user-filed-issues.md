@@ -300,9 +300,10 @@ $ rm tmp
 $ git filter-repo --proceed
 ```
 
-Note that if you have multiple corrupt objects, you only need to run
-filter-repo once; that is, so long as you create all the replacements
-before you run filter-repo.
+Note that if you have multiple corrupt objects, you need to create
+replacements for all of them, and then run filter-repo.  Leaving any
+corrupt object without a replacement is likely to cause the filter-repo run
+to fail.
 
 ### Handling repository corruption -- tree objects
 
