@@ -827,4 +827,40 @@ test_expect_success 'lfs: full rewrite then partial' '
 	)
 '
 
+test_expect_success 'sdr: lfs + submodules' '
+	test_create_repo lfs_plus_submodules &&
+	(
+		cd lfs_plus_submodules &&
+		git symbolic-ref HEAD refs/heads/main &&
+		git fast-import --quiet <$DATA/lfs &&
+
+		git reset --hard &&
+		git init subdir &&
+		>subdir/empty &&
+		git -C subdir add . &&
+		git -C subdir commit -m initial &&
+
+		git submodule add ./subdir &&
+		git commit -m "Add submodule" &&
+
+		git filter-repo --sensitive-data-removal \
+		                --invert-paths --path LD --force &&
+
+		cat <<-EOF >orig_expect &&
+		sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+		sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+		sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp orig_expect .git/filter-repo/original_lfs_objects &&
+
+		cat <<-EOF >expect &&
+		sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		EOF
+
+		test_cmp expect .git/filter-repo/orphaned_lfs_objects
+	)
+'
+
 test_done

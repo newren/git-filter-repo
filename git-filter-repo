@@ -1110,7 +1110,7 @@ class FastExportParser(object):
         idnum = idnum[1:]
       path = path.rstrip(b'\n')
       # Check for LFS objects from sources before we might toss this filechange
-      if self._lfs_object_tracker:
+      if mode != b'160000' and self._lfs_object_tracker:
         value = int(idnum) if len(idnum) != 40 else idnum
         self._lfs_object_tracker.check_file_change_data(value, True)
       # We translate the idnum to our id system
@@ -3039,7 +3039,8 @@ class LFSObjectTracker:
       self.check_blob_data(obj.data, obj.id, False)
     elif type(obj) == Commit:
       for change in obj.file_changes:
-        if change.type != b'M':
+        sys.stdout.flush()
+        if change.type != b'M' or change.mode == b'160000':
           continue
         self.check_file_change_data(change.blob_id, False)
 
