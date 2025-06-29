@@ -33,6 +33,7 @@ operations; however:
 import argparse
 import collections
 import fnmatch
+import functools
 import gettext
 import io
 import os
@@ -3942,7 +3943,29 @@ class RepoFilter(object):
         continue
       # Otherwise, record the change
       new_file_changes[change.filename] = change
-    commit.file_changes = [v for k,v in sorted(new_file_changes.items())]
+
+    # Use the git fast-export sorting algorithm for filenames
+    # https://github.com/git/git/blob/14de3eb34435db79c6e7edc8082c302a26a8330a/builtin/fast-export.c#L444-L448
+    def depth_first(a, b):
+      fn_a = a[0]
+      fn_b = b[0]
+
+      # Sort 'd/e' before 'd'
+      # first compare common length, then if equal give priority to longer one
+      min_len = min(len(fn_a), len(fn_b))
+      # memcmp equivalent https://docs.python.org/3.0/whatsnew/3.0.html#ordering-comparisons
+      cmp = (fn_a[:min_len] > fn_b[:min_len]) - (fn_a[:min_len] < fn_b[:min_len])
+      if cmp != 0:  # different content
+        return cmp  # return normal comparison
+      cmp = len(fn_b) - len(fn_a)
+      if cmp != 0:  # different size
+        return cmp  # longer one first
+
+      # 'R' (rename) entries last
+      cmp = (a[1].type == 'R') - (b[1].type == 'R')
+      return cmp
+    commit.file_changes = [v for k,v in sorted(new_file_changes.items(),
+        key=functools.cmp_to_key(depth_first))]
 
   def _tweak_commit(self, commit, aux_info):
     if self._args.replace_message:
