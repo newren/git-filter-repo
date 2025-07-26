@@ -654,6 +654,9 @@ test_expect_success '--replace-text all options' '
 		git show HEAD~4:numbers/medium.num >actual &&
 		test_cmp expect actual &&
 
+		echo "foodstuff" >expect &&
+		test_cmp expect sequence/to &&
+
 		echo "haphazard ***REMOVED*** variation" >expect &&
 		test_cmp expect whatever
 	)

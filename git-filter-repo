@@ -154,6 +154,9 @@ def glob_to_regex(glob_bytestr):
     regex = regex[0:-7]
   elif regex.startswith(r'(?s:') and regex.endswith(r')\Z'): # pragma: no cover
     regex = regex[4:-3]
+  elif regex.startswith(r'(?s:') and regex.endswith(r')\z'): # pragma: no cover
+    # Yaay, python3.14 for senselessly duplicating \Z as \z...
+    regex = regex[4:-3]
 
   # Finally, convert back to regex operating on bytestr
   return regex.encode()
