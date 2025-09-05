@@ -39,6 +39,13 @@ install: snag_docs #fixup_locale
 	cp -a Documentation/man1/git-filter-repo.1 "$(mandir)/man1/git-filter-repo.1"
 	cp -a Documentation/html/git-filter-repo.html "$(htmldir)/git-filter-repo.html"
 
+.PHONY: uninstall
+uninstall:
+	rm -f "$(bindir)/git-filter-repo"
+	rm -f "$(pythondir)/git_filter_repo.py"
+	rm -f "$(mandir)/man1/git-filter-repo.1"
+	rm -f "$(htmldir)/git-filter-repo.html"
+
 
 #
 # The remainder of the targets are meant for tasks for the maintainer; if they
