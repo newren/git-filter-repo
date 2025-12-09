@@ -724,9 +724,9 @@ history rewrite are roughly as follows:
      command line to refer to the newly rewritten commits.  If you
      want to use these replace refs, manually push them to the
      relevant clone URL and tell users to manually fetch them (e.g. by
-     adjusting their fetch refspec, `git config --add
-     remote.origin.fetch +refs/replace/*:refs/replace/*`).  Sadly,
-     replace refs are not yet widely understood; projects like jgit
+     adjusting their fetch refspec,
+     `git config --add remote.origin.fetch +refs/replace/*:refs/replace/*`).
+     Sadly, replace refs are not yet widely understood; projects like jgit
      and libgit2 do not support them and existing repository managers
      (e.g. Gerrit, GitHub, GitLab) do not yet understand replace refs.
      Thus one can't use old commit hashes within the UI of these other
@@ -753,10 +753,10 @@ ugly history returning but getting you "two copies" of each commit
 doubling the number of commits in your repository.  In short, you end
 up with an even bigger mess to clean up than you started with.
 
-This happens frequently to people using `git filter-branch` or `BFG
-repo cleaner`, and can happen to folks using `git filter-repo` if they
-insist on pushing back to the original repo.  Example ways you can get
-such an even uglier history include:
+This happens frequently to people using `git filter-branch` or
+`BFG repo cleaner`, and can happen to folks using `git filter-repo` if
+they insist on pushing back to the original repo.  Example ways you can
+get such an even uglier history include:
 
   * at the command line (of another clone of the same repo from before the
     cleanup): `git pull && git push`
@@ -771,8 +771,9 @@ trivial to do so; simply run:
 
   * `git remote add origin $ORIGINAL_CLONE_URL`
 
-and then you can push (e.g. `git push --force --branches --tags
---prune`).  Since removing the origin url is such a cheap way to
+and then you can push
+(e.g. `git push --force --branches --tags --prune`).
+Since removing the origin url is such a cheap way to
 potentially prevent big messes, and it's so easy to work around for
 those that really do want to push back over the original history,
 removing the origin url is a great safety measure that I employ.
