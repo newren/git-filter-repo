@@ -214,7 +214,7 @@ git filter-repo --filename-callback '
 
 ```
 git filter-repo --refs main~5..main --commit-callback '
-    commit.commiter_name = b"My Wonderful Self"
+    commit.committer_name = b"My Wonderful Self"
     commit.committer_email = b"my@self.org"
 '
 ```
