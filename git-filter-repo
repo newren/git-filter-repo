@@ -58,7 +58,8 @@ public_globals = ["__builtins__", "argparse", "collections", "fnmatch",
                   "subprocess", "sys", "time", "textwrap", "tzinfo",
                   "timedelta", "datetime"] + __all__
 
-deleted_hash = b'0'*40
+deleted_hash_sha1 = b'0'*40
+deleted_hash_sha256 = b'0'*64
 write_marks = True
 date_format_permissive = True
 
@@ -1038,16 +1039,17 @@ class FastExportParser(object):
     # Stores the contents of the current line of input being parsed
     self._currentline = ''
 
+    # Object format (`sha1` or `sha256`). Initially set to `None` until we
+    # encounter the first object name.
+    self._object_format = None
+    self._object_format_len = None
+
     # Tracks LFS objects we have found
     self._lfs_object_tracker = None
 
     # Compile some regexes and cache those
     self._mark_re = re.compile(br'mark :(\d+)\n$')
-    self._parent_regexes = {}
-    parent_regex_rules = (br' :(\d+)\n$', br' ([0-9a-f]{40})\n')
-    for parent_refname in (b'from', b'merge'):
-      ans = [re.compile(parent_refname+x) for x in parent_regex_rules]
-      self._parent_regexes[parent_refname] = ans
+    self._parent_regexes = None
     self._quoted_string_re = re.compile(br'"(?:[^"\\]|\\.)*"')
     self._refline_regexes = {}
     for refline_name in (b'reset', b'commit', b'tag', b'progress'):
@@ -1055,6 +1057,18 @@ class FastExportParser(object):
     self._user_regexes = {}
     for user in (b'author', b'committer', b'tagger'):
       self._user_regexes[user] = re.compile(user + b' (.*?) <(.*?)> (.*)\n$')
+
+  def _get_parent_regexes(self):
+    if self._parent_regexes is not None:
+      return self._parent_regexes
+    if self._object_format_len is None:
+      return {parent_refname: [None, None, [(f, n, re.compile(parent_refname+b' ([0-9a-f]{'+str(n).encode()+b'})\\n')) for f, n in (("sha1", 40), ("sha256", 64))]] for parent_refname in (b'from', b'merge')}
+    self._parent_regexes = {}
+    parent_regex_rules = (br' :(\d+)\n$', b' ([0-9a-f]{'+str(self._object_format_len).encode()+b')\\n')
+    for parent_refname in (b'from', b'merge'):
+      ans = [re.compile(parent_refname+x) for x in parent_regex_rules] + [None]
+      self._parent_regexes[parent_refname] = ans
+    return self._parent_regexes
 
   def _advance_currentline(self):
     """
@@ -1081,22 +1095,31 @@ class FastExportParser(object):
     that the name of the reference ('from', 'merge') must match the
     refname arg.
     """
-    orig_baseref, baseref = None, None
-    rule, altrule = self._parent_regexes[refname]
-    matches = rule.match(self._currentline)
-    if matches:
-      orig_baseref = int(matches.group(1))
-      # We translate the parent commit mark to what it needs to be in
-      # our mark namespace
-      baseref = _IDS.translate(orig_baseref)
-      self._advance_currentline()
-    else:
-      matches = altrule.match(self._currentline)
+    while True:
+      orig_baseref, baseref = None, None
+      rule, altrule, anyrule = self._get_parent_regexes()[refname]
+      if anyrule:
+        for f, n, rule in anyrule:
+          if rule.match(self._currentline) is not None:
+            self._object_format = f
+            self._object_format_len = n
+        else:
+          return None, None
+        continue
+      matches = rule.match(self._currentline)
       if matches:
-        orig_baseref = matches.group(1)
-        baseref = orig_baseref
+        orig_baseref = int(matches.group(1))
+        # We translate the parent commit mark to what it needs to be in
+        # our mark namespace
+        baseref = _IDS.translate(orig_baseref)
         self._advance_currentline()
-    return orig_baseref, baseref
+      else:
+        matches = altrule.match(self._currentline)
+        if matches:
+          orig_baseref = matches.group(1)
+          baseref = orig_baseref
+          self._advance_currentline()
+      return orig_baseref, baseref
 
   def _parse_optional_filechange(self):
     """
@@ -1114,10 +1137,10 @@ class FastExportParser(object):
       path = path.rstrip(b'\n')
       # Check for LFS objects from sources before we might toss this filechange
       if mode != b'160000' and self._lfs_object_tracker:
-        value = int(idnum) if len(idnum) != 40 else idnum
+        value = int(idnum) if len(idnum) != self._object_format_len else idnum
         self._lfs_object_tracker.check_file_change_data(value, True)
       # We translate the idnum to our id system
-      if len(idnum) != 40:
+      if len(idnum) != self._object_format_len:
         idnum = _IDS.translate( int(idnum) )
       if idnum is not None:
         if path.startswith(b'"'):
@@ -1151,6 +1174,15 @@ class FastExportParser(object):
 
   def _parse_original_id(self):
     original_id = self._currentline[len(b'original-oid '):].rstrip()
+    if self._object_format is None:
+      if len(original_id) == 40:
+        self._object_format = "sha1"
+        self._object_format_len = 40
+      elif len(original_id) == 64:
+        self._object_format = "sha256"
+        self._object_format_len = 64
+      else:
+        raise SystemExit(_("Couldn't assess whether the object ID is sha1 or sha256"))
     self._advance_currentline()
     return original_id
 
@@ -1556,6 +1588,19 @@ class FastExportParser(object):
 
   def get_exported_and_imported_refs(self):
     return self._exported_refs, self._imported_refs
+
+  @property
+  def deleted_hash(self):
+    if self._object_format == "sha1":
+      return deleted_hash_sha1
+    elif self._object_format == "sha256":
+      return deleted_hash_sha256
+    else:
+      assert False, "DEAD CODE"
+
+  @property
+  def object_format(self):
+    return self._object_format
 
 def record_id_rename(old_id, new_id):
   """
@@ -3227,7 +3272,7 @@ class RepoFilter(object):
     self._parsed_message = _("Parsed %d commits")
 
     # Compile some regexes and cache those
-    self._hash_re = re.compile(br'(\b[0-9a-f]{7,40}\b)')
+    self._hash_re = re.compile(br'(\b[0-9a-f]{7,64}\b)')
 
   def _handle_arg_callbacks(self):
     def make_callback(args, bdy):
@@ -3391,7 +3436,13 @@ class RepoFilter(object):
         continue
       replace_objects.add(rev)
 
-    validobj_re = re.compile(rb'^[0-9a-f]{40}$')
+    if self._parser.object_format == "sha1":
+      object_format_len = 40
+    elif self._parser.object_format == "sha256":
+      object_format_len = 64
+    else:
+      assert False, "DEAD CODE"
+    validobj_re = re.compile(b'^[0-9a-f]{{{:d}}}$'.format(object_format_len))
     object_dir=os.path.join(git_dir, b'objects')
     for root, dirs, files in os.walk(object_dir):
       for filename in files:
@@ -4139,14 +4190,14 @@ class RepoFilter(object):
         rewrite_to = new_1st_parent or commit.first_parent()
         commit.skip(new_id = rewrite_to)
         if self._args.state_branch:
-          alias = Alias(commit.old_id or commit.id, rewrite_to or deleted_hash)
+          alias = Alias(commit.old_id or commit.id, rewrite_to or self._parser.deleted_hash)
           self._insert_into_stream(alias)
         if commit.branch.startswith(b'refs/') or commit.branch == b'HEAD':
           # The special check above is because when direct revisions are passed
           # along to fast-export (such as with stashes), there is a chance the
           # revision is rewritten to nothing.  In such cases, we don't want to
           # point an invalid ref that just names a revision to some other point.
-          reset = Reset(commit.branch, rewrite_to or deleted_hash)
+          reset = Reset(commit.branch, rewrite_to or self._parser.deleted_hash)
           self._insert_into_stream(reset)
         self._commit_renames[commit.original_id] = None
 
@@ -4308,7 +4359,7 @@ class RepoFilter(object):
         self._args.refs.extend([x[0] for x in self._stash])
 
   def _write_stash(self):
-    last = deleted_hash
+    last = self._parser.deleted_hash
     if self._stash:
       target_working_dir = self._args.target or b'.'
       git_dir = GitUtils.determine_git_dir(target_working_dir)
@@ -4550,7 +4601,7 @@ class RepoFilter(object):
     '''
     old_id = self._orig_graph._hash_to_id[oldish_hash]
     new_id = _IDS.translate(old_id)
-    new_hash = self._graph.git_hash[new_id] if new_id else deleted_hash
+    new_hash = self._graph.git_hash[new_id] if new_id else self._parser.deleted_hash
     return new_hash
 
   def _compute_metadata(self, metadata_dir, orig_refs):
@@ -4588,7 +4639,7 @@ class RepoFilter(object):
 
     old_commit_unrenames = dict()
     if not self._already_ran:
-      old_ref_map = dict((refname, (old_hash, deleted_hash))
+      old_ref_map = dict((refname, (old_hash, self._parser.deleted_hash))
                          for refname, old_hash in orig_refs.items()
                          if refname in exported_refs)
     else:
@@ -4615,7 +4666,7 @@ class RepoFilter(object):
           continue
         # Compute older_hash
         original_hash = old_commit_unrenames.get(old_hash, old_hash)
-        old_ref_map[refname] = (original_hash, deleted_hash)
+        old_ref_map[refname] = (original_hash, self._parser.deleted_hash)
 
     new_refs = {}
     new_refs_initialized = False
@@ -4639,7 +4690,7 @@ class RepoFilter(object):
         if refname in new_refs:
           new_hash = new_refs[refname]
         else:
-          new_hash = deleted_hash
+          new_hash = self._parser.deleted_hash
       ref_maps[refname] = (old_hash, new_hash)
     if self._args.source or self._args.target:
       if not new_refs_initialized:
@@ -4670,18 +4721,18 @@ class RepoFilter(object):
     # We are excluding here any commits deleted in previous git-filter-repo
     # runs
     undo_old_commit_renames = dict((v,k) for (k,v) in old_commit_renames.items()
-                                   if v != deleted_hash)
+                                   if v != self._parser.deleted_hash)
     # Get a list of all commits that were changed, as of the beginning of
     # this latest run.
     changed_commits = {new
                        for (old,new) in old_commit_renames.items()
-                       if old != new and new != deleted_hash} | \
+                       if old != new and new != self._parser.deleted_hash} | \
                       {old
                        for (old,new) in self._commit_renames.items()
                        if old != new}
     special_changed_commits = {old
                                for (old,new) in old_commit_renames.items()
-                               if new == deleted_hash}
+                               if new == self._parser.deleted_hash}
     first_changes = dict()
     for (old,new) in self._commit_renames.items():
       if old == new:
@@ -4701,9 +4752,9 @@ class RepoFilter(object):
       # its most recent ancestor that wasn't pruned.
       if new is None:
         new = self._remap_to(old)
-      first_changes[old] = (new if new is not None else deleted_hash)
+      first_changes[old] = (new if new is not None else self._parser.deleted_hash)
     for (old,undeleted_self_or_ancestor) in old_first_changes.items():
-      if undeleted_self_or_ancestor == deleted_hash:
+      if undeleted_self_or_ancestor == self._parser.deleted_hash:
         # old represents a commit that was pruned and whose entire ancestry
         # was pruned.  So, old is still a first change
         first_changes[old] = undeleted_self_or_ancestor
@@ -4711,7 +4762,7 @@ class RepoFilter(object):
       intermediate = old_commit_renames.get(old, old)
       usoa = undeleted_self_or_ancestor
       new_ancestor = self._commit_renames.get(usoa, usoa)
-      if intermediate == deleted_hash:
+      if intermediate == self._parser.deleted_hash:
         # old was pruned in previous rewrite
         if usoa != new_ancestor:
           # old's ancestor got rewritten in this filtering run; we can drop
@@ -4795,7 +4846,7 @@ class RepoFilter(object):
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
       for (old,new) in sorted(commit_renames.items()):
-        msg = b'%s %s\n' % (old, new if new != None else deleted_hash)
+        msg = b'%s %s\n' % (old, new if new != None else self._parser.deleted_hash)
         f.write(msg)
 
     with open(os.path.join(metadata_dir, b'ref-map'), 'bw') as f:
