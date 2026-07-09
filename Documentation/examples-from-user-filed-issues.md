@@ -233,7 +233,7 @@ where the author email is currently `example@test.com`:
 
 ```
 git filter-repo --refs main~5..main --commit-callback '
-    if commit.author_email = b"example@test.com":
+    if commit.author_email == b"example@test.com":
         commit.author_name = "Raphaël González".encode()
         commit.author_email = b"rgonzalez@test.com"
 '
