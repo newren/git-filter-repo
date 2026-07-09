@@ -2047,6 +2047,12 @@ EXAMPLES
     contents.add_argument('--strip-blobs-with-ids', metavar='BLOB-ID-FILENAME',
         help=_("Read git object ids from each line of the given file, and "
                "strip all of them from history"))
+    contents.add_argument('--blobbase', metavar='BLOB-SHAS-AND-PATHS',
+        help=_("Process an annotated blob-shas-and-paths.txt file. 'blobbase' "
+               "because it uses a command system similar to git's interactive "
+               "rebase. Commands: k, keep sha = keep blob; s, strip sha = "
+               "strip blob. Keep is the default if no command has been "
+               "specified."))
 
     refrename = parser.add_argument_group(title=_("Renaming of refs "
                                               "(see also --refname-callback)"))
@@ -2462,6 +2468,18 @@ EXAMPLES
         args.strip_blobs_with_ids = set(f.read().split())
     else:
       args.strip_blobs_with_ids = set()
+    # blobbase leverages args.strip_blobs_with_ids
+    if args.blobbase:
+      # Commands: k, keep = keep blob; s, strip = strip blob. No command means keep.
+      with open(args.blobbase, 'br') as f:
+        # Header lines start with '===' or 'Format:'
+        # Blank lines are blank, comments start with '#'
+        # Not annotating a blob is interpreted as 'keep', keep is keep
+        # Pathbase match lines start with 'm'. This means one blob_shas_and_paths can be annotated for use with both
+        # blobbase and pathbase.
+        # All this has to do is find the strip lines which are distinct from the above lines
+        # git.git:sequencer.c:parse_insn_line() does not require the command to be in the first column
+        args.strip_blobs_with_ids.update(parts[1] for parts in (line.split() for line in f) if len(parts) >= 2 and parts[0].decode()[0:1] == 's')
     if (args.partial or args.refs) and not args.replace_refs:
       args.replace_refs = 'update-no-add'
     args.repack = not (args.partial or args.refs or args.no_gc)
@@ -2892,6 +2910,7 @@ class RepoAnalyze(object):
     # List of filenames and sizes in descending order
     with open(os.path.join(reportdir, b"blob-shas-and-paths.txt"), 'bw') as f:
       f.write(("=== %s ===\n" % _("Files by sha and associated pathnames in reverse size")).encode())
+      f.write(("=== %s ===\n" % _("To use blobbase, prefix lines with commands: k, keep = keep blob; s, strip = strip blob. No command means keep.")).encode())
       f.write(_("Format: sha, unpacked size, packed size, filename(s) object stored as\n").encode())
       for sha, size in sorted(stats['packed_size'].items(),
                               key=lambda x:(x[1],x[0]), reverse=True):
