@@ -143,6 +143,8 @@ this does not look like a fresh clone.
 [...]
 Please operate on a fresh clone instead.  If you want to proceed
 anyway, use --force.
+This may delete your reflog, stash, remotes, and other things
+you may not expect, so do read the --force docs first!
 ```
 If you then added `--force`, well, you were warned.
 
