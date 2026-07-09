@@ -43,6 +43,7 @@ import subprocess
 import sys
 import time
 import textwrap
+import re
 
 from datetime import tzinfo, timedelta, datetime
 
@@ -1845,6 +1846,12 @@ class FilteringOptions(object):
         namespace.path_changes = []
       namespace.path_changes += FilteringOptions.get_paths_from_file(values)
 
+  class PathbaseFilter(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+      if not namespace.path_changes:
+        namespace.path_changes = []
+      namespace.path_changes += FilteringOptions.get_pathbase(values)
+
   @staticmethod
   def create_arg_parser():
     # Include usage in the summary, so we can put the description first
@@ -1965,6 +1972,11 @@ EXAMPLES
         dest='report_dir',
         help=_("Directory to write report, defaults to GIT_DIR/filter_repo/analysis,"
                "refuses to run if exists, --force delete existing dir first."))
+    analyze.add_argument('--one-path-per-blob', action='store_true',
+        help=_("The report 'blob-shas-and-paths.txt' will be written so that "
+               "each blob has only a single path, instead of the usual method "
+               "of each blob having all its paths. This makes filtering by "
+               "path easier."))
 
     path = parser.add_argument_group(title=_("Filtering based on paths "
                                              "(see also --filename-callback)"),
@@ -2030,6 +2042,14 @@ EXAMPLES
         action=FilteringOptions.HelperFilter, type=os.fsencode,
         help=_("Treat the project root as if it were under DIRECTORY. "
                "Equivalent to using '--path-rename :DIRECTORY/'"))
+    helpers.add_argument('--pathbase', metavar='BLOB-SHAS-AND-PATHS',
+        type=os.fsencode,
+        action=FilteringOptions.PathbaseFilter, dest='path_changes',
+        help=_("Process an annotated blob-shas-and-paths.txt file. 'pathbase' "
+               "because it uses a command system similar to git's interactive "
+               "rebase. Commands: m, match = match path. Matched paths act as "
+               "if they were added with '--path'. It is required that the "
+               "report file was produced with '--analyze --one-path-per-blob'"))
 
     contents = parser.add_argument_group(title=_("Content editing filters "
                                                  "(see also --blob-callback)"))
@@ -2382,6 +2402,46 @@ EXAMPLES
     return {'literals': replace_literals, 'regexes':  replace_regexes}
 
   @staticmethod
+  def get_pathbase(filename):
+    new_path_changes = []
+
+    # Pattern to match a 'match' line, either explicit or implicit
+    # Tokenizes out the filename which may include spaces which is why .split() is insufficient
+    # Match list looks like
+    # ('match ', 'atch', '6c434caf48bad9b615d5daf707d92d6413ccc6dc', '53094498', '51593024', 'file with spaces.txt')
+    keep_re = re.compile(r'^(m(atch)?\s)?\s*([0-9A-Fa-f]+)\s+(\d+)\s+(\d+)\s+(.*)')
+
+    # Expect a blob_shas_and_paths.txt format file produced with '--analyze --one-path-per-blob'
+    with open(filename, 'br') as f:
+      for lnum, line in enumerate(f):
+        line = line.rstrip(b'\r\n')
+
+        # Skip blank lines
+        if not line:
+          continue
+        # Skip comment lines
+        if line.startswith(b'#'):
+          continue
+        # Skip header lines
+        if line.startswith(b'=== ') or line.startswith(b'Format: '):
+          continue
+
+        # Blob filtering is "default strip". Path filtering is "default match"; whether that means keep or strip depends on
+        # the abscence or presence of the '--invert-paths' flag.
+        # Which is why the filtering is different between these two styles (blobbase vs pathbase)
+        if not (line.startswith(b'm ') or line.startswith(b'match ')):
+          continue
+
+        match_groups = keep_re.findall(decode(line))[0]
+        if len(match_groups) < 6 or not match_groups[5]:
+          # Mal-formed line
+          raise SystemExit(_("Error: In %s, malformed line at %d: '%s')" % (decode(filename), lnum, decode(line))))
+
+        new_path_changes.append(['filter', 'match', match_groups[5].encode()])
+
+      return new_path_changes
+
+  @staticmethod
   def get_paths_from_file(filename):
     new_path_changes = []
     with open(filename, 'br') as f:
@@ -2660,7 +2720,7 @@ class RepoAnalyze(object):
     return stats
 
   @staticmethod
-  def write_report(reportdir, stats):
+  def write_report(reportdir, stats, one_path_per_blob):
     def datestr(datetimestr):
       return datetimestr if datetimestr else _('<present>').encode()
 
@@ -2892,6 +2952,7 @@ class RepoAnalyze(object):
     # List of filenames and sizes in descending order
     with open(os.path.join(reportdir, b"blob-shas-and-paths.txt"), 'bw') as f:
       f.write(("=== %s ===\n" % _("Files by sha and associated pathnames in reverse size")).encode())
+      f.write(("=== %s ===\n" % _("To use pathbase, prefix lines with commands: m, match = match path. Matched paths work as if they were supplied via '--path'.")).encode())
       f.write(_("Format: sha, unpacked size, packed size, filename(s) object stored as\n").encode())
       for sha, size in sorted(stats['packed_size'].items(),
                               key=lambda x:(x[1],x[0]), reverse=True):
@@ -2902,6 +2963,13 @@ class RepoAnalyze(object):
         names_with_sha = stats['names'][sha]
         if len(names_with_sha) == 1:
           names_with_sha = names_with_sha.pop()
+        elif one_path_per_blob:
+          for name in sorted(names_with_sha):
+            f.write(b"  %s %10d %10d %s\n" % (sha,
+                                              stats['unpacked_size'][sha],
+                                              size,
+                                              name))
+          continue
         else:
           names_with_sha = b'[' + b', '.join(sorted(names_with_sha)) + b']'
         f.write(b"  %s %10d %10d %s\n" % (sha,
@@ -2938,7 +3006,7 @@ class RepoAnalyze(object):
     # Write the reports
     sys.stdout.write(_("Writing reports to \"%s\"...") % decode(reportdir))
     sys.stdout.flush()
-    RepoAnalyze.write_report(reportdir, stats)
+    RepoAnalyze.write_report(reportdir, stats, args.one_path_per_blob)
     sys.stdout.write(_("done.\n"))
     sys.stdout.write(_("README: \"%s\"\n") % decode( os.path.join(reportdir, b"README") ))
 
