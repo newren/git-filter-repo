@@ -65,7 +65,7 @@ following apply:
 
 For comprehensive documentation:
   * see the [user manual](https://htmlpreview.github.io/?https://github.com/newren/git-filter-repo/blob/docs/html/git-filter-repo.html)
-  * alternative formating of the user manual is available on various
+  * alternative formatting of the user manual is available on various
     external sites
     ([example](https://www.mankier.com/1/git-filter-repo)), for those
     that don't like the htmlpreview.github.io layout, though it may
