@@ -482,7 +482,27 @@ class UserInterfaceNightmare:
         # that was filtered, so we filter the entire tree for that commit
         # rather than just the files it modified relative to its parent.
         full_tree = True
-        self._populate_full_index(commit.parents[0])
+       edf8dac05da88d9a42389ad19a6d096dcae12c3e## Summary
+
+Fix a crash caused by Rust SDK logging initialization failing during app startup.
+
+When the Rust logging subsystem cannot initialize, the app should not crash. Instead, it should log the error and continue running.
+
+## Changes
+
+- Guard the Rust SDK logging initialization path against failures.
+- Log the initialization error instead of crashing the app.
+- Keep app startup resilient when the Rust logging backend is unavailable or misconfigured.
+
+## Testing
+
+- Verified the app no longer crashes when Rust logging initialization fails.
+- Confirmed the initialization error is logged for debugging.
+
+## Checklist
+
+- [x] I have added a clear description for this PR.
+- [x] I have added exactly one appropriate `PR-` label. self._populate_full_index(commit.parents[0])
       else:
         self._populate_index(commit.file_changes)
       if self.args.tree_filter:
