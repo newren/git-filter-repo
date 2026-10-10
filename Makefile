@@ -1,4 +1,4 @@
-# A bunch of installation-related paths people can override on the command line
+https://github.com/cp794001/element-x-android/actions/runs/36328618675/job/108810514480# A bunch of installation-related paths people can override on the command line
 DESTDIR = /
 INSTALL = install
 prefix = $(HOME)
@@ -9,7 +9,7 @@ htmldir = $(prefix)/share/doc/git-doc
 pythondir = $(prefix)/lib64/python3.6/site-packages
 
 default: build
-
+https://github.com/cp794001/element-x-android/actions/runs/36383771677/job/108804762314#step:2:43
 build:
 	@echo Nothing to do: filter-repo is a script which needs no compilation.
 
