@@ -1,6 +1,6 @@
 #!/bin/bash
 
-test_description='Basic filter-repo tests'
+test_description='Sanity checks and bigger repo tests for filter-repo'
 
 . ./test-lib.sh
 

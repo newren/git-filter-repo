@@ -208,6 +208,32 @@ Filtering of commit messages (see also --message-callback)
 	commit object specifies an encoding for the commit message,
 	the message is re-encoded into UTF-8.
 
+--preserve-signatures[=<mode>]::
+	Keep commit and tag signatures that are still valid after
+	filtering.  What happens to signatures that became invalid
+	depends on <mode>:
++
+--
+- By default (no <mode>), or when <mode> is 'strip', they are removed.
+- When <mode> is 'abort', the process is stopped as soon as a signature
+  becomes invalid.  Nothing is rewritten.
+- When <mode> is 're-sign[=<keyID>]', any now-invalid signature is
+  replaced with a new one made from <keyID> or the signing key
+  configured in the target repository (`gpg.format`, `user.signingKey`).
+  Only commits and tags whose signature became invalid are re-signed.
+  Their new signatures are made by you rather than by the original
+  signers.  The key must be usable without an interactive passphrase
+  prompt.
+--
++
+This requires git >= 2.54.0.  Note that signature verification and
+signing use the target repo's config, so the signers' public keys (for
+example through the GPG keyring or `gpg.ssh.allowedSignersFile`) must
+be available there.  It's recommended to use
+`--preserve-commit-encoding`, as re-encoding a commit message changes
+the commit.  Signed tags without a tagger always lose their signature,
+as a tagger is added to them.
+
 Filtering of names & emails (see also --name-callback and --email-callback)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1788,14 +1814,14 @@ Since git filter-repo calls fast-export and fast-import to do a lot of the
 heavy lifting, it inherits limitations from those systems:
 
   * extended commit headers, if any, are stripped
-  * commits get rewritten meaning they will have new hashes; therefore,
-    signatures on commits and tags cannot continue to work and instead are
-    just removed (thus signed tags become annotated tags)
-  * tags of commits are supported.  Prior to git-2.24.0, tags of blobs and
-    tags of tags are not supported (fast-export would die on such tags).
-    tags of trees are not supported in any git version (since fast-export
-    ignores tags of trees with a warning and fast-import provides no way to
-    import them).
+  * when commits get rewritten, they will have new hashes.  Therefore,
+    signatures on rewritten commits and tags cannot continue to work and
+    are removed by default (thus signed tags become annotated tags).
+    With git >= 2.54.0, `--preserve-signatures` keeps the signatures of
+    commits and tags that are not rewritten though.
+  * tags of commits, blobs and tags are supported.  tags of trees are
+    not supported in any git version (since fast-export ignores tags of
+    trees with a warning and fast-import provides no way to import them).
   * annotated and signed tags outside of the refs/tags/ namespace are not
     supported (their location will be mangled in weird ways)
   * fast-import will die on various forms of invalid input, such as a

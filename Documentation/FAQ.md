@@ -56,7 +56,9 @@ history in various ways.  The second cause means that even if you have
 no filter, these tools sometimes change commit hashes.  This can happen
 in any of these cases:
 
-  * If you have signed commits, the signatures will be stripped
+  * If you have signed commits, the signatures will be stripped,
+    unless `--preserve-signatures` is used and the commits are
+    otherwise unchanged
   * If you have commits with extended headers, the extended headers will
     be stripped (signed commits are actually a special case of this)
   * If you have commits in an encoding other than UTF-8, they will by
